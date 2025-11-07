@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: user-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/club_user
+    username: postgres
+    password: "#88Deepu"
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8081
+
+jwt:
+  secret: thisismyfirsteversecretKeyWhichIhaveCreatedFormyProjectAndthisIsSupposedtobeHugeAndIDontKnowHowHuge
+  expiration: 86400000
