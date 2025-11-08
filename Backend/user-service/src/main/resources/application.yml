@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: user-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/club_user
+    username: postgres
+    password: "#88Deepu"
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: goraisourabh62@gmail.com
+    password: qgql fptk hhak kpfz
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+
+server:
+  port: 8081
+
+jwt:
+  secret: thisismyfirsteversecretKeyWhichIhaveCreatedFormyProjectAndthisIsSupposedtobeHugeAndIDontKnowHowHuge
+  expiration: 86400000
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
