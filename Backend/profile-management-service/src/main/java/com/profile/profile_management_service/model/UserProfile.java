@@ -21,14 +21,18 @@ public class UserProfile {
     @Column(unique = true, nullable = false)
     private Long prn;
 
-    private Long userId;  // user-service id will be a foreign key
+    @Column(nullable = false)
+    private Long userId;  // foreign key from user-service
+
+    @Column(nullable = false)
     private String fullName;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String department;
 
+    @Column(nullable = false)
     private String year;
 
-    private String imagePath;  // path like "/uploads/1_profile.jpg"
+    private String imagePath;  // optional, e.g. "/uploads/1_profile.jpg"
 
 }

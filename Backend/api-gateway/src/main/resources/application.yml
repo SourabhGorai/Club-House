@@ -1,40 +1,116 @@
-server:
-  port: 8080
-
 spring:
   application:
     name: api-gateway
 
+  # Enable Caffeine cache for LoadBalancer
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=600s
+
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true   # Enables automatic route mapping via Eureka
-          lower-case-service-id: true
-      routes:
-        # Example route for user service
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/users/**
+      server:
+        webflux:
+          routes:
+            # ========== USER SERVICE ROUTES ==========
 
-        - id: auth-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/auth/**
+            # Auth endpoints (public - no authentication required)
+            - id: user-service-auth
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=0
 
+            # User management endpoints (protected)
+            - id: user-service-users
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
 
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - AddResponseHeader=Access-Control-Allow-Origin, *
+            # ========== ADD MORE SERVICES HERE ==========
 
-  main:
-    web-application-type: reactive
+            # Example: Club Service (uncomment when ready)
+            # - id: club-service
+            #   uri: lb://club-service
+            #   predicates:
+            #     - Path=/api/clubs/**
+            #   filters:
+            #     - StripPrefix=0
+            #     - AuthenticationFilter
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+            # Example: Team Service (uncomment when ready)
+            # - id: team-service
+            #   uri: lb://team-service
+            #   predicates:
+            #     - Path=/api/teams/**
+            #   filters:
+            #     - StripPrefix=0
+            #     - AuthenticationFilter
 
+          # Global CORS configuration
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns:
+                  - "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders: "*"
+                exposedHeaders:
+                  - Authorization
+                allowCredentials: true
+                maxAge: 3600
+
+          # Enable discovery locator
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+server:
+  port: 8080
+
+# JWT Configuration (MUST match user-service secret)
 jwt:
   secret: thisismyfirsteversecretKeyWhichIhaveCreatedFormyProjectAndthisIsSupposedtobeHugeAndIDontKnowHowHuge
+
+# Eureka Client Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

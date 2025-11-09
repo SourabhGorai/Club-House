@@ -4,8 +4,9 @@ import com.profile.profile_management_service.dto.ProfileDto;
 import com.profile.profile_management_service.service.ProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,7 +19,8 @@ public class ProfileController {
 
     @PostMapping
     public ResponseEntity<ProfileDto> createProfile(@Valid @RequestBody ProfileDto dto) {
-        return ResponseEntity.ok(service.createProfile(dto));
+        ProfileDto created = service.createProfile(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{prn}")
@@ -41,5 +43,13 @@ public class ProfileController {
     public ResponseEntity<String> deleteProfile(@PathVariable Long prn) {
         service.deleteProfile(prn);
         return ResponseEntity.ok("Profile deleted successfully with PRN: " + prn);
+    }
+
+    @PostMapping("/{prn}/upload-image")
+    public ResponseEntity<String> uploadProfileImage(
+            @PathVariable Long prn,
+            @RequestParam("file") MultipartFile file) {
+        String imagePath = service.uploadProfileImage(prn, file);
+        return ResponseEntity.ok("Image uploaded successfully. Path: " + imagePath);
     }
 }

@@ -2,18 +2,19 @@ package com.profile.profile_management_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ProfileDto {
+
     @NotNull(message = "PRN cannot be null")
     private Long prn;
+
+    @NotNull(message = "User ID cannot be null")
+    private Long userId;
 
     @NotBlank(message = "Full name is required")
     private String fullName;
@@ -24,5 +25,5 @@ public class ProfileDto {
     @NotBlank(message = "Year is required")
     private String year;
 
-    private String imagePath;  // can be null initially
+    private String imagePath;
 }

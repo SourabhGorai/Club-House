@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/club_user
-    username: postgres
-    password: "#88Deepu"
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -18,8 +18,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: goraisourabh62@gmail.com
-    password: qgql fptk hhak kpfz
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS}
     properties:
       mail:
         smtp:
@@ -32,7 +32,7 @@ server:
   port: 8081
 
 jwt:
-  secret: thisismyfirsteversecretKeyWhichIhaveCreatedFormyProjectAndthisIsSupposedtobeHugeAndIDontKnowHowHuge
+  secret: ${SECRET_KEY}
   expiration: 86400000
 
 eureka:

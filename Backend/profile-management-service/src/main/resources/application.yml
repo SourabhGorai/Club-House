@@ -2,10 +2,15 @@ spring:
   application:
     name: profile-management-service
 
+  servlet:
+    multipart:
+      max-file-size: 500KB
+      max-request-size: 500KB
+
   datasource:
     url: jdbc:postgresql://localhost:5432/club_user
-    username: postgres
-    password: "#88Deepu"
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,3 +26,5 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+
