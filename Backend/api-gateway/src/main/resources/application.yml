@@ -32,6 +32,15 @@ spring:
                 - StripPrefix=0
                 - AuthenticationFilter
 
+            # Profile Management Service
+            - id: profile-management-service
+              uri: lb://PROFILE-MANAGEMENT-SERVICE
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
+
             # ========== ADD MORE SERVICES HERE ==========
 
             # Example: Club Service (uncomment when ready)

@@ -1,0 +1,12 @@
+package com.profile.profile_management_service.exception;
+
+class ForbiddenAccessException extends RuntimeException {
+
+    public ForbiddenAccessException(String message) {
+        super(message);
+    }
+
+    public ForbiddenAccessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
