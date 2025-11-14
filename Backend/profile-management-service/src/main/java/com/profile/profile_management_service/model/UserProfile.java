@@ -19,8 +19,8 @@ import java.time.LocalDateTime;
  * Fixed for PostgreSQL BYTEA compatibility
  */
 @Entity
-@Table(name = "user_profiles", indexes = {
-        @Index(name = "idx_user_id", columnList = "userId"),
+@Table(name = "user_profiles2", indexes = {
+//        @Index(name = "idx_user_id", columnList = "userId"),
         @Index(name = "idx_department", columnList = "department"),
         @Index(name = "idx_year", columnList = "year"),
         @Index(name = "idx_phone", columnList = "phoneNumber"),
@@ -38,9 +38,9 @@ public class UserProfile {
     @Pattern(regexp = "^[A-Z0-9]{8,20}$", message = "PRN must be 8-20 alphanumeric characters")
     private String prn;
 
-    @Column(nullable = false, unique = true)
-    @NotNull(message = "User ID is required")
-    private Long userId;
+//    @Column(nullable = false, unique = true)
+//    @NotNull(message = "User ID is required")
+//    private Long userId;
 
     @Column(nullable = false, length = 100)
     @NotBlank(message = "Full name is required")

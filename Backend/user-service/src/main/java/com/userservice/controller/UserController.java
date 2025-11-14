@@ -28,18 +28,18 @@ public class UserController {
     }
 
     // GET /api/users/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
-        UserDto dto = userService.getUserById(id);
+    @GetMapping("/{prn}")
+    public ResponseEntity<UserDto> getUser(@PathVariable String prn) {
+        UserDto dto = userService.getUserByPrn(prn);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
     }
 
     // PUT /api/users/{id} -> update (password/email/role optional)
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto dto) {
+    @PutMapping("/{prn}")
+    public ResponseEntity<UserDto> updateUser(@PathVariable String prn, @RequestBody UserUpdateDto dto) {
         try {
-            UserDto updated = userService.updateUser(id, dto);
+            UserDto updated = userService.updateUser(prn, dto);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -47,10 +47,10 @@ public class UserController {
     }
 
     // DELETE /api/users/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    @DeleteMapping("/{prn}")
+    public ResponseEntity<?> deleteUser(@PathVariable String prn) {
         try {
-            userService.deleteUser(id);
+            userService.deleteUser(prn);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

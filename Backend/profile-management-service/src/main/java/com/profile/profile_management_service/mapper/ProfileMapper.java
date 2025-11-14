@@ -29,7 +29,7 @@ public class ProfileMapper {
 
         return ProfileResponse.builder()
                 .prn(profile.getPrn())
-                .userId(profile.getUserId())
+//                .userId(profile.getUserId())
                 .fullName(profile.getFullName())
                 .department(profile.getDepartment())
                 .year(profile.getYear())
@@ -99,7 +99,7 @@ public class ProfileMapper {
 
         return UserProfile.builder()
                 .prn(request.getPrn().toUpperCase())
-                .userId(request.getUserId())
+//                .userId(request.getUserId())
                 .fullName(request.getFullName().trim())
                 .department(request.getDepartment().trim())
                 .year(request.getYear())

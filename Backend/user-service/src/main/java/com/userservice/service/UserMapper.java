@@ -14,7 +14,7 @@ public class UserMapper {
     public UserDto toDto(User u) {
         if (u == null) return null;
         return UserDto.builder()
-                .id(u.getId())
+                .prn(u.getPrn())
                 .username(u.getUsername())
                 .email(u.getEmail())
                 .role(u.getRole())
@@ -25,6 +25,7 @@ public class UserMapper {
     public User toEntity(UserCreateDto dto) {
         if (dto == null) return null;
         return User.builder()
+                .prn(dto.getPrn())
                 .username(dto.getUsername())
                 .password(dto.getPassword())
                 .email(dto.getEmail())

@@ -69,16 +69,16 @@ public class ProfileController {
      * Get profile by User ID
      * GET /api/profiles/user/{userId}
      */
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ApiResponse<ProfileResponse>> getProfileByUserId(
-            @PathVariable Long userId) {
-        log.info("Received request to get profile by UserId: {}", userId);
-
-        ProfileResponse response = profileService.getProfileByUserId(userId);
-        log.info("Profile retrieved successfully for UserId: {}", userId);
-
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", response));
-    }
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<ApiResponse<ProfileResponse>> getProfileByUserId(
+//            @PathVariable Long userId) {
+//        log.info("Received request to get profile by UserId: {}", userId);
+//
+//        ProfileResponse response = profileService.getProfileByUserId(userId);
+//        log.info("Profile retrieved successfully for UserId: {}", userId);
+//
+//        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", response));
+//    }
 
     /**
      * Update profile
@@ -368,16 +368,16 @@ public class ProfileController {
      * Check if profile exists by User ID
      * GET /api/profiles/exists/user/{userId}
      */
-    @GetMapping("/exists/user/{userId}")
-    public ResponseEntity<ApiResponse<ProfileExistenceResponse>> checkProfileExistsByUserId(
-            @PathVariable Long userId) {
-        log.info("Checking profile existence for UserId: {}", userId);
-
-        ProfileExistenceResponse response = profileService.checkProfileExistsByUserId(userId);
-        log.info("Profile existence check for UserId {}: {}", userId, response.getExists());
-
-        return ResponseEntity.ok(ApiResponse.success("Existence check completed", response));
-    }
+//    @GetMapping("/exists/user/{userId}")
+//    public ResponseEntity<ApiResponse<ProfileExistenceResponse>> checkProfileExistsByUserId(
+//            @PathVariable Long userId) {
+//        log.info("Checking profile existence for UserId: {}", userId);
+//
+//        ProfileExistenceResponse response = profileService.checkProfileExistsByUserId(userId);
+//        log.info("Profile existence check for UserId {}: {}", userId, response.getExists());
+//
+//        return ResponseEntity.ok(ApiResponse.success("Existence check completed", response));
+//    }
 
     /**
      * Validate profile data before creation

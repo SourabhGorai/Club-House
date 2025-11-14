@@ -56,12 +56,12 @@ public class UserService {
         return userRepository.findAll().stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
-    public UserDto getUserById(Long id) {
-        return userRepository.findById(id).map(mapper::toDto).orElse(null);
+    public UserDto getUserByPrn(String prn) {
+        return userRepository.findByPrn(prn).map(mapper::toDto).orElse(null);
     }
 
-    public UserDto updateUser(Long id, UserUpdateDto dto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+    public UserDto updateUser(String prn, UserUpdateDto dto) {
+        User user = userRepository.findByPrn(prn).orElseThrow(() -> new RuntimeException("User not found"));
         mapper.updateEntityFromDto(dto, user);
         if (dto.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -70,9 +70,9 @@ public class UserService {
         return mapper.toDto(saved);
     }
 
-    public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) throw new RuntimeException("User not found");
-        userRepository.deleteById(id);
+    public void deleteUser(String prn) {
+        if (!userRepository.existsByPrn(prn)) throw new RuntimeException("User not found");
+        userRepository.deleteByPrn(prn);
     }
 
     /**

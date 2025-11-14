@@ -25,7 +25,7 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Find profile by user ID
      */
-    Optional<UserProfile> findByUserId(Long userId);
+//    Optional<UserProfile> findByUserId(Long userId);
 
     /**
      * Find active profile by PRN
@@ -35,7 +35,7 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Find active profile by user ID
      */
-    Optional<UserProfile> findByUserIdAndIsActiveTrue(Long userId);
+//    Optional<UserProfile> findByUserIdAndIsActiveTrue(Long userId);
 
     /**
      * Find profile by phone number
@@ -52,7 +52,7 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Check if user ID exists
      */
-    boolean existsByUserId(Long userId);
+//    boolean existsByUserId(Long userId);
 
     /**
      * Check if phone number exists
@@ -144,8 +144,8 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Find profiles by list of user IDs
      */
-    @Query("SELECT p FROM UserProfile p WHERE p.userId IN :userIds AND p.isActive = true")
-    List<UserProfile> findByUserIdIn(@Param("userIds") List<Long> userIds);
+//    @Query("SELECT p FROM UserProfile p WHERE p.userId IN :userIds AND p.isActive = true")
+//    List<UserProfile> findByUserIdIn(@Param("userIds") List<Long> userIds);
 
     // ========== Statistics Operations ==========
 
@@ -222,8 +222,15 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Get complete profile information excluding image data
      */
+
+//    @Query("SELECT new com.profile.profile_management_service.model.UserProfile(" +
+//            "p.prn, p.userId, p.fullName, p.department, p.year, p.phoneNumber, " +
+//            "null, p.imageType, p.imageSize, p.imageUploadedAt, " +
+//            "p.createdAt, p.updatedAt, p.isActive, p.version) " +
+//            "FROM UserProfile p WHERE p.prn = :prn AND p.isActive = true")
+
     @Query("SELECT new com.profile.profile_management_service.model.UserProfile(" +
-            "p.prn, p.userId, p.fullName, p.department, p.year, p.phoneNumber, " +
+            "p.prn, p.fullName, p.department, p.year, p.phoneNumber, " +
             "null, p.imageType, p.imageSize, p.imageUploadedAt, " +
             "p.createdAt, p.updatedAt, p.isActive, p.version) " +
             "FROM UserProfile p WHERE p.prn = :prn AND p.isActive = true")

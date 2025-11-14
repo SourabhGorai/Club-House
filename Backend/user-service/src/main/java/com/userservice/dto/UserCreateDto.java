@@ -14,6 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UserCreateDto {
+
+    @NotBlank
+    private String prn;
+
     @NotBlank
     private String username;
 

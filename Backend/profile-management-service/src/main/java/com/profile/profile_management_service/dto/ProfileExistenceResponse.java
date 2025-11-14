@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ProfileExistenceResponse {
 
     private String prn;
-    private Long userId;
+//    private Long userId;
     private Boolean exists;
     private String message;
 }

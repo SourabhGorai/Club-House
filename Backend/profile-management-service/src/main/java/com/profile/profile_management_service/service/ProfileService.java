@@ -39,7 +39,7 @@ public interface ProfileService {
      * @return Profile response
      * @throws ProfileNotFoundException if profile not found
      */
-    ProfileResponse getProfileByUserId(Long userId);
+//    ProfileResponse getProfileByUserId(Long userId);
 
     /**
      * Update existing profile
@@ -188,12 +188,12 @@ public interface ProfileService {
      */
     ProfileExistenceResponse checkProfileExistsByPrn(String prn);
 
-    /**
+    /** ---------------------------------------
      * Check if profile exists by User ID
-     * @param userId User ID to check
+     * @param prn User ID to check
      * @return Existence response
      */
-    ProfileExistenceResponse checkProfileExistsByUserId(Long userId);
+//    ProfileExistenceResponse checkProfileExistsByUserId(Long prn);
 
     /**
      * Validate profile data

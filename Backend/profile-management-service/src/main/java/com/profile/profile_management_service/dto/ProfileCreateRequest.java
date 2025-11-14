@@ -27,9 +27,9 @@ public class ProfileCreateRequest {
     @Pattern(regexp = "^[A-Z0-9]{8,20}$", message = "PRN must be 8-20 alphanumeric characters")
     private String prn;
 
-    @NotNull(message = "User ID is required")
-    @Positive(message = "User ID must be positive")
-    private Long userId;
+//    @NotNull(message = "User ID is required")
+//    @Positive(message = "User ID must be positive")
+//    private Long userId;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")

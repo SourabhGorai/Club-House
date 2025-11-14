@@ -47,7 +47,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ProfileResponse createProfile(ProfileCreateRequest request) {
-        log.info("Creating profile for PRN: {}, UserId: {}", request.getPrn(), request.getUserId());
+//        log.info("Creating profile for PRN: {}, UserId: {}", request.getPrn(), request.getUserId());
+        log.info("Creating profile for PRN: {}", request.getPrn());
 
         try {
             // Validate uniqueness
@@ -91,25 +92,25 @@ public class ProfileServiceImpl implements ProfileService {
         return profileMapper.toProfileResponse(profile);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public ProfileResponse getProfileByUserId(Long userId) {
-        log.debug("Fetching profile by UserId: {}", userId);
-
-        if (userId == null || userId <= 0) {
-            log.error("Invalid userId: {}", userId);
-            throw new IllegalArgumentException("User ID must be positive");
-        }
-
-        UserProfile profile = profileRepository.findByUserIdAndIsActiveTrue(userId)
-                .orElseThrow(() -> {
-                    log.error("Profile not found for UserId: {}", userId);
-                    return new ProfileNotFoundException("Profile not found for User ID: " + userId);
-                });
-
-        log.debug("Profile found for UserId: {}", userId);
-        return profileMapper.toProfileResponse(profile);
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public ProfileResponse getProfileByUserId(Long userId) {
+//        log.debug("Fetching profile by UserId: {}", userId);
+//
+//        if (userId == null || userId <= 0) {
+//            log.error("Invalid userId: {}", userId);
+//            throw new IllegalArgumentException("User ID must be positive");
+//        }
+//
+//        UserProfile profile = profileRepository.findByUserIdAndIsActiveTrue(userId)
+//                .orElseThrow(() -> {
+//                    log.error("Profile not found for UserId: {}", userId);
+//                    return new ProfileNotFoundException("Profile not found for User ID: " + userId);
+//                });
+//
+//        log.debug("Profile found for UserId: {}", userId);
+//        return profileMapper.toProfileResponse(profile);
+//    }
 
     @Override
     public ProfileResponse updateProfile(String prn, ProfileUpdateRequest request) {
@@ -192,11 +193,11 @@ public class ProfileServiceImpl implements ProfileService {
                     "Profile with PRN " + request.getPrn() + " already exists");
         }
 
-        if (profileRepository.existsByUserId(request.getUserId())) {
-            log.error("Profile already exists for UserId: {}", request.getUserId());
-            throw new DuplicateDataException("userId", request.getUserId().toString(),
-                    "Profile for User ID " + request.getUserId() + " already exists");
-        }
+//        if (profileRepository.existsByUserId(request.getUserId())) {
+//            log.error("Profile already exists for UserId: {}", request.getUserId());
+//            throw new DuplicateDataException("userId", request.getUserId().toString(),
+//                    "Profile for User ID " + request.getUserId() + " already exists");
+//        }
 
         if (profileRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             log.error("Profile already exists with phone number");
@@ -566,24 +567,24 @@ public class ProfileServiceImpl implements ProfileService {
                 .build();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public ProfileExistenceResponse checkProfileExistsByUserId(Long userId) {
-        log.debug("Checking profile existence by UserId: {}", userId);
-
-        if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("User ID must be positive");
-        }
-
-        boolean exists = profileRepository.existsByUserId(userId);
-        log.debug("Profile exists for UserId {}: {}", userId, exists);
-
-        return ProfileExistenceResponse.builder()
-                .userId(userId)
-                .exists(exists)
-                .message(exists ? "Profile exists" : "Profile does not exist")
-                .build();
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public ProfileExistenceResponse checkProfileExistsByUserId(Long userId) {
+//        log.debug("Checking profile existence by UserId: {}", userId);
+//
+//        if (userId == null || userId <= 0) {
+//            throw new IllegalArgumentException("User ID must be positive");
+//        }
+//
+//        boolean exists = profileRepository.existsByUserId(userId);
+//        log.debug("Profile exists for UserId {}: {}", userId, exists);
+//
+//        return ProfileExistenceResponse.builder()
+//                .userId(userId)
+//                .exists(exists)
+//                .message(exists ? "Profile exists" : "Profile does not exist")
+//                .build();
+//    }
 
     @Override
     public ValidationResponse validateProfile(ProfileCreateRequest request) {
@@ -601,13 +602,13 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         // Check userId uniqueness
-        if (profileRepository.existsByUserId(request.getUserId())) {
-            errors.add(ValidationError.builder()
-                    .field("userId")
-                    .message("User ID already has a profile")
-                    .rejectedValue(request.getUserId().toString())
-                    .build());
-        }
+//        if (profileRepository.existsByUserId(request.getUserId())) {
+//            errors.add(ValidationError.builder()
+//                    .field("userId")
+//                    .message("User ID already has a profile")
+//                    .rejectedValue(request.getUserId().toString())
+//                    .build());
+//        }
 
         // Check phone number uniqueness
         if (profileRepository.existsByPhoneNumber(request.getPhoneNumber())) {

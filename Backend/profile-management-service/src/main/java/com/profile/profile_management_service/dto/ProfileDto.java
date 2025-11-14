@@ -13,8 +13,8 @@ public class ProfileDto {
     @NotNull(message = "PRN cannot be null")
     private Long prn;
 
-    @NotNull(message = "User ID cannot be null")
-    private Long userId;
+//    @NotNull(message = "User ID cannot be null")
+//    private Long userId;
 
     @NotBlank(message = "Full name is required")
     private String fullName;
