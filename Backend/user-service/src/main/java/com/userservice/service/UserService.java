@@ -71,8 +71,9 @@ public class UserService {
     }
 
     public void deleteUser(String prn) {
-        if (!userRepository.existsByPrn(prn)) throw new RuntimeException("User not found");
-        userRepository.deleteByPrn(prn);
+        User user = userRepository.findByPrn(prn)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
     }
 
     /**

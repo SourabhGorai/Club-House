@@ -29,13 +29,13 @@ public class GatewayConfig {
             // User Service - Auth endpoints (public)
             .route("user-auth", r -> r
                 .path("/api/auth/**")
-                .uri("lb://user-service"))
+                .uri("lb://USER-SERVICE"))
 
             // User Service - User management (protected)
             .route("user-management", r -> r
                 .path("/api/users/**")
                 .filters(f -> f.filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                .uri("lb://user-service"))
+                .uri("lb://USER-SERVICE"))
 
             .build();
     }
