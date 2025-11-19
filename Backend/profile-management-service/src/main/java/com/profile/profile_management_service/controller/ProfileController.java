@@ -1,7 +1,9 @@
 package com.profile.profile_management_service.controller;
 
 import com.profile.profile_management_service.dto.*;
+import com.profile.profile_management_service.exception.UserNotFoundException;
 import com.profile.profile_management_service.service.ProfileService;
+import com.profile.profile_management_service.service.UserValidationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -31,7 +33,7 @@ import java.util.List;
 public class ProfileController {
 
     private final ProfileService profileService;
-
+    private final UserValidationService userValidationService;
     // ========== Core CRUD Endpoints ==========
 
     /**
@@ -41,6 +43,12 @@ public class ProfileController {
     @PostMapping
     public ResponseEntity<ApiResponse<ProfileResponse>> createProfile(
             @Valid @RequestBody ProfileCreateRequest request) {
+
+        boolean isValidUser = userValidationService.validateUser(request.getPrn());
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + request.getPrn());
+        }
+
         log.info("Received request to create profile for PRN: {}", request.getPrn());
 
         ProfileResponse response = profileService.createProfile(request);
@@ -57,6 +65,12 @@ public class ProfileController {
     @GetMapping("/prn/{prn}")
     public ResponseEntity<ApiResponse<ProfileResponse>> getProfileByPrn(
             @PathVariable String prn) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to get profile by PRN: {}", prn);
 
         ProfileResponse response = profileService.getProfileByPrn(prn);
@@ -88,6 +102,12 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<ProfileResponse>> updateProfile(
             @PathVariable String prn,
             @Valid @RequestBody ProfileUpdateRequest request) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to update profile for PRN: {}", prn);
 
         ProfileResponse response = profileService.updateProfile(prn, request);
@@ -102,6 +122,7 @@ public class ProfileController {
      */
     @DeleteMapping("/{prn}")
     public ResponseEntity<ApiResponse<Void>> deleteProfile(@PathVariable String prn) {
+
         log.info("Received request to delete profile for PRN: {}", prn);
 
         profileService.deleteProfile(prn);
@@ -120,6 +141,12 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<Void>> uploadProfileImage(
             @PathVariable String prn,
             @RequestParam("image") MultipartFile image) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to upload profile image for PRN: {}", prn);
 
         profileService.uploadProfileImage(prn, image);
@@ -138,6 +165,12 @@ public class ProfileController {
             MediaType.IMAGE_GIF_VALUE
     })
     public ResponseEntity<byte[]> getProfileImage(@PathVariable String prn) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to get profile image for PRN: {}", prn);
 
         byte[] image = profileService.getProfileImage(prn);
@@ -169,6 +202,12 @@ public class ProfileController {
     @GetMapping("/{prn}/image/metadata")
     public ResponseEntity<ApiResponse<ImageMetadataResponse>> getImageMetadata(
             @PathVariable String prn) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to get image metadata for PRN: {}", prn);
 
         ImageMetadataResponse response = profileService.getImageMetadata(prn);
@@ -287,6 +326,12 @@ public class ProfileController {
     @GetMapping("/public/{prn}")
     public ResponseEntity<ApiResponse<PublicProfileResponse>> getPublicProfile(
             @PathVariable String prn) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to get public profile for PRN: {}", prn);
 
         PublicProfileResponse response = profileService.getPublicProfile(prn);
@@ -302,6 +347,12 @@ public class ProfileController {
     @GetMapping("/summary/{prn}")
     public ResponseEntity<ApiResponse<ProfileSummaryResponse>> getProfileSummary(
             @PathVariable String prn) {
+
+        boolean isValidUser = userValidationService.validateUser(prn);
+        if (!isValidUser) {
+            throw new UserNotFoundException("No user registered with PRN: " + prn);
+        }
+
         log.info("Received request to get profile summary for PRN: {}", prn);
 
         ProfileSummaryResponse response = profileService.getProfileSummary(prn);
@@ -319,6 +370,7 @@ public class ProfileController {
     @PostMapping("/batch")
     public ResponseEntity<ApiResponse<BatchOperationResponse>> createProfilesBatch(
             @Valid @RequestBody BatchProfileRequest request) {
+
         log.info("Received batch creation request for {} profiles", request.getProfiles().size());
 
         BatchOperationResponse response = profileService.createProfilesBatch(request);
@@ -356,6 +408,7 @@ public class ProfileController {
     @GetMapping("/exists/prn/{prn}")
     public ResponseEntity<ApiResponse<ProfileExistenceResponse>> checkProfileExistsByPrn(
             @PathVariable String prn) {
+
         log.info("Checking profile existence for PRN: {}", prn);
 
         ProfileExistenceResponse response = profileService.checkProfileExistsByPrn(prn);
@@ -386,6 +439,7 @@ public class ProfileController {
     @PostMapping("/validate")
     public ResponseEntity<ApiResponse<ValidationResponse>> validateProfile(
             @Valid @RequestBody ProfileCreateRequest request) {
+
         log.info("Validating profile data for PRN: {}", request.getPrn());
 
         ValidationResponse response = profileService.validateProfile(request);

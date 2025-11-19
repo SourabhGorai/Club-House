@@ -4,12 +4,15 @@ package com.userservice.controller;
 import com.userservice.dto.UserDto;
 import com.userservice.dto.UserUpdateDto;
 import com.userservice.service.UserService;
+import jakarta.ws.rs.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -54,6 +57,16 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/validate/{prn}")
+    public boolean validateUser(@PathVariable String prn){
+        try{
+            return userService.validate(prn);
+        }catch(NotFoundException e){
+            log.info("User with PRN {} does not exist", prn);
+            return false;
         }
     }
 }

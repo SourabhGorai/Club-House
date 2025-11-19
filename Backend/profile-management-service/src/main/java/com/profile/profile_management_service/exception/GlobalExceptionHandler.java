@@ -30,6 +30,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "status", 404,
+                        "message", ex.getMessage()
+                ));
+    }
+
+
     /**
      * Handle ProfileNotFoundException
      */

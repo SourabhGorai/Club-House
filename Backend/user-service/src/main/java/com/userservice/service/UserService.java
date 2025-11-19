@@ -89,4 +89,8 @@ public class UserService {
     public UserDto findByUsername(String username) {
         return userRepository.findByUsername(username).map(mapper::toDto).orElse(null);
     }
+
+    public boolean validate(String prn) {
+        return userRepository.existsByPrn(prn);
+    }
 }

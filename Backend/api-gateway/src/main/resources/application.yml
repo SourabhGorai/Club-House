@@ -36,7 +36,7 @@ spring:
             - id: profile-management-service
               uri: lb://PROFILE-MANAGEMENT-SERVICE
               predicates:
-                - Path=/api/users/**
+                - Path=/api/profiles/**
               filters:
                 - StripPrefix=0
                 - AuthenticationFilter
