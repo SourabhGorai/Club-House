@@ -1,8 +1,10 @@
 package com.clubservice.club_service.mapper;
 
 import com.clubservice.club_service.dto.ClubResponseDTO;
+import com.clubservice.club_service.dto.UserClubResponseDTO;
 import com.clubservice.club_service.dto.publicClubView;
 import com.clubservice.club_service.model.ClubCreation;
+import com.clubservice.club_service.model.UserClub;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -100,5 +102,16 @@ public class ClubMapper {
         return clubs.stream()
                 .map(ClubMapper::toPublicClubView)
                 .collect(Collectors.toList());
+    }
+
+    public static UserClubResponseDTO toResponse(UserClub userClub) {
+        return UserClubResponseDTO.builder()
+                .userClubId(userClub.getId())
+                .prn(userClub.getPrn())
+                .clubId(userClub.getClub().getClubId())
+                .clubName(userClub.getClub().getClubName())
+                .role(userClub.getRole())
+                .tenure(userClub.getTenure())
+                .build();
     }
 }
