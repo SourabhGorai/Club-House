@@ -4,6 +4,7 @@ import com.profile.profile_management_service.dto.*;
 import com.profile.profile_management_service.exception.InvalidImageException;
 import com.profile.profile_management_service.exception.ProfileAlreadyExistsException;
 import com.profile.profile_management_service.exception.ProfileNotFoundException;
+import com.profile.profile_management_service.model.UserProfile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -221,4 +222,6 @@ public interface ProfileService {
      * @return Year statistics
      */
     YearStatistics getYearStatistics();
+
+    List<String> filterPrnsByYear(List<String> prns, Integer year);
 }

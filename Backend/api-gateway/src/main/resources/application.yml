@@ -45,18 +45,18 @@ spring:
 
             # Profile Management Service
             - id: club-service-management
-              uri: lb://CLUB-SERVICE
+              uri: lb://CLUB-SERVICE2
               predicates:
-                - Path=/api/club/**
+                - Path=/api/clubs/**
               filters:
                 - StripPrefix=0
                 - AuthenticationFilter
 
             # Profile Management Service
             - id: club-service-assigning
-              uri: lb://CLUB-SERVICE
+              uri: lb://CLUB-SERVICE2
               predicates:
-                - Path=/api/user-club/**
+                - Path=/api/user-clubs/**
               filters:
                 - StripPrefix=0
                 - AuthenticationFilter

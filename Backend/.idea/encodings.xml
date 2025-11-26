@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/club-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/club-service2/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/eureka/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/independent-services/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/profile-management-service/src/main/java" charset="UTF-8" />
