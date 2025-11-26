@@ -28,12 +28,12 @@ export default function Login() {
         form
       );
 
-      console.log(form.username)
-      console.log(response.data.username)
-      console.log(response.data)
       console.log("Response:", response.data);
+
       if (response.data && response.data.user.username === form.username) {
         console.log("Login successful ✔");
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.data.token);
         navigate("/dashboard");
       } else {
         alert("Invalid username or password!");
@@ -107,3 +107,8 @@ export default function Login() {
 </div>
   );
 }
+
+
+
+
+

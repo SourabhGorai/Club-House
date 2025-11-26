@@ -4,6 +4,8 @@ import OTP from "./components/otp";
 import Login from "./components/login";
 import './App.css';
 import Dashboard from "./components/dashboard";
+import ClubAdminDashboard from "./components/ClubAdminDashboard";
+import SuperAdminDashboard from "./components/SuperAdminDashboard";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
         <Route path="/otp" element={<OTP />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/ca" element={<ClubAdminDashboard />} />
+        <Route path="/sa" element={<SuperAdminDashboard />} />
       </Routes>
     </div>
   );

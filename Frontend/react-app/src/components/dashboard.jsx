@@ -1,17 +1,32 @@
+import SuperAdminDashboard from "./SuperAdminDashboard";
+import TeachersDashboard from "./TeachersDashboard";
+import ClubAdminDashboard from "./ClubAdminDashboard";
+import UsersDashboard from "./UsersDashboard";
+
 export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) {
+    window.location.href = "/login";
+    return null;
+  }
+
+  const renderDashboard = () => {
+    switch (user.role) {
+      case 'SUPER_ADMIN':
+        return <SuperAdminDashboard />;
+      case 'TEACHERS':
+        return <TeachersDashboard />;
+      case 'CLUB_ADMIN':
+        return <ClubAdminDashboard />;
+      case 'USERS':
+      default:
+        return <UsersDashboard />;
+    }
+  };
 
   return (
-    <div className="max-w-lg mx-auto mt-20 p-8 bg-white shadow-xl rounded-2xl">
-      <h1 className="text-3xl font-bold text-center text-green-600">
-        Welcome to Dashboard 🎉
-      </h1>
-
-      {user && (
-        <p className="text-center text-xl mt-4">
-          Logged in as: <span className="font-semibold">{user.username}</span>
-        </p>
-      )}
+    <div>
+      {renderDashboard()}
     </div>
   );
 }
