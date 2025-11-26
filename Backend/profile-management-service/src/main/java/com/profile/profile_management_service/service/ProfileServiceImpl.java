@@ -728,4 +728,10 @@ public class ProfileServiceImpl implements ProfileService {
                     .build();
         }
     }
+
+    @Override
+    public List<String> filterPrnsByYear(List<String> prns, Integer year) {
+        return profileRepository.findPrnsByPrnInAndYear(prns, year);
+    }
+
 }

@@ -235,4 +235,12 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
             "p.createdAt, p.updatedAt, p.isActive, p.version) " +
             "FROM UserProfile p WHERE p.prn = :prn AND p.isActive = true")
     Optional<UserProfile> findProfileWithoutImage(@Param("prn") String prn);
+
+    @Query("SELECT p.prn FROM UserProfile p " +
+            "WHERE p.prn IN :prns " +
+            "AND p.year = :year " +
+            "AND p.isActive = true")
+    List<String> findPrnsByPrnInAndYear(@Param("prns") List<String> prns,
+                                        @Param("year") Integer year);
+
 }

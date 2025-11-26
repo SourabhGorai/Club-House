@@ -2,6 +2,7 @@ package com.profile.profile_management_service.controller;
 
 import com.profile.profile_management_service.dto.*;
 import com.profile.profile_management_service.exception.UserNotFoundException;
+import com.profile.profile_management_service.model.UserProfile;
 import com.profile.profile_management_service.service.ProfileService;
 import com.profile.profile_management_service.service.UserValidationService;
 import jakarta.validation.Valid;
@@ -348,16 +349,21 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<ProfileSummaryResponse>> getProfileSummary(
             @PathVariable String prn) {
 
+        System.out.println("Called by club-service for prn "+prn);
         boolean isValidUser = userValidationService.validateUser(prn);
         if (!isValidUser) {
             throw new UserNotFoundException("No user registered with PRN: " + prn);
         }
+        System.out.println("Called by club-service for prn "+prn);
 
         log.info("Received request to get profile summary for PRN: {}", prn);
+        System.out.println("Called by club-service for prn "+prn);
 
         ProfileSummaryResponse response = profileService.getProfileSummary(prn);
         log.info("Profile summary retrieved for PRN: {}", prn);
+        System.out.println("Called by club-service");
 
+        System.out.println(response);
         return ResponseEntity.ok(ApiResponse.success("Profile summary retrieved successfully", response));
     }
 
@@ -504,4 +510,19 @@ public class ProfileController {
         log.debug("Health check endpoint called");
         return ResponseEntity.ok(ApiResponse.success("Profile Management Service is running", "OK"));
     }
+
+    @PostMapping("/filter/prns")
+    public ResponseEntity<FilteredPrnResponse> filterPrnsByYear(
+            @RequestBody FilteredPrnRequest request) {
+
+        List<String> prns = profileService.filterPrnsByYear(
+                request.getPrns(), request.getYear()
+        );
+
+        return ResponseEntity.ok(
+                new FilteredPrnResponse(prns, prns.size())
+        );
+    }
+
+
 }

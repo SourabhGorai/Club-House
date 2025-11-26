@@ -28,16 +28,17 @@
         </processorPath>
         <module name="user-service" />
       </profile>
-      <profile name="Annotation profile for club-service" enabled="true">
+      <profile name="Annotation profile for club-service2" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
-        <module name="club-service" />
+        <module name="club-service2" />
         <module name="independent-services" />
         <module name="profile-management-service" />
+        <module name="club-service" />
       </profile>
     </annotationProcessing>
   </component>
@@ -45,6 +46,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api-gateway" options="-parameters" />
       <module name="club-service" options="-parameters" />
+      <module name="club-service2" options="-parameters" />
       <module name="eureka" options="-parameters" />
       <module name="independent-services" options="-parameters" />
       <module name="profile-management-service" options="-parameters" />
