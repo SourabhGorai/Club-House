@@ -6,6 +6,7 @@ server:
 spring:
   application:
     name: profile-management-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/club_user
     username: ${DB_USER}
