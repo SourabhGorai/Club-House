@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableMongoRepositories
+@EnableMongoAuditing
 public class NotificationServiceApplication {
 
 	public static void main(String[] args) {

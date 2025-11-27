@@ -1,8 +1,5 @@
 package com.notificationservice.notification_service.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,15 +11,17 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Document(collection = "notifications")
 @CompoundIndexes({
-        @CompoundIndex(name = "recipient_read_idx", def = "{'recipientPrn': 1, 'isRead': 1}"),
         @CompoundIndex(name = "type_created_idx", def = "{'notificationType': 1, 'createdAt': -1}"),
-        @CompoundIndex(name = "club_created_idx", def = "{'targetClubs': 1, 'createdAt': -1}")
+        @CompoundIndex(name = "club_created_idx", def = "{'targetClubs': 1, 'createdAt': -1}"),
+        @CompoundIndex(name = "dept_created_idx", def = "{'targetDepartments': 1, 'createdAt': -1}"),
+        @CompoundIndex(name = "status_created_idx", def = "{'status': 1, 'createdAt': -1}")
 })
 @Data
 @NoArgsConstructor
@@ -33,83 +32,92 @@ public class Notification {
     @Id
     private String id;
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 200, message = "Title cannot exceed 200 characters")
+    @Field("title")
     @Indexed
     private String title;
 
-    @NotBlank(message = "Message is required")
-    @Size(max = 2000, message = "Message cannot exceed 2000 characters")
+    @Field("message")
     private String message;
 
-    @NotNull(message = "Notification type is required")
+    @Field("notificationType")
     @Indexed
     private NotificationType notificationType;
 
     // Sender Information
-    @NotBlank(message = "Sender PRN is required")
+    @Field("senderPrn")
     @Indexed
     private String senderPrn;
 
-    @NotBlank(message = "Sender name is required")
+    @Field("senderName")
     private String senderName;
 
-    // Recipient Information (for personal notifications)
+    // Recipient Information (ONLY for personal notifications)
+    @Field("recipientPrn")
     @Indexed
     private String recipientPrn;
 
+    @Field("recipientName")
     private String recipientName;
 
     // For club-specific or department-specific notifications
-    private List<String> targetClubs;  // List of club names
+    @Field("targetClubs")
+    private List<String> targetClubs;
 
-    private List<String> targetDepartments;  // IT, CSE, MECH, etc.
+    @Field("targetDepartments")
+    private List<String> targetDepartments;
 
-    private List<Integer> targetYears;  // 1, 2, 3, 4
+    @Field("targetYears")
+    private List<Integer> targetYears;
 
     // Priority and Status
+    @Field("priority")
     @Builder.Default
     @Indexed
     private NotificationPriority priority = NotificationPriority.NORMAL;
 
+    @Field("status")
     @Builder.Default
     @Indexed
     private NotificationStatus status = NotificationStatus.ACTIVE;
 
-    @Builder.Default
-    @Indexed
-    private Boolean isRead = false;
-
-    private LocalDateTime readAt;
-
     // Additional metadata
-    private String actionUrl;  // Optional URL for action button
+    @Field("actionUrl")
+    private String actionUrl;
 
-    private String category;  // Event, Announcement, Reminder, etc.
+    @Field("category")
+    private String category;
 
+    @Field("isDeleted")
     @Builder.Default
     private Boolean isDeleted = false;
 
+    @Field("expiryDate")
     @Indexed
-    private LocalDateTime expiryDate;  // Optional expiry for time-sensitive notifications
+    private LocalDateTime expiryDate;
 
     // Timestamps
+    @Field("createdAt")
     @CreatedDate
     @Indexed
     private LocalDateTime createdAt;
 
+    @Field("updatedAt")
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Field("deletedAt")
     private LocalDateTime deletedAt;
 
     // Statistics (for analytics)
+    @Field("viewCount")
     @Builder.Default
     private Long viewCount = 0L;
 
     // For scheduled notifications
+    @Field("scheduledFor")
     private LocalDateTime scheduledFor;
 
+    @Field("isScheduled")
     @Builder.Default
     private Boolean isScheduled = false;
 }

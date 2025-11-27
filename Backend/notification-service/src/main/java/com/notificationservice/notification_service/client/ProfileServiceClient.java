@@ -19,6 +19,7 @@ import java.util.List;
 public class ProfileServiceClient {
 
     private final WebClient profileServiceWebClient;
+    private final WebClient clubServiceWebClient;
     private final HttpServletRequest request;
 
     /**
@@ -63,8 +64,8 @@ public class ProfileServiceClient {
 
         try {
             // Call club-service to get user's clubs
-            ApiResponseWrapper<List<String>> response = profileServiceWebClient.get()
-                    .uri("/api/user-clubs/user/{prn}/club-names", prn)
+            ApiResponseWrapper<List<String>> response = clubServiceWebClient.get()
+                    .uri("/api/user-clubs/user/{prn}", prn)
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponseWrapper<List<String>>>() {})
