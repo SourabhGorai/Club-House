@@ -8,6 +8,7 @@ import com.notificationservice.notification_service.exception.UnauthorizedAccess
 import com.notificationservice.notification_service.exception.ValidationException;
 import com.notificationservice.notification_service.mapper.NotificationMapper;
 import com.notificationservice.notification_service.model.Notification;
+import com.notificationservice.notification_service.model.NotificationPriority;
 import com.notificationservice.notification_service.model.NotificationStatus;
 import com.notificationservice.notification_service.model.NotificationType;
 import com.notificationservice.notification_service.repository.NotificationRepository;
@@ -238,13 +239,48 @@ public class NotificationService {
     public NotificationStatistics getStatistics() {
         log.debug("Fetching notification statistics");
 
+        long totalNotifications = notificationRepository.count();
+
+        // Using enum-based queries instead of string-based
+        long activeCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.ACTIVE);
+        long expiredCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.EXPIRED);
+        long archivedCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.ARCHIVED);
+
+        long unreadCount = notificationRepository.countByIsReadAndIsDeletedFalse(false);
+        long readCount = notificationRepository.countByIsReadAndIsDeletedFalse(true);
+
+        long globalNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.GLOBAL);
+        long personalNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.PERSONAL);
+        long clubNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.CLUB_SPECIFIC);
+        long departmentNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.DEPARTMENT);
+        long yearNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.YEAR_SPECIFIC);
+        long clubAndYearNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.CLUB_AND_YEAR);
+        long deptAndYearNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.DEPT_AND_YEAR);
+
+        long urgentCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.URGENT);
+        long highPriorityCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.HIGH);
+        long normalPriorityCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.NORMAL);
+        long lowPriorityCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.LOW);
+
+        log.info("Statistics - Total: {}, Unread: {}, Read: {}, Active: {}",
+                totalNotifications, unreadCount, readCount, activeCount);
+
         return NotificationStatistics.builder()
-                .totalNotifications(notificationRepository.count())
-                .activeCount(notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.ACTIVE))
-                .expiredCount(notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.EXPIRED))
-                .globalNotifications(notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.GLOBAL))
-                .personalNotifications(notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.PERSONAL))
-                .clubNotifications(notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.CLUB_SPECIFIC))
+                .totalNotifications(totalNotifications)
+                .unreadCount(unreadCount)
+                .readCount(readCount)
+                .activeCount(activeCount)
+                .expiredCount(expiredCount)
+                .archivedCount(archivedCount)
+                .globalNotifications(globalNotifications)
+                .personalNotifications(personalNotifications)
+                .clubNotifications(clubNotifications)
+                .departmentNotifications(departmentNotifications)
+                .yearNotifications(yearNotifications + clubAndYearNotifications + deptAndYearNotifications)
+                .urgentCount(urgentCount)
+                .highPriorityCount(highPriorityCount)
+                .normalPriorityCount(normalPriorityCount)
+                .lowPriorityCount(lowPriorityCount)
                 .build();
     }
 
