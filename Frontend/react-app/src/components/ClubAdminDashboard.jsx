@@ -7,7 +7,7 @@ export default function ClubAdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   return (
