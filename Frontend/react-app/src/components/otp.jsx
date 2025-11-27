@@ -20,7 +20,7 @@ export default function OTP() {
 
       alert("OTP Verified Successfully!");
 
-      navigate("/login");
+      navigate("/");
 
       console.log(response.data);
       

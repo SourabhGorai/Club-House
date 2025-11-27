@@ -1,14 +1,114 @@
-// import { User,CalendarDays} from 'lucide-react';
+
+// // with create profile code
+// import { User,Plus,Upload,X,CalendarDays} from 'lucide-react';
+// import { useState } from 'react';
+// import axios from 'axios';
 
 // export default function UsersDashboard() {
 //   const user = JSON.parse(localStorage.getItem("user"));
+//   const token = localStorage.getItem("token");
+//     const [showProfileForm, setShowProfileForm] = useState(false);
+//   const [profileData, setProfileData] = useState({
+//     prn: user?.prn || '',
+//     fullName: '',
+//     department: '',
+//     year: '',
+//     phoneNumber: ''
+//   });
+//   const [selectedImage, setSelectedImage] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [message, setMessage] = useState('');
+
 
 //   const handleLogout = () => {
 //     localStorage.removeItem("user");
 //     localStorage.removeItem("token");
-//     window.location.href = "/login";
+//     window.location.href = "/";
 //   };
 
+//   const handleInputChange = (e) => {
+//   setProfileData({
+//     ...profileData,
+//     [e.target.name]: e.target.value
+//   });
+// };
+
+// const handleImageChange = (e) => {
+//   setSelectedImage(e.target.files[0]);
+// };
+
+// const handleSubmitProfile = async (e) => {
+//   e.preventDefault();
+//   setLoading(true);
+//   setMessage('');
+
+//   // Validate all required fields are filled
+//   if (!profileData.prn || !profileData.fullName || !profileData.department || !profileData.year || !profileData.phoneNumber) {
+//     setMessage('Please fill all required fields');
+//     setLoading(false);
+//     return;
+//   }
+
+//   // Validate PRN format (if needed)
+//   if (profileData.prn.length < 10) {
+//     setMessage('Please enter a valid PRN');
+//     setLoading(false);
+//     return;
+//   }
+
+//   // Validate phone number format (basic validation)
+//   const phoneRegex = /^[0-9]{10}$/;
+//   if (!phoneRegex.test(profileData.phoneNumber)) {
+//     setMessage('Please enter a valid 10-digit phone number');
+//     setLoading(false);
+//     return;
+//   }
+
+//   // Validate year is between 1-4
+//   if (profileData.year < 1 || profileData.year > 4) {
+//     setMessage('Please select a valid year (1-4)');
+//     setLoading(false);
+//     return;
+//   }
+
+//   try {
+//     const response = await axios.post(
+//       "http://localhost:8080/api/profiles",
+//       profileData,
+//       {
+//         headers: { 
+//           Authorization: `Bearer ${token}`,
+//           'Content-Type': 'application/json'
+//         }
+//       }
+//     );
+
+//     if (selectedImage) {
+//       const formData = new FormData();
+//       formData.append('image', selectedImage);
+      
+//       await axios.post(
+//         `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+//         formData,
+//         {
+//           headers: { 
+//             Authorization: `Bearer ${token}`,
+//             'Content-Type': 'multipart/form-data'
+//           }
+//         }
+//       );
+//     }
+
+//     setMessage('Profile created successfully!');
+//     setShowProfileForm(false);
+    
+//   } catch (error) {
+//     console.error('Error creating profile:', error);
+//     setMessage('Error creating profile. Please try again.');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
   
 //   return (
 //     <div className="min-h-screen bg-orange-50 p-6">
@@ -50,32 +150,41 @@
 
 //         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 //           {/* Profile Card */}
-//           <div className="bg-white rounded-xl shadow-lg p-6">
-//             <div className="flex items-center mb-4">
-//               <div className="bg-orange-100 p-3 rounded-lg mr-4">
-//                 <User className="w-6 h-6 text-orange-600" />
-//               </div>
-//               <h3 className="text-xl font-semibold text-orange-800">My Profile</h3>
-//             </div>
-//             <p className="text-gray-700">
-//               <strong>Username:</strong> {user?.username}
-//             </p>
-//             <p className="text-gray-700">
-//               <strong>PRN:</strong> <span className="text-gray-600">{user?.prn}</span>
-//             </p>
-//              <p className="text-gray-700">
-//               <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
-//             </p>
-//             <p className="text-gray-700">
-//               <strong>Role:</strong> {user?.role}
-//             </p>
-//            <p className="text-gray-700">
-//   <strong>Status:</strong> 
-//   <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
-//     {user?.verified ? ' Active' : ' Inactive'}
-//   </span>
-// </p>
-//           </div>
+// <div className="bg-white rounded-xl shadow-lg p-6">
+//   <div className="flex items-center mb-4">
+//     <div className="bg-orange-100 p-3 rounded-lg mr-4">
+//       <User className="w-6 h-6 text-orange-600" />
+//     </div>
+//     <h3 className="text-xl font-semibold text-orange-800">My Profile</h3>
+//   </div>
+//   <p className="text-gray-700">
+//     <strong>Username:</strong> {user?.username}
+//   </p>
+//   <p className="text-gray-700">
+//     <strong>PRN:</strong> <span className="text-gray-600">{user?.prn}</span>
+//   </p>
+//   <p className="text-gray-700">
+//     <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
+//   </p>
+//   <p className="text-gray-700">
+//     <strong>Role:</strong> {user?.role}
+//   </p>
+//   <p className="text-gray-700">
+//     <strong>Status:</strong> 
+//     <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
+//       {user?.verified ? ' Active' : ' Inactive'}
+//     </span>
+//   </p>
+  
+//   {/* Add this button */}
+//   <button
+//     onClick={() => setShowProfileForm(true)}
+//     className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition duration-300 flex items-center justify-center cursor-pointer"
+//   >
+//     <Plus className="w-4 h-4 mr-2" />
+//     Complete Your Profile
+//   </button>
+// </div>
 
 //           {/* Events */}
 //           <div className="bg-white rounded-xl shadow-lg p-6">
@@ -111,6 +220,138 @@
 
 //         </div>
 //       </div>
+
+//       {/* Profile Form Popup */}
+// {showProfileForm && (
+//   <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
+//     <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+//       <div className="flex justify-between items-center p-6 border-b">
+//         <h3 className="text-xl font-semibold text-gray-800">Complete Your Profile</h3>
+//         <button
+//           onClick={() => setShowProfileForm(false)}
+//           className="text-gray-400 cursor-pointer hover:text-orange-600"
+//         >
+//           <X className="w-6 h-6" />
+//         </button>
+//       </div>
+      
+//       <form onSubmit={handleSubmitProfile} className="p-6 space-y-4">
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             PRN *
+//           </label>
+//           <input
+//             type="text"
+//             name="prn"
+//             value={profileData.prn}
+//             onChange={handleInputChange}
+//             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            
+//           />
+//         </div>
+
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Full Name *
+//           </label>
+//           <input
+//             type="text"
+//             name="fullName"
+//             value={profileData.fullName}
+//             onChange={handleInputChange}
+//             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//             required
+//           />
+//         </div>
+
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Department *
+//           </label>
+//           <input
+//             type="text"
+//             name="department"
+//             value={profileData.department}
+//             onChange={handleInputChange}
+//             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//             required
+//           />
+//         </div>
+
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Year *
+//           </label>
+//           <select
+//             name="year"
+//             value={profileData.year}
+//             onChange={handleInputChange}
+//             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//             required
+//           >
+//             <option value="">Select Year</option>
+//             <option value="1">First Year</option>
+//             <option value="2">Second Year</option>
+//             <option value="3">Third Year</option>
+//             <option value="4">Fourth Year</option>
+//           </select>
+//         </div>
+
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Phone Number *
+//           </label>
+//           <input
+//             type="tel"
+//             name="phoneNumber"
+//             value={profileData.phoneNumber}
+//             onChange={handleInputChange}
+//             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//             required
+//           />
+//         </div>
+
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Profile Photo
+//           </label>
+//           <div className="flex items-center space-x-4">
+//             <input
+//               type="file"
+//               accept="image/*"
+//               onChange={handleImageChange}
+//               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//             />
+//             <Upload className="w-5 h-5 text-gray-400" />
+//           </div>
+//         </div>
+
+//         {message && (
+//           <p className={`text-sm ${message.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+//             {message}
+//           </p>
+//         )}
+
+//         <div className="flex space-x-3 pt-4">
+//           <button
+//             type="button"
+//             onClick={() => setShowProfileForm(false)}
+//             className="flex-1 cursor-pointer bg-gray-300 hover:bg-orange-600 text-gray-800 py-2 rounded-lg transition duration-300"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+//           >
+//             {loading ? 'Creating...' : 'Create Profile'}
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   </div>
+// )}
 //     </div>
 //   );
 // }
@@ -129,7 +370,7 @@
 
 // with create profile code
 import { User,Plus,Upload,X,CalendarDays} from 'lucide-react';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import axios from 'axios';
 
 export default function UsersDashboard() {
@@ -146,12 +387,74 @@ export default function UsersDashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoadingProfile(true);
+      const response = await axios.get(
+        `http://localhost:8080/api/profiles/prn/${user?.prn}`,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+      
+      if (response.data) {
+        setUserProfile(response.data);
+        setProfileData({
+          prn: response.data.prn || user?.prn || '',
+          fullName: response.data.fullName || '',
+          department: response.data.department || '',
+          year: response.data.year || '',
+          phoneNumber: response.data.phoneNumber || ''
+        });
+        
+        // Fetch profile image
+        fetchProfileImage();
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setUserProfile(null);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const fetchProfileImage = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/profiles/${user?.prn}/image`,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: 'blob'
+        }
+      );
+      
+      if (response.data) {
+        const imageUrl = URL.createObjectURL(response.data);
+        setProfileImage(imageUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+      setProfileImage(null);
+    }
+  };
 
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   const handleInputChange = (e) => {
@@ -200,17 +503,36 @@ const handleSubmitProfile = async (e) => {
   }
 
   try {
-    const response = await axios.post(
-      "http://localhost:8080/api/profiles",
-      profileData,
-      {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+    // If profile exists, update it; otherwise create new
+    if (userProfile) {
+      // Update existing profile
+      const response = await axios.put(
+        `http://localhost:8080/api/profiles/${userProfile.id}`,
+        profileData,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
-      }
-    );
+      );
+      setMessage('Profile updated successfully!');
+    } else {
+      // Create new profile
+      const response = await axios.post(
+        "http://localhost:8080/api/profiles",
+        profileData,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      setMessage('Profile created successfully!');
+    }
 
+    // Upload image if selected
     if (selectedImage) {
       const formData = new FormData();
       formData.append('image', selectedImage);
@@ -227,12 +549,13 @@ const handleSubmitProfile = async (e) => {
       );
     }
 
-    setMessage('Profile created successfully!');
+    // Refresh profile data
+    await fetchUserProfile();
     setShowProfileForm(false);
     
   } catch (error) {
-    console.error('Error creating profile:', error);
-    setMessage('Error creating profile. Please try again.');
+    console.error('Error saving profile:', error);
+    setMessage('Error saving profile. Please try again.');
   } finally {
     setLoading(false);
   }
@@ -278,6 +601,7 @@ const handleSubmitProfile = async (e) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Profile Card */}
+{/* Profile Card */}
 <div className="bg-white rounded-xl shadow-lg p-6">
   <div className="flex items-center mb-4">
     <div className="bg-orange-100 p-3 rounded-lg mr-4">
@@ -285,32 +609,105 @@ const handleSubmitProfile = async (e) => {
     </div>
     <h3 className="text-xl font-semibold text-orange-800">My Profile</h3>
   </div>
-  <p className="text-gray-700">
-    <strong>Username:</strong> {user?.username}
-  </p>
-  <p className="text-gray-700">
-    <strong>PRN:</strong> <span className="text-gray-600">{user?.prn}</span>
-  </p>
-  <p className="text-gray-700">
-    <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
-  </p>
-  <p className="text-gray-700">
-    <strong>Role:</strong> {user?.role}
-  </p>
-  <p className="text-gray-700">
-    <strong>Status:</strong> 
-    <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
-      {user?.verified ? ' Active' : ' Inactive'}
-    </span>
-  </p>
+
+  {/* Profile Image */}
+  {profileImage && (
+    <div className="flex justify-center mb-4">
+      <img 
+        src={profileImage} 
+        alt="Profile" 
+        className="w-24 h-24 rounded-full object-cover border-4 border-orange-200"
+      />
+    </div>
+  )}
+
+  {isLoadingProfile ? (
+    <div className="text-center py-4">
+      <p className="text-gray-600">Loading profile...</p>
+    </div>
+  ) : userProfile ? (
+    /* Display Profile Details when profile exists */
+    <div className="space-y-2">
+      <p className="text-gray-700">
+        <strong>Full Name:</strong> {userProfile.fullName}
+      </p>
+      <p className="text-gray-700">
+        <strong>Username:</strong> {user?.username}
+      </p>
+      <p className="text-gray-700">
+        <strong>PRN:</strong> <span className="text-gray-600">{userProfile.prn}</span>
+      </p>
+      <p className="text-gray-700">
+        <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
+      </p>
+      <p className="text-gray-700">
+        <strong>Department:</strong> {userProfile.department}
+      </p>
+      <p className="text-gray-700">
+        <strong>Year:</strong> {userProfile.year}
+      </p>
+      <p className="text-gray-700">
+        <strong>Phone:</strong> {userProfile.phoneNumber}
+      </p>
+      <p className="text-gray-700">
+        <strong>Role:</strong> {user?.role}
+      </p>
+      <p className="text-gray-700">
+        <strong>Status:</strong> 
+        <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
+          {user?.verified ? ' Active' : ' Inactive'}
+        </span>
+      </p>
+    </div>
+  ) : (
+    /* Display Basic Info when no profile exists */
+    <div className="space-y-2">
+      <p className="text-gray-700">
+        <strong>Username:</strong> {user?.username}
+      </p>
+      <p className="text-gray-700">
+        <strong>PRN:</strong> <span className="text-gray-600">{user?.prn}</span>
+      </p>
+      <p className="text-gray-700">
+        <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
+      </p>
+      <p className="text-gray-700">
+        <strong>Role:</strong> {user?.role}
+      </p>
+      <p className="text-gray-700">
+        <strong>Status:</strong> 
+        <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
+          {user?.verified ? ' Active' : ' Inactive'}
+        </span>
+      </p>
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+        <p className="text-yellow-800 text-sm">
+          <strong>Note:</strong> Complete your profile to access all features.
+        </p>
+      </div>
+    </div>
+  )}
   
-  {/* Add this button */}
+  {/* Dynamic Button */}
   <button
     onClick={() => setShowProfileForm(true)}
-    className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition duration-300 flex items-center justify-center cursor-pointer"
+    className={`mt-4 w-full text-white py-2 rounded-lg transition duration-300 flex items-center justify-center cursor-pointer ${
+      userProfile 
+        ? 'bg-blue-500 hover:bg-blue-600' 
+        : 'bg-green-500 hover:bg-green-600'
+    }`}
   >
-    <Plus className="w-4 h-4 mr-2" />
-    Complete Your Profile
+    {userProfile ? (
+      <>
+        <Edit className="w-4 h-4 mr-2" />
+        Edit Profile
+      </>
+    ) : (
+      <>
+        <Plus className="w-4 h-4 mr-2" />
+        Complete Your Profile
+      </>
+    )}
   </button>
 </div>
 
@@ -352,19 +749,19 @@ const handleSubmitProfile = async (e) => {
       {/* Profile Form Popup */}
 {showProfileForm && (
   <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
       <div className="flex justify-between items-center p-6 border-b">
         <h3 className="text-xl font-semibold text-gray-800">Complete Your Profile</h3>
         <button
           onClick={() => setShowProfileForm(false)}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-400 cursor-pointer hover:text-orange-600"
         >
           <X className="w-6 h-6" />
         </button>
       </div>
       
       <form onSubmit={handleSubmitProfile} className="p-6 space-y-4">
-        <div>
+              <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             PRN *
           </label>
@@ -373,9 +770,17 @@ const handleSubmitProfile = async (e) => {
             name="prn"
             value={profileData.prn}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+              userProfile ? 'bg-gray-100 cursor-not-allowed' : ''
+            }`}
+            readOnly={!!userProfile} 
             required
           />
+          {userProfile && (
+            <p className="text-xs text-gray-500 mt-1">
+              PRN cannot be changed once profile is created
+            </p>
+          )}
         </div>
 
         <div>
@@ -464,17 +869,17 @@ const handleSubmitProfile = async (e) => {
           <button
             type="button"
             onClick={() => setShowProfileForm(false)}
-            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition duration-300"
+            className="flex-1 cursor-pointer bg-gray-300 hover:bg-orange-600 text-gray-800 py-2 rounded-lg transition duration-300"
           >
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Creating...' : 'Create Profile'}
-          </button>
+       <button
+  type="submit"
+  disabled={loading}
+  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  {loading ? 'Saving...' : (userProfile ? 'Update Profile' : 'Create Profile')}
+</button>
         </div>
       </form>
     </div>

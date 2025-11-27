@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function Register() {
   const navigate = useNavigate();
 const handleSignInClick = () => {
-  navigate('/login');
+  navigate('/');
 };
   const [form, setForm] = useState({
     prn: "",
