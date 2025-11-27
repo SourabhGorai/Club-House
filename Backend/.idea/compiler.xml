@@ -42,9 +42,11 @@
         <module name="club-service2" />
         <module name="independent-services" />
         <module name="profile-management-service" />
-        <module name="club-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="club-service" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
