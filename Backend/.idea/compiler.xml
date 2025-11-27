@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="eureka" />
+        <module name="notification-service" />
       </profile>
       <profile name="Annotation profile for profile-management-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -62,6 +63,7 @@
       <module name="club-service2" options="-parameters" />
       <module name="eureka" options="-parameters" />
       <module name="independent-services" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
       <module name="profile-management-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>

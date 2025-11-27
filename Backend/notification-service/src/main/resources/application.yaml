@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: notification-service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/clubhub_notifications
+      # For production with authentication:
+      # uri: mongodb://username:password@localhost:27017/clubhub_notifications?authSource=admin
+      auto-index-creation: true
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.notificationservice: DEBUG
+    org.springframework.data.mongodb: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Notification Service Specific Configuration
+notification:
+  retention:
+    days: 90  # Auto-delete notifications older than 90 days
+  batch:
+    size: 100  # Maximum batch size for bulk operations
+  max-recipients: 1000  # Maximum recipients for a single notification
