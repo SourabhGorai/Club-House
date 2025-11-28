@@ -29,4 +29,7 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
     // Add these methods to fetch Teacher and Admin
     @Query("SELECT uc FROM UserClub uc WHERE uc.club.clubId = :clubId AND uc.role = :role")
     List<UserClub> findByClubIdAndRole(@Param("clubId") Long clubId, @Param("role") String role);
+
+    void deleteByClub_ClubId(Long clubId);
+
 }

@@ -2,7 +2,7 @@ package com.userservice.model;
 
 public enum Role {
      SUPER_ADMIN,
-    TEACHERS,
+    TEACHER,
     CLUB_ADMIN,
     TEAM_MEMBER,
     USERS

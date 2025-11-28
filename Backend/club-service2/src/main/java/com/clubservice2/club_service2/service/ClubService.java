@@ -147,6 +147,8 @@ public class ClubService {
                 });
 
         try {
+            // Delete all members with this club ID
+            userClubRepository.deleteByClub_ClubId(club.getClubId());
             club.setIsActive(false);
             club.setDeletedAt(LocalDateTime.now());
             clubRepository.save(club);

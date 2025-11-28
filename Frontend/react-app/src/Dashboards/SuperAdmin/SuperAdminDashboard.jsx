@@ -123,7 +123,7 @@ export default function SuperAdminDashboard() {
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                           userItem.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
-                          userItem.role === 'TEACHERS' ? 'bg-blue-100 text-blue-800' :
+                          userItem.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' :
                           userItem.role === 'CLUB_ADMIN' ? 'bg-green-100 text-green-800' :
                           'bg-orange-100 text-orange-800'
                         }`}>
