@@ -6,6 +6,7 @@ export default function ManageClubs() {
   const [selectedClub, setSelectedClub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [adminData, setAdminData] = useState(null);
 
   // Fetch clubs with authorization
   const fetchClubs = async () => {
@@ -20,9 +21,10 @@ export default function ManageClubs() {
 
       if (response.data.success) {
         setClubs(response.data.data);
-        if (response.data.data.length > 0) {
-          setSelectedClub(response.data.data[0]);
-        }
+     if (response.data.data.length > 0) {
+  setSelectedClub(response.data.data[0]);
+  fetchAdminData(response.data.data[0].clubId); // Add this line
+}
       }
     } catch (err) {
       setError("Failed to fetch clubs");
@@ -35,6 +37,37 @@ export default function ManageClubs() {
   useEffect(() => {
     fetchClubs();
   }, []);
+
+  const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  
+  try {
+    // If date is in "28-11-2025 14:25:45" format
+    const [datePart] = dateString.split(' ');
+    const [day, month, year] = datePart.split('-');
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return original if formatting fails
+  }
+};
+const fetchAdminData = async (clubId) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.success) {
+      setAdminData(response.data.data);
+    }
+  } catch (err) {
+    console.error("Error fetching admin data:", err);
+    setAdminData(null);
+  }
+};
 
   // Handle club deletion
   const handleDeleteClub = async (clubId) => {
@@ -140,7 +173,10 @@ export default function ManageClubs() {
                     className={`border-b border-gray-100 p-4 cursor-pointer transition-all hover:bg-blue-50 ${
                       selectedClub?.clubId === club.clubId ? "bg-blue-50 border-l-4 border-l-orange-500" : ""
                     }`}
-                    onClick={() => setSelectedClub(club)}
+                    onClick={() => {
+  setSelectedClub(club);
+  fetchAdminData(club.clubId);
+}}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -151,9 +187,7 @@ export default function ManageClubs() {
                         ></div>
                         <div>
                           <h3 className="font-semibold text-gray-800">{club.clubName}</h3>
-                          <p className="text-sm text-gray-500">
-                            Created: {club.createdAt}
-                          </p>
+                         <p className="text-sm text-gray-500">Created: {formatDate(club.createdAt)}</p>
                         </div>
                       </div>
                       
@@ -213,7 +247,7 @@ export default function ManageClubs() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Created</p>
-                      <p className="text-gray-700 font-semibold">{selectedClub.createdAt}</p>
+                      <p className="text-gray-700 font-semibold">{formatDate(selectedClub.createdAt)}</p>
                     </div>
                   </div>
 
@@ -225,7 +259,7 @@ export default function ManageClubs() {
                         {/* Description */}
                         <div className="bg-blue-50 rounded-xl p-6">
                           <h3 className="text-lg font-semibold text-gray-800 mb-3">About</h3>
-                          <p className="text-gray-700 leading-relaxed">{details.description}</p>
+                          <p className="text-gray-700 leading-relaxed">{selectedClub.clubDesc}</p>
                         </div>
 
                         {/* Stats Grid */}
@@ -251,11 +285,15 @@ export default function ManageClubs() {
                             <div className="space-y-2">
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Club Admin:</span>
-                                <span className="font-medium">{details.president}</span>
+                                <span className="font-medium">{adminData?.clubAdmin || 'N/A'}</span>
+                              </div>
+                                <div className="flex justify-between">
+                                <span className="text-gray-600">Teacher:</span>
+                                 <span className="font-medium">{adminData?.teacher || 'Not Assigned'}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Contact:</span>
-                                <span className="font-medium text-blue-600">{details.contactEmail}</span>
+                                <span className="font-medium text-blue-600">{adminData?.email || 'not-available'}</span>
                               </div>
                             </div>
                           </div>
