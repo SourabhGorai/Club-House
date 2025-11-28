@@ -111,7 +111,7 @@ server:
 
 # JWT Configuration (MUST match user-service secret)
 jwt:
-  secret: thisismyfirsteversecretKeyWhichIhaveCreatedFormyProjectAndthisIsSupposedtobeHugeAndIDontKnowHowHuge
+  secret: thisismysecretkeywhichihaveevercreatedformyprojectandthisissupposedtobeusedformyfinalyearproject
 
 # Eureka Client Configuration
 eureka:

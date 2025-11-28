@@ -49,7 +49,6 @@
         </processorPath>
         <module name="club-service2" />
         <module name="independent-services" />
-        <module name="profile-management-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
