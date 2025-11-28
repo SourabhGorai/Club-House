@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+ import { useNavigate } from "react-router-dom";
 
 export default function SuperAdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -7,6 +8,7 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllData();
@@ -164,7 +166,9 @@ export default function SuperAdminDashboard() {
                <button className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
                Manage Team Members 
               </button>
-               <button className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
+               <button  onClick={() => {
+      navigate("/manage-clubs");
+    }}  className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
                Manage Clubs
               </button>
             </div>

@@ -1,4 +1,3 @@
-
    import { useState } from "react";
    import axios from "axios";
    import { useNavigate } from "react-router-dom";
@@ -8,6 +7,7 @@
      const handleSigninClick = () => {
     navigate("/mainregister");
   };
+
    
      const [form, setForm] = useState({
        username: "",
@@ -85,9 +85,7 @@
                 <label className="block text-xs font-medium text-gray-700">
                   Password
                 </label>
-                <a href="#" className="text-xs cursor-pointer text-gray-400 hover:text-orange-600 transition-colors">
-                  Forgot Password?
-                </a>
+
               </div>
               <div className="relative">
                 <input
@@ -117,6 +115,18 @@
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </button>
+
+<div className="flex justify-center mb-1.5">
+  <button 
+    type="button"
+    onClick={() => {
+      navigate("/reset-password");
+    }}
+    className="text-s cursor-pointer text-gray-700 hover:text-orange-600 transition-colors"
+  >
+    Forgot Password?
+  </button>
+</div>
 
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
