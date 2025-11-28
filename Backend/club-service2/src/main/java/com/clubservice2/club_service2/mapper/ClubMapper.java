@@ -22,6 +22,7 @@ public class ClubMapper {
         return ClubResponse.builder()
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
+                .clubDesc(club.getClubDesc())
                 .createdAt(club.getCreatedAt() != null ? club.getCreatedAt().format(FORMATTER) : null)
                 .deletedAt(club.getDeletedAt() != null ? club.getDeletedAt().format(FORMATTER) : null)
                 .isActive(club.getIsActive())

@@ -9,7 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "clubs2", indexes = {
+@Table(name = "clubs", indexes = {
         @Index(name = "idx_club_name", columnList = "club_name"),
         @Index(name = "idx_active", columnList = "is_active")
 })
@@ -26,9 +26,14 @@ public class Club {
     private Long clubId;
 
     @NotBlank(message = "Club name cannot be blank")
-    @Size(min = 2, max = 100, message = "Club name must be between 2 and 100 characters")
+    @Size(min = 2, max = 100, message = "Club name must be between 2 to 100 characters")
     @Column(name = "club_name", nullable = false, unique = true, length = 100)
     private String clubName;
+
+    @NotBlank(message = "Club description required")
+    @Size(min = 2, max = 100, message = "Club description must be between 2 to 100 characters")
+    @Column(name = "club_desc", nullable = false)
+    private String clubDesc;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

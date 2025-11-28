@@ -1,8 +1,6 @@
 package com.clubservice2.club_service2.controller;
 
-import com.clubservice2.club_service2.dto.ApiResponse;
-import com.clubservice2.club_service2.dto.ClubResponse;
-import com.clubservice2.club_service2.dto.ClubSummaryResponse;
+import com.clubservice2.club_service2.dto.*;
 import com.clubservice2.club_service2.service.ClubService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +25,43 @@ public class ClubController {
      * Creates a new club
      * POST /api/clubs?name=Tech Club
      */
+//    @PostMapping
+//    public ResponseEntity<ApiResponse<ClubResponse>> createClub(
+//            @RequestParam @NotBlank(message = "Club name is required") String name) {
+//
+//        log.info("Request received to create club: {}", name);
+//        ClubResponse response = clubService.createClub(name);
+//        log.info("Club created successfully: {}", response.getClubName());
+//
+//        return ResponseEntity
+//                .status(HttpStatus.CREATED)
+//                .body(ApiResponse.success("Club created successfully", response));
+//    }
     @PostMapping
     public ResponseEntity<ApiResponse<ClubResponse>> createClub(
-            @RequestParam @NotBlank(message = "Club name is required") String name) {
+            @RequestBody ClubRequest request) {
 
-        log.info("Request received to create club: {}", name);
-        ClubResponse response = clubService.createClub(name);
+        log.info("Request received to create club: {}", request.getName());
+        log.info("Request received to create club: {}", request.getClubDesc());
+        ClubResponse response = clubService.createClub(request);
         log.info("Club created successfully: {}", response.getClubName());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Club created successfully", response));
+    }
+
+    /**
+     * Get admin dashboard data for a club
+     * GET /api/clubs/{clubId}/admin
+     */
+    @GetMapping("/{clubId}/admin")
+    public ResponseEntity<ApiResponse<AdminResponse>> getAdminResponse(@PathVariable Long clubId) {
+        log.info("REST request to get admin data for clubId: {}", clubId);
+        AdminResponse adminResponse = clubService.getAdminResponse(clubId);
+        return ResponseEntity.ok(
+                ApiResponse.success("Admin data retrieved successfully", adminResponse)
+        );
     }
 
     /**
