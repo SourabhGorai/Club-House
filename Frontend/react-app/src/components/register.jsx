@@ -259,17 +259,16 @@ export default function Register() {
     <div className="h-screen flex items-center justify-center" style={{
       background: 'linear-gradient(135deg, #e8d5f2 0%, #a8c7e7 50%, #dab5d8 100%)'
     }}>
-      <div className="w-full max-w-6xl h-[90vh] bg-white rounded-[2.5rem] shadow-2xl overflow-visible flex relative">
+      <div className="w-full max-w-6xl h-[95vh] bg-white rounded-[2.5rem] shadow-2xl overflow-visible flex relative">
         {/* Left Side - Register Form */}
-        <div className="w-full md:w-3/5 pl-12 pr-4 py-8 flex flex-col justify-center">
-          <div className="mb-3">
-            {/* <h1 className="text-6xl font-bold leading-none" style={{ color: '#ec4899' }}>Logo Here</h1> */}
-            <p className="text-sm text-gray-600 mt-1">Join our Club-Hub today</p>
+        <div className="w-full md:w-3/5 pl-12 pr-4 flex flex-col justify-center">
+          <div className="my-5">
+            <p className="text-sm text-gray-600">Join our Club-Hub today</p>
           </div>
 
-          <h2 className="text-4xl font-bold text-gray-900 mb-5">Create Account</h2>
+          <h2 className="text-4xl font-bold text-gray-900">Create Account</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-3 max-w-lg">
+          <form onSubmit={handleSubmit} className="max-w-lg">
             {/* PRN Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -324,15 +323,6 @@ export default function Register() {
                 Password
               </label>
               <div className="relative">
-                {/* <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="••••••••••••"
-                  value={form.password}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#ffe4d6] border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all pr-10 text-sm text-gray-700"
-                  required
-                /> */}
                   <input
               type="password"
               name="password"

@@ -5,8 +5,6 @@ import OTP from "./components/otp";
 import Login from "./components/login";
 import "./App.css";
 import Dashboard from "./components/dashboard";
-import ClubAdminDashboard from "./components/ClubAdminDashboard";
-import SuperAdminDashboard from "./components/SuperAdminDashboard";
 
 export default function App() {
   return (
@@ -16,8 +14,6 @@ export default function App() {
         <Route path="/otp" className="p-5" element={<OTP />} />
         <Route path="/" className="p-5" element={<Login />} />
         <Route path="/dashboard" className="p-5" element={<Dashboard />} />
-        <Route path="/ca" className="p-5" element={<ClubAdminDashboard />} />
-        <Route path="/sa" className="p-5" element={<SuperAdminDashboard />} />
       </Routes>
     </div>
   );
