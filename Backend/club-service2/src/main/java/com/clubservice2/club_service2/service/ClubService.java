@@ -1,9 +1,7 @@
 package com.clubservice2.club_service2.service;
 
-import com.clubservice2.club_service2.dto.AdminResponse;
-import com.clubservice2.club_service2.dto.ClubRequest;
-import com.clubservice2.club_service2.dto.ClubResponse;
-import com.clubservice2.club_service2.dto.ClubSummaryResponse;
+import com.clubservice2.club_service2.client.ProfileServiceClient;
+import com.clubservice2.club_service2.dto.*;
 import com.clubservice2.club_service2.exception.ClubAlreadyExistsException;
 import com.clubservice2.club_service2.exception.ClubNotFoundException;
 import com.clubservice2.club_service2.exception.ClubServiceException;
@@ -19,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,6 +27,7 @@ public class ClubService {
 
     private final ClubRepository clubRepository;
     private final UserClubRepository userClubRepository;
+    private final ProfileServiceClient profileServiceClient;
 
     /**
      * Creates a new club or reactivates a deleted club
@@ -204,7 +205,7 @@ public class ClubService {
     }
 
     /**
-     * Retrieves admin dashboard data for a specific club
+     * Retrieves admin dashboard data for a specific club with profile enrichment
      */
     @Transactional(readOnly = true)
     public AdminResponse getAdminResponse(Long clubId) {
@@ -213,43 +214,87 @@ public class ClubService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("Club not found with id: " + clubId));
 
-        // Get total member count for this club
         long totalCount = userClubRepository.countByClub_ClubId(clubId);
 
-        // Get Teacher/Faculty (assuming role = "TEACHER" or "FACULTY")
         List<UserClub> teachers = userClubRepository.findByClubIdAndRole(clubId, "TEACHER");
         if (teachers.isEmpty()) {
             teachers = userClubRepository.findByClubIdAndRole(clubId, "FACULTY");
         }
-        String teacherName = teachers.isEmpty() ? "Not Assigned" : teachers.get(0).getPrn();
 
-        // Get Club Admin (role = "CLUB_ADMIN")
+        String teacherPrn = null;
+        String teacherName = "Not Assigned";
+
+        if (!teachers.isEmpty()) {
+            teacherPrn = teachers.get(0).getPrn();
+            log.debug("Found teacher with PRN: {}", teacherPrn);
+            try {
+                // ProfileServiceClient already unwraps and returns ProfileSummaryResponse directly
+                ProfileSummaryResponse teacherProfile = profileServiceClient.getProfileSummary(teacherPrn);
+                System.out.println(teacherProfile);
+                if (teacherProfile != null && teacherProfile.getFullName() != null
+                        && !teacherProfile.getFullName().trim().isEmpty()
+                        && !"N/A".equals(teacherProfile.getFullName())) {
+                    teacherName = teacherProfile.getFullName();
+                    log.debug("Fetched teacher profile: {} - {}", teacherPrn, teacherName);
+                } else {
+                    log.warn("Teacher profile returned null or empty name for PRN: {}", teacherPrn);
+                    teacherName = teacherPrn;
+                }
+            } catch (Exception e) {
+                log.error("Failed to fetch teacher profile for PRN: {}", teacherPrn, e);
+                teacherName = teacherPrn;
+            }
+        }
+
+        // Get Club Admins (role = "CLUB_ADMIN")
         List<UserClub> admins = userClubRepository.findByClubIdAndRole(clubId, "CLUB_ADMIN");
-        String adminName;
+
+        List<AdminResponse.AdminInfo> clubAdminsList;
 
         if (admins.isEmpty()) {
-            adminName = "Not Assigned";
-        } else if (admins.size() == 1) {
-            adminName = admins.get(0).getPrn();
+            clubAdminsList = List.of();
         } else {
-            // Multiple admins - join their PRNs with comma
-            adminName = admins.stream()
+            List<String> uniqueAdminPrns = admins.stream()
                     .map(UserClub::getPrn)
                     .distinct()
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("Not Assigned");
+                    .collect(Collectors.toList());
+
+            // ProfileServiceClient already unwraps and returns Map directly
+            Map<String, ProfileSummaryResponse> profileMap =
+                    profileServiceClient.getProfileSummariesBulk(uniqueAdminPrns);
+
+            clubAdminsList = uniqueAdminPrns.stream()
+                    .map(prn -> {
+                        ProfileSummaryResponse profile = profileMap.get(prn);
+                        if (profile != null && profile.getFullName() != null
+                                && !"N/A".equals(profile.getFullName())) {
+                            log.debug("Fetched admin profile: {} - {}", prn, profile.getFullName());
+                            return AdminResponse.AdminInfo.builder()
+                                    .prn(prn)
+                                    .name(profile.getFullName())
+                                    .build();
+                        } else {
+                            log.error("Failed to fetch admin profile for PRN: {}", prn);
+                            return AdminResponse.AdminInfo.builder()
+                                    .prn(prn)
+                                    .name(prn)
+                                    .build();
+                        }
+                    })
+                    .collect(Collectors.toList());
         }
 
         AdminResponse resp = AdminResponse.builder()
                 .clubName(club.getClubName())
                 .clubDesc(club.getClubDesc())
-                .Teacher(teacherName)
-                .clubAdmin(adminName)
+                .teacherPrn(teacherPrn)
+                .teacherName(teacherName)
+                .clubAdmins(clubAdminsList)
                 .totalCount(totalCount)
                 .build();
 
-        log.info("Successfully fetched admin response for club: {} with {} members",
-                club.getClubName(), totalCount);
+        log.info("Successfully fetched admin response for club: {} with {} members and {} admins",
+                club.getClubName(), totalCount, clubAdminsList.size());
         return resp;
     }
 }
