@@ -52,6 +52,7 @@ public class UserClubController {
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getUserClubs(
             @PathVariable @NotBlank(message = "PRN is required") String prn) {
 
+        System.out.println("Request received from unread notifications");
         log.debug("Request received to fetch clubs for user: {}", prn);
         List<ProfileEnrichedUserClubResponse> clubs = userClubService.getUserClubs(prn);
 
@@ -60,6 +61,26 @@ public class UserClubController {
                         String.format("Retrieved %d club associations with profile details for user %s",
                                 clubs.size(), prn),
                         clubs
+                )
+        );
+    }
+
+    // In UserClubController.java (club service)
+    /**
+     * Retrieves club names for a user (lightweight - no profile enrichment)
+     * GET /api/user-clubs/user/{prn}/club-names
+     */
+    @GetMapping("/user/{prn}/club-names")
+    public ResponseEntity<ApiResponse<List<String>>> getUserClubNames(
+            @PathVariable @NotBlank(message = "PRN is required") String prn) {
+
+        log.debug("Request received to fetch club names for user: {}", prn);
+        List<String> clubNames = userClubService.getUserClubNames(prn);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        String.format("Retrieved %d clubs for user %s", clubNames.size(), prn),
+                        clubNames
                 )
         );
     }

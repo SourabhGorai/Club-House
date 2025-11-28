@@ -116,6 +116,29 @@ public class UserClubService {
     }
 
     /**
+     * Retrieves only club names for a specific user (lightweight)
+     */
+    @Transactional(readOnly = true)
+    public List<String> getUserClubNames(String prn) {
+        log.debug("Fetching club names for user: {}", prn);
+
+        // Validate user exists
+        userServiceClient.validateUser(prn);
+
+        List<UserClub> userClubs = userClubRepository.findByPrn(prn);
+
+        if (userClubs.isEmpty()) {
+            log.info("No clubs found for user: {}", prn);
+            return List.of();
+        }
+
+        return userClubs.stream()
+                .map(uc -> uc.getClub().getClubName())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Retrieves all user-club associations with profile enrichment
      */
     @Transactional(readOnly = true)

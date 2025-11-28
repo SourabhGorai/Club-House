@@ -123,6 +123,9 @@ public class NotificationService {
     /**
      * Get notifications WITH read filter (custom pagination after filtering)
      */
+    /**
+     * Get notifications WITH read filter (custom pagination after filtering)
+     */
     private PagedNotificationResponse getUserNotificationsWithReadFilter(
             String prn, List<String> userClubs, ProfileSummaryResponse profile,
             Boolean isRead, Integer page, Integer size) {
@@ -142,7 +145,11 @@ public class NotificationService {
                     boolean hasBeenRead = readNotificationIds.contains(n.getId());
                     return hasBeenRead == isRead;
                 })
-                .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
+                // Fix: Handle null createdAt values
+                .sorted(Comparator.comparing(
+                        Notification::getCreatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ).reversed())
                 .collect(Collectors.toList());
 
         // Calculate pagination manually

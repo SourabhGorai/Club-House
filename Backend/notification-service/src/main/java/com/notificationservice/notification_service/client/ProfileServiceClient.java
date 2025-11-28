@@ -63,9 +63,9 @@ public class ProfileServiceClient {
         log.debug("Fetching clubs for user: {}", prn);
 
         try {
-            // Call club-service to get user's clubs
+            // Call club-service to get user's club names (lightweight endpoint)
             ApiResponseWrapper<List<String>> response = clubServiceWebClient.get()
-                    .uri("/api/user-clubs/user/{prn}", prn)
+                    .uri("/api/user-clubs/user/{prn}/club-names", prn)  // ← Changed endpoint
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponseWrapper<List<String>>>() {})
