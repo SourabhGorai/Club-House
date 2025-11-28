@@ -1,6 +1,7 @@
 package com.clubservice2.club_service2.repository;
 
 import com.clubservice2.club_service2.model.UserClub;
+import org.antlr.v4.runtime.atn.SemanticContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,11 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
     Optional<UserClub> findByPrnAndClubName(@Param("prn") String prn, @Param("clubName") String clubName);
 
     boolean existsByPrnAndClubClubIdAndRoleAndTenure(String prn, Long clubId, String role, String tenure);
+
+    // Add this method
+    long countByClub_ClubId(Long clubId);
+
+    // Add these methods to fetch Teacher and Admin
+    @Query("SELECT uc FROM UserClub uc WHERE uc.club.clubId = :clubId AND uc.role = :role")
+    List<UserClub> findByClubIdAndRole(@Param("clubId") Long clubId, @Param("role") String role);
 }

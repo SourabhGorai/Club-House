@@ -46,4 +46,6 @@ public class UserClub {
     @Pattern(regexp = "^\\d{4}-\\d{4}$", message = "Tenure must be in format YYYY-YYYY")
     @Column(name = "tenure", nullable = false, length = 9)
     private String tenure;
+
+
 }
