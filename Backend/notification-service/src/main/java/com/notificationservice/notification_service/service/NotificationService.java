@@ -7,10 +7,8 @@ import com.notificationservice.notification_service.exception.NotificationNotFou
 import com.notificationservice.notification_service.exception.UnauthorizedAccessException;
 import com.notificationservice.notification_service.exception.ValidationException;
 import com.notificationservice.notification_service.mapper.NotificationMapper;
-import com.notificationservice.notification_service.model.Notification;
-import com.notificationservice.notification_service.model.NotificationPriority;
-import com.notificationservice.notification_service.model.NotificationStatus;
-import com.notificationservice.notification_service.model.NotificationType;
+import com.notificationservice.notification_service.model.*;
+import com.notificationservice.notification_service.repository.NotificationReadStatusRepository;
 import com.notificationservice.notification_service.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,41 +29,33 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationReadStatusRepository readStatusRepository;
     private final UserServiceClient userServiceClient;
     private final ProfileServiceClient profileServiceClient;
     private final NotificationMapper mapper;
 
-    /**
-     * Creates a new notification
-     */
     @Transactional
     public NotificationResponse createNotification(NotificationCreateRequest request) {
         log.info("Creating notification of type: {} by sender: {}",
                 request.getNotificationType(), request.getSenderPrn());
 
-        // Validate sender exists
         validateUser(request.getSenderPrn());
-
-        // Validate notification type requirements
         validateNotificationRequest(request);
 
-        // Fetch sender details
         ProfileSummaryResponse senderProfile = profileServiceClient.getProfileSummary(request.getSenderPrn());
 
-        // Build notification
         Notification notification = mapper.toEntity(request);
+
         notification.setSenderName(senderProfile.getFullName());
         notification.setCreatedAt(LocalDateTime.now());
         notification.setUpdatedAt(LocalDateTime.now());
 
-        // Handle recipient for personal notifications
         if (request.getNotificationType() == NotificationType.PERSONAL) {
             validateUser(request.getRecipientPrn());
             ProfileSummaryResponse recipientProfile = profileServiceClient.getProfileSummary(request.getRecipientPrn());
             notification.setRecipientName(recipientProfile.getFullName());
         }
 
-        // Handle scheduled notifications
         if (request.getScheduledFor() != null && request.getScheduledFor().isAfter(LocalDateTime.now())) {
             notification.setIsScheduled(true);
             notification.setStatus(NotificationStatus.ACTIVE);
@@ -74,12 +64,9 @@ public class NotificationService {
         Notification saved = notificationRepository.save(notification);
         log.info("Notification created successfully with ID: {}", saved.getId());
 
-        return mapper.toResponse(saved);
+        return mapper.toResponse(saved, false, null);
     }
 
-    /**
-     * Gets notifications for a specific user (includes global, personal, club, and department)
-     */
     @Transactional(readOnly = true)
     public PagedNotificationResponse getUserNotifications(String prn, Boolean isRead,
                                                           Integer page, Integer size) {
@@ -87,32 +74,119 @@ public class NotificationService {
 
         validateUser(prn);
 
-        // Get user profile to determine clubs and department
         ProfileSummaryResponse profile = profileServiceClient.getProfileSummary(prn);
         List<String> userClubs = profileServiceClient.getUserClubs(prn);
+
+        // If no read filter, use regular pagination
+        if (isRead == null) {
+            return getUserNotificationsWithoutFilter(prn, userClubs, profile, page, size);
+        }
+
+        // If read filter is applied, we need to handle it differently
+        return getUserNotificationsWithReadFilter(prn, userClubs, profile, isRead, page, size);
+    }
+
+    /**
+     * Get notifications WITHOUT read filter (uses MongoDB pagination)
+     */
+    private PagedNotificationResponse getUserNotificationsWithoutFilter(
+            String prn, List<String> userClubs, ProfileSummaryResponse profile,
+            Integer page, Integer size) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Find all relevant notifications
         Page<Notification> notificationPage = notificationRepository.findRelevantNotifications(
                 prn, userClubs, profile.getDepartment(), profile.getYear(), pageable);
 
-        // Filter by read status if specified
-        if (isRead != null) {
-            List<Notification> filtered = notificationPage.getContent().stream()
-                    .filter(n -> n.getIsRead().equals(isRead))
-                    .collect(Collectors.toList());
+        // Get read statuses for this user
+        Map<String, NotificationReadStatus> readStatusMap = readStatusRepository.findByUserPrn(prn)
+                .stream()
+                .collect(Collectors.toMap(
+                        NotificationReadStatus::getNotificationId,
+                        rs -> rs,
+                        (existing, replacement) -> existing
+                ));
 
-            return createPagedResponse(filtered, page, size, filtered.size());
-        }
+        // Map notifications with read status
+        List<NotificationResponse> notifications = notificationPage.getContent().stream()
+                .map(n -> {
+                    NotificationReadStatus readStatus = readStatusMap.get(n.getId());
+                    return mapper.toResponse(n, readStatus);
+                })
+                .collect(Collectors.toList());
 
-        return createPagedResponse(notificationPage);
+        return createPagedResponse(notifications, page, size,
+                notificationPage.getTotalElements(), notificationPage.getTotalPages());
     }
 
     /**
-     * Gets a single notification by ID
+     * Get notifications WITH read filter (custom pagination after filtering)
      */
+    /**
+     * Get notifications WITH read filter (custom pagination after filtering)
+     */
+    private PagedNotificationResponse getUserNotificationsWithReadFilter(
+            String prn, List<String> userClubs, ProfileSummaryResponse profile,
+            Boolean isRead, Integer page, Integer size) {
+
+        // Get ALL relevant notifications (not paginated yet)
+        List<Notification> allNotifications = notificationRepository.findRelevantNotificationIds(
+                prn, userClubs, profile.getDepartment(), profile.getYear());
+
+        // Get read statuses for this user
+        Set<String> readNotificationIds = readStatusRepository.findByUserPrn(prn).stream()
+                .map(NotificationReadStatus::getNotificationId)
+                .collect(Collectors.toSet());
+
+        // Filter notifications based on read status
+        List<Notification> filteredNotifications = allNotifications.stream()
+                .filter(n -> {
+                    boolean hasBeenRead = readNotificationIds.contains(n.getId());
+                    return hasBeenRead == isRead;
+                })
+                // Fix: Handle null createdAt values
+                .sorted(Comparator.comparing(
+                        Notification::getCreatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ).reversed())
+                .collect(Collectors.toList());
+
+        // Calculate pagination manually
+        int totalElements = filteredNotifications.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        // Get the page subset
+        List<Notification> pageNotifications = fromIndex < totalElements
+                ? filteredNotifications.subList(fromIndex, toIndex)
+                : Collections.emptyList();
+
+        // Get read statuses for the notifications in this page
+        Map<String, NotificationReadStatus> readStatusMap = readStatusRepository
+                .findByNotificationIdInAndUserPrn(
+                        pageNotifications.stream().map(Notification::getId).collect(Collectors.toList()),
+                        prn
+                )
+                .stream()
+                .collect(Collectors.toMap(
+                        NotificationReadStatus::getNotificationId,
+                        rs -> rs,
+                        (existing, replacement) -> existing
+                ));
+
+        // Map to response
+        List<NotificationResponse> responses = pageNotifications.stream()
+                .map(n -> {
+                    NotificationReadStatus readStatus = readStatusMap.get(n.getId());
+                    return mapper.toResponse(n, readStatus);
+                })
+                .collect(Collectors.toList());
+
+        return createPagedResponse(responses, page, size, totalElements, totalPages);
+    }
+
     @Transactional
     public NotificationResponse getNotificationById(String id, String requesterPrn) {
         log.debug("Fetching notification: {} for user: {}", id, requesterPrn);
@@ -120,21 +194,20 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(id));
 
-        // Check if user has access to this notification
         if (!canAccessNotification(notification, requesterPrn)) {
             throw new UnauthorizedAccessException("You do not have access to this notification");
         }
 
-        // Increment view count
         notification.setViewCount(notification.getViewCount() + 1);
         notificationRepository.save(notification);
 
-        return mapper.toResponse(notification);
+        NotificationReadStatus readStatus = readStatusRepository
+                .findByNotificationIdAndUserPrn(id, requesterPrn)
+                .orElse(null);
+
+        return mapper.toResponse(notification, readStatus);
     }
 
-    /**
-     * Marks a notification as read
-     */
     @Transactional
     public NotificationResponse markAsRead(String id, String requesterPrn) {
         log.info("Marking notification {} as read by user: {}", id, requesterPrn);
@@ -146,20 +219,27 @@ public class NotificationService {
             throw new UnauthorizedAccessException("You do not have access to this notification");
         }
 
-        if (!notification.getIsRead()) {
-            notification.setIsRead(true);
-            notification.setReadAt(LocalDateTime.now());
-            notification.setUpdatedAt(LocalDateTime.now());
-            notificationRepository.save(notification);
-            log.info("Notification {} marked as read", id);
+        boolean alreadyRead = readStatusRepository.existsByNotificationIdAndUserPrn(id, requesterPrn);
+
+        if (!alreadyRead) {
+            NotificationReadStatus readStatus = NotificationReadStatus.builder()
+                    .notificationId(id)
+                    .userPrn(requesterPrn)
+                    .readAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            readStatusRepository.save(readStatus);
+            log.info("Notification {} marked as read by user {}", id, requesterPrn);
         }
 
-        return mapper.toResponse(notification);
+        NotificationReadStatus readStatus = readStatusRepository
+                .findByNotificationIdAndUserPrn(id, requesterPrn)
+                .orElse(null);
+
+        return mapper.toResponse(notification, readStatus);
     }
 
-    /**
-     * Marks multiple notifications as read
-     */
     @Transactional
     public void bulkMarkAsRead(BulkMarkReadRequest request, String requesterPrn) {
         log.info("Bulk marking {} notifications as read by user: {}",
@@ -167,21 +247,33 @@ public class NotificationService {
 
         List<Notification> notifications = notificationRepository.findAllById(request.getNotificationIds());
 
+        List<NotificationReadStatus> newReadStatuses = new ArrayList<>();
+
         for (Notification notification : notifications) {
-            if (canAccessNotification(notification, requesterPrn) && !notification.getIsRead()) {
-                notification.setIsRead(true);
-                notification.setReadAt(LocalDateTime.now());
-                notification.setUpdatedAt(LocalDateTime.now());
+            if (canAccessNotification(notification, requesterPrn)) {
+                boolean alreadyRead = readStatusRepository.existsByNotificationIdAndUserPrn(
+                        notification.getId(), requesterPrn);
+
+                if (!alreadyRead) {
+                    NotificationReadStatus readStatus = NotificationReadStatus.builder()
+                            .notificationId(notification.getId())
+                            .userPrn(requesterPrn)
+                            .readAt(LocalDateTime.now())
+                            .createdAt(LocalDateTime.now())
+                            .build();
+
+                    newReadStatuses.add(readStatus);
+                }
             }
         }
 
-        notificationRepository.saveAll(notifications);
-        log.info("Bulk mark as read completed");
+        if (!newReadStatuses.isEmpty()) {
+            readStatusRepository.saveAll(newReadStatuses);
+        }
+
+        log.info("Bulk mark as read completed - marked {} notifications", newReadStatuses.size());
     }
 
-    /**
-     * Deletes a notification (soft delete)
-     */
     @Transactional
     public void deleteNotification(String id, String requesterPrn) {
         log.info("Deleting notification: {} by user: {}", id, requesterPrn);
@@ -189,10 +281,8 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(id));
 
-        // Only sender or recipient can delete
-        if (!notification.getSenderPrn().equals(requesterPrn) &&
-                !requesterPrn.equals(notification.getRecipientPrn())) {
-            throw new UnauthorizedAccessException("You can only delete your own notifications");
+        if (!notification.getSenderPrn().equals(requesterPrn)) {
+            throw new UnauthorizedAccessException("Only the sender can delete this notification");
         }
 
         notification.setIsDeleted(true);
@@ -200,12 +290,11 @@ public class NotificationService {
         notification.setUpdatedAt(LocalDateTime.now());
         notificationRepository.save(notification);
 
-        log.info("Notification {} soft deleted", id);
+        readStatusRepository.deleteByNotificationId(id);
+
+        log.info("Notification {} soft deleted and read statuses cleaned", id);
     }
 
-    /**
-     * Gets notifications sent by a specific user
-     */
     @Transactional(readOnly = true)
     public PagedNotificationResponse getSentNotifications(String senderPrn, Integer page, Integer size) {
         log.debug("Fetching sent notifications for user: {}", senderPrn);
@@ -218,36 +307,58 @@ public class NotificationService {
         Page<Notification> notificationPage = notificationRepository
                 .findBySenderPrnAndIsDeletedFalse(senderPrn, pageable);
 
-        return createPagedResponse(notificationPage);
+        List<NotificationResponse> responses = notificationPage.getContent().stream()
+                .map(n -> {
+                    NotificationResponse response = mapper.toResponse(n);
+                    if (n.getNotificationType() != NotificationType.PERSONAL) {
+                        Long totalReaders = readStatusRepository.countByNotificationId(n.getId());
+                        response.setTotalReaders(totalReaders);
+                    }
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return createPagedResponse(responses, page, size,
+                notificationPage.getTotalElements(), notificationPage.getTotalPages());
     }
 
-    /**
-     * Gets unread count for a user
-     */
     @Transactional(readOnly = true)
     public Long getUnreadCount(String prn) {
         log.debug("Getting unread count for user: {}", prn);
 
         validateUser(prn);
-        return notificationRepository.countByRecipientPrnAndIsReadFalseAndIsDeletedFalse(prn);
+
+        ProfileSummaryResponse profile = profileServiceClient.getProfileSummary(prn);
+        List<String> userClubs = profileServiceClient.getUserClubs(prn);
+
+        List<Notification> relevantNotifications = notificationRepository.findRelevantNotificationIds(
+                prn, userClubs, profile.getDepartment(), profile.getYear());
+
+        Set<String> relevantIds = relevantNotifications.stream()
+                .map(Notification::getId)
+                .collect(Collectors.toSet());
+
+        Set<String> readIds = readStatusRepository.findByUserPrn(prn).stream()
+                .map(NotificationReadStatus::getNotificationId)
+                .collect(Collectors.toSet());
+
+        long unreadCount = relevantIds.stream()
+                .filter(id -> !readIds.contains(id))
+                .count();
+
+        log.debug("User {} has {} unread notifications", prn, unreadCount);
+        return unreadCount;
     }
 
-    /**
-     * Gets notification statistics
-     */
     @Transactional(readOnly = true)
     public NotificationStatistics getStatistics() {
         log.debug("Fetching notification statistics");
 
         long totalNotifications = notificationRepository.count();
 
-        // Using enum-based queries instead of string-based
         long activeCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.ACTIVE);
         long expiredCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.EXPIRED);
         long archivedCount = notificationRepository.countByStatusAndIsDeletedFalse(NotificationStatus.ARCHIVED);
-
-        long unreadCount = notificationRepository.countByIsReadAndIsDeletedFalse(false);
-        long readCount = notificationRepository.countByIsReadAndIsDeletedFalse(true);
 
         long globalNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.GLOBAL);
         long personalNotifications = notificationRepository.countByNotificationTypeAndIsDeletedFalse(NotificationType.PERSONAL);
@@ -262,13 +373,15 @@ public class NotificationService {
         long normalPriorityCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.NORMAL);
         long lowPriorityCount = notificationRepository.countByPriorityAndIsDeletedFalse(NotificationPriority.LOW);
 
-        log.info("Statistics - Total: {}, Unread: {}, Read: {}, Active: {}",
-                totalNotifications, unreadCount, readCount, activeCount);
+        long totalReads = readStatusRepository.count();
+
+        log.info("Statistics - Total: {}, Total Reads: {}, Active: {}",
+                totalNotifications, totalReads, activeCount);
 
         return NotificationStatistics.builder()
                 .totalNotifications(totalNotifications)
-                .unreadCount(unreadCount)
-                .readCount(readCount)
+                .unreadCount(null)
+                .readCount(totalReads)
                 .activeCount(activeCount)
                 .expiredCount(expiredCount)
                 .archivedCount(archivedCount)
@@ -284,9 +397,6 @@ public class NotificationService {
                 .build();
     }
 
-    /**
-     * Archives old notifications
-     */
     @Transactional
     public void archiveOldNotifications(int daysOld) {
         log.info("Archiving notifications older than {} days", daysOld);
@@ -304,9 +414,6 @@ public class NotificationService {
         log.info("Archived {} old notifications", oldNotifications.size());
     }
 
-    /**
-     * Processes expired notifications
-     */
     @Transactional
     public void processExpiredNotifications() {
         log.info("Processing expired notifications");
@@ -358,45 +465,37 @@ public class NotificationService {
                 }
                 break;
             case GLOBAL:
-                // No additional validation needed
                 break;
         }
     }
 
     private boolean canAccessNotification(Notification notification, String requesterPrn) {
-        // Sender can always access
         if (notification.getSenderPrn().equals(requesterPrn)) {
             return true;
         }
 
-        // Global notifications are accessible to all
         if (notification.getNotificationType() == NotificationType.GLOBAL) {
             return true;
         }
 
-        // Personal notification - only recipient can access
         if (notification.getNotificationType() == NotificationType.PERSONAL) {
             return notification.getRecipientPrn().equals(requesterPrn);
         }
 
-        // For club/department notifications, check user's profile
         ProfileSummaryResponse profile = profileServiceClient.getProfileSummary(requesterPrn);
         List<String> userClubs = profileServiceClient.getUserClubs(requesterPrn);
 
-        // Check club membership
         if (notification.getTargetClubs() != null && !notification.getTargetClubs().isEmpty()) {
             boolean hasClubAccess = notification.getTargetClubs().stream()
                     .anyMatch(userClubs::contains);
             if (hasClubAccess) return true;
         }
 
-        // Check department
         if (notification.getTargetDepartments() != null &&
                 notification.getTargetDepartments().contains(profile.getDepartment())) {
             return true;
         }
 
-        // Check year
         if (notification.getTargetYears() != null &&
                 notification.getTargetYears().contains(profile.getYear())) {
             return true;
@@ -405,36 +504,17 @@ public class NotificationService {
         return false;
     }
 
-    private PagedNotificationResponse createPagedResponse(Page<Notification> page) {
-        List<NotificationResponse> content = page.getContent().stream()
-                .map(mapper::toResponse)
-                .collect(Collectors.toList());
-
-        return PagedNotificationResponse.builder()
-                .content(content)
-                .pageNumber(page.getNumber())
-                .pageSize(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .build();
-    }
-
-    private PagedNotificationResponse createPagedResponse(List<Notification> notifications,
-                                                          int page, int size, long total) {
-        List<NotificationResponse> content = notifications.stream()
-                .map(mapper::toResponse)
-                .collect(Collectors.toList());
-
+    private PagedNotificationResponse createPagedResponse(List<NotificationResponse> content,
+                                                          int page, int size,
+                                                          long totalElements, int totalPages) {
         return PagedNotificationResponse.builder()
                 .content(content)
                 .pageNumber(page)
                 .pageSize(size)
-                .totalElements(total)
-                .totalPages((int) Math.ceil((double) total / size))
+                .totalElements(totalElements)
+                .totalPages(totalPages)
                 .isFirst(page == 0)
-                .isLast(content.size() < size)
+                .isLast(page >= totalPages - 1)
                 .build();
     }
 }

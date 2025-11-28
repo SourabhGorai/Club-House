@@ -1,11 +1,11 @@
 package com.notificationservice.notification_service.mapper;
 
-
 import com.notificationservice.notification_service.dto.NotificationCreateRequest;
 import com.notificationservice.notification_service.dto.NotificationResponse;
 import com.notificationservice.notification_service.dto.NotificationSummary;
 import com.notificationservice.notification_service.model.Notification;
 import com.notificationservice.notification_service.model.NotificationPriority;
+import com.notificationservice.notification_service.model.NotificationReadStatus;
 import com.notificationservice.notification_service.model.NotificationStatus;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +26,6 @@ public class NotificationMapper {
                 .targetYears(request.getTargetYears())
                 .priority(request.getPriority() != null ? request.getPriority() : NotificationPriority.NORMAL)
                 .status(NotificationStatus.ACTIVE)
-                .isRead(false)
                 .isDeleted(false)
                 .actionUrl(request.getActionUrl())
                 .category(request.getCategory())
@@ -38,6 +37,10 @@ public class NotificationMapper {
                 .build();
     }
 
+    /**
+     * Maps notification to response WITHOUT read status
+     * Use this when you don't have read status information
+     */
     public NotificationResponse toResponse(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
@@ -53,8 +56,8 @@ public class NotificationMapper {
                 .targetYears(notification.getTargetYears())
                 .priority(notification.getPriority())
                 .status(notification.getStatus())
-                .isRead(notification.getIsRead())
-                .readAt(notification.getReadAt())
+                .isRead(null) // Will be set separately
+                .readAt(null)
                 .actionUrl(notification.getActionUrl())
                 .category(notification.getCategory())
                 .expiryDate(notification.getExpiryDate())
@@ -66,7 +69,32 @@ public class NotificationMapper {
                 .build();
     }
 
-    public NotificationSummary toSummary(Notification notification) {
+    /**
+     * Maps notification to response WITH read status for a specific user
+     */
+    public NotificationResponse toResponse(Notification notification, NotificationReadStatus readStatus) {
+        NotificationResponse response = toResponse(notification);
+        if (readStatus != null) {
+            response.setIsRead(true);
+            response.setReadAt(readStatus.getReadAt());
+        } else {
+            response.setIsRead(false);
+            response.setReadAt(null);
+        }
+        return response;
+    }
+
+    /**
+     * Maps notification to response WITH read status boolean
+     */
+    public NotificationResponse toResponse(Notification notification, boolean isRead, LocalDateTime readAt) {
+        NotificationResponse response = toResponse(notification);
+        response.setIsRead(isRead);
+        response.setReadAt(readAt);
+        return response;
+    }
+
+    public NotificationSummary toSummary(Notification notification, boolean isRead) {
         return NotificationSummary.builder()
                 .id(notification.getId())
                 .title(notification.getTitle())
@@ -74,7 +102,7 @@ public class NotificationMapper {
                 .notificationType(notification.getNotificationType())
                 .senderName(notification.getSenderName())
                 .priority(notification.getPriority())
-                .isRead(notification.getIsRead())
+                .isRead(isRead)
                 .createdAt(notification.getCreatedAt())
                 .category(notification.getCategory())
                 .build();

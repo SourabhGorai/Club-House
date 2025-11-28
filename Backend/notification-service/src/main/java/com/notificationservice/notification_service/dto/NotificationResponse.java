@@ -1,4 +1,5 @@
 package com.notificationservice.notification_service.dto;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.notificationservice.notification_service.model.NotificationPriority;
 import com.notificationservice.notification_service.model.NotificationStatus;
@@ -7,9 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -35,6 +36,8 @@ public class NotificationResponse {
 
     private NotificationPriority priority;
     private NotificationStatus status;
+
+    // Read status - now dynamically determined per user
     private Boolean isRead;
     private LocalDateTime readAt;
 
@@ -48,4 +51,7 @@ public class NotificationResponse {
     private Long viewCount;
     private Boolean isScheduled;
     private LocalDateTime scheduledFor;
+
+    // Analytics data (optional)
+    private Long totalReaders; // How many users have read this (for broadcast notifications)
 }

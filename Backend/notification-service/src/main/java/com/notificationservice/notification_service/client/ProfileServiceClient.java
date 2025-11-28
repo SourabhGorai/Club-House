@@ -19,6 +19,7 @@ import java.util.List;
 public class ProfileServiceClient {
 
     private final WebClient profileServiceWebClient;
+    private final WebClient clubServiceWebClient;
     private final HttpServletRequest request;
 
     /**
@@ -62,9 +63,9 @@ public class ProfileServiceClient {
         log.debug("Fetching clubs for user: {}", prn);
 
         try {
-            // Call club-service to get user's clubs
-            ApiResponseWrapper<List<String>> response = profileServiceWebClient.get()
-                    .uri("/api/user-clubs/user/{prn}/club-names", prn)
+            // Call club-service to get user's club names (lightweight endpoint)
+            ApiResponseWrapper<List<String>> response = clubServiceWebClient.get()
+                    .uri("/api/user-clubs/user/{prn}/club-names", prn)  // ← Changed endpoint
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponseWrapper<List<String>>>() {})

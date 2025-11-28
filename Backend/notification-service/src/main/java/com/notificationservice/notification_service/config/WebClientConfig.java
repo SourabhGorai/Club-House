@@ -27,6 +27,6 @@ public class WebClientConfig {
 
     @Bean
     public WebClient clubServiceWebClient(WebClient.Builder builder) {
-        return builder.baseUrl("http://CLUB-SERVICE").build();
+        return builder.baseUrl("http://CLUB-SERVICE2").build();
     }
 }
