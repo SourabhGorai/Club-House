@@ -120,7 +120,7 @@ server:
 
 # JWT Configuration (MUST match user-service secret)
 jwt:
-  secret: thisismysecretkeywhichihaveevercreatedformyprojectandthisissupposedtobeusedformyfinalyearproject
+  secret: ${SECRET_KEY}
 
 # Eureka Client Configuration
 eureka:
