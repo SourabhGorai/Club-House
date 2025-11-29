@@ -258,6 +258,7 @@ export default function Register() {
   return (
     <div className="h-screen flex items-center justify-center" style={{
       background: 'linear-gradient(135deg, #e8d5f2 0%, #a8c7e7 50%, #dab5d8 100%)'
+       
     }}>
       <div className="w-full max-w-6xl h-[95vh] bg-white rounded-[2.5rem] shadow-2xl overflow-visible flex relative">
         {/* Left Side - Register Form */}
