@@ -372,7 +372,7 @@ export default function ManageClubs() {
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Contact:</span>
                                 <span className="font-medium text-blue-600">
-                                  {adminData?.email || "not-available"}
+                                  {adminData?.email || "Mot-available"}
                                 </span>
                               </div>
                             </div>
@@ -411,3 +411,16 @@ export default function ManageClubs() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

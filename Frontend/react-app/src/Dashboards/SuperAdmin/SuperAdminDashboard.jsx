@@ -98,53 +98,6 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        {/* User Management */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">User Management</h2>
-          
-          {loading ? (
-            <p className="text-gray-500 text-center py-8">Loading users...</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-gray-700 font-semibold">Username</th>
-                    <th className="px-6 py-3 text-left text-gray-700 font-semibold">Email</th>
-                    <th className="px-6 py-3 text-left text-gray-700 font-semibold">Role</th>
-                    <th className="px-6 py-3 text-left text-gray-700 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((userItem) => (
-                    <tr key={userItem.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-6 py-4">{userItem.username}</td>
-                      <td className="px-6 py-4">{userItem.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          userItem.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
-                          userItem.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' :
-                          userItem.role === 'CLUB_ADMIN' ? 'bg-green-100 text-green-800' :
-                          'bg-orange-100 text-orange-800'
-                        }`}>
-                          {userItem.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm mr-2">
-                          Edit
-                        </button>
-                        <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
 
         
           {/* Quick Actions */}
