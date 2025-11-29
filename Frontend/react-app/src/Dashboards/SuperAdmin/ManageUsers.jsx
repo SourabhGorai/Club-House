@@ -187,7 +187,7 @@ const UserManagement = () => {
                     <div className="pt-10 pb-4 px-4">
                       <div className="text-center mb-4">
                         <h3 className="font-semibold text-gray-900 text-lg mb-1">
-                          {userProfile.fullName}
+                          {userItem.username}
                         </h3>
                         <p className="text-gray-600 text-sm flex items-center justify-center">
                           <Mail className="w-3 h-3 mr-1" />
@@ -222,8 +222,8 @@ const UserManagement = () => {
                           </h4>
                           <div className="space-y-1">
                             <div className="flex items-center text-sm">
-                              <span className="text-gray-600 w-20">Username:</span>
-                              <span className="font-medium">{userItem.username}</span>
+                              <span className="text-gray-600 w-20">Name:</span>
+                              <span className="font-medium">{userProfile.fullName}</span>
                             </div>
                             <div className="flex items-center text-sm">
                               <BookOpen className="w-3 h-3 mr-1 text-gray-500" />
