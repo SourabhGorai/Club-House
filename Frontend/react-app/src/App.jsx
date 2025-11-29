@@ -8,6 +8,7 @@ import Dashboard from "./components/dashboard";
 import ForgotPassword from "./components/forgetpassword";
 import ManageClubs from "./Dashboards/SuperAdmin/ManageClub";
 import SplashScreen from "./components/SplashScreen";
+import UserManagement from "./Dashboards/SuperAdmin/ManageUsers";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/dashboard" className="p-5" element={<Dashboard />} />
         <Route path="/reset-password" className="p-5" element={<ForgotPassword />} />
         <Route path="/manage-clubs" className="p-5" element={<ManageClubs />} />
+        <Route path="/manage-users" className="p-5" element={<UserManagement />} />
       </Routes>
     </div>
   );
