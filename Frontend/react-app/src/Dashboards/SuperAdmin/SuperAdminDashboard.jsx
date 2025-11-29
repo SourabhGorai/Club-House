@@ -151,7 +151,9 @@ export default function SuperAdminDashboard() {
           <div className="bg-white my-6 rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-3">
             <h3 className="text-2xl font-bold mb-4 text-gray-800">Quick Actions</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <button className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-3 rounded-lg transition duration-300">
+              <button onClick={() => {
+      navigate("/manage-users");
+    }} className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-3 rounded-lg transition duration-300">
                 Manage Users
               </button>
               <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-3 rounded-lg transition duration-300">
