@@ -45,17 +45,17 @@ const UserManagement = () => {
         );
 
         if (response.data) {
-          return { userId: userItem.id, profile: response.data.data };
+          return { prn: userItem.prn, profile: response.data.data };
         }
       } catch (error) {
         console.error(`Error fetching profile for user ${userItem.prn}:`, error);
-        return { userId: userItem.id, profile: null };
+        return { prn: userItem.prn, profile: null };
       }
     });
 
     const profileResults = await Promise.all(profilePromises);
     const profilesMap = profileResults.reduce((acc, result) => {
-      if (result) acc[result.userId] = result.profile;
+      if (result) acc[result.prn] = result.profile;
       return acc;
     }, {});
 
@@ -66,7 +66,7 @@ const UserManagement = () => {
     const imagePromises = usersList.map(async (userItem) => {
       try {
         if (!userItem.prn) {
-          return { userId: userItem.id, imageUrl: null };
+          return { prn: userItem.prn, imageUrl: null };
         }
 
         const response = await axios.get(
@@ -81,19 +81,19 @@ const UserManagement = () => {
 
         if (response.data && response.data.size > 0) {
           const imageUrl = URL.createObjectURL(response.data);
-          return { userId: userItem.id, imageUrl };
+          return { prn: userItem.prn, imageUrl };
         } else {
-          return { userId: userItem.id, imageUrl: null };
+          return { prn: userItem.prn, imageUrl: null };
         }
       } catch (error) {
         console.error(`Error fetching profile image for PRN ${userItem.prn}:`, error);
-        return { userId: userItem.id, imageUrl: null };
+        return { prn: userItem.prn, imageUrl: null };
       }
     });
 
     const imageResults = await Promise.all(imagePromises);
     const imagesMap = imageResults.reduce((acc, result) => {
-      if (result) acc[result.userId] = result.imageUrl;
+      if (result) acc[result.prn] = result.imageUrl;
       return acc;
     }, {});
 
@@ -151,25 +151,25 @@ const UserManagement = () => {
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               
               {users.map((userItem) => {
-                const userProfile = userProfiles[userItem.id];
+                const userProfile = userProfiles[userItem.prn];
                 const hasProfile = !!userProfile;
 
                 return (
                   <div 
-                    key={userItem.id} 
+                    key={userItem.prn} 
                     className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
                   >
 
                     <div className="relative">
                       <div className="h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-t-lg"></div>
-                      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-                        <div className="w-16 h-16 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden">
-                          {profileImages[userItem.id] ? (
+                      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 p-2">
+                        <div className="w-30 h-30 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden">
+                          {profileImages[userItem.prn] ? (
                             <img 
-                              src={profileImages[userItem.id]} 
+                              src={profileImages[userItem.prn]} 
                               alt={`${userItem.username}'s profile`}
                               className="w-full h-full object-cover"
                             />
@@ -187,7 +187,7 @@ const UserManagement = () => {
                     <div className="pt-10 pb-4 px-4">
                       <div className="text-center mb-4">
                         <h3 className="font-semibold text-gray-900 text-lg mb-1">
-                          {userItem.username}
+                          {userProfile.fullName}
                         </h3>
                         <p className="text-gray-600 text-sm flex items-center justify-center">
                           <Mail className="w-3 h-3 mr-1" />
@@ -212,10 +212,6 @@ const UserManagement = () => {
                             {userItem.verified ? "Verified" : "Not Verified"}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">User ID:</span>
-                          <span className="font-mono text-xs">{userItem.id}</span>
-                        </div>
                       </div>
 
                       {hasProfile && (
@@ -226,8 +222,8 @@ const UserManagement = () => {
                           </h4>
                           <div className="space-y-1">
                             <div className="flex items-center text-sm">
-                              <span className="text-gray-600 w-20">Name:</span>
-                              <span className="font-medium">{userProfile.fullName}</span>
+                              <span className="text-gray-600 w-20">Username:</span>
+                              <span className="font-medium">{userItem.username}</span>
                             </div>
                             <div className="flex items-center text-sm">
                               <BookOpen className="w-3 h-3 mr-1 text-gray-500" />

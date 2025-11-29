@@ -154,7 +154,7 @@ export default function ManageClubs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-6">
+    <div className="min-h-screen bg-orange-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -280,7 +280,7 @@ export default function ManageClubs() {
                         {selectedClub.clubName}
                       </h2>
                       <p className="text-gray-600">
-                        Club ID: {selectedClub.clubId} •
+                        •
                         <span
                           className={`ml-2 ${
                             selectedClub.isActive
@@ -344,7 +344,7 @@ export default function ManageClubs() {
                         </div>
 
                         {/* Additional Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1  gap-6">
                           <div className="bg-gray-50 rounded-xl p-5">
                             <h4 className="font-semibold text-gray-800 mb-3">
                               Leadership
@@ -372,26 +372,9 @@ export default function ManageClubs() {
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Contact:</span>
                                 <span className="font-medium text-blue-600">
-                                  {adminData?.email || "not-available"}
+                                  {adminData?.email || "Not-available"}
                                 </span>
                               </div>
-                            </div>
-                          </div>
-
-                          <div className="bg-orange-50 rounded-xl p-5">
-                            <h4 className="font-semibold text-gray-800 mb-3">
-                              Quick Actions
-                            </h4>
-                            <div className="space-y-2">
-                              <button className="w-full text-left text-orange-700 hover:text-orange-800 transition-colors">
-                                View All Members →
-                              </button>
-                              <button className="w-full text-left text-orange-700 hover:text-orange-800 transition-colors">
-                                Schedule Event →
-                              </button>
-                              <button className="w-full text-left text-orange-700 hover:text-orange-800 transition-colors">
-                                Send Announcement →
-                              </button>
                             </div>
                           </div>
                         </div>
@@ -428,3 +411,16 @@ export default function ManageClubs() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

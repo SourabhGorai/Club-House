@@ -21,7 +21,7 @@ export default function App() {
         <Route path="/dashboard" className="p-5" element={<Dashboard />} />
         <Route path="/reset-password" className="p-5" element={<ForgotPassword />} />
         <Route path="/manage-clubs" className="p-5" element={<ManageClubs />} />
-        <Route path="/manage-users" className="p-5" element={<UserManagement />} />
+         <Route path="/manage-users" className="p-5" element={<UserManagement />} />
       </Routes>
     </div>
   );
