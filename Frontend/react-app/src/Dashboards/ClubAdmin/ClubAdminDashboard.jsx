@@ -7,7 +7,7 @@ export default function ClubAdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (
@@ -37,7 +37,7 @@ export default function ClubAdminDashboard() {
               Welcome back, {user?.username}!
             </h3>
             <p className="text-gray-600 mb-4">
-              this is random again igmore change krna hai You have 2 new notifications and 1 upcoming assignment. 
+              this is random again ignore change krna hai You have 2 new notifications and 1 upcoming assignment. 
               Continue your learning journey with us!
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

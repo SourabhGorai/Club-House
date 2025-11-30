@@ -84,7 +84,7 @@ export default function UsersDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   const handleInputChange = (e) => {

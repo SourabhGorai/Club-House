@@ -8,7 +8,7 @@ export default function SplashScreen() {
 
   useEffect(() => {
     const video = videoRef.current;
-    
+
     const handleVideoEnd = () => {
       navigate("/login");
     };
@@ -32,7 +32,7 @@ export default function SplashScreen() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F7E3A8",
+        background: "linear-gradient(to right, #DAACEC, #89CFF0)",
         overflow: "hidden",
       }}
     >

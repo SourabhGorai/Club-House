@@ -325,7 +325,7 @@ const UserManagement = () => {
                       </div>
 
                       <div className="text-center">
-                        <div className="text-xl font-display font-semibold text-gray-900 truncate max-w-[10rem]">
+                        <div className="text-xl font-display font-semibold text-gray-900 truncate max-w-[20rem]">
                           {userProfile?.fullName || userItem.username}
                         </div>
                         <span className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${getRoleBadgeClass(userItem.role)}`}>
