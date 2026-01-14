@@ -8,6 +8,7 @@ import ForgotPassword from "./components/forgetpassword";
 import ManageClubs from "./Dashboards/SuperAdmin/ManageClub";
 import SplashScreen from "./components/SplashScreen";
 import UserManagement from "./Dashboards/SuperAdmin/ManageUsers";
+import AddStudent from "./Dashboards/Teachers/AddStudent";
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 
 export default function App() {
@@ -72,6 +73,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <UserManagement />
+            </ProtectedRoute>
+          } 
+        />
+
+         <Route 
+          path="/add-users-with-club" 
+          element={
+            <ProtectedRoute>
+              <AddStudent />
             </ProtectedRoute>
           } 
         />

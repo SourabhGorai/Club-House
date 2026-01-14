@@ -1,10 +1,10 @@
 import { Calendar,Trophy, Users, Target, Award} from 'lucide-react';
-
+import { useNavigate } from "react-router-dom";
 
 
 export default function TeachersDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
-
+  const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -90,7 +90,7 @@ export default function TeachersDashboard() {
               <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-3 rounded-lg transition duration-300">
                 Delete Event
               </button>
-              <button className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300">
+              <button onClick={() => navigate("/add-users-with-club")} className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300">
                 Add Student
               </button>
               <button className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
