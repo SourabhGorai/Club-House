@@ -5,14 +5,14 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/user-service/user-service/pom.xml" />
-        <option value="$PROJECT_DIR$/profile-management-service/pom.xml" />
         <option value="$PROJECT_DIR$/eureka/pom.xml" />
-        <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
-        <option value="$PROJECT_DIR$/user-service/pom.xml" />
-        <option value="$PROJECT_DIR$/independent-services/pom.xml" />
         <option value="$PROJECT_DIR$/club-service/pom.xml" />
-        <option value="$PROJECT_DIR$/club-service2/pom.xml" />
         <option value="$PROJECT_DIR$/notification-service/pom.xml" />
+        <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/profile-management-service/pom.xml" />
+        <option value="$PROJECT_DIR$/independent-services/pom.xml" />
+        <option value="$PROJECT_DIR$/club-service2/pom.xml" />
+        <option value="$PROJECT_DIR$/user-service/pom.xml" />
       </list>
     </option>
   </component>
