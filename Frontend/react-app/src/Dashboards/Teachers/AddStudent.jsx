@@ -1,34 +1,51 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import debounce from "lodash/debounce"; 
 
 export default function AddStudent() {
   const navigate = useNavigate();
   const [clubs, setClubs] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [prnError, setPrnError] = useState("");
+  const [prnTouched, setPrnTouched] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
   
   const [form, setForm] = useState({
     prn: "",
     username: "",
-    password: "",
     email: "",
-    role: "USERS", // Default role for students
+    role: "USERS",
     fullName: "",
     department: "",
     year: "",
     phoneNumber: "",
-    clubId:""
+    clubId: ""
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-    // Add this useEffect after your state declarations
+  // Refs for debouncing
+  const debouncedFetchProfileRef = useRef();
+
   useEffect(() => {
     fetchClubs();
+    
+    // Create debounced function
+    debouncedFetchProfileRef.current = debounce((prn) => {
+      if (prn && prn.trim().length > 0) {
+        fetchProfileByPRN(prn.trim());
+      }
+    }, 500); // 500ms delay
+
+    return () => {
+      if (debouncedFetchProfileRef.current) {
+        debouncedFetchProfileRef.current.cancel();
+      }
+    };
   }, []);
 
-  // Add this function to fetch clubs from API
   const fetchClubs = async () => {
     try {
       setLoadingClubs(true);
@@ -49,8 +66,196 @@ export default function AddStudent() {
     }
   };
 
+const fetchProfileByPRN = async (prn) => {
+  if (!prn || prn.trim().length === 0) {
+    setPrnError("");
+    return;
+  }
+
+  // Validate PRN format (optional)
+  if (!/^\d{10}$/.test(prn)) {
+    setPrnError("PRN must be 10 digits");
+    return;
+  }
+
+  try {
+    setLoadingProfile(true);
+    setPrnError("");
+    setAutoFilled(false);
+    
+    // First, fetch user data (username, email, and role) from the users API
+    try {
+      const userResponse = await axios.get(
+        `http://localhost:8080/api/users/${prn}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+
+      // Note: Check the response structure
+      const userData = userResponse.data; // or userResponse.data.data
+      
+      console.log("User Data Response:", userResponse.data); // Debug log
+      
+      // Check if the user has the correct role (USERS)
+      if (userData.role !== "USERS") {
+        setPrnError(`This person has role: ${userData.role}. Only users with "USERS" role can be added to clubs.`);
+        resetAutoFilledFields();
+        setLoadingProfile(false);
+        return;
+      }
+      
+      // If role is USERS, proceed to fetch profile data
+      const profileResponse = await axios.get(
+        `http://localhost:8080/api/profiles/prn/${prn}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+
+      if (profileResponse.data.success) {
+        const profileData = profileResponse.data.data;
+        
+        // Auto-fill ALL the form data including username and email
+        setForm(prev => ({
+          ...prev,
+          username: userData.username || "", // From user API
+          email: userData.email || "", // From user API
+          fullName: profileData.fullName || "",
+          department: profileData.department || "",
+          year: profileData.year || "",
+          phoneNumber: profileData.phoneNumber || ""
+        }));
+        
+        console.log("Form filled with:", {
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          fullName: profileData.fullName,
+          department: profileData.department,
+          year: mapYearNumberToCode(profileData.year),
+          phoneNumber: profileData.phoneNumber
+        });
+        
+        setAutoFilled(true);
+      } else {
+        setPrnError("No profile found for this PRN");
+        resetAutoFilledFields();
+      }
+      
+    } catch (userError) {
+      console.error("Error fetching user data:", userError);
+      
+      if (userError.response?.status === 404) {
+        setPrnError("No user found with this PRN");
+      } else if (userError.response?.status === 403) {
+        setPrnError("Access denied to user data");
+      } else {
+        setPrnError("Failed to fetch user data");
+      }
+      
+      resetAutoFilledFields();
+      setAutoFilled(false);
+    }
+    
+  } catch (error) {
+    console.error("Error in fetchProfileByPRN:", error);
+    
+    if (error.response?.status === 404) {
+      setPrnError("No profile found for this PRN");
+    } else if (error.response?.status === 400) {
+      setPrnError("Invalid PRN format");
+    } else {
+      setPrnError("Failed to fetch profile data");
+    }
+    
+    resetAutoFilledFields();
+    setAutoFilled(false);
+  } finally {
+    setLoadingProfile(false);
+  }
+};
+
+  
+  // Helper function to map year number to code
+  const mapYearNumberToCode = (yearNumber) => {
+    const yearMap = {
+      1: "FE",
+      2: "SE", 
+      3: "TE",
+      4: "BE"
+    };
+    return yearMap[yearNumber] || "";
+  };
+
+  // Helper function to generate username
+  const generateUsername = (fullName) => {
+    const nameParts = fullName.toLowerCase().split(' ');
+    if (nameParts.length >= 2) {
+      return `${nameParts[0]}.${nameParts[nameParts.length - 1]}`.replace(/[^a-z.]/g, '');
+    }
+    return nameParts[0].toLowerCase().replace(/[^a-z]/g, '');
+  };
+
+  // Helper function to generate email
+  const generateEmail = (fullName, prn) => {
+    const nameParts = fullName.toLowerCase().split(' ');
+    const firstName = nameParts[0].replace(/[^a-z]/g, '');
+    const lastName = nameParts[nameParts.length - 1].replace(/[^a-z]/g, '');
+    const year = prn.substring(0, 2); // First 2 digits of PRN for year
+    const lastDigits = prn.substring(prn.length - 4); // Last 4 digits
+    
+    return `${firstName}.${lastName}${year}${lastDigits}@student.college.edu`;
+  };
+
+  // Reset auto-filled fields
+const resetAutoFilledFields = () => {
+  setForm(prev => ({
+    ...prev,
+    username: "",
+    email: "",
+    fullName: "",
+    department: "",
+    year: "",
+    phoneNumber: ""
+  }));
+  setAutoFilled(false);
+};
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Only allow changes to fields that are not auto-filled from PRN
+    if (name === "prn") {
+      setPrnTouched(true);
+      setPrnError(""); // Clear previous errors
+      setAutoFilled(false); // Reset auto-filled flag
+      
+      // Reset auto-filled fields if PRN is cleared
+      if (!value || value.trim().length === 0) {
+        resetAutoFilledFields();
+      }
+      
+      setForm(prev => ({ ...prev, [name]: value }));
+
+      // Debounce the API call
+      if (debouncedFetchProfileRef.current) {
+        debouncedFetchProfileRef.current(value);
+      }
+    } else if (name !== "department" && name !== "year") {
+      // Allow changes to other fields except department and year
+      setForm(prev => ({ ...prev, [name]: value }));
+
+      // Auto-generate email if fullName changes and email is empty
+      if (name === "fullName" && !form.email && form.prn) {
+        const email = generateEmail(value, form.prn);
+        setForm(prev => ({ ...prev, email }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -78,15 +283,17 @@ export default function AddStudent() {
       setForm({
         prn: "",
         username: "",
-        password: "",
         email: "",
         role: "USERS",
         fullName: "",
         department: "",
         year: "",
         phoneNumber: "",
-        club:""
+        clubId: ""
       });
+      setPrnTouched(false);
+      setPrnError("");
+      setAutoFilled(false);
       
     } catch (err) {
       console.error("Error adding student:", err);
@@ -126,18 +333,63 @@ export default function AddStudent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* PRN Field */}
               <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                  PRN *
-                </label>
-                <input
-                  type="text"
-                  name="prn"
-                  placeholder="Enter student's PRN"
-                  value={form.prn}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
-                  required
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700">
+                    PRN *
+                  </label>
+                  {loadingProfile && (
+                    <span className="text-xs text-blue-600 animate-pulse">
+                      Fetching profile...
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="prn"
+                    placeholder="Enter 10-digit PRN"
+                    value={form.prn}
+                    onChange={handleChange}
+                    onBlur={() => setPrnTouched(true)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base ${
+                      prnError && prnTouched
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    required
+                    pattern="\d{10}"
+                    maxLength={10}
+                    title="PRN must be exactly 10 digits"
+                  />
+                  {form.prn && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm(prev => ({ ...prev, prn: "" }));
+                        resetAutoFilledFields();
+                        setPrnError("");
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+               {prnError && prnTouched && (
+  <div className={`mt-1 ${prnError.includes('role') ? 'p-3 bg-red-50 border border-red-200 rounded-lg' : ''}`}>
+    <p className={`text-xs ${prnError.includes('role') ? 'text-red-700 font-medium' : 'text-red-600'}`}>
+      {prnError}
+      {prnError.includes('role') && (
+        <span className="block mt-1 text-red-600 text-xs">
+          Please enter a PRN with "USERS" role to add as a student.
+        </span>
+      )}
+    </p>
+  </div>
+)}
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter PRN to auto-fill student details
+                </p>
               </div>
 
               {/* Full Name Field */}
@@ -148,126 +400,141 @@ export default function AddStudent() {
                 <input
                   type="text"
                   name="fullName"
-                  placeholder="Enter student's full name"
+                  placeholder="Student's full name"
                   value={form.fullName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
                   required
+                  disabled={loadingProfile || autoFilled}
                 />
+                {autoFilled && (
+                  <p className="mt-1 text-xs text-green-600">Auto-filled from profile</p>
+                )}
               </div>
             </div>
 
-            {/* Row 2: Username and Email (2 columns) */}
+            {/* Auto-fill notification */}
+{autoFilled && !loadingProfile && (
+  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+    <div className="flex items-center gap-2 text-green-700 text-sm">
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      </svg>
+      <span>User verified with "USERS" role. All student data fetched from PRN. Username, Email, Department and Year cannot be edited.</span>
+    </div>
+  </div>
+)}
+
+  {/* Username Field */}
+  <div>
+    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+      Username *
+    </label>
+    <div className="relative">
+      <input
+        type="text"
+        name="username"
+        placeholder="Auto-generated username"
+        value={form.username}
+        onChange={handleChange}
+        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 text-sm md:text-base ${
+          autoFilled ? 'bg-gray-50 text-gray-700' : 'bg-white/50'
+        }`}
+        required
+        disabled={autoFilled}
+      />
+      {autoFilled && form.username && (
+        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+          From PRN
+        </span>
+      )}
+    </div>
+    {autoFilled && form.username && (
+      <p className="mt-1 text-xs text-green-600">Fetched from user profile</p>
+    )}
+  </div>
+
+  {/* Email Field */}
+  <div>
+    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+      Email *
+    </label>
+    <div className="relative">
+      <input
+        type="email"
+        name="email"
+        placeholder="Auto-generated email"
+        value={form.email}
+        onChange={handleChange}
+        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 text-sm md:text-base ${
+          autoFilled ? 'bg-gray-50 text-gray-700' : 'bg-white/50'
+        }`}
+        required
+        disabled={autoFilled}
+      />
+      {autoFilled && form.email && (
+        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+          From PRN
+        </span>
+      )}
+    </div>
+    {autoFilled && form.email && (
+      <p className="mt-1 text-xs text-green-600">Fetched from user profile</p>
+    )}
+  </div>
+
+            {/* Row 3: Department and Year (2 columns) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* Username Field */}
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                  Username *
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Choose a username"
-                  value={form.username}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
-                  required
-                />
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="student.email@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Row 3: Password (full width) */}
-            <div>
-              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                Password *
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Set initial password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 pr-10 text-sm md:text-base"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm font-medium px-2 py-1 rounded"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {/* Row 4: Department and Year (2 columns) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* Department Field */}
+              {/* Department Field - Display Only */}
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Department *
                 </label>
-                <select
-                  name="department"
-                  value={form.department}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-                  required
-                >
-                  <option value="" disabled>
-                    Select Department
-                  </option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Information Technology">Information Technology</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Mechanical">Mechanical</option>
-                  <option value="Civil">Civil</option>
-                  <option value="MBA">MBA</option>
-                  <option value="Other">Other</option>
-                </select>
+                <div className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-sm md:text-base text-gray-700">
+                  {form.department ? (
+                    <div className="flex items-center justify-between">
+                      <span>{form.department}</span>
+                      {autoFilled && (
+                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                          From PRN
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">
+                      {loadingProfile ? "Loading..." : "Enter PRN to load department"}
+                    </span>
+                  )}
+                </div>
+                <input type="hidden" name="department" value={form.department} />
               </div>
 
-              {/* Year Field */}
+              {/* Year Field - Display Only */}
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Year *
                 </label>
-                <select
-                  name="year"
-                  value={form.year}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-                  required
-                >
-                  <option value="" disabled>
-                    Select Year
-                  </option>
-                  <option value="FE">First Year</option>
-                  <option value="SE">Second Year</option>
-                  <option value="TE">Third Year</option>
-                  <option value="BE">Final Year</option>
-                </select>
+                <div className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-sm md:text-base text-gray-700">
+                  {form.year ? (
+                    <div className="flex items-center justify-between">
+                      <span>{form.year}</span>
+                      {autoFilled && (
+                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                          From PRN
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">
+                      {loadingProfile ? "Loading..." : "Enter PRN to load year"}
+                    </span>
+                  )}
+                </div>
+                <input type="hidden" name="year" value={form.year} />
               </div>
             </div>
 
-            {/* Row 5: Phone Number and Role (2 columns) */}
+            {/* Row 4: Phone Number and Role (2 columns) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Phone Number Field */}
               <div>
@@ -277,11 +544,15 @@ export default function AddStudent() {
                 <input
                   type="tel"
                   name="phoneNumber"
-                  placeholder="Enter phone number"
+                  placeholder="Phone number"
                   value={form.phoneNumber}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
+                  disabled={loadingProfile || autoFilled}
                 />
+                {autoFilled && form.phoneNumber && (
+                  <p className="mt-1 text-xs text-green-600">Auto-filled from profile</p>
+                )}
               </div>
 
               {/* Role Field (hidden/auto-set to USERS) */}
@@ -297,71 +568,84 @@ export default function AddStudent() {
               </div>
             </div>
 
-            {/* Row X: Club and Year (2 columns) */}
-{/* Club Field */}
-<div>
-  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-    Club {loadingClubs && <span className="text-xs text-gray-500">(Loading...)</span>}
-  </label>
-  <select
-    name="clubId"
-    value={form.clubId}
-    onChange={handleChange}
-    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-    disabled={loadingClubs}
-  >
-    <option value="">Select Club (Optional)</option>
-    {clubs.map((club) => (
-      <option key={club.clubId} value={club.clubId}>
-        {club.clubName}
-      </option>
-    ))}
-  </select>
-  {clubs.length === 0 && !loadingClubs && (
-    <p className="text-xs text-gray-500 mt-1">No clubs available</p>
-  )}
-</div>
+            {/* Club Field */}
+            <div>
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                Club {loadingClubs && <span className="text-xs text-gray-500">(Loading...)</span>}
+              </label>
+              <select
+                name="clubId"
+                value={form.clubId}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+                disabled={loadingClubs}
+              >
+                <option value="">Select Club</option>
+                {clubs.map((club) => (
+                  <option key={club.clubId} value={club.clubId}>
+                    {club.clubName}
+                  </option>
+                ))}
+              </select>
+              {clubs.length === 0 && !loadingClubs && (
+                <p className="text-xs text-gray-500 mt-1">No clubs available</p>
+              )}
+            </div>
 
             {/* Add Student Button */}
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full text-white py-3 px-5 rounded-full font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wide text-sm ${
-                  loading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-                style={{
-                  background: "linear-gradient(90deg, #10B981 0%, #34D399 100%)",
-                }}
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    ADDING...
-                  </>
-                ) : (
-                  <>
-                    ADD STUDENT
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
+<div className="pt-4">
+  <button
+    type="submit"
+    disabled={loading || loadingProfile || !form.department || !form.year || prnError.includes('role')}
+    className={`w-full text-white py-3 px-5 rounded-full font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wide text-sm ${
+      loading || loadingProfile || !form.department || !form.year || prnError.includes('role') ? "opacity-70 cursor-not-allowed" : ""
+    }`}
+    style={{
+      background: !form.department || !form.year || prnError.includes('role')
+        ? "linear-gradient(90deg, #9CA3AF 0%, #D1D5DB 100%)"
+        : "linear-gradient(90deg, #10B981 0%, #34D399 100%)",
+    }}
+  >
+    {loading ? (
+      <>
+        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        ADDING...
+      </>
+    ) : (
+      <>
+        {!form.department || !form.year ? "ENTER PRN FIRST" : prnError.includes('role') ? "INVALID ROLE" : "ADD STUDENT"}
+        {(!form.department || !form.year || prnError.includes('role')) ? null : (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        )}
+      </>
+    )}
+  </button>
+  {(!form.department || !form.year) && !loadingProfile && !prnError.includes('role') && (
+    <p className="mt-2 text-xs text-center text-gray-500">
+      Enter a valid PRN to load department and year information
+    </p>
+  )}
+  {prnError.includes('role') && (
+    <p className="mt-2 text-xs text-center text-red-600 font-medium">
+      This person has a different role and cannot be added as a student
+    </p>
+  )}
+</div>
 
             {/* Back to Dashboard Link */}
             <div className="pt-2">
@@ -391,9 +675,9 @@ export default function AddStudent() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-6.65a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Add Student</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">Quick Student Addition</h3>
               <p className="text-white/90 text-sm">
-                Fill in the student details to add them to the system. All fields marked with * are required.
+                Enter PRN to auto-load student profile. Department and Year are fetched from the system.
               </p>
             </div>
 
@@ -404,7 +688,7 @@ export default function AddStudent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-white text-sm">Student will receive login credentials</span>
+                <span className="text-white text-sm">Enter PRN to fetch student profile</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -412,7 +696,7 @@ export default function AddStudent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-white text-sm">Access to Club-Hub features</span>
+                <span className="text-white text-sm">Department & Year are fetched automatically</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -420,33 +704,8 @@ export default function AddStudent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-white text-sm">Manage club memberships</span>
+                <span className="text-white text-sm">Username & email auto-generated</span>
               </div>
-            </div>
-          </div>
-
-          {/* Decorative elements */}
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-            <div className="w-48 h-48 bg-white/10 rounded-full -mb-24"></div>
-          </div>
-          <div className="absolute bottom-4 right-4">
-            <svg className="w-16 h-16 text-white/30" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Mobile Illustration */}
-        <div className="md:hidden w-full py-6 px-4 bg-gradient-to-r from-emerald-50 to-green-50">
-          <div className="flex items-center justify-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-6.65a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="cursor-pointer text-lg font-bold text-gray-800">Add Student</h3>
-              <p className="text-sm text-gray-600">Fill all required fields to add a new student</p>
             </div>
           </div>
         </div>
