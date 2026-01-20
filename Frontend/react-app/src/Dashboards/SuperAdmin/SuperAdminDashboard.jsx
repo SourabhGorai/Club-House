@@ -158,6 +158,13 @@ export default function SuperAdminDashboard() {
             >
               Manage Clubs
             </button>
+
+             <button
+              onClick={() => navigate("/add-users-with-club")}
+              className="bg-blue-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300"
+            >
+              Add Students to Club
+            </button>
           </div>
         </div>
       </div>
