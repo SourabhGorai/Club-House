@@ -93,7 +93,7 @@ export default function TeachersDashboard() {
               <button onClick={() => navigate("/add-users-with-club")} className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300">
                 Add Student
               </button>
-              <button className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
+              <button onClick={() => navigate("/remove-users-from-club")} className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
                 Remove Student
               </button>
             </div>
