@@ -218,7 +218,7 @@ public class ClubService {
 
         long totalCount = userClubRepository.countByClub_ClubId(clubId);
 
-        List<UserClub> teachers = userClubRepository.findByClubIdAndRole(clubId, "TEACHER");
+        List<UserClub> teachers = userClubRepository.findByClubIdAndRole(clubId, "TEACHERS");
         if (teachers.isEmpty()) {
             teachers = userClubRepository.findByClubIdAndRole(clubId, "FACULTY");
         }

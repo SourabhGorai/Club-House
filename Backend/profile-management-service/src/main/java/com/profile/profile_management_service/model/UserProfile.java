@@ -53,7 +53,7 @@ public class UserProfile {
 
     @Column(nullable = false)
     @NotNull(message = "Year is required")
-    @Min(value = 1, message = "Year must be between 1 and 4")
+    @Min(value = 0, message = "Year must be between 1 and 4")
     @Max(value = 4, message = "Year must be between 1 and 4")
     private Integer year;
 

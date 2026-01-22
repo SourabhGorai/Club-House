@@ -23,7 +23,7 @@ public class ProfileUpdateRequest {
     @Size(min = 2, max = 50, message = "Department must be between 2 and 50 characters")
     private String department;
 
-    @Min(value = 1, message = "Year must be between 1 and 4")
+    @Min(value = 0, message = "Year must be between 1 and 4")
     @Max(value = 4, message = "Year must be between 1 and 4")
     private Integer year;
 

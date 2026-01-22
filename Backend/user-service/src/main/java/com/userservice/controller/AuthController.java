@@ -46,6 +46,13 @@ public class AuthController {
         return ResponseEntity.ok(created);
     }
 
+//    @PostMapping("/adminRegister")
+//    public ResponseEntity<UserDto> adminRegister(@Validated @RequestBody UserCreateDto dto) {
+//        UserDto created = userService.registerUser(dto);
+//        // OTP send done inside UserService -> OtpService
+//        return ResponseEntity.ok(created);
+//    }
+
     // Login
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@Validated @RequestBody AuthRequestDto request) {
