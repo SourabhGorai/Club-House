@@ -224,4 +224,6 @@ public interface ProfileService {
     YearStatistics getYearStatistics();
 
     List<String> filterPrnsByYear(List<String> prns, Integer year);
+
+    List<ProfileResponse> fetchList(List<String> prns);
 }

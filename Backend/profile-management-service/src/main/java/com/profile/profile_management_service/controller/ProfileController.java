@@ -80,20 +80,21 @@ public class ProfileController {
         return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", response));
     }
 
-    /**
-     * Get profile by User ID
-     * GET /api/profiles/user/{userId}
-     */
-//    @GetMapping("/user/{userId}")
-//    public ResponseEntity<ApiResponse<ProfileResponse>> getProfileByUserId(
-//            @PathVariable Long userId) {
-//        log.info("Received request to get profile by UserId: {}", userId);
-//
-//        ProfileResponse response = profileService.getProfileByUserId(userId);
-//        log.info("Profile retrieved successfully for UserId: {}", userId);
-//
-//        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", response));
-//    }
+    @PostMapping("/prns")
+    public ResponseEntity<ApiResponse<List<ProfileResponse>>> getProfileByPrns(
+            @RequestBody List<String> prns
+    ) {
+
+        log.info("REST received to fetch list of profiles");
+
+        List<ProfileResponse> response = profileService.fetchList(prns);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched list of size %d", response.size()),
+                response
+        ));
+
+    }
 
     /**
      * Update profile

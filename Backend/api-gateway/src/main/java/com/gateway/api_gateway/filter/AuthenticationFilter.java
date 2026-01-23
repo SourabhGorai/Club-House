@@ -1,7 +1,6 @@
 package com.gateway.api_gateway.filter;
 
 
-
 import com.gateway.api_gateway.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -53,9 +52,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 jwtUtil.validateToken(token);
 
                 // Extract user information
+                // In AuthenticationFilter.java, update this section:
+
+                // Extract user information
                 String username = jwtUtil.extractUsername(token);
                 String role = jwtUtil.extractRole(token);
-                Long userId = jwtUtil.extractUserId(token);
+                String prn = jwtUtil.extractPrn(token);  // Extract PRN instead of userId
 
                 log.debug("Authenticated user: {} with role: {}", username, role);
 
@@ -63,7 +65,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Username", username)
                         .header("X-User-Role", role)
-                        .header("X-User-Id", userId != null ? userId.toString() : "")
+                        .header("X-User-Id", prn)  // Pass PRN as X-User-Id
                         .build();
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());

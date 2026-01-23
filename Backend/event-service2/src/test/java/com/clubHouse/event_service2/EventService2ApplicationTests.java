@@ -1,10 +1,10 @@
-package com.clubHouse.event_service;
+package com.clubHouse.event_service2;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class EventServiceApplicationTests {
+class EventService2ApplicationTests {
 
 	@Test
 	void contextLoads() {

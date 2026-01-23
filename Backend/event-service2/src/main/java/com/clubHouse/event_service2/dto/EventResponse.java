@@ -1,0 +1,27 @@
+package com.clubHouse.event_service2.dto;
+
+import com.clubHouse.event_service2.model.TargetType;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
+public class EventResponse {
+
+    private Long eventId;
+
+    private String title;
+
+    private String description;
+
+    private String day;
+
+    private String dateTime;
+
+    private String organizerPrn;
+
+    private String organizer;
+
+    private String venue;
+
+}

@@ -18,10 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -733,5 +730,18 @@ public class ProfileServiceImpl implements ProfileService {
     public List<String> filterPrnsByYear(List<String> prns, Integer year) {
         return profileRepository.findPrnsByPrnInAndYear(prns, year);
     }
+
+    @Override
+    public List<ProfileResponse> fetchList(List<String> prns) {
+        log.info("Attempting to fetch all the profiles for PRNs: {}", prns);
+
+        if (prns == null || prns.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UserProfile> resp = profileRepository.findByPrnIn(prns);
+        return profileMapper.toProfileResponseList(resp);
+    }
+
 
 }

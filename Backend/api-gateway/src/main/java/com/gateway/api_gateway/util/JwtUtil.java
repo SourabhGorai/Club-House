@@ -82,17 +82,16 @@ public class JwtUtil {
      * @param token JWT token
      * @return user ID or null
      */
-    public Long extractUserId(String token) {
+    public String extractPrn(String token) {
         try {
-            Object userIdObj = Jwts.parser()
+            return (String) Jwts.parser()
                     .setSigningKey(jwtSecret)
                     .parseClaimsJws(token)
                     .getBody()
-                    .get("userId");
-            return userIdObj != null ? Long.valueOf(userIdObj.toString()) : null;
+                    .get("prn");  // Extract PRN claim
         } catch (Exception e) {
-            log.warn("User ID not found in token");
-            return null;
+            log.error("Error extracting PRN from token: {}", e.getMessage());
+            throw new RuntimeException("Error extracting PRN from token");
         }
     }
 }
