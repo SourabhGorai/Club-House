@@ -40,10 +40,10 @@ public class ProfileCreateRequest {
     @Size(min = 2, max = 50, message = "Department must be between 2 and 50 characters")
     private String department;
 
-    @NotNull(message = "Year is required")
+//    @NotNull(message = "Year is required")
     @Min(value = 0, message = "Year must be between 1 and 4. Note: 0 for faculty.")
     @Max(value = 4, message = "Year must be between 1 and 4. Note: 0 for faculty.")
-    private Integer year;
+    private Integer year = 0;
 
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[0-9]{10,15}$", message = "Phone number must be 10-15 digits")

@@ -390,7 +390,7 @@ const fetchStudentsFromClubs = async (clubs) => {
       if (response.data.success) {
         // Filter to keep only MEMBER and CLUB_ADMIN roles
         const students = response.data.data.filter(user => 
-          ['MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
+          ['TEAM_MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
         );
         allStudents.push(...students);
       }

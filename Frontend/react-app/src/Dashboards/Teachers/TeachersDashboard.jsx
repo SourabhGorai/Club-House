@@ -1,7 +1,6 @@
 // import { Calendar,Trophy, Users, Target, Award} from 'lucide-react';
 // import { useNavigate } from "react-router-dom";
 
-
 // export default function TeachersDashboard() {
 //   const user = JSON.parse(localStorage.getItem("user"));
 //   const navigate = useNavigate();
@@ -37,7 +36,7 @@
 //               Welcome, Professor {user?.username}!
 //             </h3>
 //             <p className="text-gray-600">
-//               yeah abhi random hai ignore it You have 3 new assignments to grade and 2 upcoming classes today. 
+//               yeah abhi random hai ignore it You have 3 new assignments to grade and 2 upcoming classes today.
 //               Don't forget to submit the weekly attendance report.
 //             </p>
 //           </div>
@@ -105,29 +104,36 @@
 //   );
 // }
 
-
-
-import { Calendar, Trophy, Users, User, Plus, Upload, X, Edit } from 'lucide-react';
+import {
+  Calendar,
+  Trophy,
+  Users,
+  User,
+  Plus,
+  Upload,
+  X,
+  Edit,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function TeachersDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  
+
   // Profile states
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [profileData, setProfileData] = useState({
-    prn: user?.prn || '',
-    fullName: '',
-    department: '',
-    phoneNumber: ''
+    prn: user?.prn || "",
+    fullName: "",
+    department: "",
+    phoneNumber: "",
   });
   const [selectedImage, setSelectedImage] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [userProfile, setUserProfile] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -142,26 +148,26 @@ export default function TeachersDashboard() {
       const response = await axios.get(
         `http://localhost:8080/api/profiles/prn/${user?.prn}`,
         {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
-          }
-        }
+          },
+        },
       );
-      
+
       if (response.data) {
         setUserProfile(response.data);
         setProfileData({
-          prn: response.data.data.prn || user?.prn || '',
-          fullName: response.data.data.fullName || '',
-          department: response.data.data.department || '',
-          phoneNumber: response.data.data.phoneNumber || ''
+          prn: response.data.data.prn || user?.prn || "",
+          fullName: response.data.data.fullName || "",
+          department: response.data.data.department || "",
+          phoneNumber: response.data.data.phoneNumber || "",
         });
-        
+
         // Fetch profile image
         fetchProfileImage();
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
       setUserProfile(null);
     } finally {
       setIsLoadingProfile(false);
@@ -173,19 +179,19 @@ export default function TeachersDashboard() {
       const response = await axios.get(
         `http://localhost:8080/api/profiles/${user?.prn}/image`,
         {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: 'blob'
-        }
+          responseType: "blob",
+        },
       );
-      
+
       if (response.data) {
         const imageUrl = URL.createObjectURL(response.data);
         setProfileImage(imageUrl);
       }
     } catch (error) {
-      console.error('Error fetching profile image:', error);
+      console.error("Error fetching profile image:", error);
       setProfileImage(null);
     }
   };
@@ -200,7 +206,7 @@ export default function TeachersDashboard() {
   const handleInputChange = (e) => {
     setProfileData({
       ...profileData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -211,18 +217,23 @@ export default function TeachersDashboard() {
   const handleSubmitProfile = async (e) => {
     e.preventDefault();
     setProfileLoading(true);
-    setMessage('');
+    setMessage("");
 
     // Validate all required fields are filled
-    if (!profileData.prn || !profileData.fullName || !profileData.department || !profileData.phoneNumber) {
-      setMessage('Please fill all required fields');
+    if (
+      !profileData.prn ||
+      !profileData.fullName ||
+      !profileData.department ||
+      !profileData.phoneNumber
+    ) {
+      setMessage("Please fill all required fields");
       setProfileLoading(false);
       return;
     }
 
     // Validate PRN format (if needed)
     if (profileData.prn.length < 10) {
-      setMessage('Please enter a valid PRN');
+      setMessage("Please enter a valid PRN");
       setProfileLoading(false);
       return;
     }
@@ -230,29 +241,34 @@ export default function TeachersDashboard() {
     // Validate phone number format (basic validation)
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(profileData.phoneNumber)) {
-      setMessage('Please enter a valid 10-digit phone number');
+      setMessage("Please enter a valid 10-digit phone number");
       setProfileLoading(false);
       return;
     }
 
     try {
-      console.log('Profile data being sent:', profileData);
+      console.log("Profile data being sent:", profileData);
 
       // If profile exists, update it; otherwise create new
       if (userProfile) {
         // Update existing profile - try using PRN instead of ID
+        const requestData = {
+          fullName: profileData.fullName,
+          department: profileData.department,
+          phoneNumber: profileData.phoneNumber,
+        }
         const updateResponse = await axios.put(
-          `http://localhost:8080/api/profiles/${userProfile.id}`,
-          profileData,
+          `http://localhost:8080/api/profiles/${profileData.prn}`,
+          requestData,
           {
-            headers: { 
+            headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
+              "Content-Type": "application/json",
+            },
+          },
         );
-        console.log('Update response:', updateResponse.data);
-        setMessage('Profile updated successfully!');
+        console.log("Update response:", updateResponse.data);
+        setMessage("Profile updated successfully!");
       } else {
         // Create new profile - ensure year is not included
         const createData = {
@@ -262,55 +278,54 @@ export default function TeachersDashboard() {
           phoneNumber: profileData.phoneNumber,
           // Do NOT include year field for teachers
         };
-        
-        console.log('Creating with data:', createData);
-        
+
+        console.log("Creating with data:", createData);
+
         const createResponse = await axios.post(
           "http://localhost:8080/api/profiles",
           createData,
           {
-            headers: { 
+            headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
+              "Content-Type": "application/json",
+            },
+          },
         );
-        console.log('Create response:', createResponse.data);
-        setMessage('Profile created successfully!');
+        console.log("Create response:", createResponse.data);
+        setMessage("Profile created successfully!");
       }
 
       // Upload image if selected
       if (selectedImage) {
         const formData = new FormData();
-        formData.append('image', selectedImage);
-        
+        formData.append("image", selectedImage);
+
         await axios.post(
           `http://localhost:8080/api/profiles/${profileData.prn}/image`,
           formData,
           {
-            headers: { 
+            headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            }
-          }
+              "Content-Type": "multipart/form-data",
+            },
+          },
         );
       }
 
       // Refresh profile data
       await fetchUserProfile();
       setShowProfileForm(false);
-      
     } catch (error) {
-      console.error('Full error details:', error);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
+      console.error("Full error details:", error);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+
       if (error.response?.data?.message) {
         setMessage(`Error: ${error.response.data.message}`);
       } else if (error.response?.status === 500) {
-        setMessage('Server error. Please check console for details.');
+        setMessage("Server error. Please check console for details.");
       } else {
-        setMessage('Error saving profile. Please try again.');
+        setMessage("Error saving profile. Please try again.");
       }
     } finally {
       setProfileLoading(false);
@@ -322,8 +337,12 @@ export default function TeachersDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-blue-600">Teacher Dashboard 📚</h1>
-            <p className="text-gray-600 mt-2">Club management and Event tracking</p>
+            <h1 className="text-4xl font-bold text-blue-600">
+              Teacher Dashboard 📚
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Club management and Event tracking
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -346,15 +365,17 @@ export default function TeachersDashboard() {
               <div className="bg-blue-100 p-3 rounded-lg mr-4">
                 <User className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-blue-800">My Profile</h3>
+              <h3 className="text-xl font-semibold text-blue-800">
+                My Profile
+              </h3>
             </div>
 
             {/* Profile Image */}
             {profileImage && (
               <div className="flex justify-center mb-4">
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
+                <img
+                  src={profileImage}
+                  alt="Profile"
                   className="w-32 h-32 rounded-full object-cover border-4 border-blue-200"
                 />
               </div>
@@ -373,10 +394,12 @@ export default function TeachersDashboard() {
                   <strong>Username:</strong> {user?.username}
                 </p>
                 <p className="text-gray-700">
-                  <strong>PRN:</strong> <span className="text-gray-600">{profileData.prn}</span>
+                  <strong>PRN:</strong>{" "}
+                  <span className="text-gray-600">{profileData.prn}</span>
                 </p>
                 <p className="text-gray-700">
-                  <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
+                  <strong>Email:</strong>{" "}
+                  <span className="text-gray-600">{user?.email}</span>
                 </p>
                 <p className="text-gray-700">
                   <strong>Department:</strong> {profileData.department}
@@ -388,9 +411,11 @@ export default function TeachersDashboard() {
                   <strong>Role:</strong> {user?.role}
                 </p>
                 <p className="text-gray-700">
-                  <strong>Status:</strong> 
-                  <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
-                    {user?.verified ? ' Active' : ' Inactive'}
+                  <strong>Status:</strong>
+                  <span
+                    className={`${user?.verified ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {user?.verified ? " Active" : " Inactive"}
                   </span>
                 </p>
               </div>
@@ -400,35 +425,40 @@ export default function TeachersDashboard() {
                   <strong>Username:</strong> {user?.username}
                 </p>
                 <p className="text-gray-700">
-                  <strong>PRN:</strong> <span className="text-gray-600">{user?.prn}</span>
+                  <strong>PRN:</strong>{" "}
+                  <span className="text-gray-600">{user?.prn}</span>
                 </p>
                 <p className="text-gray-700">
-                  <strong>Email:</strong> <span className="text-gray-600">{user?.email}</span>
+                  <strong>Email:</strong>{" "}
+                  <span className="text-gray-600">{user?.email}</span>
                 </p>
                 <p className="text-gray-700">
                   <strong>Role:</strong> {user?.role}
                 </p>
                 <p className="text-gray-700">
-                  <strong>Status:</strong> 
-                  <span className={`${user?.verified ? 'text-green-600' : 'text-red-600'}`}>
-                    {user?.verified ? ' Active' : ' Inactive'}
+                  <strong>Status:</strong>
+                  <span
+                    className={`${user?.verified ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {user?.verified ? " Active" : " Inactive"}
                   </span>
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
                   <p className="text-yellow-800 text-sm">
-                    <strong>Note:</strong> Complete your profile to access all features.
+                    <strong>Note:</strong> Complete your profile to access all
+                    features.
                   </p>
                 </div>
               </div>
             )}
-            
+
             {/* Dynamic Button */}
             <button
               onClick={() => setShowProfileForm(true)}
               className={`mt-4 w-full text-white py-2 rounded-lg transition duration-300 flex items-center justify-center cursor-pointer ${
-                userProfile 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700' 
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
+                userProfile
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
               }`}
             >
               {userProfile ? (
@@ -451,11 +481,13 @@ export default function TeachersDashboard() {
               Welcome, Professor {user?.username}!
             </h3>
             <p className="text-gray-600 mb-4">
-              Manage your club activities, track student progress, and create events from this dashboard.
+              Manage your club activities, track student progress, and create
+              events from this dashboard.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-blue-800">
-                <strong>Teacher Dashboard:</strong> You have access to club management, event creation, and student tracking features.
+                <strong>Teacher Dashboard:</strong> You have access to club
+                management, event creation, and student tracking features.
               </p>
             </div>
           </div>
@@ -492,7 +524,9 @@ export default function TeachersDashboard() {
               <div className="bg-orange-100 p-3 rounded-lg mr-4">
                 <Users className="w-6 h-6 text-orange-800" />
               </div>
-              <h3 className="text-xl font-semibold text-orange-800">All Students</h3>
+              <h3 className="text-xl font-semibold text-orange-800">
+                All Students
+              </h3>
             </div>
             <p className="text-3xl font-bold text-orange-600 mb-2">0</p>
             <p className="text-gray-600">Students under your guidance</p>
@@ -501,7 +535,9 @@ export default function TeachersDashboard() {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-3">
-          <h3 className="text-2xl font-bold mb-4 text-gray-800">Quick Actions</h3>
+          <h3 className="text-2xl font-bold mb-4 text-gray-800">
+            Quick Actions
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-3 rounded-lg transition duration-300">
               Create Event
@@ -509,10 +545,16 @@ export default function TeachersDashboard() {
             <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-3 rounded-lg transition duration-300">
               Delete Event
             </button>
-            <button onClick={() => navigate("/add-users-with-club")} className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300">
+            <button
+              onClick={() => navigate("/add-users-with-club")}
+              className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300"
+            >
               Add Student
             </button>
-            <button onClick={() => navigate("/remove-users-from-club")} className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
+            <button
+              onClick={() => navigate("/remove-users-from-club")}
+              className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300"
+            >
               Remove Student
             </button>
           </div>
@@ -525,7 +567,7 @@ export default function TeachersDashboard() {
           <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b">
               <h3 className="text-xl font-semibold text-gray-800">
-                {userProfile ? 'Edit Your Profile' : 'Complete Your Profile'}
+                {userProfile ? "Edit Your Profile" : "Complete Your Profile"}
               </h3>
               <button
                 onClick={() => setShowProfileForm(false)}
@@ -534,7 +576,7 @@ export default function TeachersDashboard() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmitProfile} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -546,9 +588,9 @@ export default function TeachersDashboard() {
                   value={profileData.prn}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    userProfile ? 'bg-gray-100 cursor-not-allowed' : ''
+                    userProfile ? "bg-gray-100 cursor-not-allowed" : ""
                   }`}
-                  readOnly={!!userProfile} 
+                  readOnly={!!userProfile}
                   required
                 />
                 {userProfile && (
@@ -616,7 +658,9 @@ export default function TeachersDashboard() {
               </div>
 
               {message && (
-                <p className={`text-sm ${message.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                <p
+                  className={`text-sm ${message.includes("Error") ? "text-red-600" : "text-green-600"}`}
+                >
                   {message}
                 </p>
               )}
@@ -634,7 +678,11 @@ export default function TeachersDashboard() {
                   disabled={profileLoading}
                   className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {profileLoading ? 'Saving...' : (userProfile ? 'Update Profile' : 'Create Profile')}
+                  {profileLoading
+                    ? "Saving..."
+                    : userProfile
+                      ? "Update Profile"
+                      : "Create Profile"}
                 </button>
               </div>
             </form>

@@ -25,7 +25,7 @@ public class ProfileUpdateRequest {
 
     @Min(value = 0, message = "Year must be between 1 and 4")
     @Max(value = 4, message = "Year must be between 1 and 4")
-    private Integer year;
+    private Integer year = 0;
 
     @Pattern(regexp = "^[0-9]{10,15}$", message = "Phone number must be 10-15 digits")
     private String phoneNumber;
