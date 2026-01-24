@@ -47,9 +47,9 @@ public class UserProfile {
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
 
-    @Column(nullable = false, length = 50)
-    @NotBlank(message = "Department is required")
-    private String department;
+    @Column(nullable = false)
+    @NotNull(message = "Department is required")
+    private Long department;
 
     @Column(nullable = false)
     @NotNull(message = "Year is required")
