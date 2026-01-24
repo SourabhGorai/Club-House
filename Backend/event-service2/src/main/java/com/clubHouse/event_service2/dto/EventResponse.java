@@ -18,9 +18,11 @@ public class EventResponse {
 
     private String dateTime;
 
-    private String organizerPrn;
-
     private String organizer;
+
+    private String creatorPrn;
+
+    private String creatorName;
 
     private String venue;
 

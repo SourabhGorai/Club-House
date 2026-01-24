@@ -26,7 +26,7 @@ public class EventController {
     private ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @RequestBody EventRequest req,
             ServerWebExchange exchange
-    ){
+    ) {
 
         log.info("REST received to create event");
 
@@ -42,7 +42,7 @@ public class EventController {
     }
 
     @GetMapping
-    private ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents(){
+    private ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents() {
 
         log.info("REST received to get all the events");
 
@@ -72,6 +72,33 @@ public class EventController {
         ));
 
     }
+
+    // find by organizer {type (club/department), id}
+
+    @GetMapping("/getById/{eventId}")
+    private ResponseEntity<ApiResponse<EventResponse>> getEventById(
+            @PathVariable Long eventId
+    ) {
+
+        log.info("REST received to fetch event with ID: {}", eventId);
+
+        EventResponse resp = eventService.getEventbyId(eventId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Successfully fetched event",
+                resp
+        ));
+
+    }
+
+//    @GetMapping("/getByTargetType/{targetType}")
+//    private ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetType (
+//            @PathVariable Long targetType
+//    ) {
+//
+//        log.info("REST received to fetch events for target: ");
+//
+//    }
 
 }
 

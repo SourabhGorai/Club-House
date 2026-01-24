@@ -57,7 +57,7 @@ public class EventMapper {
                 .collect(Collectors.toList());
     }
 
-    public static EventResponse toResponse(Events event, String prn, String organizerName) {
+    public static EventResponse toResponse(Events event, String prn, String creatorName) {
 
         if (event == null) return null;
 
@@ -67,8 +67,9 @@ public class EventMapper {
                 .description(event.getDescription())
                 .day(getDay(event.getEventDate()))
                 .dateTime(format(event.getEventDate()))
-                .organizerPrn(prn)
-                .organizer(organizerName)
+                .organizer(event.getOrganizer())
+                .creatorPrn(prn)
+                .creatorName(creatorName)
                 .venue(event.getVenue())
                 .build();
 

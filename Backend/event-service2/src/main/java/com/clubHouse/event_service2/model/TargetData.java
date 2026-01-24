@@ -1,0 +1,31 @@
+package com.clubHouse.event_service2.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class TargetData {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long targetDataId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "eventId", nullable = false)
+    private Events events;
+
+    @Enumerated(EnumType.STRING)
+    private TargetType targetType;
+
+    @NotNull(message = "Target Id i required")
+    private Long targetId;
+
+}

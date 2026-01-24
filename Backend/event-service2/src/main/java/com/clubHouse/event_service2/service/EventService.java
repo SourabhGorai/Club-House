@@ -4,9 +4,15 @@ import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
 import com.clubHouse.event_service2.dto.ProfileResponse;
+import com.clubHouse.event_service2.exception.NotFoundException;
 import com.clubHouse.event_service2.mapper.EventMapper;
 import com.clubHouse.event_service2.model.Events;
+import com.clubHouse.event_service2.model.Ratings;
+import com.clubHouse.event_service2.model.TargetData;
+import com.clubHouse.event_service2.model.TargetType;
 import com.clubHouse.event_service2.repository.EventRepository;
+import com.clubHouse.event_service2.repository.RatingsRepository;
+import com.clubHouse.event_service2.repository.TargetDataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,10 +28,14 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final ProfileManagementServiceClient profileManagementServiceClient;
+    private final RatingsRepository ratingsRepository;
+    private final TargetDataRepository targetDataRepository;
 
     public EventResponse createEvent(EventRequest req, String prn) {
 
         log.info("Attempting to create event for PRN: {}", prn);
+
+        TargetType targetType = req.getTarget();
 
         Events events = Events.builder()
                 .title(req.getTitle())
@@ -34,10 +44,33 @@ public class EventService {
                 .eventDate(req.getEventDate())
                 .organizer(prn)
                 .venue(req.getVenue())
-                .target(req.getTarget())
+                .target(targetType)
                 .build();
 
         Events saved = eventRepository.save(events);
+        Ratings.builder()
+                .eventId(saved.getEventId())
+                .build();
+
+        if ((req.getTarget() == TargetType.CLUB || req.getTarget() == TargetType.DEPARTMENT)
+                && req.getTargetIds() != null && !req.getTargetIds().isEmpty()) {
+
+            Events event = eventRepository.findById(saved.getEventId())
+                    .orElseThrow(() ->
+                            new NotFoundException("Event", saved.getEventId().toString())
+                    );
+
+            List<TargetData> targetDataList = req.getTargetIds().stream()
+                    .map(id -> TargetData.builder()
+                            .events(event)
+                            .targetType(req.getTarget())
+                            .targetId(id)
+                            .build()
+                    )
+                    .toList();
+
+            targetDataRepository.saveAll(targetDataList);
+        }
 
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
@@ -68,6 +101,7 @@ public class EventService {
 
         // Batch fetch all profiles at once
         Map<String, ProfileResponse> profileMap = fetchProfilesMap(organizerPrns);
+//        Map<String, String>
 
         // Map events to responses
         return events.stream()
@@ -90,10 +124,10 @@ public class EventService {
 
         log.info("Attempting to fetch all the events created by PRN: {}", prn);
 
-        List<Events> events = eventRepository.findByOrganizer(prn);
-        ProfileResponse profile =
+        List<Events> events = eventRepository.findByEventCreator(prn);
+        ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
-        return EventMapper.toResponseList(events, prn, );
+        return EventMapper.toResponseList(events, prn, profile.getFullName());
 
     }
 
@@ -115,5 +149,19 @@ public class EventService {
             log.error("Error batch fetching profiles: {}", e.getMessage());
             return Map.of(); // Return empty map on error
         }
+    }
+
+    public EventResponse getEventbyId(Long eventId) {
+
+        log.info("Attempting to fetch event with ID: {}", eventId);
+
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event", eventId.toString()));
+
+        ProfileResponse resp = profileManagementServiceClient
+                .getProfileByPrn(event.getOrganizer());
+
+        return EventMapper.toResponse(event, event.getOrganizer(), resp.getFullName());
+
     }
 }
