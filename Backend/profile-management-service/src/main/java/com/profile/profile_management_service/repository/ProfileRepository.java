@@ -23,19 +23,9 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     // ========== Basic Find Operations ==========
 
     /**
-     * Find profile by user ID
-     */
-//    Optional<UserProfile> findByUserId(Long userId);
-
-    /**
      * Find active profile by PRN
      */
     Optional<UserProfile> findByPrnAndIsActiveTrue(String prn);
-
-    /**
-     * Find active profile by user ID
-     */
-//    Optional<UserProfile> findByUserIdAndIsActiveTrue(Long userId);
 
     /**
      * Find profile by phone number
@@ -50,11 +40,6 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     boolean existsByPrn(String prn);
 
     /**
-     * Check if user ID exists
-     */
-//    boolean existsByUserId(Long userId);
-
-    /**
      * Check if phone number exists
      */
     boolean existsByPhoneNumber(String phoneNumber);
@@ -67,14 +52,14 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     // ========== Department-based Operations ==========
 
     /**
-     * Find all active profiles by department
+     * Find all active profiles by department ID
      */
-    List<UserProfile> findByDepartmentAndIsActiveTrue(String department);
+    List<UserProfile> findByDepartmentIdAndIsActiveTrue(Long departmentId);
 
     /**
-     * Find active profiles by department with pagination
+     * Find active profiles by department ID with pagination
      */
-    Page<UserProfile> findByDepartmentAndIsActiveTrue(String department, Pageable pageable);
+    Page<UserProfile> findByDepartmentIdAndIsActiveTrue(Long departmentId, Pageable pageable);
 
     // ========== Year-based Operations ==========
 
@@ -91,21 +76,21 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     // ========== Combined Filter Operations ==========
 
     /**
-     * Find profiles by department and year
+     * Find profiles by department ID and year
      */
-    @Query("SELECT p FROM UserProfile p WHERE p.department = :department " +
+    @Query("SELECT p FROM UserProfile p WHERE p.departmentId = :departmentId " +
             "AND p.year = :year AND p.isActive = true")
-    List<UserProfile> findByDepartmentAndYear(@Param("department") String department,
-                                              @Param("year") Integer year);
+    List<UserProfile> findByDepartmentIdAndYear(@Param("departmentId") Long departmentId,
+                                                @Param("year") Integer year);
 
     /**
-     * Find profiles by department and year with pagination
+     * Find profiles by department ID and year with pagination
      */
-    @Query("SELECT p FROM UserProfile p WHERE p.department = :department " +
+    @Query("SELECT p FROM UserProfile p WHERE p.departmentId = :departmentId " +
             "AND p.year = :year AND p.isActive = true")
-    Page<UserProfile> findByDepartmentAndYear(@Param("department") String department,
-                                              @Param("year") Integer year,
-                                              Pageable pageable);
+    Page<UserProfile> findByDepartmentIdAndYear(@Param("departmentId") Long departmentId,
+                                                @Param("year") Integer year,
+                                                Pageable pageable);
 
     // ========== Search Operations ==========
 
@@ -124,12 +109,11 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     Page<UserProfile> searchByName(@Param("searchTerm") String searchTerm, Pageable pageable);
 
     /**
-     * Advanced search across multiple fields
+     * Advanced search across multiple fields (name and PRN only, since department is now an ID)
      */
     @Query("SELECT p FROM UserProfile p WHERE " +
             "(LOWER(p.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "OR LOWER(p.prn) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "OR LOWER(p.department) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+            "OR LOWER(p.prn) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
             "AND p.isActive = true")
     Page<UserProfile> advancedSearch(@Param("searchTerm") String searchTerm, Pageable pageable);
 
@@ -141,12 +125,6 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     @Query("SELECT p FROM UserProfile p WHERE p.prn IN :prns AND p.isActive = true")
     List<UserProfile> findByPrnIn(@Param("prns") List<String> prns);
 
-    /**
-     * Find profiles by list of user IDs
-     */
-//    @Query("SELECT p FROM UserProfile p WHERE p.userId IN :userIds AND p.isActive = true")
-//    List<UserProfile> findByUserIdIn(@Param("userIds") List<Long> userIds);
-
     // ========== Statistics Operations ==========
 
     /**
@@ -156,11 +134,11 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     Long countActiveProfiles();
 
     /**
-     * Count profiles by department
+     * Count profiles by department ID
      */
-    @Query("SELECT COUNT(p) FROM UserProfile p WHERE p.department = :department " +
+    @Query("SELECT COUNT(p) FROM UserProfile p WHERE p.departmentId = :departmentId " +
             "AND p.isActive = true")
-    Long countByDepartment(@Param("department") String department);
+    Long countByDepartmentId(@Param("departmentId") Long departmentId);
 
     /**
      * Count profiles by year
@@ -176,10 +154,10 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     Long countProfilesWithImages();
 
     /**
-     * Get department-wise profile count
+     * Get department-wise profile count (returns departmentId and count)
      */
-    @Query("SELECT p.department, COUNT(p) FROM UserProfile p WHERE p.isActive = true " +
-            "GROUP BY p.department")
+    @Query("SELECT p.departmentId, COUNT(p) FROM UserProfile p WHERE p.isActive = true " +
+            "GROUP BY p.departmentId")
     List<Object[]> getDepartmentStatistics();
 
     /**
@@ -193,17 +171,14 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
 
     /**
      * Find profiles with images
+     * Returns full entities - image data will be lazily loaded if needed
      */
-    @Query("SELECT p FROM UserProfile p WHERE p.profileImage IS NOT NULL " +
-            "AND p.isActive = true")
-    List<UserProfile> findProfilesWithImages();
+    List<UserProfile> findByProfileImageIsNotNullAndIsActiveTrue();
 
     /**
      * Find profiles without images
      */
-    @Query("SELECT p FROM UserProfile p WHERE p.profileImage IS NULL " +
-            "AND p.isActive = true")
-    List<UserProfile> findProfilesWithoutImages();
+    List<UserProfile> findByProfileImageIsNullAndIsActiveTrue();
 
     // ========== All Active Profiles ==========
 
@@ -222,25 +197,20 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     /**
      * Get complete profile information excluding image data
      */
-
-//    @Query("SELECT new com.profile.profile_management_service.model.UserProfile(" +
-//            "p.prn, p.userId, p.fullName, p.department, p.year, p.phoneNumber, " +
-//            "null, p.imageType, p.imageSize, p.imageUploadedAt, " +
-//            "p.createdAt, p.updatedAt, p.isActive, p.version) " +
-//            "FROM UserProfile p WHERE p.prn = :prn AND p.isActive = true")
-
     @Query("SELECT new com.profile.profile_management_service.model.UserProfile(" +
-            "p.prn, p.fullName, p.department, p.year, p.phoneNumber, " +
+            "p.prn, p.fullName, p.departmentId, p.year, p.phoneNumber, " +
             "null, p.imageType, p.imageSize, p.imageUploadedAt, " +
             "p.createdAt, p.updatedAt, p.isActive, p.version) " +
             "FROM UserProfile p WHERE p.prn = :prn AND p.isActive = true")
     Optional<UserProfile> findProfileWithoutImage(@Param("prn") String prn);
 
+    /**
+     * Find PRNs by list of PRNs filtered by year
+     */
     @Query("SELECT p.prn FROM UserProfile p " +
             "WHERE p.prn IN :prns " +
             "AND p.year = :year " +
             "AND p.isActive = true")
     List<String> findPrnsByPrnInAndYear(@Param("prns") List<String> prns,
                                         @Param("year") Integer year);
-
 }

@@ -2,9 +2,8 @@ package com.profile.profile_management_service.controller;
 
 import com.profile.profile_management_service.dto.*;
 import com.profile.profile_management_service.exception.UserNotFoundException;
-import com.profile.profile_management_service.model.UserProfile;
 import com.profile.profile_management_service.service.ProfileService;
-import com.profile.profile_management_service.service.UserValidationService;
+import com.profile.profile_management_service.client.UserValidationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -238,13 +237,13 @@ public class ProfileController {
      * Get profiles by department
      * GET /api/profiles/department/{department}
      */
-    @GetMapping("/department/{department}")
+    @GetMapping("/department/{departmentId}")
     public ResponseEntity<ApiResponse<List<ProfileResponse>>> getProfilesByDepartment(
-            @PathVariable String department) {
-        log.info("Received request to get profiles by department: {}", department);
+            @PathVariable Long departmentId) {
+        log.info("Received request to get profiles by department: {}", departmentId);
 
-        List<ProfileResponse> responses = profileService.getProfilesByDepartment(department);
-        log.info("Retrieved {} profiles for department: {}", responses.size(), department);
+        List<ProfileResponse> responses = profileService.getProfilesByDepartment(departmentId);
+        log.info("Retrieved {} profiles for department: {}", responses.size(), departmentId);
 
         return ResponseEntity.ok(ApiResponse.success("Profiles retrieved successfully", responses));
     }
@@ -270,11 +269,11 @@ public class ProfileController {
      */
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<List<ProfileResponse>>> getProfilesByDepartmentAndYear(
-            @RequestParam String department,
+            @RequestParam Long departmentId,
             @RequestParam @Min(1) @Max(4) Integer year) {
-        log.info("Received request to get profiles by department: {} and year: {}", department, year);
+        log.info("Received request to get profiles by department: {} and year: {}", departmentId, year);
 
-        List<ProfileResponse> responses = profileService.getProfilesByDepartmentAndYear(department, year);
+        List<ProfileResponse> responses = profileService.getProfilesByDepartmentAndYear(departmentId, year);
         log.info("Retrieved {} profiles", responses.size());
 
         return ResponseEntity.ok(ApiResponse.success("Profiles retrieved successfully", responses));

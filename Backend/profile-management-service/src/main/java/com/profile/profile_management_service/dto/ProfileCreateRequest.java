@@ -36,9 +36,8 @@ public class ProfileCreateRequest {
     @Pattern(regexp = "^[a-zA-Z\\s.'-]+$", message = "Full name contains invalid characters")
     private String fullName;
 
-    @NotBlank(message = "Department is required")
-    @Size(min = 2, max = 50, message = "Department must be between 2 and 50 characters")
-    private String department;
+    @NotNull(message = "Department is required")
+    private Long departmentId;
 
 //    @NotNull(message = "Year is required")
     @Min(value = 0, message = "Year must be between 1 and 4. Note: 0 for faculty.")

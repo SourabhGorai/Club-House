@@ -14,10 +14,10 @@ public class WebClientConfig {
         return WebClient.builder();
     }
 
-    @Bean
-    public WebClient userServiceWebClient(WebClient.Builder webCliendBuilder){
-        return webCliendBuilder
-                .baseUrl("http://USER-SERVICE")
-                .build();
-    }
+//    @Bean
+//    public WebClient userServiceWebClient(WebClient.Builder webCliendBuilder){
+//        return webCliendBuilder
+//                .baseUrl("http://USER-SERVICE")
+//                .build();
+//    }
 }

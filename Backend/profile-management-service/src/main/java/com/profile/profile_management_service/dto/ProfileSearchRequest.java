@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProfileSearchRequest {
 
-    private String department;
+    private Long departmentId;
     private Integer year;
     private String searchTerm;
 

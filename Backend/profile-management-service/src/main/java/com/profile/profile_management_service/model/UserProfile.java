@@ -2,7 +2,6 @@ package com.profile.profile_management_service.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,19 +15,17 @@ import java.time.LocalDateTime;
 /**
  * Entity class representing user profile in the system
  * PRN (Permanent Registration Number) serves as the primary key
- * Fixed for PostgreSQL BYTEA compatibility
+ * Fixed for PostgreSQL BYTEA compatibility and departmentId architecture
  */
 @Entity
 @Table(name = "user_profiles2", indexes = {
-//        @Index(name = "idx_user_id", columnList = "userId"),
-        @Index(name = "idx_department", columnList = "department"),
+        @Index(name = "idx_department_id", columnList = "departmentId"),
         @Index(name = "idx_year", columnList = "year"),
         @Index(name = "idx_phone", columnList = "phoneNumber"),
         @Index(name = "idx_active", columnList = "isActive")
 })
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class UserProfile {
 
@@ -38,23 +35,19 @@ public class UserProfile {
     @Pattern(regexp = "^[A-Z0-9]{8,20}$", message = "PRN must be 8-20 alphanumeric characters")
     private String prn;
 
-//    @Column(nullable = false, unique = true)
-//    @NotNull(message = "User ID is required")
-//    private Long userId;
-
     @Column(nullable = false, length = 100)
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
 
-    @Column(nullable = false, length = 50)
-    @NotBlank(message = "Department is required")
-    private String department;
+    @Column(nullable = false)
+    @NotNull(message = "Department ID is required")
+    private Long departmentId;
 
     @Column(nullable = false)
     @NotNull(message = "Year is required")
-    @Min(value = 0, message = "Year must be between 1 and 4")
-    @Max(value = 4, message = "Year must be between 1 and 4")
+    @Min(value = 0, message = "Year must be between 0 and 4")
+    @Max(value = 4, message = "Year must be between 0 and 4")
     private Integer year;
 
     @Column(nullable = false, unique = true, length = 15)
@@ -92,6 +85,31 @@ public class UserProfile {
     @Column(nullable = false)
     @Builder.Default
     private Long version = 0L;
+
+    /**
+     * Custom all-args constructor for JPQL queries and general use
+     * This replaces @AllArgsConstructor to avoid conflicts
+     * Used by findProfileWithoutImage query and Lombok @Builder
+     */
+    public UserProfile(String prn, String fullName, Long departmentId, Integer year,
+                       String phoneNumber, byte[] profileImage, String imageType,
+                       Long imageSize, LocalDateTime imageUploadedAt,
+                       LocalDateTime createdAt, LocalDateTime updatedAt,
+                       Boolean isActive, Long version) {
+        this.prn = prn;
+        this.fullName = fullName;
+        this.departmentId = departmentId;
+        this.year = year;
+        this.phoneNumber = phoneNumber;
+        this.profileImage = profileImage;
+        this.imageType = imageType;
+        this.imageSize = imageSize;
+        this.imageUploadedAt = imageUploadedAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.isActive = isActive;
+        this.version = version;
+    }
 
     @PrePersist
     protected void onCreate() {

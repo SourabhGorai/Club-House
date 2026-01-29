@@ -61,7 +61,7 @@ public class UserController {
     }
 
     @GetMapping("/validate/{prn}")
-    public boolean validateUser(@PathVariable String prn){
+    public Boolean validateUser(@PathVariable String prn){
         try{
             return userService.validate(prn);
         }catch(NotFoundException e){
