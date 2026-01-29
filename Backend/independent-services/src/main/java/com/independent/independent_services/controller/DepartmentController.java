@@ -18,7 +18,7 @@ public class DepartmentController {
 
     private final DepartmentService departmentService;
 
-    @PostMapping("{name}")
+    @PostMapping("/{name}")
     public ResponseEntity<ApiResponse<DepartmentResponse>> addDepartment(@PathVariable String name) {
 
         log.info("REST received to add department");
@@ -76,7 +76,7 @@ public class DepartmentController {
 
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<DepartmentResponse>> deleteDeparment(
             @PathVariable Long id
     ) {

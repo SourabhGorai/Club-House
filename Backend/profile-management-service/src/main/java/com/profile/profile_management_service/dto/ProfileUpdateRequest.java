@@ -20,8 +20,7 @@ public class ProfileUpdateRequest {
     @Pattern(regexp = "^[a-zA-Z\\s.'-]+$", message = "Full name contains invalid characters")
     private String fullName;
 
-    @Size(min = 2, max = 50, message = "Department must be between 2 and 50 characters")
-    private String department;
+    private Long departmentId;
 
     @Min(value = 0, message = "Year must be between 1 and 4")
     @Max(value = 4, message = "Year must be between 1 and 4")

@@ -1,5 +1,6 @@
 package com.profile.profile_management_service.service;
 
+import com.profile.profile_management_service.client.IndependentServiceClient;
 import com.profile.profile_management_service.dto.*;
 import com.profile.profile_management_service.exception.*;
 import com.profile.profile_management_service.mapper.ProfileMapper;
@@ -33,6 +34,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
+    private final IndependentServiceClient indServiceClient;
 
     // Image validation constants
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
@@ -44,7 +46,6 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ProfileResponse createProfile(ProfileCreateRequest request) {
-//        log.info("Creating profile for PRN: {}, UserId: {}", request.getPrn(), request.getUserId());
         log.info("Creating profile for PRN: {}", request.getPrn());
 
         try {
@@ -54,15 +55,17 @@ public class ProfileServiceImpl implements ProfileService {
             // Sanitize inputs
             request.setPrn(profileMapper.sanitizePrn(request.getPrn()));
             request.setFullName(profileMapper.sanitizeInput(request.getFullName()));
-            request.setDepartment(profileMapper.sanitizeInput(request.getDepartment()));
             request.setPhoneNumber(profileMapper.sanitizePhoneNumber(request.getPhoneNumber()));
 
             // Map to entity and save
             UserProfile profile = profileMapper.toUserProfile(request);
             UserProfile savedProfile = profileRepository.save(profile);
 
+            DepartmentResponse deptName = indServiceClient
+                    .getDepartmentById(savedProfile.getDepartmentId());
+
             log.info("Profile created successfully for PRN: {}", savedProfile.getPrn());
-            return profileMapper.toProfileResponse(savedProfile);
+            return profileMapper.toProfileResponse(savedProfile, deptName.getName());
 
         } catch (DataIntegrityViolationException ex) {
             log.error("Data integrity violation while creating profile: {}", ex.getMessage());
@@ -85,29 +88,11 @@ public class ProfileServiceImpl implements ProfileService {
                     return new ProfileNotFoundException("Profile not found with PRN: " + sanitizedPrn);
                 });
 
-        log.debug("Profile found for PRN: {}", sanitizedPrn);
-        return profileMapper.toProfileResponse(profile);
-    }
+        DepartmentResponse dept = indServiceClient.getDepartmentById(profile.getDepartmentId());
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public ProfileResponse getProfileByUserId(Long userId) {
-//        log.debug("Fetching profile by UserId: {}", userId);
-//
-//        if (userId == null || userId <= 0) {
-//            log.error("Invalid userId: {}", userId);
-//            throw new IllegalArgumentException("User ID must be positive");
-//        }
-//
-//        UserProfile profile = profileRepository.findByUserIdAndIsActiveTrue(userId)
-//                .orElseThrow(() -> {
-//                    log.error("Profile not found for UserId: {}", userId);
-//                    return new ProfileNotFoundException("Profile not found for User ID: " + userId);
-//                });
-//
-//        log.debug("Profile found for UserId: {}", userId);
-//        return profileMapper.toProfileResponse(profile);
-//    }
+        log.debug("Profile found for PRN: {}", sanitizedPrn);
+        return profileMapper.toProfileResponse(profile, dept.getName());
+    }
 
     @Override
     public ProfileResponse updateProfile(String prn, ProfileUpdateRequest request) {
@@ -138,16 +123,19 @@ public class ProfileServiceImpl implements ProfileService {
             if (request.getFullName() != null) {
                 request.setFullName(profileMapper.sanitizeInput(request.getFullName()));
             }
-            if (request.getDepartment() != null) {
-                request.setDepartment(profileMapper.sanitizeInput(request.getDepartment()));
+            if (request.getDepartmentId() != null) {
+                request.setDepartmentId(request.getDepartmentId());
             }
 
             // Update profile
             profileMapper.updateUserProfileFromRequest(profile, request);
             UserProfile updatedProfile = profileRepository.save(profile);
 
+            DepartmentResponse dept = indServiceClient
+                    .getDepartmentById(updatedProfile.getDepartmentId());
+
             log.info("Profile updated successfully for PRN: {}", sanitizedPrn);
-            return profileMapper.toProfileResponse(updatedProfile);
+            return profileMapper.toProfileResponse(updatedProfile, dept.getName());
 
         } catch (DataIntegrityViolationException ex) {
             log.error("Data integrity violation while updating profile: {}", ex.getMessage());
@@ -189,12 +177,6 @@ public class ProfileServiceImpl implements ProfileService {
             throw new DuplicateDataException("prn", request.getPrn(),
                     "Profile with PRN " + request.getPrn() + " already exists");
         }
-
-//        if (profileRepository.existsByUserId(request.getUserId())) {
-//            log.error("Profile already exists for UserId: {}", request.getUserId());
-//            throw new DuplicateDataException("userId", request.getUserId().toString(),
-//                    "Profile for User ID " + request.getUserId() + " already exists");
-//        }
 
         if (profileRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             log.error("Profile already exists with phone number");
@@ -313,19 +295,23 @@ public class ProfileServiceImpl implements ProfileService {
         List<UserProfile> profiles = profileRepository.findByIsActiveTrue();
         log.debug("Found {} active profiles", profiles.size());
 
-        return profileMapper.toProfileResponseList(profiles);
+        return convertToProfileResponseList(profiles);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProfileResponse> getProfilesByDepartment(String department) {
-        log.debug("Fetching profiles for department: {}", department);
+    public List<ProfileResponse> getProfilesByDepartment(Long departmentId) {
+        log.debug("Fetching profiles for departmentId: {}", departmentId);
 
-        String sanitizedDept = profileMapper.sanitizeInput(department);
-        List<UserProfile> profiles = profileRepository.findByDepartmentAndIsActiveTrue(sanitizedDept);
-        log.debug("Found {} profiles for department: {}", profiles.size(), sanitizedDept);
+        if (departmentId == null || departmentId <= 0) {
+            log.error("Invalid departmentId: {}", departmentId);
+            throw new IllegalArgumentException("Department ID must be positive");
+        }
 
-        return profileMapper.toProfileResponseList(profiles);
+        List<UserProfile> profiles = profileRepository.findByDepartmentIdAndIsActiveTrue(departmentId);
+        log.debug("Found {} profiles for departmentId: {}", profiles.size(), departmentId);
+
+        return convertToProfileResponseList(profiles);
     }
 
     @Override
@@ -341,26 +327,29 @@ public class ProfileServiceImpl implements ProfileService {
         List<UserProfile> profiles = profileRepository.findByYearAndIsActiveTrue(year);
         log.debug("Found {} profiles for year: {}", profiles.size(), year);
 
-        return profileMapper.toProfileResponseList(profiles);
+        return convertToProfileResponseList(profiles);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProfileResponse> getProfilesByDepartmentAndYear(String department, Integer year) {
-        log.debug("Fetching profiles for department: {} and year: {}", department, year);
+    public List<ProfileResponse> getProfilesByDepartmentAndYear(Long departmentId, Integer year) {
+        log.debug("Fetching profiles for departmentId: {} and year: {}", departmentId, year);
 
-        String sanitizedDept = profileMapper.sanitizeInput(department);
+        if (departmentId == null || departmentId <= 0) {
+            log.error("Invalid departmentId: {}", departmentId);
+            throw new IllegalArgumentException("Department ID must be positive");
+        }
 
         if (year == null || year < 1 || year > 4) {
             log.error("Invalid year: {}", year);
             throw new IllegalArgumentException("Year must be between 1 and 4");
         }
 
-        List<UserProfile> profiles = profileRepository.findByDepartmentAndYear(sanitizedDept, year);
-        log.debug("Found {} profiles for department: {} and year: {}",
-                profiles.size(), sanitizedDept, year);
+        List<UserProfile> profiles = profileRepository.findByDepartmentIdAndYear(departmentId, year);
+        log.debug("Found {} profiles for departmentId: {} and year: {}",
+                profiles.size(), departmentId, year);
 
-        return profileMapper.toProfileResponseList(profiles);
+        return convertToProfileResponseList(profiles);
     }
 
     // ========== Paginated Operations ==========
@@ -381,15 +370,19 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<ProfileResponse> getProfilesByDepartmentPaged(
-            String department, Pageable pageable) {
-        log.debug("Fetching profiles for department: {} with pagination", department);
+            Long departmentId, Pageable pageable) {
+        log.debug("Fetching profiles for departmentId: {} with pagination", departmentId);
 
-        String sanitizedDept = profileMapper.sanitizeInput(department);
+        if (departmentId == null || departmentId <= 0) {
+            log.error("Invalid departmentId: {}", departmentId);
+            throw new IllegalArgumentException("Department ID must be positive");
+        }
+
         Page<UserProfile> profilePage = profileRepository
-                .findByDepartmentAndIsActiveTrue(sanitizedDept, pageable);
+                .findByDepartmentIdAndIsActiveTrue(departmentId, pageable);
 
-        log.debug("Found {} profiles for department: {}",
-                profilePage.getTotalElements(), sanitizedDept);
+        log.debug("Found {} profiles for departmentId: {}",
+                profilePage.getTotalElements(), departmentId);
 
         return createPagedResponse(profilePage);
     }
@@ -418,13 +411,12 @@ public class ProfileServiceImpl implements ProfileService {
         if (searchRequest.getSearchTerm() != null && !searchRequest.getSearchTerm().isBlank()) {
             String sanitizedTerm = profileMapper.sanitizeInput(searchRequest.getSearchTerm());
             profilePage = profileRepository.advancedSearch(sanitizedTerm, pageable);
-        } else if (searchRequest.getDepartment() != null && searchRequest.getYear() != null) {
-            String sanitizedDept = profileMapper.sanitizeInput(searchRequest.getDepartment());
-            profilePage = profileRepository.findByDepartmentAndYear(
-                    sanitizedDept, searchRequest.getYear(), pageable);
-        } else if (searchRequest.getDepartment() != null) {
-            String sanitizedDept = profileMapper.sanitizeInput(searchRequest.getDepartment());
-            profilePage = profileRepository.findByDepartmentAndIsActiveTrue(sanitizedDept, pageable);
+        } else if (searchRequest.getDepartmentId() != null && searchRequest.getYear() != null) {
+            profilePage = profileRepository.findByDepartmentIdAndYear(
+                    searchRequest.getDepartmentId(), searchRequest.getYear(), pageable);
+        } else if (searchRequest.getDepartmentId() != null) {
+            profilePage = profileRepository.findByDepartmentIdAndIsActiveTrue(
+                    searchRequest.getDepartmentId(), pageable);
         } else if (searchRequest.getYear() != null) {
             profilePage = profileRepository.findByYearAndIsActiveTrue(searchRequest.getYear(), pageable);
         } else {
@@ -434,44 +426,6 @@ public class ProfileServiceImpl implements ProfileService {
         log.debug("Search returned {} profiles", profilePage.getTotalElements());
         return createPagedResponse(profilePage);
     }
-
-    // ========== Private Helper Methods ==========
-
-    private void validateImage(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            log.error("Image file is empty or null");
-            throw new InvalidImageException("Image file is required");
-        }
-
-        if (image.getSize() > MAX_IMAGE_SIZE) {
-            log.error("Image size exceeds limit. Size: {} bytes", image.getSize());
-            throw new InvalidImageException("Image size exceeds maximum limit of 500KB");
-        }
-
-        String contentType = image.getContentType();
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
-            log.error("Invalid image type: {}", contentType);
-            throw new InvalidImageException("Only JPEG, JPG, PNG, and GIF images are allowed");
-        }
-
-        log.debug("Image validation passed. Type: {}, Size: {} bytes", contentType, image.getSize());
-    }
-
-    private PagedResponse<ProfileResponse> createPagedResponse(Page<UserProfile> profilePage) {
-        List<ProfileResponse> content = profileMapper.toProfileResponseList(profilePage.getContent());
-
-        return PagedResponse.<ProfileResponse>builder()
-                .content(content)
-                .pageNumber(profilePage.getNumber())
-                .pageSize(profilePage.getSize())
-                .totalElements(profilePage.getTotalElements())
-                .totalPages(profilePage.getTotalPages())
-                .last(profilePage.isLast())
-                .first(profilePage.isFirst())
-                .build();
-    }
-
-    // Continue ProfileServiceImpl class - Batch and Statistics Operations
 
     // ========== Public/Limited Access Operations ==========
 
@@ -487,8 +441,10 @@ public class ProfileServiceImpl implements ProfileService {
                     return new ProfileNotFoundException("Profile not found with PRN: " + sanitizedPrn);
                 });
 
+        DepartmentResponse dept = indServiceClient.getDepartmentById(profile.getDepartmentId());
+
         log.debug("Public profile retrieved for PRN: {}", sanitizedPrn);
-        return profileMapper.toPublicProfileResponse(profile);
+        return profileMapper.toPublicProfileResponse(profile, dept.getName());
     }
 
     @Override
@@ -503,8 +459,10 @@ public class ProfileServiceImpl implements ProfileService {
                     return new ProfileNotFoundException("Profile not found with PRN: " + sanitizedPrn);
                 });
 
+        DepartmentResponse dept = indServiceClient.getDepartmentById(profile.getDepartmentId());
+
         log.debug("Profile summary retrieved for PRN: {}", sanitizedPrn);
-        return profileMapper.toProfileSummaryResponse(profile);
+        return profileMapper.toProfileSummaryResponse(profile, dept.getName());
     }
 
     // ========== Batch Operations ==========
@@ -542,7 +500,7 @@ public class ProfileServiceImpl implements ProfileService {
         List<UserProfile> profiles = profileRepository.findByPrnIn(sanitizedPrns);
         log.debug("Retrieved {} profiles out of {} requested", profiles.size(), sanitizedPrns.size());
 
-        return profileMapper.toProfileResponseList(profiles);
+        return convertToProfileResponseList(profiles);
     }
 
     // ========== Validation Operations ==========
@@ -564,25 +522,6 @@ public class ProfileServiceImpl implements ProfileService {
                 .build();
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public ProfileExistenceResponse checkProfileExistsByUserId(Long userId) {
-//        log.debug("Checking profile existence by UserId: {}", userId);
-//
-//        if (userId == null || userId <= 0) {
-//            throw new IllegalArgumentException("User ID must be positive");
-//        }
-//
-//        boolean exists = profileRepository.existsByUserId(userId);
-//        log.debug("Profile exists for UserId {}: {}", userId, exists);
-//
-//        return ProfileExistenceResponse.builder()
-//                .userId(userId)
-//                .exists(exists)
-//                .message(exists ? "Profile exists" : "Profile does not exist")
-//                .build();
-//    }
-
     @Override
     public ValidationResponse validateProfile(ProfileCreateRequest request) {
         log.debug("Validating profile data for PRN: {}", request.getPrn());
@@ -597,15 +536,6 @@ public class ProfileServiceImpl implements ProfileService {
                     .rejectedValue(request.getPrn())
                     .build());
         }
-
-        // Check userId uniqueness
-//        if (profileRepository.existsByUserId(request.getUserId())) {
-//            errors.add(ValidationError.builder()
-//                    .field("userId")
-//                    .message("User ID already has a profile")
-//                    .rejectedValue(request.getUserId().toString())
-//                    .build());
-//        }
 
         // Check phone number uniqueness
         if (profileRepository.existsByPhoneNumber(request.getPhoneNumber())) {
@@ -659,10 +589,10 @@ public class ProfileServiceImpl implements ProfileService {
         log.debug("Fetching department statistics");
 
         List<Object[]> results = profileRepository.getDepartmentStatistics();
-        Map<String, Long> deptMap = results.stream()
+        Map<Long, Long> deptMap = results.stream()
                 .collect(Collectors.toMap(
-                        arr -> (String) arr[0],
-                        arr -> (Long) arr[1]
+                        arr -> (Long) arr[0],  // departmentId
+                        arr -> (Long) arr[1]   // count
                 ));
 
         log.debug("Department statistics: {}", deptMap);
@@ -691,7 +621,60 @@ public class ProfileServiceImpl implements ProfileService {
                 .build();
     }
 
-    // ========== Private Helper Methods for Batch Operations ==========
+    // ========== Additional Operations ==========
+
+    @Override
+    public List<String> filterPrnsByYear(List<String> prns, Integer year) {
+        return profileRepository.findPrnsByPrnInAndYear(prns, year);
+    }
+
+    @Override
+    public List<ProfileResponse> fetchList(List<String> prns) {
+        log.info("Attempting to fetch all the profiles for PRNs: {}", prns);
+
+        if (prns == null || prns.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UserProfile> profiles = profileRepository.findByPrnIn(prns);
+        return convertToProfileResponseList(profiles);
+    }
+
+    // ========== Private Helper Methods ==========
+
+    private void validateImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            log.error("Image file is empty or null");
+            throw new InvalidImageException("Image file is required");
+        }
+
+        if (image.getSize() > MAX_IMAGE_SIZE) {
+            log.error("Image size exceeds limit. Size: {} bytes", image.getSize());
+            throw new InvalidImageException("Image size exceeds maximum limit of 500KB");
+        }
+
+        String contentType = image.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            log.error("Invalid image type: {}", contentType);
+            throw new InvalidImageException("Only JPEG, JPG, PNG, and GIF images are allowed");
+        }
+
+        log.debug("Image validation passed. Type: {}, Size: {} bytes", contentType, image.getSize());
+    }
+
+    private PagedResponse<ProfileResponse> createPagedResponse(Page<UserProfile> profilePage) {
+        List<ProfileResponse> content = convertToProfileResponseList(profilePage.getContent());
+
+        return PagedResponse.<ProfileResponse>builder()
+                .content(content)
+                .pageNumber(profilePage.getNumber())
+                .pageSize(profilePage.getSize())
+                .totalElements(profilePage.getTotalElements())
+                .totalPages(profilePage.getTotalPages())
+                .last(profilePage.isLast())
+                .first(profilePage.isFirst())
+                .build();
+    }
 
     private BatchOperationResult createSingleProfileInBatch(ProfileCreateRequest request) {
         try {
@@ -726,22 +709,32 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
-    @Override
-    public List<String> filterPrnsByYear(List<String> prns, Integer year) {
-        return profileRepository.findPrnsByPrnInAndYear(prns, year);
-    }
-
-    @Override
-    public List<ProfileResponse> fetchList(List<String> prns) {
-        log.info("Attempting to fetch all the profiles for PRNs: {}", prns);
-
-        if (prns == null || prns.isEmpty()) {
+    /**
+     * Helper method to convert list of UserProfile to ProfileResponse
+     * Fetches all departments in a single batch call to avoid N+1 queries
+     */
+    private List<ProfileResponse> convertToProfileResponseList(List<UserProfile> profiles) {
+        if (profiles == null || profiles.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<UserProfile> resp = profileRepository.findByPrnIn(prns);
-        return profileMapper.toProfileResponseList(resp);
+        // Extract unique department IDs
+        List<Long> departmentIds = profiles.stream()
+                .map(UserProfile::getDepartmentId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Fetch all departments in one batch call
+        List<DepartmentResponse> departments = indServiceClient.getDepartmentByIds(departmentIds);
+
+        // Create a map of departmentId -> departmentName
+        Map<Long, String> departmentMap = departments.stream()
+                .collect(Collectors.toMap(
+                        DepartmentResponse::getDepartmentId,
+                        DepartmentResponse::getName
+                ));
+
+        // Map profiles to responses using the department map
+        return profileMapper.toProfileResponseList(profiles, departmentMap);
     }
-
-
 }

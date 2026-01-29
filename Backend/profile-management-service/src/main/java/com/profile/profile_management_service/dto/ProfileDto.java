@@ -19,8 +19,8 @@ public class ProfileDto {
     @NotBlank(message = "Full name is required")
     private String fullName;
 
-    @NotBlank(message = "Department is required")
-    private String department;
+    @NotNull(message = "Department is required")
+    private Long departmentId;
 
     @NotBlank(message = "Year is required")
     private String year;

@@ -57,3 +57,9 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.value}
+
+app:
+  independent-service:
+    url: http://INDEPENDENT-SERVICES/api
+  user-service:
+    url: http://USER-SERVICE/api

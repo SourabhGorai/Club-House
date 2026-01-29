@@ -1,10 +1,12 @@
 package com.profile.profile_management_service.mapper;
+
 import com.profile.profile_management_service.dto.*;
 import com.profile.profile_management_service.model.UserProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +21,7 @@ public class ProfileMapper {
      * Map UserProfile entity to ProfileResponse DTO
      * Excludes sensitive image data from response
      */
-    public ProfileResponse toProfileResponse(UserProfile profile) {
+    public ProfileResponse toProfileResponse(UserProfile profile, String deptName) {
         if (profile == null) {
             log.warn("Attempted to map null UserProfile to ProfileResponse");
             return null;
@@ -29,9 +31,8 @@ public class ProfileMapper {
 
         return ProfileResponse.builder()
                 .prn(profile.getPrn())
-//                .userId(profile.getUserId())
                 .fullName(profile.getFullName())
-                .department(profile.getDepartment())
+                .department(deptName)
                 .year(profile.getYear())
                 .phoneNumber(profile.getPhoneNumber())
                 .hasProfileImage(profile.getProfileImage() != null)
@@ -46,7 +47,7 @@ public class ProfileMapper {
      * Map UserProfile entity to PublicProfileResponse DTO
      * Excludes sensitive information like phone number and userId
      */
-    public PublicProfileResponse toPublicProfileResponse(UserProfile profile) {
+    public PublicProfileResponse toPublicProfileResponse(UserProfile profile, String deptName) {
         if (profile == null) {
             log.warn("Attempted to map null UserProfile to PublicProfileResponse");
             return null;
@@ -57,7 +58,7 @@ public class ProfileMapper {
         return PublicProfileResponse.builder()
                 .prn(profile.getPrn())
                 .fullName(profile.getFullName())
-                .department(profile.getDepartment())
+                .department(deptName)
                 .year(profile.getYear())
                 .hasProfileImage(profile.getProfileImage() != null)
                 .imageUrl(profile.getProfileImage() != null ?
@@ -69,7 +70,7 @@ public class ProfileMapper {
      * Map UserProfile entity to ProfileSummaryResponse DTO
      * Provides minimal profile information
      */
-    public ProfileSummaryResponse toProfileSummaryResponse(UserProfile profile) {
+    public ProfileSummaryResponse toProfileSummaryResponse(UserProfile profile, String deptName) {
         if (profile == null) {
             log.warn("Attempted to map null UserProfile to ProfileSummaryResponse");
             return null;
@@ -80,65 +81,10 @@ public class ProfileMapper {
         return ProfileSummaryResponse.builder()
                 .prn(profile.getPrn())
                 .fullName(profile.getFullName())
-                .department(profile.getDepartment())
+                .department(deptName)
                 .year(profile.getYear())
                 .hasProfileImage(profile.getProfileImage() != null)
                 .build();
-    }
-
-    /**
-     * Map ProfileCreateRequest DTO to UserProfile entity
-     */
-    public UserProfile toUserProfile(ProfileCreateRequest request) {
-        if (request == null) {
-            log.warn("Attempted to map null ProfileCreateRequest to UserProfile");
-            return null;
-        }
-
-        log.debug("Mapping ProfileCreateRequest to UserProfile for PRN: {}", request.getPrn());
-
-        return UserProfile.builder()
-                .prn(request.getPrn().toUpperCase())
-//                .userId(request.getUserId())
-                .fullName(request.getFullName().trim())
-                .department(request.getDepartment().trim())
-                .year(request.getYear())
-                .phoneNumber(request.getPhoneNumber().trim())
-                .isActive(true)
-                .build();
-    }
-
-    /**
-     * Update UserProfile entity from ProfileUpdateRequest DTO
-     * Only updates non-null fields
-     */
-    public void updateUserProfileFromRequest(UserProfile profile, ProfileUpdateRequest request) {
-        if (profile == null || request == null) {
-            log.warn("Attempted to update with null profile or request");
-            return;
-        }
-
-        log.debug("Updating UserProfile for PRN: {}", profile.getPrn());
-
-        if (request.getFullName() != null && !request.getFullName().isBlank()) {
-            profile.setFullName(request.getFullName().trim());
-            log.debug("Updated fullName for PRN: {}", profile.getPrn());
-        }
-
-        if (request.getDepartment() != null && !request.getDepartment().isBlank()) {
-            profile.setDepartment(request.getDepartment().trim());
-            log.debug("Updated department for PRN: {}", profile.getPrn());
-        }
-
-        if (request.getYear() != null) {
-            profile.setYear(request.getYear());
-            log.debug("Updated year for PRN: {}", profile.getPrn());
-        }
-
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
-            profile.setPhoneNumber(request.getPhoneNumber().trim());
-            log.debug("Updated phoneNumber for PRN: {}", profile.getPrn());
-        }
     }
 
     /**
@@ -163,53 +109,134 @@ public class ProfileMapper {
                 .build();
     }
 
+    /* ================= LIST MAPPERS ================= */
+
     /**
-     * Map list of UserProfile entities to list of ProfileResponse DTOs
+     * Map list of UserProfile entities to ProfileResponse DTOs
+     * Uses department map to avoid N+1 queries
      */
-    public List<ProfileResponse> toProfileResponseList(List<UserProfile> profiles) {
-        if (profiles == null) {
-            log.warn("Attempted to map null profile list");
+    public List<ProfileResponse> toProfileResponseList(
+            List<UserProfile> profiles,
+            Map<Long, String> departmentMap
+    ) {
+        if (profiles == null || profiles.isEmpty()) {
+            log.debug("Empty profile list provided for mapping");
             return List.of();
         }
 
         log.debug("Mapping {} profiles to ProfileResponse list", profiles.size());
 
         return profiles.stream()
-                .map(this::toProfileResponse)
+                .map(profile -> toProfileResponse(
+                        profile,
+                        departmentMap.getOrDefault(profile.getDepartmentId(), "Unknown")
+                ))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Map list of UserProfile entities to list of PublicProfileResponse DTOs
+     * Map list of UserProfile entities to PublicProfileResponse DTOs
+     * Uses department map to avoid N+1 queries
      */
-    public List<PublicProfileResponse> toPublicProfileResponseList(List<UserProfile> profiles) {
-        if (profiles == null) {
-            log.warn("Attempted to map null profile list");
+    public List<PublicProfileResponse> toPublicProfileResponseList(
+            List<UserProfile> profiles,
+            Map<Long, String> departmentMap
+    ) {
+        if (profiles == null || profiles.isEmpty()) {
+            log.debug("Empty profile list provided for mapping");
             return List.of();
         }
 
         log.debug("Mapping {} profiles to PublicProfileResponse list", profiles.size());
 
         return profiles.stream()
-                .map(this::toPublicProfileResponse)
+                .map(profile -> toPublicProfileResponse(
+                        profile,
+                        departmentMap.getOrDefault(profile.getDepartmentId(), "Unknown")
+                ))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Map list of UserProfile entities to list of ProfileSummaryResponse DTOs
+     * Map list of UserProfile entities to ProfileSummaryResponse DTOs
+     * Uses department map to avoid N+1 queries
      */
-    public List<ProfileSummaryResponse> toProfileSummaryResponseList(List<UserProfile> profiles) {
-        if (profiles == null) {
-            log.warn("Attempted to map null profile list");
+    public List<ProfileSummaryResponse> toProfileSummaryResponseList(
+            List<UserProfile> profiles,
+            Map<Long, String> departmentMap
+    ) {
+        if (profiles == null || profiles.isEmpty()) {
+            log.debug("Empty profile list provided for mapping");
             return List.of();
         }
 
         log.debug("Mapping {} profiles to ProfileSummaryResponse list", profiles.size());
 
         return profiles.stream()
-                .map(this::toProfileSummaryResponse)
+                .map(profile -> toProfileSummaryResponse(
+                        profile,
+                        departmentMap.getOrDefault(profile.getDepartmentId(), "Unknown")
+                ))
                 .collect(Collectors.toList());
     }
+
+    /* ================= REQUEST → ENTITY ================= */
+
+    /**
+     * Map ProfileCreateRequest DTO to UserProfile entity
+     */
+    public UserProfile toUserProfile(ProfileCreateRequest request) {
+        if (request == null) {
+            log.warn("Attempted to map null ProfileCreateRequest to UserProfile");
+            return null;
+        }
+
+        log.debug("Mapping ProfileCreateRequest to UserProfile for PRN: {}", request.getPrn());
+
+        return UserProfile.builder()
+                .prn(request.getPrn().toUpperCase())
+                .fullName(request.getFullName().trim())
+                .departmentId(request.getDepartmentId())
+                .year(request.getYear())
+                .phoneNumber(request.getPhoneNumber().trim())
+                .isActive(true)
+                .build();
+    }
+
+    /**
+     * Update UserProfile entity from ProfileUpdateRequest DTO
+     * Only updates non-null fields
+     */
+    public void updateUserProfileFromRequest(UserProfile profile, ProfileUpdateRequest request) {
+        if (profile == null || request == null) {
+            log.warn("Attempted to update with null profile or request");
+            return;
+        }
+
+        log.debug("Updating UserProfile for PRN: {}", profile.getPrn());
+
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            profile.setFullName(request.getFullName().trim());
+            log.debug("Updated fullName for PRN: {}", profile.getPrn());
+        }
+
+        if (request.getDepartmentId() != null) {
+            profile.setDepartmentId(request.getDepartmentId());
+            log.debug("Updated department for PRN: {}", profile.getPrn());
+        }
+
+        if (request.getYear() != null) {
+            profile.setYear(request.getYear());
+            log.debug("Updated year for PRN: {}", profile.getPrn());
+        }
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
+            profile.setPhoneNumber(request.getPhoneNumber().trim());
+            log.debug("Updated phoneNumber for PRN: {}", profile.getPrn());
+        }
+    }
+
+    /* ================= SANITIZATION METHODS ================= */
 
     /**
      * Sanitize input string to prevent injection attacks

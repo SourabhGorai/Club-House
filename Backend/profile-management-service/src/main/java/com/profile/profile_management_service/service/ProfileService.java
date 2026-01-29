@@ -102,10 +102,10 @@ public interface ProfileService {
 
     /**
      * Get profiles by department
-     * @param department Department name
+     * @param departmentId Department name
      * @return List of profiles in the department
      */
-    List<ProfileResponse> getProfilesByDepartment(String department);
+    List<ProfileResponse> getProfilesByDepartment(Long departmentId);
 
     /**
      * Get profiles by year
@@ -116,11 +116,11 @@ public interface ProfileService {
 
     /**
      * Get profiles by department and year
-     * @param department Department name
+     * @param departmentId Department name
      * @param year Academic year
      * @return List of filtered profiles
      */
-    List<ProfileResponse> getProfilesByDepartmentAndYear(String department, Integer year);
+    List<ProfileResponse> getProfilesByDepartmentAndYear(Long departmentId, Integer year);
 
     // ========== Paginated Operations ==========
 
@@ -133,11 +133,11 @@ public interface ProfileService {
 
     /**
      * Get profiles by department with pagination
-     * @param department Department name
+     * @param departmentId Department name
      * @param pageable Pagination parameters
      * @return Paged profile response
      */
-    PagedResponse<ProfileResponse> getProfilesByDepartmentPaged(String department, Pageable pageable);
+    PagedResponse<ProfileResponse> getProfilesByDepartmentPaged(Long departmentId, Pageable pageable);
 
     /**
      * Search profiles with pagination

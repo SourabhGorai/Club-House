@@ -9,5 +9,5 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     Department findByName(String sanitizedName);
 
-    List<Department> findByIdIn(List<Long> ids);
+    List<Department> findByDepartmentIdIn(List<Long> ids);
 }

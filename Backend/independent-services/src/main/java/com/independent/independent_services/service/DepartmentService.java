@@ -77,7 +77,7 @@ public class DepartmentService {
             return List.of();
         }
 
-        List<Department> list = departmentRepository.findByIdIn(ids);
+        List<Department> list = departmentRepository.findByDepartmentIdIn(ids);
 
         return DepartmentMapper.toResponseList(list);
 

@@ -70,6 +70,15 @@ spring:
                 - StripPrefix=0
                 - AuthenticationFilter
 
+            # Independent Services
+            - id: independent-services
+              uri: lb://INDEPENDENT-SERVICES
+              predicates:
+                - Path=/api/department/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
+
             # ========== ADD MORE SERVICES HERE ==========
 
             # Example: Club Service (uncomment when ready)
