@@ -3,6 +3,9 @@ package com.clubHouse.event_service2.controller;
 import com.clubHouse.event_service2.dto.ApiResponse;
 import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
+import com.clubHouse.event_service2.exception.ServiceException;
+import com.clubHouse.event_service2.model.Events;
+import com.clubHouse.event_service2.model.TargetType;
 import com.clubHouse.event_service2.service.EventService;
 import com.clubHouse.event_service2.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,7 @@ public class EventController {
     private final JwtService jwtService;
 
     @PostMapping
-    private ResponseEntity<ApiResponse<EventResponse>> createEvent(
+    public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @RequestBody EventRequest req,
             ServerWebExchange exchange
     ) {
@@ -42,7 +45,7 @@ public class EventController {
     }
 
     @GetMapping
-    private ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents() {
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents() {
 
         log.info("REST received to get all the events");
 
@@ -56,7 +59,7 @@ public class EventController {
     }
 
     @GetMapping("/myEvents")
-    private ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
             ServerWebExchange exchange
     ) {
 
@@ -76,13 +79,13 @@ public class EventController {
     // find by organizer {type (club/department), id}
 
     @GetMapping("/getById/{eventId}")
-    private ResponseEntity<ApiResponse<EventResponse>> getEventById(
+    public ResponseEntity<ApiResponse<EventResponse>> getEventById(
             @PathVariable Long eventId
     ) {
 
         log.info("REST received to fetch event with ID: {}", eventId);
 
-        EventResponse resp = eventService.getEventbyId(eventId);
+        EventResponse resp = eventService.getEventById(eventId);
 
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully fetched event",
@@ -91,14 +94,105 @@ public class EventController {
 
     }
 
-//    @GetMapping("/getByTargetType/{targetType}")
-//    private ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetType (
-//            @PathVariable Long targetType
-//    ) {
-//
-//        log.info("REST received to fetch events for target: ");
-//
-//    }
+    @GetMapping("/targetTypes")
+    public ResponseEntity<ApiResponse<List<String>>> getTargetTypes(){
+
+        log.info("REST received to fetch all the target types");
+
+        List<String> list = eventService.getAllTargetTypes();
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched list of size %d", list.size()),
+                list
+        ));
+
+    }
+
+    @GetMapping("/getByTargetType/{targetType}")
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetType (
+            @PathVariable String targetType
+    ) {
+
+        TargetType type = TargetType.from(targetType);
+        log.info("REST received to fetch events for target: {}", targetType);
+
+        List<EventResponse> list = eventService.getByTargetType(type);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched list of size %d", list.size()),
+                list
+        ));
+
+    }
+
+    @GetMapping("/getByEventCreator/{prn}")
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByEventCreator (
+            @PathVariable String prn
+    ) {
+
+        log.info("REST received to fetch events created by: {}", prn);
+
+        List<EventResponse> resp = eventService.getByEventCreator(prn);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
+
+    }
+
+    // Get by organizer
+    @GetMapping("/organizer/{organizer}")
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByOrganizer (
+            @PathVariable String organizer
+    ) {
+
+        log.info("REST received to get events organized by {}", organizer);
+
+        List<EventResponse> resp = eventService.getByOrganizer(organizer);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
+
+    }
+
+    // will need some endpoints according to ratings.
+    @GetMapping("/ratings/{rating}")
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByRatings(
+            @PathVariable int rating
+    ) {
+
+        log.info("REST received to fetch events have ratings =< {}", rating);
+
+        List<EventResponse> resp = eventService.getByRatings(rating);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
+
+    }
+
+    // will need some endpoints according to targetData.
+    @GetMapping("/targetData/{targetType}/{targetId}")
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetData (
+            @PathVariable String targetType,
+            @PathVariable Long targetId
+    ) {
+
+        log.info("REST received to fetch events for target with ID: {}", targetId);
+        TargetType type = TargetType.from(targetType);
+
+        List<EventResponse> resp = eventService.getByTargetData(type, targetId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
+
+    }
 
 }
 

@@ -31,6 +31,7 @@ public class EventRequest {
 
     private String venue;
 
+    @NotNull(message = "Target type is required")
     private TargetType target;
 
     private List<Long> targetIds;

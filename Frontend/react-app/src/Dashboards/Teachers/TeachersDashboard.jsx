@@ -1,109 +1,3 @@
-// import { Calendar,Trophy, Users, Target, Award} from 'lucide-react';
-// import { useNavigate } from "react-router-dom";
-
-// export default function TeachersDashboard() {
-//   const user = JSON.parse(localStorage.getItem("user"));
-//   const navigate = useNavigate();
-//   const handleLogout = () => {
-//     localStorage.removeItem("user");
-//     localStorage.removeItem("token");
-//     window.location.href = "/login";
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-blue-50 p-6">
-//       <div className="max-w-7xl mx-auto">
-//         <div className="flex justify-between items-center mb-8">
-//           <div>
-//             <h1 className="text-4xl font-bold text-blue-600">Teacher Dashboard 📚</h1>
-//             <p className="text-gray-600 mt-2">Club management and Event tracking</p>
-//           </div>
-//           <div className="flex items-center space-x-4">
-//             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-//               TEACHER
-//             </span>
-//             <button
-//               onClick={handleLogout}
-//               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300"
-//             >
-//               Logout
-//             </button>
-//           </div>
-//         </div>
-//         {/* Welcome Message to professor */}
-//           <div className="bg-white rounded-xl shadow-lg p-6 my-6 md:col-span-2 lg:col-span-3">
-//             <h3 className="text-xl font-semibold mb-4 text-gray-800">
-//               Welcome, Professor {user?.username}!
-//             </h3>
-//             <p className="text-gray-600">
-//               yeah abhi random hai ignore it You have 3 new assignments to grade and 2 upcoming classes today.
-//               Don't forget to submit the weekly attendance report.
-//             </p>
-//           </div>
-
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//           {/* Events Card */}
-//           <div className="bg-white rounded-xl shadow-lg p-6">
-//             <div className="flex items-center mb-4">
-//               <div className="bg-blue-100 p-3 rounded-lg mr-4">
-//                 <Calendar className="w-6 h-6 text-blue-600" />
-
-//               </div>
-//               <h3 className="text-xl font-semibold text-blue-800">My Events</h3>
-//             </div>
-//             <p className="text-3xl font-bold text-blue-600 mb-2"></p>
-//             <p className="text-gray-600"></p>
-//           </div>
-
-//           {/* Clubs Card */}
-//           <div className="bg-white rounded-xl shadow-lg p-6">
-//             <div className="flex items-center mb-4">
-//               <div className="bg-green-100 p-3 rounded-lg mr-4">
-//                 <Trophy className="w-6 h-6 text-green-600" />
-//               </div>
-//               <h3 className="text-xl font-semibold text-green-800">Clubs</h3>
-//             </div>
-//             <p className="text-3xl font-bold text-green-600 mb-2"></p>
-//             <p className="text-gray-600"></p>
-//           </div>
-
-//           {/* Students Card */}
-//           <div className="bg-white rounded-xl shadow-lg p-6">
-//             <div className="flex items-center mb-4">
-//               <div className="bg-orange-100 p-3 rounded-lg mr-4">
-//                 <Users className="w-6 h-6 text-orange-800" />
-//               </div>
-//               <h3 className="text-xl font-semibold text-orange-800">All Students</h3>
-//             </div>
-//             <p className="text-3xl font-bold text-orange-600 mb-2"></p>
-//             <p className="text-gray-600"></p>
-//           </div>
-
-//           {/* Quick Actions */}
-//           <div className="bg-white rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-3">
-//             <h3 className="text-2xl font-bold mb-4 text-gray-800">Quick Actions</h3>
-//             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-//               <button className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-3 rounded-lg transition duration-300">
-//                 Create Event
-//               </button>
-//               <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-3 rounded-lg transition duration-300">
-//                 Delete Event
-//               </button>
-//               <button onClick={() => navigate("/add-users-with-club")} className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white py-3 rounded-lg transition duration-300">
-//                 Add Student
-//               </button>
-//               <button onClick={() => navigate("/remove-users-from-club")} className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition duration-300">
-//                 Remove Student
-//               </button>
-//             </div>
-//           </div>
-
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 import {
   Calendar,
   Trophy,
@@ -113,6 +7,7 @@ import {
   Upload,
   X,
   Edit,
+  Camera,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -128,7 +23,7 @@ export default function TeachersDashboard() {
   const [profileData, setProfileData] = useState({
     prn: user?.prn || "",
     fullName: "",
-    department: "",
+    departmentId: "",
     phoneNumber: "",
   });
   const [selectedImage, setSelectedImage] = useState(null);
@@ -137,10 +32,51 @@ export default function TeachersDashboard() {
   const [userProfile, setUserProfile] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     fetchUserProfile();
+    fetchDepartments();
   }, []);
+
+  // Convert department name to ID after departments are loaded
+  useEffect(() => {
+    if (departments.length > 0 && profileData.departmentId && typeof profileData.departmentId === 'string' && isNaN(profileData.departmentId)) {
+      // departmentId is actually a department name string, convert it to ID
+      const dept = departments.find(d => d.name === profileData.departmentId);
+      if (dept) {
+        setProfileData(prev => ({
+          ...prev,
+          departmentId: dept.departmentId
+        }));
+      }
+    }
+  }, [departments, profileData.departmentId]);
+
+  // Fetch departments
+  const fetchDepartments = async () => {
+    try {
+      console.log("Fetching departments...");
+      const response = await axios.get(
+        "http://localhost:8080/api/department",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      console.log("Departments response:", response.data);
+      
+      if (response.data && response.data.data) {
+        console.log("Setting departments:", response.data.data);
+        setDepartments(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
 
   const fetchUserProfile = async () => {
     try {
@@ -156,10 +92,24 @@ export default function TeachersDashboard() {
 
       if (response.data) {
         setUserProfile(response.data);
+        
+        // Handle department - could be string (name) or object with departmentId
+        let deptId = "";
+        if (response.data.data.department) {
+          if (typeof response.data.data.department === 'object' && response.data.data.department.departmentId) {
+            // Department is an object with departmentId
+            deptId = response.data.data.department.departmentId;
+          } else if (typeof response.data.data.department === 'string') {
+            // Department is a string (name), need to find ID from departments array
+            // This will be set after departments are loaded
+            deptId = response.data.data.department; // Store name temporarily
+          }
+        }
+        
         setProfileData({
           prn: response.data.data.prn || user?.prn || "",
           fullName: response.data.data.fullName || "",
-          department: response.data.data.department || "",
+          departmentId: deptId,
           phoneNumber: response.data.data.phoneNumber || "",
         });
 
@@ -169,6 +119,11 @@ export default function TeachersDashboard() {
     } catch (error) {
       console.error("Error fetching profile:", error);
       setUserProfile(null);
+      // If profile doesn't exist, initialize with user PRN
+      setProfileData(prev => ({
+        ...prev,
+        prn: user?.prn || ""
+      }));
     } finally {
       setIsLoadingProfile(false);
     }
@@ -223,7 +178,7 @@ export default function TeachersDashboard() {
     if (
       !profileData.prn ||
       !profileData.fullName ||
-      !profileData.department ||
+      !profileData.departmentId ||
       !profileData.phoneNumber
     ) {
       setMessage("Please fill all required fields");
@@ -251,10 +206,10 @@ export default function TeachersDashboard() {
 
       // If profile exists, update it; otherwise create new
       if (userProfile) {
-        // Update existing profile - try using PRN instead of ID
+        // Update existing profile
         const requestData = {
           fullName: profileData.fullName,
-          department: profileData.department,
+          departmentId: parseInt(profileData.departmentId),
           phoneNumber: profileData.phoneNumber,
         }
         const updateResponse = await axios.put(
@@ -270,13 +225,12 @@ export default function TeachersDashboard() {
         console.log("Update response:", updateResponse.data);
         setMessage("Profile updated successfully!");
       } else {
-        // Create new profile - ensure year is not included
+        // Create new profile
         const createData = {
           prn: profileData.prn,
           fullName: profileData.fullName,
-          department: profileData.department,
+          departmentId: parseInt(profileData.departmentId),
           phoneNumber: profileData.phoneNumber,
-          // Do NOT include year field for teachers
         };
 
         console.log("Creating with data:", createData);
@@ -314,7 +268,11 @@ export default function TeachersDashboard() {
 
       // Refresh profile data
       await fetchUserProfile();
-      setShowProfileForm(false);
+      
+      setTimeout(() => {
+        setShowProfileForm(false);
+        setMessage("");
+      }, 1500);
     } catch (error) {
       console.error("Full error details:", error);
       console.error("Error response data:", error.response?.data);
@@ -330,6 +288,20 @@ export default function TeachersDashboard() {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  // Helper function to get department name by ID
+  const getDepartmentName = (departmentIdOrName) => {
+    if (!departmentIdOrName) return "Not set";
+    
+    // If it's already a string name, return it
+    if (typeof departmentIdOrName === 'string' && isNaN(departmentIdOrName)) {
+      return departmentIdOrName;
+    }
+    
+    // Otherwise look up by ID
+    const dept = departments.find(d => d.departmentId === parseInt(departmentIdOrName));
+    return dept ? dept.name : "Not set";
   };
 
   return (
@@ -402,7 +374,7 @@ export default function TeachersDashboard() {
                   <span className="text-gray-600">{user?.email}</span>
                 </p>
                 <p className="text-gray-700">
-                  <strong>Department:</strong> {profileData.department}
+                  <strong>Department:</strong> {profileData.departmentId ? getDepartmentName(profileData.departmentId) : "Not set"}
                 </p>
                 <p className="text-gray-700">
                   <strong>Phone:</strong> {profileData.phoneNumber}
@@ -570,7 +542,10 @@ export default function TeachersDashboard() {
                 {userProfile ? "Edit Your Profile" : "Complete Your Profile"}
               </h3>
               <button
-                onClick={() => setShowProfileForm(false)}
+                onClick={() => {
+                  setShowProfileForm(false);
+                  setMessage("");
+                }}
                 className="text-gray-400 cursor-pointer hover:text-blue-600"
               >
                 <X className="w-6 h-6" />
@@ -578,6 +553,9 @@ export default function TeachersDashboard() {
             </div>
 
             <form onSubmit={handleSubmitProfile} className="p-6 space-y-4">
+              {/* Debug info */}
+              {console.log("Departments in form:", departments, "Length:", departments.length)}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   PRN *
@@ -614,18 +592,34 @@ export default function TeachersDashboard() {
                 />
               </div>
 
+              {/* Department - Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Department *
                 </label>
-                <input
-                  type="text"
-                  name="department"
-                  value={profileData.department}
+                <select
+                  name="departmentId"
+                  value={profileData.departmentId}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
-                />
+                  disabled={departments.length === 0}
+                >
+                  <option value="">
+                    {departments.length === 0 ? 'Loading departments...' : 'Select Department'}
+                  </option>
+                  {departments.map((dept) => (
+                    <option key={dept.departmentId} value={dept.departmentId}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                {departments.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1 flex items-center">
+                    <span className="animate-spin mr-2">⏳</span>
+                    Loading departments from server...
+                  </p>
+                )}
               </div>
 
               <div>
@@ -638,6 +632,7 @@ export default function TeachersDashboard() {
                   value={profileData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="10-digit phone number"
                   required
                 />
               </div>
@@ -658,17 +653,22 @@ export default function TeachersDashboard() {
               </div>
 
               {message && (
-                <p
-                  className={`text-sm ${message.includes("Error") ? "text-red-600" : "text-green-600"}`}
-                >
-                  {message}
-                </p>
+                <div className={`p-3 rounded-lg ${
+                  message.includes("Error") || message.includes("error")
+                    ? "bg-red-50 text-red-700 border border-red-200"
+                    : "bg-green-50 text-green-700 border border-green-200"
+                }`}>
+                  <p className="text-sm font-semibold">{message}</p>
+                </div>
               )}
 
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowProfileForm(false)}
+                  onClick={() => {
+                    setShowProfileForm(false);
+                    setMessage("");
+                  }}
                   className="flex-1 cursor-pointer bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition duration-300"
                 >
                   Cancel

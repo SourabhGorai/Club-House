@@ -34,7 +34,7 @@ public class Events {
 
     private String organizer;   // department, club, etc
 
-    private String eventCreator;
+    private String eventCreator;    // creator prn
 
     private String venue;
 

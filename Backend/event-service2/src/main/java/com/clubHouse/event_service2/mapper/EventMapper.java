@@ -20,28 +20,6 @@ public class EventMapper {
             DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
 
-    /**
-     * Convert list of events to responses with profile map
-     */
-    public static List<EventResponse> toResponseList(
-            List<Events> events,
-            Map<String, String> organizerNamesMap
-    ) {
-        if (events == null || events.isEmpty()) {
-            return List.of();
-        }
-
-        return events.stream()
-                .map(event -> {
-                    String organizerName = organizerNamesMap.getOrDefault(
-                            event.getOrganizer(),
-                            event.getOrganizer() // Fallback to PRN
-                    );
-                    return toResponse(event, event.getOrganizer(), organizerName);
-                })
-                .collect(Collectors.toList());
-    }
-
     public static List<EventResponse> toResponseList(
             List<Events> events,
             String prn,

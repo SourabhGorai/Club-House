@@ -27,8 +27,4 @@ public class Ratings {
 
     private Long count;
 
-    @Min(value = 1, message = "Rating lies in the range of 1 to 5")
-    @Max(value = 5, message = "Rating lies in the range of 1 to 5")
-    private Long ratings;
-
 }

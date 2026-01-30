@@ -25,7 +25,7 @@ public class TargetData {
     @Enumerated(EnumType.STRING)
     private TargetType targetType;
 
-    @NotNull(message = "Target Id i required")
-    private Long targetId;
+    @NotNull(message = "Target Id is required")
+    private Long targetId;     // department id, club id
 
 }
