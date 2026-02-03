@@ -12,4 +12,6 @@ public interface EventRepository extends JpaRepository<Events, Long> {
     List<Events> findByEventCreator(String prn);
 
     List<Events> findByTarget(TargetType targetType);
+
+    List<Events> findByIsCompleted(boolean status);
 }

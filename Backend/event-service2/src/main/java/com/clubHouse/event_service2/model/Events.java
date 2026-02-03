@@ -41,5 +41,11 @@ public class Events {
     @Enumerated(EnumType.STRING)
     private TargetType target;
 
+    private boolean isCompleted = false;
+
+    public void complete(){
+        this.isCompleted = true;
+    }
+
 }
 

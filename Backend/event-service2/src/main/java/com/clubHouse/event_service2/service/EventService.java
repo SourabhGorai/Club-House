@@ -5,6 +5,7 @@ import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
 import com.clubHouse.event_service2.dto.ProfileResponse;
 import com.clubHouse.event_service2.exception.NotFoundException;
+import com.clubHouse.event_service2.exception.ServiceException;
 import com.clubHouse.event_service2.mapper.EventMapper;
 import com.clubHouse.event_service2.model.Events;
 import com.clubHouse.event_service2.model.Ratings;
@@ -222,6 +223,43 @@ public class EventService {
         return toList(events);
     }
 
+    public EventResponse markEventAsCompleted(Long eventId, String prn, String role) {
+
+        log.info("Attempting to update event status to complete with ID: {}", eventId);
+
+        Events event = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException("Event", eventId.toString())
+        );
+
+        if(!role.equals("SUPER_ADMIN") || !prn.equals(event.getEventCreator())) {
+            log.warn("You are not allowed to change the status of the event");
+            throw new ServiceException("You are not allowed to change the status of the event");
+        }
+
+        event.complete();
+        Events saved = eventRepository.save(event);
+
+        ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
+
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName());
+
+    }
+
+    public List<EventResponse> getByStatus(boolean status) {
+
+        log.info("Attempting to fetch events where isCompleted = {}", status);
+
+        List<Events> events = eventRepository.findByIsCompleted(status);
+
+        if (events.isEmpty()) {
+            log.info("No events found with isCompleted = {}", status);
+            return List.of();
+        }
+
+        return toList(events);
+    }
+
+
     // ==================================================================================== //
 
     /**
@@ -282,7 +320,5 @@ public class EventService {
                 .collect(Collectors.toList());
 
     }
-
-
 
 }

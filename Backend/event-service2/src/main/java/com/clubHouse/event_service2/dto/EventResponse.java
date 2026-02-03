@@ -26,4 +26,6 @@ public class EventResponse {
 
     private String venue;
 
+    private boolean isCompleted;
+
 }

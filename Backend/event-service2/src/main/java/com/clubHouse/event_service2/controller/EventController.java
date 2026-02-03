@@ -10,6 +10,7 @@ import com.clubHouse.event_service2.service.EventService;
 import com.clubHouse.event_service2.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
@@ -192,6 +193,42 @@ public class EventController {
                 resp
         ));
 
+    }
+
+    @PostMapping("/endEvent/{eventId}")
+    public ResponseEntity<ApiResponse<EventResponse>> markEventComplete(
+            @PathVariable Long eventId,
+            ServerWebExchange exchange
+    ) {
+
+        log.info("RESt received to mark event completed with ID: {}", eventId);
+        String prn = jwtService.extractPrnFromHeaders(exchange);
+        String role = jwtService.extractRoleFromHeaders(exchange);
+
+        EventResponse resp = eventService.markEventAsCompleted(eventId, prn, role);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Marked event as completed successfully",
+                resp
+        ));
+    }
+
+    @GetMapping("/endEvent/{status}")   // true or false
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByStatus(
+            @PathVariable boolean status,
+            ServerWebExchange exchange
+    ) {
+
+        log.info("REST received to fetch events with status");
+
+//        String role = jwtService.extractRoleFromHeaders(exchange);
+
+        List<EventResponse> resp = eventService.getByStatus(status);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
     }
 
 }

@@ -49,6 +49,7 @@ public class EventMapper {
                 .creatorPrn(prn)
                 .creatorName(creatorName)
                 .venue(event.getVenue())
+                .isCompleted(event.isCompleted())
                 .build();
 
     }
