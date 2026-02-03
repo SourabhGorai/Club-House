@@ -584,13 +584,18 @@ export default function UsersDashboard() {
 
   // Convert department name to ID after departments are loaded
   useEffect(() => {
-    if (departments.length > 0 && profileData.departmentId && typeof profileData.departmentId === 'string' && isNaN(profileData.departmentId)) {
+    if (
+      departments.length > 0 &&
+      profileData.departmentId &&
+      typeof profileData.departmentId === "string" &&
+      isNaN(profileData.departmentId)
+    ) {
       // departmentId is actually a department name string, convert it to ID
-      const dept = departments.find(d => d.name === profileData.departmentId);
+      const dept = departments.find((d) => d.name === profileData.departmentId);
       if (dept) {
-        setProfileData(prev => ({
+        setProfileData((prev) => ({
           ...prev,
-          departmentId: dept.departmentId
+          departmentId: dept.departmentId,
         }));
       }
     }
@@ -600,18 +605,15 @@ export default function UsersDashboard() {
   const fetchDepartments = async () => {
     try {
       console.log("Fetching departments...");
-      const response = await axios.get(
-        "http://localhost:8080/api/department",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      
+      const response = await axios.get("http://localhost:8080/api/department", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       console.log("Departments response:", response.data);
-      
+
       if (response.data && response.data.data) {
         console.log("Setting departments:", response.data.data);
         setDepartments(response.data.data);
@@ -635,20 +637,23 @@ export default function UsersDashboard() {
 
       if (response.data) {
         setUserProfile(response.data);
-        
+
         // Handle department - could be string (name) or object with departmentId
         let deptId = "";
         if (response.data.data.department) {
-          if (typeof response.data.data.department === 'object' && response.data.data.department.departmentId) {
+          if (
+            typeof response.data.data.department === "object" &&
+            response.data.data.department.departmentId
+          ) {
             // Department is an object with departmentId
             deptId = response.data.data.department.departmentId;
-          } else if (typeof response.data.data.department === 'string') {
+          } else if (typeof response.data.data.department === "string") {
             // Department is a string (name), need to find ID from departments array
             // This will be set after departments are loaded
             deptId = response.data.data.department; // Store name temporarily
           }
         }
-        
+
         setProfileData({
           prn: response.data.data.prn || user?.prn || "",
           fullName: response.data.data.fullName || "",
@@ -664,9 +669,9 @@ export default function UsersDashboard() {
       console.error("Error fetching profile:", error);
       setUserProfile(null);
       // If profile doesn't exist, initialize with user PRN
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
-        prn: user?.prn || ""
+        prn: user?.prn || "",
       }));
     } finally {
       setIsLoadingProfile(false);
@@ -753,6 +758,8 @@ export default function UsersDashboard() {
     }
 
     try {
+      let currentPrn = profileData.prn; // ✅ Store PRN for use after if/else blocks
+
       // If profile exists, update it; otherwise create new
       if (userProfile) {
         // Update existing profile
@@ -761,8 +768,9 @@ export default function UsersDashboard() {
           fullName: profileData.fullName,
           departmentId: parseInt(profileData.departmentId),
           year: profileData.year,
-          phoneNumber: profileData.phoneNumber
-        }
+          phoneNumber: profileData.phoneNumber,
+        };
+
         const response = await axios.put(
           `http://localhost:8080/api/profiles/${profileData.prn}`,
           requestData,
@@ -773,6 +781,7 @@ export default function UsersDashboard() {
             },
           },
         );
+        console.log(response);
         setMessage("Profile updated successfully!");
       } else {
         // Create new profile
@@ -781,8 +790,9 @@ export default function UsersDashboard() {
           fullName: profileData.fullName,
           departmentId: parseInt(profileData.departmentId),
           year: profileData.year,
-          phoneNumber: profileData.phoneNumber
+          phoneNumber: profileData.phoneNumber,
         };
+
         const response = await axios.post(
           "http://localhost:8080/api/profiles",
           createData,
@@ -793,16 +803,17 @@ export default function UsersDashboard() {
             },
           },
         );
+        console.log(response);
         setMessage("Profile created successfully!");
       }
 
-      // Upload image if selected
+      // Upload image if selected (using currentPrn instead of createData.prn)
       if (selectedImage) {
         const formData = new FormData();
         formData.append("image", selectedImage);
 
         await axios.post(
-          `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+          `http://localhost:8080/api/profiles/${currentPrn}/image`, // ✅ Fixed: use currentPrn
           formData,
           {
             headers: {
@@ -815,7 +826,7 @@ export default function UsersDashboard() {
 
       // Refresh profile data
       await fetchUserProfile();
-      
+
       setTimeout(() => {
         setShowProfileForm(false);
         setMessage("");
@@ -831,14 +842,16 @@ export default function UsersDashboard() {
   // Helper function to get department name by ID
   const getDepartmentName = (departmentIdOrName) => {
     if (!departmentIdOrName) return "Not set";
-    
+
     // If it's already a string name, return it
-    if (typeof departmentIdOrName === 'string' && isNaN(departmentIdOrName)) {
+    if (typeof departmentIdOrName === "string" && isNaN(departmentIdOrName)) {
       return departmentIdOrName;
     }
-    
+
     // Otherwise look up by ID
-    const dept = departments.find(d => d.departmentId === parseInt(departmentIdOrName));
+    const dept = departments.find(
+      (d) => d.departmentId === parseInt(departmentIdOrName),
+    );
     return dept ? dept.name : "Not set";
   };
 
@@ -928,7 +941,10 @@ export default function UsersDashboard() {
                   <span className="text-gray-600">{user?.email}</span>
                 </p>
                 <p className="text-gray-700">
-                  <strong>Department:</strong> {profileData.departmentId ? getDepartmentName(profileData.departmentId) : "Not set"}
+                  <strong>Department:</strong>{" "}
+                  {profileData.departmentId
+                    ? getDepartmentName(profileData.departmentId)
+                    : "Not set"}
                 </p>
                 <p className="text-gray-700">
                   <strong>Year:</strong> {profileData.year}
@@ -1063,8 +1079,13 @@ export default function UsersDashboard() {
 
             <form onSubmit={handleSubmitProfile} className="p-6 space-y-4">
               {/* Debug info */}
-              {console.log("Departments in form:", departments, "Length:", departments.length)}
-              
+              {console.log(
+                "Departments in form:",
+                departments,
+                "Length:",
+                departments.length,
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   PRN *
@@ -1115,7 +1136,9 @@ export default function UsersDashboard() {
                   disabled={departments.length === 0}
                 >
                   <option value="">
-                    {departments.length === 0 ? 'Loading departments...' : 'Select Department'}
+                    {departments.length === 0
+                      ? "Loading departments..."
+                      : "Select Department"}
                   </option>
                   {departments.map((dept) => (
                     <option key={dept.departmentId} value={dept.departmentId}>
@@ -1181,11 +1204,13 @@ export default function UsersDashboard() {
               </div>
 
               {message && (
-                <div className={`p-3 rounded-lg ${
-                  message.includes("Error") || message.includes("error")
-                    ? "bg-red-50 text-red-700 border border-red-200"
-                    : "bg-green-50 text-green-700 border border-green-200"
-                }`}>
+                <div
+                  className={`p-3 rounded-lg ${
+                    message.includes("Error") || message.includes("error")
+                      ? "bg-red-50 text-red-700 border border-red-200"
+                      : "bg-green-50 text-green-700 border border-green-200"
+                  }`}
+                >
                   <p className="text-sm font-semibold">{message}</p>
                 </div>
               )}

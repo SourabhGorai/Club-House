@@ -5,30 +5,28 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Duration;
 
-
-@Service
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class UserValidationService {
 
     private final WebClient.Builder webClientBuilder;
-    private final HttpServletRequest request;
 
     @Value("${app.user-service.url}")
     private String userServiceUrl;
 
-    public boolean validateUser(String prn) {
+    private final HttpServletRequest request;
+
+    public Boolean validateUser(String prn) {
         String authHeader = request.getHeader("Authorization");
 
         try {
-            log.info("Validating user for PRN: {}", prn);
+            log.info("Attempting to validate user with PRN: {} from user-service", prn);
 
             Boolean response = webClientBuilder.build()
                     .get()
@@ -40,27 +38,17 @@ public class UserValidationService {
                     .block();
 
             if (response != null) {
+                log.info("User validation result for PRN {}: {}", prn, response);
                 return response;
             }
 
-            log.warn("Empty response received while validating PRN: {}", prn);
+            log.warn("Invalid or empty response from user-service for PRN: {}", prn);
             return false;
 
-        } catch (WebClientResponseException e) {
-            log.error("User validation failed with status {} for PRN: {}",
-                    e.getStatusCode(), prn, e);
-
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new RuntimeException("User not found: " + prn);
-            }
-
-            throw new RuntimeException("User validation failed", e);
-
         } catch (Exception e) {
-            log.error("Error while validating PRN: {}", prn, e);
+            log.error("Failed to validate user with PRN: {}", prn, e);
             throw new ExternalServiceException(
-                    "Unable to validate user. Please try again later", e
-            );
+                    "Unable to validate user. Please try again later", e);
         }
     }
 }

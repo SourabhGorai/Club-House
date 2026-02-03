@@ -95,6 +95,15 @@ public class EventController {
 
     }
 
+//    @GetMapping("/idList")
+//    public ResponseEntity<ApiResponse<List<EventResponse>>> getByIdList(
+//            @RequestBody List<Long> ids
+//    ) {
+//
+//        log.info("REST received to fetch event with ID: {}", eventId);
+//
+//    }
+
     @GetMapping("/targetTypes")
     public ResponseEntity<ApiResponse<List<String>>> getTargetTypes(){
 
