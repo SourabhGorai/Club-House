@@ -2,11 +2,10 @@ package com.clubservice2.club_service2.service;
 
 import com.clubservice2.club_service2.client.ProfileServiceClient;
 import com.clubservice2.club_service2.client.UserServiceClient;
-import com.clubservice2.club_service2.dto.*;
-import com.clubservice2.club_service2.exception.ClubNotFoundException;
-import com.clubservice2.club_service2.exception.ClubServiceException;
-import com.clubservice2.club_service2.exception.UserClubAlreadyExistsException;
-import com.clubservice2.club_service2.exception.UserClubNotFoundException;
+import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
+import com.clubservice2.club_service2.dto.request.UserClubRequest;
+import com.clubservice2.club_service2.dto.response.*;
+import com.clubservice2.club_service2.exception.*;
 import com.clubservice2.club_service2.mapper.ClubMapper;
 import com.clubservice2.club_service2.mapper.UserClubMapper;
 import com.clubservice2.club_service2.model.Club;
@@ -18,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,6 +84,102 @@ public class UserClubService {
             log.error("Failed to add user to club: PRN={}, ClubId={}",
                     request.getPrn(), request.getClubId(), e);
             throw new ClubServiceException("Failed to add user to club", e);
+        }
+    }
+
+    /**
+     * Adds multiple users to clubs in bulk
+     */
+    @Transactional
+    public BulkUserClubResponse addUsersToClubsBulk(BulkUserClubRequest request) {
+        log.info("Starting bulk user-club creation for {} associations",
+                request.getAssociations().size());
+
+        List<UserClubResponse> successfulAssociations = new ArrayList<>();
+        List<BulkUserClubResponse.BulkUserClubError> errors = new ArrayList<>();
+
+        for (UserClubRequest userClubRequest : request.getAssociations()) {
+            try {
+                // Attempt to add user to club
+                UserClubResponse response = addUserToClub(userClubRequest);
+                successfulAssociations.add(response);
+
+            } catch (UserClubAlreadyExistsException ex) {
+                // Get club name for error reporting
+                String clubName = getClubNameById(userClubRequest.getClubId());
+
+                errors.add(BulkUserClubResponse.BulkUserClubError.builder()
+                        .prn(userClubRequest.getPrn())
+                        .clubId(userClubRequest.getClubId())
+                        .clubName(clubName)
+                        .role(userClubRequest.getRole())
+                        .tenure(userClubRequest.getTenure())
+                        .errorMessage(String.format(
+                                "User-club association already exists for PRN: %s, Club: %s, Role: %s, Tenure: %s",
+                                userClubRequest.getPrn(), clubName,
+                                userClubRequest.getRole(), userClubRequest.getTenure()))
+                        .errorType("DUPLICATE_ASSOCIATION")
+                        .build());
+
+            } catch (ClubNotFoundException ex) {
+                errors.add(BulkUserClubResponse.BulkUserClubError.builder()
+                        .prn(userClubRequest.getPrn())
+                        .clubId(userClubRequest.getClubId())
+                        .clubName(null)
+                        .role(userClubRequest.getRole())
+                        .tenure(userClubRequest.getTenure())
+                        .errorMessage("Club not found with ID: " + userClubRequest.getClubId())
+                        .errorType("CLUB_NOT_FOUND")
+                        .build());
+
+            } catch (Exception ex) {
+                // Handle user not found or other errors from UserServiceClient
+                String errorType = "CREATION_ERROR";
+                String errorMessage = ex.getMessage();
+
+                if (errorMessage != null && errorMessage.toLowerCase().contains("user not found")) {
+                    errorType = "USER_NOT_FOUND";
+                }
+
+                String clubName = getClubNameById(userClubRequest.getClubId());
+
+                log.error("Error creating user-club association for PRN {} and Club {}: {}",
+                        userClubRequest.getPrn(), userClubRequest.getClubId(), ex.getMessage());
+
+                errors.add(BulkUserClubResponse.BulkUserClubError.builder()
+                        .prn(userClubRequest.getPrn())
+                        .clubId(userClubRequest.getClubId())
+                        .clubName(clubName)
+                        .role(userClubRequest.getRole())
+                        .tenure(userClubRequest.getTenure())
+                        .errorMessage(errorMessage)
+                        .errorType(errorType)
+                        .build());
+            }
+        }
+
+        log.info("Bulk user-club creation completed: {} successful, {} failed",
+                successfulAssociations.size(), errors.size());
+
+        return BulkUserClubResponse.builder()
+                .totalRequested(request.getAssociations().size())
+                .successCount(successfulAssociations.size())
+                .failedCount(errors.size())
+                .successfulAssociations(successfulAssociations)
+                .errors(errors.isEmpty() ? null : errors)
+                .build();
+    }
+
+    /**
+     * Helper method to get club name by ID
+     */
+    private String getClubNameById(Long clubId) {
+        try {
+            return clubRepository.findById(clubId)
+                    .map(Club::getClubName)
+                    .orElse("Unknown Club");
+        } catch (Exception e) {
+            return "Unknown Club";
         }
     }
 
@@ -311,4 +407,20 @@ public class UserClubService {
         // Map with profile enrichment
         return UserClubMapper.toProfileEnrichedResponseList(filteredMembers, profileMap);
     }
+
+    @Transactional
+    public void permanentlyDelete(String prn) {
+        log.info("Attempting to delete club user with PRN: {}", prn);
+
+        if (!userClubRepository.existsByPrn(prn)) {
+            throw new UserNotFoundException(
+                    String.format("User not found in any club with PRN: %s", prn)
+            );
+        }
+
+        long deletedCount = userClubRepository.deleteByPrn(prn);
+
+        log.info("Deleted {} club memberships for PRN: {}", deletedCount, prn);
+    }
+
 }

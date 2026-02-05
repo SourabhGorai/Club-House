@@ -1,8 +1,12 @@
 package com.clubservice2.club_service2.client;
 
-import com.clubservice2.club_service2.dto.*;
+import com.clubservice2.club_service2.dto.request.BulkProfileFetchRequest;
+import com.clubservice2.club_service2.dto.request.FilterPrnsRequest;
+import com.clubservice2.club_service2.dto.response.ApiResponseWrapper;
+import com.clubservice2.club_service2.dto.response.FilterPrnsResponse;
+import com.clubservice2.club_service2.dto.response.ProfileResponse;
+import com.clubservice2.club_service2.dto.response.ProfileSummaryResponse;
 import com.clubservice2.club_service2.exception.ExternalServiceException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

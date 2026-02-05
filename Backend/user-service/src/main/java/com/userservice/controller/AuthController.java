@@ -1,10 +1,7 @@
 package com.userservice.controller;
 
 
-import com.userservice.dto.AuthRequestDto;
-import com.userservice.dto.AuthResponseDto;
-import com.userservice.dto.UserCreateDto;
-import com.userservice.dto.UserDto;
+import com.userservice.dto.*;
 import com.userservice.security.JwtUtil;
 import com.userservice.service.CustomUserDetailsService;
 import com.userservice.service.OtpService;
@@ -16,6 +13,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -45,6 +44,47 @@ public class AuthController {
         // OTP send done inside UserService -> OtpService
         return ResponseEntity.ok(created);
     }
+
+    @PostMapping("/bulk-register")
+    public ResponseEntity<?> bulkRegister(@Validated @RequestBody BulkRegisterRequestDto request) {
+
+        int successCount = 0;
+        int failureCount = 0;
+
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (UserCreateDto dto : request.getUsers()) {
+            try {
+                UserDto user = userService.registerUser(dto);
+                successCount++;
+
+                results.add(Map.of(
+                        "username", dto.getUsername(),
+                        "status", "SUCCESS",
+                        "message", "User created. OTP sent to email."
+                ));
+
+            } catch (Exception e) {
+                failureCount++;
+
+                results.add(Map.of(
+                        "username", dto.getUsername(),
+                        "status", "FAILED",
+                        "message", e.getMessage()
+                ));
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "summary", Map.of(
+                        "total", request.getUsers().size(),
+                        "success", successCount,
+                        "failed", failureCount
+                ),
+                "results", results
+        ));
+    }
+
 
 //    @PostMapping("/adminRegister")
 //    public ResponseEntity<UserDto> adminRegister(@Validated @RequestBody UserCreateDto dto) {
@@ -119,6 +159,45 @@ public class AuthController {
         if (ok) return ResponseEntity.ok(Map.of("message", "Email verified"));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Invalid or expired OTP"));
     }
+
+    @PostMapping("/bulk-verify-otp")
+    public ResponseEntity<?> bulkVerifyOtp(@Validated @RequestBody BulkOtpVerifyRequestDto request) {
+
+        int successCount = 0;
+        int failureCount = 0;
+
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (BulkOtpVerifyRequestDto.OtpItem item : request.getRequests()) {
+
+            boolean ok = otpService.verifyOtpForEmail(item.getEmail(), item.getOtp());
+
+            if (ok) {
+                successCount++;
+                results.add(Map.of(
+                        "email", item.getEmail(),
+                        "status", "VERIFIED"
+                ));
+            } else {
+                failureCount++;
+                results.add(Map.of(
+                        "email", item.getEmail(),
+                        "status", "FAILED",
+                        "message", "Invalid or expired OTP"
+                ));
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "summary", Map.of(
+                        "total", request.getRequests().size(),
+                        "verified", successCount,
+                        "failed", failureCount
+                ),
+                "results", results
+        ));
+    }
+
 
     // Resend verification OTP (if user didn't get it)
     @PostMapping("/resend-verify-otp")

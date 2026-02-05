@@ -1,6 +1,11 @@
 package com.profile.profile_management_service.mapper;
 
-import com.profile.profile_management_service.dto.*;
+import com.profile.profile_management_service.dto.request.ProfileCreateRequest;
+import com.profile.profile_management_service.dto.request.ProfileUpdateRequest;
+import com.profile.profile_management_service.dto.response.ImageMetadataResponse;
+import com.profile.profile_management_service.dto.response.ProfileResponse;
+import com.profile.profile_management_service.dto.response.ProfileSummaryResponse;
+import com.profile.profile_management_service.dto.response.PublicProfileResponse;
 import com.profile.profile_management_service.model.UserProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

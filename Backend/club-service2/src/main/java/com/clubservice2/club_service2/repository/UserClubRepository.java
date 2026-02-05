@@ -32,4 +32,8 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
     void deleteByClub_ClubId(Long clubId);
 
+    long deleteByPrn(String prn);
+
+    boolean existsByPrn(String prn);
+
 }

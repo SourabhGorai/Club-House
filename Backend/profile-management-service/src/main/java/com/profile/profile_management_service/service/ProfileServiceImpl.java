@@ -1,7 +1,10 @@
 package com.profile.profile_management_service.service;
 
 import com.profile.profile_management_service.client.IndependentServiceClient;
+import com.profile.profile_management_service.client.UserValidationService;
 import com.profile.profile_management_service.dto.*;
+import com.profile.profile_management_service.dto.request.*;
+import com.profile.profile_management_service.dto.response.*;
 import com.profile.profile_management_service.exception.*;
 import com.profile.profile_management_service.mapper.ProfileMapper;
 import com.profile.profile_management_service.model.UserProfile;
@@ -35,6 +38,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
     private final IndependentServiceClient indServiceClient;
+    private final UserValidationService userValidationService;
 
     // Image validation constants
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
@@ -74,6 +78,60 @@ public class ProfileServiceImpl implements ProfileService {
             log.error("Error creating profile: {}", ex.getMessage(), ex);
             throw new ProfileOperationException("Failed to create profile", ex);
         }
+    }
+
+    @Override
+    public BulkProfileCreateResponse bulkCreateProfiles(BulkProfileCreateRequest request) {
+        log.info("Starting bulk profile creation for {} profiles", request.getProfiles().size());
+
+        List<ProfileResponse> successfulProfiles = new ArrayList<>();
+        List<BulkProfileCreateResponse.BulkProfileError> errors = new ArrayList<>();
+
+        for (ProfileCreateRequest profileRequest : request.getProfiles()) {
+            try {
+                // Validate user exists
+                boolean isValidUser = userValidationService.validateUser(profileRequest.getPrn());
+                if (!isValidUser) {
+                    errors.add(BulkProfileCreateResponse.BulkProfileError.builder()
+                            .prn(profileRequest.getPrn())
+                            .fullName(profileRequest.getFullName())
+                            .errorMessage("No user registered with PRN: " + profileRequest.getPrn())
+                            .errorType("USER_NOT_FOUND")
+                            .build());
+                    continue;
+                }
+
+                // Create profile
+                ProfileResponse profile = createProfile(profileRequest);
+                successfulProfiles.add(profile);
+
+            } catch (ProfileAlreadyExistsException ex) {
+                errors.add(BulkProfileCreateResponse.BulkProfileError.builder()
+                        .prn(profileRequest.getPrn())
+                        .fullName(profileRequest.getFullName())
+                        .errorMessage("Profile already exists for this PRN")
+                        .errorType("DUPLICATE_PROFILE")
+                        .build());
+
+            } catch (Exception ex) {
+                log.error("Error creating profile for PRN {}: {}",
+                        profileRequest.getPrn(), ex.getMessage());
+                errors.add(BulkProfileCreateResponse.BulkProfileError.builder()
+                        .prn(profileRequest.getPrn())
+                        .fullName(profileRequest.getFullName())
+                        .errorMessage(ex.getMessage())
+                        .errorType("CREATION_ERROR")
+                        .build());
+            }
+        }
+
+        return BulkProfileCreateResponse.builder()
+                .totalRequested(request.getProfiles().size())
+                .successCount(successfulProfiles.size())
+                .failedCount(errors.size())
+                .successfulProfiles(successfulProfiles)
+                .errors(errors.isEmpty() ? null : errors)
+                .build();
     }
 
     @Override
@@ -620,6 +678,21 @@ public class ProfileServiceImpl implements ProfileService {
                 .profilesByYear(yearMap)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void permanentlyDelete(String prn) {
+        log.info("Attempting to delete profile with prn: {}", prn);
+
+        if (!profileRepository.existsByPrn(prn)) {
+            throw new UserNotFoundException(
+                    String.format("Profile not found with PRN: %s", prn)
+            );
+        }
+
+        profileRepository.deleteByPrn(prn);
+    }
+
 
     // ========== Additional Operations ==========
 

@@ -1,7 +1,7 @@
 package com.profile.profile_management_service.client;
 
 import com.profile.profile_management_service.dto.ApiResponse;
-import com.profile.profile_management_service.dto.DepartmentResponse;
+import com.profile.profile_management_service.dto.response.DepartmentResponse;
 import com.profile.profile_management_service.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
