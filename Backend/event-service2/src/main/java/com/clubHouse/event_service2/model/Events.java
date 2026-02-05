@@ -43,6 +43,10 @@ public class Events {
 
     private boolean isCompleted = false;
 
+    private LocalDateTime enrollmentDeadline;
+
+    private String enrollmentStatus = "OPEN";
+
     public void complete(){
         this.isCompleted = true;
     }

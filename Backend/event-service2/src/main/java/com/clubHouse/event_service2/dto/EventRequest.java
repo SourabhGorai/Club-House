@@ -36,4 +36,6 @@ public class EventRequest {
 
     private List<Long> targetIds;
 
+    private LocalDateTime enrollmentDeadline;
+
 }

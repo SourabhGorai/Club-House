@@ -4,6 +4,8 @@ import com.clubHouse.event_service2.model.TargetType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 public class EventResponse {
@@ -27,5 +29,9 @@ public class EventResponse {
     private String venue;
 
     private boolean isCompleted;
+
+    private LocalDateTime enrollmentDeadline;
+
+    private String enrollmentStatus;
 
 }

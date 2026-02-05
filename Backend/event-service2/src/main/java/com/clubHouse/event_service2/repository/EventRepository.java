@@ -14,4 +14,6 @@ public interface EventRepository extends JpaRepository<Events, Long> {
     List<Events> findByTarget(TargetType targetType);
 
     List<Events> findByIsCompleted(boolean status);
+
+    List<Events> findByEnrollmentDeadline(String sanitizedStatus);
 }

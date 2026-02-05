@@ -50,6 +50,8 @@ public class EventService {
                 .eventCreator(prn)
                 .venue(req.getVenue())
                 .target(targetType)
+                .enrollmentDeadline(req.getEnrollmentDeadline())
+                .enrollmentStatus("OPEN")
                 .build();
 
         Events saved = eventRepository.save(events);
@@ -259,6 +261,22 @@ public class EventService {
         return toList(events);
     }
 
+    public List<EventResponse> getByDeadlineStatus(String status) {
+
+        log.info("Attempting to fetch events where deadline is = {}", status);
+        String sanitizedStatus = EventMapper.sanitizeName(status);
+
+        List<Events> events = eventRepository.findByEnrollmentDeadline(sanitizedStatus);
+
+        if (events.isEmpty()) {
+            log.info("No events found with deadline = {}", sanitizedStatus);
+            return List.of();
+        }
+
+        return toList(events);
+
+    }
+
 
     // ==================================================================================== //
 
@@ -320,5 +338,6 @@ public class EventService {
                 .collect(Collectors.toList());
 
     }
+
 
 }

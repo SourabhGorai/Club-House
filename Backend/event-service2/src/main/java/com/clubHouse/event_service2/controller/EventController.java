@@ -240,5 +240,21 @@ public class EventController {
         ));
     }
 
+    @GetMapping("/deadline/{status}")   // true or false
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getByDeadlineStatus(
+            @PathVariable String status,
+            ServerWebExchange exchange
+    ) {
+
+        log.info("REST received to fetch events with deadline stauts");
+
+        List<EventResponse> resp = eventService.getByDeadlineStatus(status);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d events", resp.size()),
+                resp
+        ));
+    }
+
 }
 

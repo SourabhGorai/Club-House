@@ -19,6 +19,16 @@ public class EventMapper {
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
+    public static String sanitizeName(String departmentName) {
+        if (departmentName == null || departmentName.isBlank()) {
+            return null;
+        }
+
+        return departmentName.trim()
+                .replaceAll("\\s+", " ")
+                .replaceAll("[^a-zA-Z0-9 ]", "")
+                .toUpperCase();
+    }
 
     public static List<EventResponse> toResponseList(
             List<Events> events,
@@ -50,6 +60,8 @@ public class EventMapper {
                 .creatorName(creatorName)
                 .venue(event.getVenue())
                 .isCompleted(event.isCompleted())
+                .enrollmentDeadline(event.getEnrollmentDeadline())
+                .enrollmentStatus(event.getEnrollmentStatus())
                 .build();
 
     }
