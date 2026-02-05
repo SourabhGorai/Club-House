@@ -1,10 +1,11 @@
 package com.profile.profile_management_service.service;
 
 import com.profile.profile_management_service.dto.*;
+import com.profile.profile_management_service.dto.request.*;
+import com.profile.profile_management_service.dto.response.*;
 import com.profile.profile_management_service.exception.InvalidImageException;
 import com.profile.profile_management_service.exception.ProfileAlreadyExistsException;
 import com.profile.profile_management_service.exception.ProfileNotFoundException;
-import com.profile.profile_management_service.model.UserProfile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,8 @@ public interface ProfileService {
      * @throws ProfileAlreadyExistsException if profile already exists
      */
     ProfileResponse createProfile(ProfileCreateRequest request);
+
+    BulkProfileCreateResponse bulkCreateProfiles(BulkProfileCreateRequest request);
 
     /**
      * Get profile by PRN
@@ -226,4 +229,6 @@ public interface ProfileService {
     List<String> filterPrnsByYear(List<String> prns, Integer year);
 
     List<ProfileResponse> fetchList(List<String> prns);
+
+    void permanentlyDelete(String prn);
 }

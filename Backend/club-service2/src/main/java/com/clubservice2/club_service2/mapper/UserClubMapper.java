@@ -1,9 +1,9 @@
 package com.clubservice2.club_service2.mapper;
 
 
-import com.clubservice2.club_service2.dto.ProfileEnrichedUserClubResponse;
-import com.clubservice2.club_service2.dto.ProfileSummaryResponse;
-import com.clubservice2.club_service2.dto.UserClubResponse;
+import com.clubservice2.club_service2.dto.response.ProfileEnrichedUserClubResponse;
+import com.clubservice2.club_service2.dto.response.ProfileSummaryResponse;
+import com.clubservice2.club_service2.dto.response.UserClubResponse;
 import com.clubservice2.club_service2.model.UserClub;
 import org.springframework.stereotype.Component;
 

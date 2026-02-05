@@ -1,6 +1,12 @@
 package com.clubservice2.club_service2.controller;
 
 import com.clubservice2.club_service2.dto.*;
+import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
+import com.clubservice2.club_service2.dto.request.UserClubRequest;
+import com.clubservice2.club_service2.dto.response.BulkUserClubResponse;
+import com.clubservice2.club_service2.dto.response.ClubPrnsResponse;
+import com.clubservice2.club_service2.dto.response.ProfileEnrichedUserClubResponse;
+import com.clubservice2.club_service2.dto.response.UserClubResponse;
 import com.clubservice2.club_service2.service.UserClubService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -45,6 +51,28 @@ public class UserClubController {
     }
 
     /**
+     * Adds multiple users to clubs in bulk
+     * POST /api/user-clubs/bulk
+     */
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse<BulkUserClubResponse>> addUsersToClubsBulk(
+            @Valid @RequestBody BulkUserClubRequest request) {
+
+        log.info("Request received to add {} user-club associations in bulk",
+                request.getAssociations().size());
+
+        BulkUserClubResponse response = userClubService.addUsersToClubsBulk(request);
+
+        log.info("Bulk user-club creation completed. Success: {}, Failed: {}",
+                response.getSuccessCount(), response.getFailedCount());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Bulk user-club creation completed", response));
+    }
+
+    /**
+     *
      * Retrieves all clubs for a specific user with profile details
      * GET /api/user-clubs/user/{prn}
      */
@@ -182,5 +210,12 @@ public class UserClubController {
         return ResponseEntity.ok(
                 ApiResponse.success("User removed from club successfully")
         );
+    }
+
+    @DeleteMapping("/permanentlyDelete/{prn}")
+    public void permanentlyDelete(@PathVariable String prn) {
+        log.info("REST received to permanently delete user from club db with prn: {}", prn);
+
+        userClubService.permanentlyDelete(prn);
     }
 }

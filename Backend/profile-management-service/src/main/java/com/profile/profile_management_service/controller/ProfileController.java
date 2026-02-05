@@ -1,6 +1,8 @@
 package com.profile.profile_management_service.controller;
 
 import com.profile.profile_management_service.dto.*;
+import com.profile.profile_management_service.dto.request.*;
+import com.profile.profile_management_service.dto.response.*;
 import com.profile.profile_management_service.exception.UserNotFoundException;
 import com.profile.profile_management_service.service.ProfileService;
 import com.profile.profile_management_service.client.UserValidationService;
@@ -56,6 +58,21 @@ public class ProfileController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Profile created successfully", response));
+    }
+
+    @PostMapping("/bulkCreate")
+    public ResponseEntity<ApiResponse<BulkProfileCreateResponse>> bulkProfileCreate(
+            @Valid @RequestBody BulkProfileCreateRequest request) {
+
+        log.info("REST received to create {} profiles in bulk", request.getProfiles().size());
+
+        BulkProfileCreateResponse response = profileService.bulkCreateProfiles(request);
+
+        log.info("Bulk profile creation completed. Success: {}, Failed: {}",
+                response.getSuccessCount(), response.getFailedCount());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Bulk profile creation completed", response));
     }
 
     /**
@@ -524,5 +541,14 @@ public class ProfileController {
         );
     }
 
+    @DeleteMapping("/permanentDelete/{prn}")
+    public ResponseEntity<ApiResponse<?>> permanentlyDelete(@PathVariable String prn) {
+        log.info("REST received to permanently profile with prn: {}", prn);
+        profileService.permanentlyDelete(prn);
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Successfully Deleted user with prn: %s", prn),
+                prn
+        ));
+    }
 
 }

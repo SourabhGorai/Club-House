@@ -1,7 +1,7 @@
 package com.clubservice2.club_service2.mapper;
 
-import com.clubservice2.club_service2.dto.ClubResponse;
-import com.clubservice2.club_service2.dto.ClubSummaryResponse;
+import com.clubservice2.club_service2.dto.response.ClubResponse;
+import com.clubservice2.club_service2.dto.response.ClubSummaryResponse;
 import com.clubservice2.club_service2.model.Club;
 import org.springframework.stereotype.Component;
 

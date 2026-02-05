@@ -8,6 +8,7 @@ import jakarta.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class UserController {
     }
 
     // DELETE /api/users/{id}
+    @Transactional
     @DeleteMapping("/{prn}")
     public ResponseEntity<?> deleteUser(@PathVariable String prn) {
         try {

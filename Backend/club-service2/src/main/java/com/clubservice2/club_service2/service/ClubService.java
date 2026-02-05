@@ -1,7 +1,11 @@
 package com.clubservice2.club_service2.service;
 
 import com.clubservice2.club_service2.client.ProfileServiceClient;
-import com.clubservice2.club_service2.dto.*;
+import com.clubservice2.club_service2.dto.request.ClubRequest;
+import com.clubservice2.club_service2.dto.response.AdminResponse;
+import com.clubservice2.club_service2.dto.response.ClubResponse;
+import com.clubservice2.club_service2.dto.response.ClubSummaryResponse;
+import com.clubservice2.club_service2.dto.response.ProfileSummaryResponse;
 import com.clubservice2.club_service2.exception.ClubAlreadyExistsException;
 import com.clubservice2.club_service2.exception.ClubNotFoundException;
 import com.clubservice2.club_service2.exception.ClubServiceException;

@@ -1,6 +1,10 @@
 package com.clubservice2.club_service2.controller;
 
 import com.clubservice2.club_service2.dto.*;
+import com.clubservice2.club_service2.dto.request.ClubRequest;
+import com.clubservice2.club_service2.dto.response.AdminResponse;
+import com.clubservice2.club_service2.dto.response.ClubResponse;
+import com.clubservice2.club_service2.dto.response.ClubSummaryResponse;
 import com.clubservice2.club_service2.service.ClubService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
