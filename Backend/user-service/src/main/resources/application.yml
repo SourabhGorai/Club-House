@@ -35,6 +35,12 @@ jwt:
   secret: ${SECRET_KEY}
   expiration: 86400000
 
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
+
+# In USER-SERVICE, CLUB-SERVICE2, PROFILE-MANAGEMENT-SERVICE, etc.
 eureka:
   client:
     service-url:
@@ -42,10 +48,3 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.value}
-
-# FIX: Change from 'app' to 'services' to match @Value annotations
-services:
-  profile-service:
-    url: http://PROFILE-MANAGEMENT-SERVICE/api
-  club-service:
-    url: http://CLUB-SERVICE2/api
