@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -46,6 +47,10 @@ public class Events {
     private LocalDateTime enrollmentDeadline;
 
     private String enrollmentStatus = "OPEN";
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     public void complete(){
         this.isCompleted = true;

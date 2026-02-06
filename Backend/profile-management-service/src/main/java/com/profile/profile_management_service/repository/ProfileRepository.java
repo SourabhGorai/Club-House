@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -218,4 +219,34 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
     @Modifying
     @Query("DELETE FROM UserProfile u WHERE u.prn = :prn")
     void deleteByPrn(@Param("prn") String prn);
+
+
+    /**
+     * Deactivates all active profiles created before the specified date
+     * Used by scheduled job to mark graduated students as inactive
+     *
+     * @param createdBefore The cutoff date (profiles created before this will be deactivated)
+     * @return Number of profiles deactivated
+     */
+    @Modifying
+    @Query("UPDATE UserProfile u SET u.isActive = false, u.updatedAt = CURRENT_TIMESTAMP " +
+            "WHERE u.createdAt < :createdBefore AND u.isActive = true")
+    int deactivateProfilesOlderThan(@Param("createdBefore") LocalDateTime createdBefore);
+
+    List<String> findByIsActiveFalse();
+
+    /**
+     * Find only newly deactivated profiles that haven't been cleaned up yet
+     */
+    @Query("SELECT u.prn FROM UserProfile u WHERE u.isActive = false AND u.dataCleanedUp = false")
+    List<String> findNewlyExpiredProfiles();
+
+    /**
+     * Mark profiles as cleaned up after event deletion
+     */
+    @Modifying
+    @Query("UPDATE UserProfile u SET u.dataCleanedUp = true, u.dataCleanedUpAt = CURRENT_TIMESTAMP " +
+            "WHERE u.prn IN :prns")
+    int markProfilesAsCleanedUp(@Param("prns") List<String> prns);
+
 }

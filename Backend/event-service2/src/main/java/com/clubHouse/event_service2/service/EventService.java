@@ -27,12 +27,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EventService {
+public class
+EventService {
 
     private final EventRepository eventRepository;
     private final ProfileManagementServiceClient profileManagementServiceClient;
     private final RatingsRepository ratingsRepository;
     private final TargetDataRepository targetDataRepository;
+    private final EventEnrollmentService eventEnrollmentService;
 
     @Transactional
     public EventResponse createEvent(EventRequest req, String prn) {
@@ -339,5 +341,15 @@ public class EventService {
 
     }
 
+    @Transactional
+    public void deleteById(Long eventId) {
 
+        log.info("Attempting to delete event with ID: {}", eventId);
+
+        eventEnrollmentService.revokeEnrollmentsOfEvent(eventId);
+        targetDataRepository.deleteByEvents_EventId(eventId);
+        ratingsRepository.deleteByEventId(eventId);
+        eventRepository.deleteById(eventId);
+
+    }
 }

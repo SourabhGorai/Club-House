@@ -3,15 +3,17 @@ package com.clubHouse.event_service2.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
-
-@JsonInclude
 @Builder
-public class EnrollmentResponse {
+@JsonInclude
+public class CompleteEnrollmentResponse {
 
     private Long enrollmentId;
     private String prn;
-    private Long eventId;    // it should be a redirect link to the event
+    private Long eventId;
     private String createdAt;
+
+    private String name;
+    private String year;
+    private String department;
 
 }

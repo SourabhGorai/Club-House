@@ -21,9 +21,37 @@ public class ProfileManagementServiceClient {
 
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${app.sla-service.url}")
-    private String slaServiceUrl;
+    @Value("${app.profile-service.url}")
+    private String profileServiceUrl;
     private final HttpServletRequest request;
+
+    public List<String> getExpiredProfiles() {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Attempting to fetch expired profiles");
+
+            ApiResponse<List<String>> response = webClientBuilder.build()
+                    .get()
+                    .uri(profileServiceUrl + "/profiles/expiredProfiles")
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<String>>>() {})
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess() && response.getData() != null) {
+                return response.getData();
+            }
+
+            log.warn("Invalid or empty response");
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to get expired profiles", e);
+            throw new ExternalServiceException("Unable to get expired profiles. " +
+                    "Please try again later", e);
+        }
+    }
 
     public ProfileResponse getProfileByPrn(String prn) {
         String authHeader = request.getHeader("Authorization");
@@ -33,7 +61,7 @@ public class ProfileManagementServiceClient {
 
             ApiResponse<ProfileResponse> response = webClientBuilder.build()
                     .get()
-                    .uri(slaServiceUrl + "/profiles/prn/{prn}", prn)
+                    .uri(profileServiceUrl + "/profiles/prn/{prn}", prn)
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<ProfileResponse>>() {})
@@ -49,7 +77,7 @@ public class ProfileManagementServiceClient {
 
         } catch (Exception e) {
             log.error("Failed to get profile for PRN: {}", prn, e);
-            throw new ExternalServiceException("Unable to validate role. Please try again later", e);
+            throw new ExternalServiceException("Unable to get profile. Please try again later", e);
         }
     }
 
@@ -62,7 +90,7 @@ public class ProfileManagementServiceClient {
 
             ApiResponse<List<ProfileResponse>> response = webClientBuilder.build()
                     .post()
-                    .uri(slaServiceUrl + "/profiles/prns")
+                    .uri(profileServiceUrl + "/profiles/prns")
                     .header("Authorization", authHeader)
                     .bodyValue(prns)
                     .retrieve()
@@ -86,5 +114,31 @@ public class ProfileManagementServiceClient {
         }
     }
 
+    public void markProfilesAsCleanedUp(List<String> prns) {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Notifying profile service: cleanup complete for {} profiles", prns.size());
+
+            ApiResponse<Integer> response = webClientBuilder.build()
+                    .put()
+                    .uri(profileServiceUrl + "/profiles/markAsCleanedUp")
+                    .header("Authorization", authHeader)
+                    .bodyValue(prns)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<Integer>>() {})
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess()) {
+                log.info("Successfully marked {} profiles as cleaned up", prns.size());
+            } else {
+                log.warn("Failed to mark profiles as cleaned up");
+            }
+
+        } catch (Exception e) {
+            log.error("Error marking profiles as cleaned up", e);
+            // Don't throw - this is a notification, not critical
+        }
+    }
 
 }

@@ -551,4 +551,35 @@ public class ProfileController {
         ));
     }
 
+    @GetMapping("/expiredProfiles")
+    public ResponseEntity<ApiResponse<List<String>>> getExpiredProfiles() {
+        log.info("Received request to fetch expired profiles");
+
+        List<String> expiredPrns = profileService.getExpiredProfiles();
+
+        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+                .success(true)
+                .message("Successfully fetched expired profiles")
+                .data(expiredPrns)
+                .build());
+    }
+
+    /**
+     * Called by Event Service after cleanup to mark profiles as processed
+     */
+    @PutMapping("/markAsCleanedUp")
+    public ResponseEntity<ApiResponse<Integer>> markProfilesAsCleanedUp(
+            @RequestBody List<String> prns) {
+
+        log.info("Received request to mark {} profiles as cleaned up", prns.size());
+
+        int updated = profileService.markProfilesAsCleanedUp(prns);
+
+        return ResponseEntity.ok(ApiResponse.<Integer>builder()
+                .success(true)
+                .message("Successfully marked profiles as cleaned up")
+                .data(updated)
+                .build());
+    }
+
 }

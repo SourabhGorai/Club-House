@@ -6,6 +6,8 @@ import com.clubHouse.event_service2.dto.EventResponse;
 import com.clubHouse.event_service2.exception.ServiceException;
 import com.clubHouse.event_service2.model.Events;
 import com.clubHouse.event_service2.model.TargetType;
+import com.clubHouse.event_service2.repository.EventRepository;
+import com.clubHouse.event_service2.service.EventEnrollmentService;
 import com.clubHouse.event_service2.service.EventService;
 import com.clubHouse.event_service2.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ public class EventController {
 
     private final EventService eventService;
     private final JwtService jwtService;
+    private final EventRepository eventRepository;
+    private final EventEnrollmentService eventEnrollmentService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
@@ -254,6 +258,18 @@ public class EventController {
                 String.format("Fetched %d events", resp.size()),
                 resp
         ));
+    }
+
+    @DeleteMapping("/deleteEvent/{eventId}")
+    public ResponseEntity<ApiResponse<String>> deleteEvent(@PathVariable Long eventId){
+
+        log.info("Request received to delete event with ID: {}", eventId);
+        eventService.deleteById(eventId);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Successfully deleted event",
+                String.format("Successfully deleted event with ID: %d", eventId)
+        ));
+
     }
 
 }

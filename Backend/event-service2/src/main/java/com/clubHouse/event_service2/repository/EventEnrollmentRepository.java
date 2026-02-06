@@ -4,6 +4,7 @@ import com.clubHouse.event_service2.model.EventEnrollment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EventEnrollmentRepository extends JpaRepository<EventEnrollment, Long> {
 
@@ -13,4 +14,13 @@ public interface EventEnrollmentRepository extends JpaRepository<EventEnrollment
 
     boolean existsByEvent_EventIdAndPrn(Long eventId, String prn);
 
+    Optional<EventEnrollment> findByEvent_EventIdAndPrn(Long eventId, String prn);
+
+    void deleteByPrnAndEvent_EventId(String prn, Long eventId);
+
+    void deleteByEvent_EventId(Long eventId);
+
+    int deleteByPrn(String prn);
+
+    int deleteByEvent_EventIdIn(List<Long> eventIds);
 }

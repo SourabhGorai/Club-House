@@ -10,4 +10,7 @@ public interface TargetDataRepository extends JpaRepository<TargetData, Long> {
 
     List<TargetData> findByTargetTypeAndTargetId(TargetType targetType, Long targetId);
 
+    void deleteByEvents_EventId(Long eventId);
+
+    int deleteByEvents_EventIdIn(List<Long> eventIds);
 }

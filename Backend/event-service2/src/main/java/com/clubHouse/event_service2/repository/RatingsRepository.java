@@ -17,4 +17,7 @@ public interface RatingsRepository extends JpaRepository<Ratings, Long> {
             """)
     List<Long> findEventIdsByMinRating(@Param("rating") double rating);
 
+    void deleteByEventId(Long eventId);
+
+    int deleteByEventIdIn(List<Long> eventIds);
 }

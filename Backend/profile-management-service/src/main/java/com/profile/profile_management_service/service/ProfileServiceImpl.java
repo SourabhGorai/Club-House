@@ -810,4 +810,16 @@ public class ProfileServiceImpl implements ProfileService {
         // Map profiles to responses using the department map
         return profileMapper.toProfileResponseList(profiles, departmentMap);
     }
+
+    @Transactional
+    public List<String> getExpiredProfiles() {
+        log.info("Attempting to fetch newly expired profiles (not yet cleaned up)");
+        return profileRepository.findNewlyExpiredProfiles();
+    }
+
+    @Transactional
+    public int markProfilesAsCleanedUp(List<String> prns) {
+        log.info("Marking {} profiles as cleaned up", prns.size());
+        return profileRepository.markProfilesAsCleanedUp(prns);
+    }
 }

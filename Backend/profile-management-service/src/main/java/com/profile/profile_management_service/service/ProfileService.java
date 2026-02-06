@@ -231,4 +231,8 @@ public interface ProfileService {
     List<ProfileResponse> fetchList(List<String> prns);
 
     void permanentlyDelete(String prn);
+
+    List<String> getExpiredProfiles();
+
+    int markProfilesAsCleanedUp(List<String> prns);
 }

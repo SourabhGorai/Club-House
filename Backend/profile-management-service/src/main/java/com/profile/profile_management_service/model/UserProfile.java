@@ -2,6 +2,7 @@ package com.profile.profile_management_service.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_active", columnList = "isActive")
 })
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class UserProfile {
@@ -85,6 +87,17 @@ public class UserProfile {
     @Column(nullable = false)
     @Builder.Default
     private Long version = 0L;
+
+    /**
+     * Tracks if event cleanup has been performed for this deactivated profile
+     * Prevents redundant cleanup queries for old inactive profiles
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean dataCleanedUp = false;
+
+    @Column
+    private LocalDateTime dataCleanedUpAt;
 
     /**
      * Custom all-args constructor for JPQL queries and general use
