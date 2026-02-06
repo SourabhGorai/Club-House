@@ -423,4 +423,34 @@ public class UserClubService {
         log.info("Deleted {} club memberships for PRN: {}", deletedCount, prn);
     }
 
+    public List<ProfileEnrichedUserClubResponse> getAllByRole(String role) {
+
+        String sanitizedRole = UserClubMapper.sanitizeRole(role);
+
+        log.info("Attempting to fetch all the users from clubs with role: {}", sanitizedRole);
+
+        List<UserClub> members = userClubRepository.findByRole(sanitizedRole);
+
+        if (members.isEmpty()) {
+            log.info("No members found with role: {}", sanitizedRole);
+            return List.of();
+        }
+
+        log.info("Found {} members with role: {}, enriching with profiles",
+                members.size(), sanitizedRole);
+
+        // Extract unique PRNs
+        List<String> prns = members.stream()
+                .map(UserClub::getPrn)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Fetch all profiles in bulk
+        Map<String, ProfileSummaryResponse> profileMap =
+                profileServiceClient.getProfileSummariesBulk(prns);
+
+        // Map with profile enrichment
+        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
+
+    }
 }

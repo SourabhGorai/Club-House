@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface EventEnrollmentService extends JpaRepository<EventEnrollment, Long> {
+public interface EventEnrollmentRepository extends JpaRepository<EventEnrollment, Long> {
 
     List<EventEnrollment> findByEvent_EventId(Long eventId);
 

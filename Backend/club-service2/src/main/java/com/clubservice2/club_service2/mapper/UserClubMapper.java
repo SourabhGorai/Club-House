@@ -90,4 +90,15 @@ public class UserClubMapper {
                 .map(UserClubMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    public static String sanitizeRole(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+
+        return s.trim()
+                .replaceAll("\\s+", " ")
+                .replaceAll("[^a-zA-Z0-9 ]", "_")
+                .toUpperCase();
+    }
 }

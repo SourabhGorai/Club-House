@@ -218,4 +218,20 @@ public class UserClubController {
 
         userClubService.permanentlyDelete(prn);
     }
+
+    @GetMapping("/getAllByRole/{role}")
+    public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getAllByRole (
+            @PathVariable String role
+    ) {
+
+        log.info("REST received to fetch users with role in clubs");
+
+        List<ProfileEnrichedUserClubResponse> resp = userClubService.getAllByRole(role);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Successfully fetched %d response", resp.size()),
+                resp
+        ));
+
+    }
 }

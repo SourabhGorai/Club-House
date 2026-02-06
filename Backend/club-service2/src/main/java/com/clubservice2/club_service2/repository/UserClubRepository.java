@@ -36,4 +36,5 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
     boolean existsByPrn(String prn);
 
+    List<UserClub> findByRole(String role);
 }
