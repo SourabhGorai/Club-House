@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -14,7 +13,7 @@ import {
   Layers
 } from 'lucide-react';
 
-const UserRemoveFromClub = () => {
+const RemoveUsersFromAnyClub = () => {
   const [userClubs, setUserClubs] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,161 +21,48 @@ const UserRemoveFromClub = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClub, setSelectedClub] = useState('');
-  // Add these state variables
-const [teacherPrn, setTeacherPrn] = useState('');
-const [teacherClubs, setTeacherClubs] = useState([]);
-const [teacherStudents, setTeacherStudents] = useState([]);
-const [loadingClubs, setLoadingClubs] = useState(false);
 
   // LOGIC PRESERVED
-const clubs = teacherStudents.length > 0 
-  ? Array.from(
-      new Map(
-        teacherStudents.map(item => [item.clubId, { id: item.clubId, name: item.clubName }])
-      ).values()
-    )
-  : Array.from(
-      new Map(
-        userClubs.map(item => [item.clubId, { id: item.clubId, name: item.clubName }])
-      ).values()
-    );
+  const clubs = [...new Set(userClubs.map(item => ({ id: item.clubId, name: item.clubName })))];
   
-  useEffect(() => {
-  // Get teacher PRN from localStorage user object
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (user?.prn) {
-    setTeacherPrn(user.prn);
-    fetchTeacherClubs(user.prn);
-  }
-}, []);
-
-
-const fetchTeacherClubs = async (prn) => {
-  if (!prn) return;
-  
-  setLoadingClubs(true);
-  try {
-    const response = await axios.get(
-      `http://localhost:8080/api/user-clubs/user/${prn}`,
-      {
+  const fetchUserClubs = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:8080/api/user-clubs', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      }
-    );
-    
-    if (response.data.success) {
-      // Filter only clubs where user has TEACHER/TEACHERS role
-      const teacherRoleClubs = response.data.data.filter(club => 
-        ['TEACHER', 'TEACHERS'].includes(club.role.toUpperCase())
-      );
-      setTeacherClubs(teacherRoleClubs);
-      
-      // Fetch students from each club
-      fetchStudentsFromClubs(teacherRoleClubs);
-    }
-  } catch (err) {
-    console.error('Error fetching teacher clubs:', err);
-    setTeacherClubs([]);
-  } finally {
-    setLoadingClubs(false);
-  }
-};
-
-const fetchStudentsFromClubs = async (clubs) => {
-  if (!clubs.length) return;
-  
-  try {
-    const allStudents = [];
-    
-    // Fetch students from each club
-    for (const club of clubs) {
-      const response = await axios.get(
-        `http://localhost:8080/api/user-clubs/club/${club.clubName}`, 
-        {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        }
-      );
-      
+      });
       if (response.data.success) {
-        // Filter to keep only MEMBER and CLUB_ADMIN roles
-        const students = response.data.data.filter(user => 
-          ['MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
+        const nonTeacherUsers = response.data.data.filter(user => 
+          user.role.toUpperCase() !== 'TEACHER'
         );
-        allStudents.push(...students);
+        setUserClubs(nonTeacherUsers);
+        setFilteredUsers(nonTeacherUsers);
       }
-    }
-    
-    setTeacherStudents(allStudents);
-  } catch (err) {
-    console.error('Error fetching club students:', err);
-    setTeacherStudents([]);
-  }
-};
-
-
-const fetchUserClubs = async () => {
-  try {
-    setLoading(true);
-    const user = JSON.parse(localStorage.getItem("user"));
-    
-    // If user is a teacher, use teacher-specific logic
-    if (user?.role === 'TEACHERS' || user?.role === 'TEACHER') {
-      // Teacher logic - get their clubs and students
-      await fetchTeacherClubs(user.prn);
+    } catch (err) {
+      setError('Failed to fetch user data. Please try again.');
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    // Original logic for non-teachers
-    const response = await axios.get('http://localhost:8080/api/user-clubs', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    
-    if (response.data.success) {
-      const nonTeacherUsers = response.data.data.filter(user => 
-        user.role.toUpperCase() !== 'TEACHER'
-      );
-      setUserClubs(nonTeacherUsers);
-      setFilteredUsers(nonTeacherUsers);
-    }
-  } catch (err) {
-    setError('Failed to fetch user data. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   useEffect(() => { fetchUserClubs(); }, []);
 
- useEffect(() => {
-  let filtered = [];
-  
-  // If teacher has students, use those
-  if (teacherStudents.length > 0) {
-    filtered = teacherStudents;
-  } else {
-    // Otherwise use original userClubs
-    filtered = userClubs;
-  }
-  
-  // Apply search filter
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    filtered = filtered.filter(user => 
-      user.name.toLowerCase().includes(term) ||
-      user.prn.toLowerCase().includes(term) ||
-      (user.department && user.department.toLowerCase().includes(term)) ||
-      user.role.toLowerCase().includes(term)
-    );
-  }
-  
-  // Apply club filter
-  if (selectedClub) {
-    filtered = filtered.filter(user => 
-      user.clubId && user.clubId.toString() === selectedClub
-    );
-  }
-  
-  setFilteredUsers(filtered);
-}, [searchTerm, selectedClub, userClubs, teacherStudents]);
+  useEffect(() => {
+    let filtered = userClubs;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(user => 
+        user.name.toLowerCase().includes(term) ||
+        user.prn.toLowerCase().includes(term) ||
+        user.department.toLowerCase().includes(term) ||
+        user.role.toLowerCase().includes(term)
+      );
+    }
+    if (selectedClub) {
+      filtered = filtered.filter(user => user.clubId.toString() === selectedClub);
+    }
+    setFilteredUsers(filtered);
+  }, [searchTerm, selectedClub, userClubs]);
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
@@ -204,16 +90,14 @@ const fetchUserClubs = async () => {
     }
   };
 
-if (loading || loadingClubs) {
-  return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
-      <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-      <p className="mt-4 font-medium text-slate-500 animate-pulse tracking-wide">
-        {teacherPrn ? "Loading teacher's students..." : "Synchronizing database..."}
-      </p>
-    </div>
-  );
-}
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+        <p className="mt-4 font-medium text-slate-500 animate-pulse tracking-wide">Synchronizing database...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-20">
@@ -292,46 +176,6 @@ if (loading || loadingClubs) {
             </div>
           </div>
         </div>
-
-        {/* Teacher's Clubs Info Section */}
-{teacherClubs.length > 0 && (
-  <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-[2rem] shadow-xl shadow-blue-100/50">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
-          <ShieldCheck size={24} />
-        </div>
-        <div>
-          <h3 className="text-xl font-black text-blue-900">
-            Teacher Dashboard Mode
-          </h3>
-          <p className="text-sm text-blue-700 font-medium">
-            Showing students from your assigned clubs
-          </p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p className="text-sm font-bold text-blue-800">PRN: {teacherPrn}</p>
-        <p className="text-xs text-blue-600">{teacherClubs.length} clubs assigned</p>
-      </div>
-    </div>
-    
-    {/* Teacher's Clubs List */}
-    <div className="mt-4">
-      <p className="text-sm font-bold text-blue-800 mb-2">Your Clubs:</p>
-      <div className="flex flex-wrap gap-2">
-        {teacherClubs.map(club => (
-          <span 
-            key={club.clubId} 
-            className="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-shadow"
-          >
-            {club.clubName} • {club.role}
-          </span>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
 
         {/* Notifications */}
         {error && (
@@ -438,4 +282,4 @@ if (loading || loadingClubs) {
   );
 };
 
-export default UserRemoveFromClub;
+export default RemoveUsersFromAnyClub;
