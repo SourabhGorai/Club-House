@@ -19,7 +19,7 @@ import {
   Menu,
   Camera,
   Trash2,
-  Plus
+  Plus,
 } from "lucide-react";
 
 export default function SuperAdminDashboard() {
@@ -69,7 +69,34 @@ export default function SuperAdminDashboard() {
   }, []);
 
   // Fetch all users and calculate stats
-  const fetchAllData = async () => {
+  // const fetchAllData = async () => {
+  //   try {
+  //     const usersResponse = await axios.get(
+  //       "http://localhost:8080/api/users/",
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+
+  //     setUsers(usersResponse.data);
+
+  //     const userStats = usersResponse.data.reduce((acc, user) => {
+  //       acc[user.role] = (acc[user.role] || 0) + 1;
+  //       return acc;
+  //     }, {});
+
+  //     setStats(userStats);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error);
+  //     setLoading(false);
+  //   }
+  // };
+
+    const fetchAllData = async () => {
     try {
       const usersResponse = await axios.get(
         "http://localhost:8080/api/users/",
@@ -95,6 +122,10 @@ export default function SuperAdminDashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   // --- NEW: Department CRUD Functions ---
   const fetchDepartments = async () => {
@@ -560,8 +591,6 @@ export default function SuperAdminDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               <BigActionButton label="Manage Users" color="blue" icon={Users} onClick={() => window.location.href = "/manage-users"} />
               <BigActionButton label="Events" color="emerald" icon={CalendarDays} onClick={() => alert("Events feature")} />
-              <BigActionButton label="Club Admins" color="purple" icon={ShieldAlert} onClick={() => alert("Club Admins feature")} />
-              <BigActionButton label="Teachers" color="yellow" icon={Briefcase} onClick={() => alert("Teachers feature")} />
               
               {/* UPDATED: Department CRUD button */}
               <BigActionButton 
@@ -576,7 +605,7 @@ export default function SuperAdminDashboard() {
               
               <BigActionButton label="Manage Clubs" color="orange" icon={Database} onClick={() => window.location.href = "/manage-clubs"} />
               <BigActionButton label="Add Student" color="cyan" icon={UserPlus} onClick={() => window.location.href = "/add-users-with-club"} />
-              <BigActionButton label="System Settings" color="pink" icon={Settings} onClick={() => alert("Settings feature")} />
+              <BigActionButton label="Remove Students From Club" color="pink" icon={X} onClick={() => window.location.href='/remove-users-from-any-club'} />
               <BigActionButton label="Audit Logs" color="slate" icon={Database} onClick={() => alert("Audit Logs feature")} />
             </div>
           </section>

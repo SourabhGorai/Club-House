@@ -10,6 +10,7 @@ import SplashScreen from "./components/SplashScreen";
 import UserManagement from "./Dashboards/SuperAdmin/ManageUsers";
 import AddStudent from "./Dashboards/Teachers/AddStudent";
 import UserRemoveFromClub from "./Dashboards/Teachers/UserRemoveFromClub";
+import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyClub";
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 
 export default function App() {
@@ -92,6 +93,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <UserRemoveFromClub/>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/remove-users-from-any-club" 
+          element={
+            <ProtectedRoute>
+              <RemoveUsersFromAnyClub/>
             </ProtectedRoute>
           } 
         />
