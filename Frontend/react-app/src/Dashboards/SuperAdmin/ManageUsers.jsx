@@ -50,7 +50,7 @@
 // //     /* Define Custom Fonts and Colors (matching previous component) */
 // //     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 // //     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap');
-    
+
 // //     .font-sans { font-family: 'Poppins', sans-serif; }
 // //     .font-display { font-family: 'Outfit', sans-serif; }
 
@@ -79,7 +79,7 @@
 // //         position: relative;
 // //     }
 
-// //     .user-card-container:hover .user-card, 
+// //     .user-card-container:hover .user-card,
 // //     .user-card-container.flipped .user-card {
 // //         transform: rotateY(180deg);
 // //     }
@@ -210,7 +210,7 @@
 // //       await axios.delete(`http://localhost:8080/api/users/${userToDelete.id}`, {
 // //         headers: { Authorization: `Bearer ${token}` },
 // //       });
-      
+
 // //       // Update the local state instantly
 // //       setUsers(users.filter((user) => user.id !== userToDelete.id));
 // //       // Close modal and reset
@@ -349,14 +349,14 @@
 // //                                 <MoreVertical className='w-5 h-5' />
 // //                             </button>
 // //                         </div>
-                        
+
 // //                         <div className="mt-4 text-sm space-y-3">
 // //                             {/* Email */}
 // //                             <div className="flex items-center gap-3">
 // //                                 <Mail className="w-4 h-4 text-[#2DD4BF]" />
 // //                                 <span className="truncate">{userItem.email}</span>
 // //                             </div>
-                            
+
 // //                             {/* Phone */}
 // //                             <div className="flex items-center gap-3">
 // //                                 <Phone className="w-4 h-4 text-[#FB923C]" />
@@ -370,7 +370,7 @@
 // //                                 <Calendar className="w-4 h-4 ml-4 text-white/90" />
 // //                                 <span>Year: {userProfile?.year || '—'}</span>
 // //                             </div>
-                            
+
 // //                             {/* Role Badge (on back) */}
 // //                             <div className="flex items-center gap-3 pt-2">
 // //                                 <Briefcase className='w-4 h-4 text-white/90'/>
@@ -588,7 +588,7 @@
 //     /* Define Custom Fonts and Colors (matching previous component) */
 //     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 //     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap');
-    
+
 //     .font-sans { font-family: 'Poppins', sans-serif; }
 //     .font-display { font-family: 'Outfit', sans-serif; }
 
@@ -617,7 +617,7 @@
 //         position: relative;
 //     }
 
-//     .user-card-container:hover .user-card, 
+//     .user-card-container:hover .user-card,
 //     .user-card-container.flipped .user-card {
 //         transform: rotateY(180deg);
 //     }
@@ -653,7 +653,7 @@
 //   const [error, setError] = useState(null);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
 //   const [userToDelete, setUserToDelete] = useState(null);
-  
+
 //   // Filter states
 //   const [selectedDept, setSelectedDept] = useState('');
 //   const [selectedYear, setSelectedYear] = useState('');
@@ -747,7 +747,7 @@
 // const extractFiltersData = (profilesMap) => {
 //   const deptSet = new Set();
 //   const yearSet = new Set([1, 2, 3, 4]); // Always include years 1-4
-  
+
 //   Object.values(profilesMap).forEach(profile => {
 //     if (profile?.department) {
 //       deptSet.add(profile.department);
@@ -756,17 +756,17 @@
 //       yearSet.add(profile.year);
 //     }
 //   });
-  
+
 //   setDepartments(Array.from(deptSet).sort());
 //   setYears(Array.from(yearSet).sort((a, b) => a - b));
 // };
 
 //   const applyFilters = async () => {
 //     setIsLoadingFilteredUsers(true);
-    
+
 //     try {
 //       let usersToFilter = [...users];
-      
+
 //       // Apply department filter if selected
 //       if (selectedDept) {
 //         usersToFilter = usersToFilter.filter(user => {
@@ -774,25 +774,25 @@
 //           return profile?.department === selectedDept;
 //         });
 //       }
-      
+
 //       // Apply year filter if selected - using backend API
 //       if (selectedYear) {
 //         try {
 //           const response = await axios.get(
 //             `http://localhost:8080/api/profiles/year/${selectedYear}`,
-//             { 
-//               headers: { 
+//             {
+//               headers: {
 //                 Authorization: `Bearer ${token}`,
-//                 'Content-Type': 'application/json' 
+//                 'Content-Type': 'application/json'
 //               }
 //             }
 //           );
-          
+
 //           // Extract PRNs from the year-filtered profiles
 //           const yearFilteredPrns = response.data.data?.map(profile => profile.prn) || [];
-          
+
 //           // Filter users based on PRNs from year filter
-//           usersToFilter = usersToFilter.filter(user => 
+//           usersToFilter = usersToFilter.filter(user =>
 //             yearFilteredPrns.includes(user.prn)
 //           );
 //         } catch (yearError) {
@@ -804,27 +804,27 @@
 //           });
 //         }
 //       }
-      
+
 //       setFilteredUsers(usersToFilter);
 //     } catch (error) {
 //       console.error('Error applying filters:', error);
 //       // Fallback to client-side filtering
 //       let filtered = [...users];
-      
+
 //       if (selectedDept) {
 //         filtered = filtered.filter(user => {
 //           const profile = userProfiles[user.prn];
 //           return profile?.department === selectedDept;
 //         });
 //       }
-      
+
 //       if (selectedYear) {
 //         filtered = filtered.filter(user => {
 //           const profile = userProfiles[user.prn];
 //           return profile?.year?.toString() === selectedYear;
 //         });
 //       }
-      
+
 //       setFilteredUsers(filtered);
 //     } finally {
 //       setIsLoadingFilteredUsers(false);
@@ -864,12 +864,12 @@
 //       await axios.delete(`http://localhost:8080/api/users/${userToDelete.id}`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
-      
+
 //       // Update the local state
 //       const updatedUsers = users.filter((user) => user.id !== userToDelete.id);
 //       setUsers(updatedUsers);
 //       setFilteredUsers(updatedUsers);
-      
+
 //       // Close modal and reset
 //       setIsModalOpen(false);
 //       setUserToDelete(null);
@@ -923,7 +923,7 @@
 //   return (
 //     <div className="min-h-screen font-sans py-12" style={{ background: 'radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)' }}>
 //       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-      
+
 //       {/* Modals */}
 //       <ConfirmationModal
 //         isOpen={isModalOpen}
@@ -932,7 +932,7 @@
 //         onConfirm={executeDelete}
 //         onCancel={() => setIsModalOpen(false)}
 //       />
-      
+
 //       <FilterModal
 //         isOpen={isFilterModalOpen}
 //         onClose={() => setIsFilterModalOpen(false)}
@@ -975,7 +975,7 @@
 //                 )}
 //               </h2>
 //             </div>
-            
+
 //             <div className="flex flex-wrap items-center gap-3">
 //               {/* Active Filters Display */}
 //               {(selectedDept || selectedYear) && (
@@ -1004,7 +1004,7 @@
 //                   )}
 //                 </div>
 //               )}
-              
+
 //               {/* Filter Button */}
 //               <button
 //                 onClick={() => setIsFilterModalOpen(true)}
@@ -1018,7 +1018,7 @@
 //                   </span>
 //                 )}
 //               </button>
-              
+
 //               {/* Reset Filter Button */}
 //               {(selectedDept || selectedYear) && (
 //                 <button
@@ -1031,7 +1031,7 @@
 //               )}
 //             </div>
 //           </div>
-          
+
 //           {/* Quick Filter Stats */}
 //           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 //             <div className="bg-gray-50 p-3 rounded-xl">
@@ -1069,7 +1069,7 @@
 //               </div>
 //               <h3 className="text-xl font-semibold text-gray-700 mb-2">No users found</h3>
 //               <p className="text-gray-500 mb-6">
-//                 {selectedDept || selectedYear 
+//                 {selectedDept || selectedYear
 //                   ? "Try adjusting your filters to see more users."
 //                   : "No users available in the system."}
 //               </p>
@@ -1152,14 +1152,14 @@
 //                                   <MoreVertical className='w-5 h-5' />
 //                               </button>
 //                           </div>
-                          
+
 //                           <div className="mt-4 text-sm space-y-3">
 //                               {/* Email */}
 //                               <div className="flex items-center gap-3">
 //                                   <Mail className="w-4 h-4 text-[#2DD4BF]" />
 //                                   <span className="truncate">{userItem.email}</span>
 //                               </div>
-                              
+
 //                               {/* Phone */}
 //                               <div className="flex items-center gap-3">
 //                                   <Phone className="w-4 h-4 text-[#FB923C]" />
@@ -1173,7 +1173,7 @@
 //                                   <Calendar className="w-4 h-4 ml-4 text-white/90" />
 //                                   <span>Year: {userProfile?.year || '—'}</span>
 //                               </div>
-                              
+
 //                               {/* Role Badge */}
 //                               <div className="flex items-center gap-3 pt-2">
 //                                   <Briefcase className='w-4 h-4 text-white/90'/>
@@ -1216,22 +1216,8 @@
 
 // export default UserManagement;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   User,
   Mail,
@@ -1244,8 +1230,8 @@ import {
   Briefcase,
   Layers,
   Filter,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 // ----------------------------------------------------------------
 // 1. UI COMPONENTS (Modal & Custom Styles/Classes)
@@ -1280,7 +1266,18 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 };
 
 // Filter Modal Component
-const FilterModal = ({ isOpen, onClose, departments, years, selectedDept, selectedYear, onDeptChange, onYearChange, onResetFilters, onApplyFilters }) => {
+const FilterModal = ({
+  isOpen,
+  onClose,
+  departments,
+  years,
+  selectedDept,
+  selectedYear,
+  onDeptChange,
+  onYearChange,
+  onResetFilters,
+  onApplyFilters,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -1341,13 +1338,15 @@ const FilterModal = ({ isOpen, onClose, departments, years, selectedDept, select
           {/* Active Filters Display */}
           {(selectedDept || selectedYear) && (
             <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs font-medium text-gray-600 mb-2">Active Filters:</p>
+              <p className="text-xs font-medium text-gray-600 mb-2">
+                Active Filters:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selectedDept && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                     Dept: {selectedDept}
                     <button
-                      onClick={() => onDeptChange('')}
+                      onClick={() => onDeptChange("")}
                       className="ml-1 text-purple-600 hover:text-purple-800"
                     >
                       <X className="w-3 h-3" />
@@ -1358,7 +1357,7 @@ const FilterModal = ({ isOpen, onClose, departments, years, selectedDept, select
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Year: {selectedYear}
                     <button
-                      onClick={() => onYearChange('')}
+                      onClick={() => onYearChange("")}
                       className="ml-1 text-blue-600 hover:text-blue-800"
                     >
                       <X className="w-3 h-3" />
@@ -1471,16 +1470,16 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  
+
   // Filter states
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [departments, setDepartments] = useState([]);
   const [years, setYears] = useState([]);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isLoadingFilteredUsers, setIsLoadingFilteredUsers] = useState(false);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchAllData();
@@ -1492,9 +1491,15 @@ const UserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const usersResponse = await axios.get('http://localhost:8080/api/users/', {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
+      const usersResponse = await axios.get(
+        "http://localhost:8080/api/users/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
       const usersData = usersResponse.data || [];
       setUsers(usersData);
@@ -1511,10 +1516,11 @@ const UserManagement = () => {
 
       // Extract unique departments and years from profiles
       extractFiltersData(profilesMap);
-
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load user data. Check API availability and authorization.');
+      console.error("Error fetching data:", err);
+      setError(
+        "Failed to load user data. Check API availability and authorization.",
+      );
     } finally {
       setLoading(false);
     }
@@ -1525,7 +1531,7 @@ const UserManagement = () => {
       try {
         const response = await axios.get(
           `http://localhost:8080/api/profiles/prn/${userItem.prn}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         return { prn: userItem.prn, profile: response.data.data };
       } catch (error) {
@@ -1533,7 +1539,11 @@ const UserManagement = () => {
       }
     });
     const profileResults = await Promise.all(profilePromises);
-    return profileResults.reduce((acc, result) => (result ? { ...acc, [result.prn]: result.profile } : acc), {});
+    return profileResults.reduce(
+      (acc, result) =>
+        result ? { ...acc, [result.prn]: result.profile } : acc,
+      {},
+    );
   };
 
   const fetchAllProfileImages = async (usersList) => {
@@ -1543,7 +1553,10 @@ const UserManagement = () => {
 
         const response = await axios.get(
           `http://localhost:8080/api/profiles/${userItem.prn}/image`,
-          { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: "blob",
+          },
         );
 
         if (response.data && response.data.size > 0) {
@@ -1557,7 +1570,11 @@ const UserManagement = () => {
       }
     });
     const imageResults = await Promise.all(imagePromises);
-    return imageResults.reduce((acc, result) => (result ? { ...acc, [result.prn]: result.imageUrl } : acc), {});
+    return imageResults.reduce(
+      (acc, result) =>
+        result ? { ...acc, [result.prn]: result.imageUrl } : acc,
+      {},
+    );
   };
 
   // --- Filter Functions ---
@@ -1565,8 +1582,8 @@ const UserManagement = () => {
   const extractFiltersData = (profilesMap) => {
     const deptSet = new Set();
     const yearSet = new Set([1, 2, 3, 4]); // Always include years 1-4
-    
-    Object.values(profilesMap).forEach(profile => {
+
+    Object.values(profilesMap).forEach((profile) => {
       if (profile?.department) {
         deptSet.add(profile.department);
       }
@@ -1574,66 +1591,67 @@ const UserManagement = () => {
         yearSet.add(profile.year);
       }
     });
-    
+
     setDepartments(Array.from(deptSet).sort());
     setYears(Array.from(yearSet).sort((a, b) => a - b));
   };
 
   const applyFilters = async () => {
     setIsLoadingFilteredUsers(true);
-    
+
     try {
       let usersToFilter = [...users];
-      
+
       // Apply department filter if selected
       if (selectedDept) {
-        usersToFilter = usersToFilter.filter(user => {
+        usersToFilter = usersToFilter.filter((user) => {
           const profile = userProfiles[user.prn];
           return profile?.department === selectedDept;
         });
       }
-      
+
       // Apply year filter if selected
       if (selectedYear) {
         try {
           const response = await axios.get(
             `http://localhost:8080/api/profiles/year/${selectedYear}`,
-            { 
-              headers: { 
+            {
+              headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json' 
-              }
-            }
+                "Content-Type": "application/json",
+              },
+            },
           );
-          
+
           // Extract PRNs from the year-filtered profiles
-          const yearFilteredPrns = response.data.data?.map(profile => profile.prn) || [];
-          
+          const yearFilteredPrns =
+            response.data.data?.map((profile) => profile.prn) || [];
+
           // Filter users based on PRNs from year filter
           if (selectedDept) {
             // If department is also selected, combine both filters
-            usersToFilter = usersToFilter.filter(user => 
-              yearFilteredPrns.includes(user.prn)
+            usersToFilter = usersToFilter.filter((user) =>
+              yearFilteredPrns.includes(user.prn),
             );
           } else {
             // If only year filter is selected
-            usersToFilter = users.filter(user => 
-              yearFilteredPrns.includes(user.prn)
+            usersToFilter = users.filter((user) =>
+              yearFilteredPrns.includes(user.prn),
             );
           }
         } catch (yearError) {
-          console.error('Error filtering by year:', yearError);
+          console.error("Error filtering by year:", yearError);
           // Fallback to client-side filtering if API fails
-          usersToFilter = usersToFilter.filter(user => {
+          usersToFilter = usersToFilter.filter((user) => {
             const profile = userProfiles[user.prn];
             return profile?.year?.toString() === selectedYear;
           });
         }
       }
-      
+
       setFilteredUsers(usersToFilter);
     } catch (error) {
-      console.error('Error applying filters:', error);
+      console.error("Error applying filters:", error);
       // Fallback to client-side filtering
       applyClientSideFilters();
     } finally {
@@ -1643,115 +1661,119 @@ const UserManagement = () => {
 
   const applyClientSideFilters = () => {
     let filtered = [...users];
-    
+
     if (selectedDept) {
-      filtered = filtered.filter(user => {
+      filtered = filtered.filter((user) => {
         const profile = userProfiles[user.prn];
         return profile?.department === selectedDept;
       });
     }
-    
+
     if (selectedYear) {
-      filtered = filtered.filter(user => {
+      filtered = filtered.filter((user) => {
         const profile = userProfiles[user.prn];
         return profile?.year?.toString() === selectedYear;
       });
     }
-    
+
     setFilteredUsers(filtered);
   };
 
   // New function to handle filter changes immediately
-  const handleFilterChange = (newDept = selectedDept, newYear = selectedYear) => {
+  const handleFilterChange = (
+    newDept = selectedDept,
+    newYear = selectedYear,
+  ) => {
     setSelectedDept(newDept);
     setSelectedYear(newYear);
-    
+
     // If no filters are active, show all users immediately
     if (!newDept && !newYear) {
       setFilteredUsers(users);
       return;
     }
-    
+
     // Apply filters with new values
     const applyImmediateFilters = async () => {
       setIsLoadingFilteredUsers(true);
-      
+
       try {
         let usersToFilter = [...users];
-        
+
         // Apply department filter if selected
         if (newDept) {
-          usersToFilter = usersToFilter.filter(user => {
+          usersToFilter = usersToFilter.filter((user) => {
             const profile = userProfiles[user.prn];
             return profile?.department === newDept;
           });
         }
-        
+
         // Apply year filter if selected
         if (newYear) {
           try {
             const response = await axios.get(
               `http://localhost:8080/api/profiles/year/${newYear}`,
-              { 
-                headers: { 
+              {
+                headers: {
                   Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json' 
-                }
-              }
+                  "Content-Type": "application/json",
+                },
+              },
             );
-            
-            const yearFilteredPrns = response.data.data?.map(profile => profile.prn) || [];
-            
+
+            const yearFilteredPrns =
+              response.data.data?.map((profile) => profile.prn) || [];
+
             if (newDept) {
               // Combine both filters
-              usersToFilter = usersToFilter.filter(user => 
-                yearFilteredPrns.includes(user.prn)
+              usersToFilter = usersToFilter.filter((user) =>
+                yearFilteredPrns.includes(user.prn),
               );
             } else {
               // Only year filter
-              usersToFilter = users.filter(user => 
-                yearFilteredPrns.includes(user.prn)
+              usersToFilter = users.filter((user) =>
+                yearFilteredPrns.includes(user.prn),
               );
             }
           } catch (yearError) {
-            console.error('Error filtering by year:', yearError);
+            console.error("Error filtering by year:", yearError);
             // Fallback to client-side
-            usersToFilter = usersToFilter.filter(user => {
+            usersToFilter = usersToFilter.filter((user) => {
               const profile = userProfiles[user.prn];
               return profile?.year?.toString() === newYear;
             });
           }
         }
-        
+
         setFilteredUsers(usersToFilter);
       } catch (error) {
-        console.error('Error applying immediate filters:', error);
+        console.error("Error applying immediate filters:", error);
         applyClientSideFiltersWithValues(newDept, newYear);
       } finally {
         setIsLoadingFilteredUsers(false);
       }
     };
-    
+
     applyImmediateFilters();
   };
 
   const applyClientSideFiltersWithValues = (dept, year) => {
     let filtered = [...users];
-    
+
     if (dept) {
-      filtered = filtered.filter(user => {
+      filtered = filtered.filter((user) => {
         const profile = userProfiles[user.prn];
         return profile?.department === dept;
       });
     }
-    
+
     if (year) {
-      filtered = filtered.filter(user => {
+      filtered = filtered.filter((user) => {
         const profile = userProfiles[user.prn];
         return profile?.year?.toString() === year;
       });
     }
-    
+
     setFilteredUsers(filtered);
   };
 
@@ -1764,23 +1786,23 @@ const UserManagement = () => {
   };
 
   const handleRemoveDeptFilter = () => {
-    handleFilterChange('', selectedYear);
+    handleFilterChange("", selectedYear);
   };
 
   const handleRemoveYearFilter = () => {
-    handleFilterChange(selectedDept, '');
+    handleFilterChange(selectedDept, "");
   };
 
   const resetFilters = () => {
-    setSelectedDept('');
-    setSelectedYear('');
+    setSelectedDept("");
+    setSelectedYear("");
     setFilteredUsers(users);
   };
 
   // --- Handlers & Helpers ---
 
   const handleEditUser = (userId) => {
-    console.log('Edit user:', userId);
+    console.log("Edit user:", userId);
     alert(`Edit functionality for user ID ${userId} would open here!`);
   };
 
@@ -1796,32 +1818,31 @@ const UserManagement = () => {
       await axios.delete(`http://localhost:8080/api/users/${userToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       // Update the local state
       const updatedUsers = users.filter((user) => user.id !== userToDelete.id);
       setUsers(updatedUsers);
       setFilteredUsers(updatedUsers);
-      
+
       // Close modal and reset
       setIsModalOpen(false);
       setUserToDelete(null);
-
     } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Error deleting user. Please try again.');
+      console.error("Error deleting user:", error);
+      alert("Error deleting user. Please try again.");
     }
   };
 
   function getRoleBadgeClass(role) {
     switch (role) {
-      case 'SUPER_ADMIN':
-        return 'bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30';
-      case 'TEACHER':
-        return 'bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30';
-      case 'CLUB_ADMIN':
-        return 'bg-orange-400 text-white font-bold shadow-md shadow-orange-400/30';
+      case "SUPER_ADMIN":
+        return "bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30";
+      case "TEACHER":
+        return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
+      case "CLUB_ADMIN":
+        return "bg-orange-400 text-white font-bold shadow-md shadow-orange-400/30";
       default:
-        return 'bg-gray-300 text-gray-700';
+        return "bg-gray-300 text-gray-700";
     }
   }
 
@@ -1833,7 +1854,9 @@ const UserManagement = () => {
         <style dangerouslySetInnerHTML={{ __html: customStyles }} />
         <div className="text-center p-8 bg-white rounded-xl shadow-lg">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#8B5CF6] mx-auto"></div>
-          <p className="mt-6 font-medium text-[#4C1D95]">Loading user profiles...</p>
+          <p className="mt-6 font-medium text-[#4C1D95]">
+            Loading user profiles...
+          </p>
         </div>
       </div>
     );
@@ -1853,18 +1876,24 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="min-h-screen font-sans py-12" style={{ background: 'radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)' }}>
+    <div
+      className="min-h-screen font-sans py-12"
+      style={{
+        background:
+          "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)",
+      }}
+    >
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-      
+
       {/* Modals */}
       <ConfirmationModal
         isOpen={isModalOpen}
         title="Confirm User Deletion"
-        message={`You are about to delete user: ${userToDelete?.username || 'N/A'}. This action is irreversible. Proceed?`}
+        message={`You are about to delete user: ${userToDelete?.username || "N/A"}. This action is irreversible. Proceed?`}
         onConfirm={executeDelete}
         onCancel={() => setIsModalOpen(false)}
       />
-      
+
       <FilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
@@ -1884,7 +1913,8 @@ const UserManagement = () => {
             User Directory & Access Control
           </h1>
           <p className="text-gray-500 mt-2 text-lg">
-            Manage all staff, teachers, and club administrators. Hover over cards for details.
+            Manage all staff, teachers, and club administrators. Hover over
+            cards for details.
           </p>
         </div>
 
@@ -1907,7 +1937,7 @@ const UserManagement = () => {
                 )}
               </h2>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-3">
               {/* Active Filters Display */}
               {(selectedDept || selectedYear) && (
@@ -1936,11 +1966,11 @@ const UserManagement = () => {
                   )}
                 </div>
               )}
-              
+
               {/* Filter Button */}
               <button
                 onClick={() => setIsFilterModalOpen(true)}
-                className="cursor-pointer btn-gradient flex items-center px-4 py-2.5"
+                className="cursor-pointer btn-gradient flex items-center px-4 py-2.5 rounded-full"
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filter
@@ -1950,7 +1980,7 @@ const UserManagement = () => {
                   </span>
                 )}
               </button>
-              
+
               {/* Reset Filter Button */}
               {(selectedDept || selectedYear) && (
                 <button
@@ -1963,20 +1993,26 @@ const UserManagement = () => {
               )}
             </div>
           </div>
-          
+
           {/* Quick Filter Stats */}
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Total Users</div>
-              <div className="text-2xl font-bold text-[#4C1D95]">{users.length}</div>
+              <div className="text-2xl font-bold text-[#4C1D95]">
+                {users.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Currently Showing</div>
-              <div className="text-2xl font-bold text-[#8B5CF6]">{filteredUsers.length}</div>
+              <div className="text-2xl font-bold text-[#8B5CF6]">
+                {filteredUsers.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Departments</div>
-              <div className="text-2xl font-bold text-[#10B981]">{departments.length}</div>
+              <div className="text-2xl font-bold text-[#10B981]">
+                {departments.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Active Filters</div>
@@ -1999,9 +2035,11 @@ const UserManagement = () => {
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <Filter className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No users found</h3>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No users found
+              </h3>
               <p className="text-gray-500 mb-6">
-                {selectedDept || selectedYear 
+                {selectedDept || selectedYear
                   ? "Try adjusting your filters to see more users."
                   : "No users available in the system."}
               </p>
@@ -2024,8 +2062,10 @@ const UserManagement = () => {
                 return (
                   <div
                     key={userItem.prn || userItem.id}
-                    className={`user-card-container ${isFlipped ? 'flipped' : ''}`}
-                    onClick={() => setOpenOverlayFor(isFlipped ? null : userItem.prn)}
+                    className={`user-card-container ${isFlipped ? "flipped" : ""}`}
+                    onClick={() =>
+                      setOpenOverlayFor(isFlipped ? null : userItem.prn)
+                    }
                   >
                     <div className="user-card">
                       {/* CARD FRONT: Minimal Info */}
@@ -2036,12 +2076,17 @@ const UserManagement = () => {
                               src={imageUrl}
                               alt={userItem.username}
                               className="w-full h-full object-cover"
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/A78BFA/ffffff?text=U"; }}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src =
+                                  "https://placehold.co/100x100/A78BFA/ffffff?text=U";
+                              }}
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                               <span className="text-3xl font-display font-bold text-gray-600">
-                                {userItem.username?.charAt(0)?.toUpperCase() ?? "?"}
+                                {userItem.username?.charAt(0)?.toUpperCase() ??
+                                  "?"}
                               </span>
                             </div>
                           )}
@@ -2051,8 +2096,11 @@ const UserManagement = () => {
                           <div className="text-xl font-display font-semibold text-gray-900 truncate max-w-[20rem]">
                             {userProfile?.fullName || userItem.username}
                           </div>
-                          <span className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${getRoleBadgeClass(userItem.role)}`}>
-                              {userItem.role?.replace('_', ' ') || 'STANDARD USER'}
+                          <span
+                            className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${getRoleBadgeClass(userItem.role)}`}
+                          >
+                            {userItem.role?.replace("_", " ") ||
+                              "STANDARD USER"}
                           </span>
                           {/* Quick Department/Year info on front */}
                           <div className="mt-2 text-xs text-gray-500 space-x-2">
@@ -2074,51 +2122,57 @@ const UserManagement = () => {
                       <div className="card-face card-back text-white p-6 flex flex-col justify-between">
                         <div>
                           <div className="flex justify-between items-center mb-4">
-                              <div className='flex items-center gap-3'>
-                                  <User className="w-6 h-6" />
-                                  <div className="font-display font-semibold text-2xl">{userItem.prn || 'N/A'}</div>
+                            <div className="flex items-center gap-3">
+                              <User className="w-6 h-6" />
+                              <div className="font-display font-semibold text-2xl">
+                                {userItem.prn || "N/A"}
                               </div>
-                              <button
-                                  className="sm:hidden p-2 text-white/80 rounded-full bg-white/20 hover:bg-white/30"
-                              >
-                                  <MoreVertical className='w-5 h-5' />
-                              </button>
+                            </div>
+                            <button className="sm:hidden p-2 text-white/80 rounded-full bg-white/20 hover:bg-white/30">
+                              <MoreVertical className="w-5 h-5" />
+                            </button>
                           </div>
-                          
-                          <div className="mt-4 text-sm space-y-3">
-                              {/* Email */}
-                              <div className="flex items-center gap-3">
-                                  <Mail className="w-4 h-4 text-[#2DD4BF]" />
-                                  <span className="truncate">{userItem.email}</span>
-                              </div>
-                              
-                              {/* Phone */}
-                              <div className="flex items-center gap-3">
-                                  <Phone className="w-4 h-4 text-[#FB923C]" />
-                                  <span>{userProfile?.phoneNumber || 'No contact info'}</span>
-                              </div>
 
-                              {/* Department / Year */}
-                              <div className="flex items-center gap-3">
-                                  <BookOpen className="w-4 h-4 text-white/90" />
-                                  <span>{userProfile?.department || '—'}</span>
-                                  <Calendar className="w-4 h-4 ml-4 text-white/90" />
-                                  <span>Year: {userProfile?.year || '—'}</span>
-                              </div>
-                              
-                              {/* Role Badge */}
-                              <div className="flex items-center gap-3 pt-2">
-                                  <Briefcase className='w-4 h-4 text-white/90'/>
-                                  <span className="px-3 py-1 text-xs rounded-full bg-white text-[#8B5CF6] font-semibold">
-                                      {userItem.role?.replace('_', ' ') || 'STANDARD USER'}
-                                  </span>
-                              </div>
+                          <div className="mt-4 text-sm space-y-3">
+                            {/* Email */}
+                            <div className="flex items-center gap-3">
+                              <Mail className="w-4 h-4 text-[#2DD4BF]" />
+                              <span className="truncate">{userItem.email}</span>
+                            </div>
+
+                            {/* Phone */}
+                            <div className="flex items-center gap-3">
+                              <Phone className="w-4 h-4 text-[#FB923C]" />
+                              <span>
+                                {userProfile?.phoneNumber || "No contact info"}
+                              </span>
+                            </div>
+
+                            {/* Department / Year */}
+                            <div className="flex items-center gap-3">
+                              <BookOpen className="w-4 h-4 text-white/90" />
+                              <span>{userProfile?.department || "—"}</span>
+                              <Calendar className="w-4 h-4 ml-4 text-white/90" />
+                              <span>Year: {userProfile?.year || "—"}</span>
+                            </div>
+
+                            {/* Role Badge */}
+                            <div className="flex items-center gap-3 pt-2">
+                              <Briefcase className="w-4 h-4 text-white/90" />
+                              <span className="px-3 py-1 text-xs rounded-full bg-white text-[#8B5CF6] font-semibold">
+                                {userItem.role?.replace("_", " ") ||
+                                  "STANDARD USER"}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between mt-6 space-x-2">
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleEditUser(userItem.id); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditUser(userItem.id);
+                            }}
                             className="px-3 py-2 bg-white text-[#8B5CF6] rounded-full text-sm font-medium hover:bg-gray-100 transition flex items-center shadow-md flex-1 min-w-0"
                           >
                             <Edit className="w-4 h-4 mr-1" />
@@ -2126,7 +2180,10 @@ const UserManagement = () => {
                           </button>
 
                           <button
-                            onClick={(e) => { e.stopPropagation(); confirmDelete(userItem); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDelete(userItem);
+                            }}
                             className="px-3 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition flex items-center shadow-md shadow-red-500/30 flex-1 min-w-0"
                           >
                             <Trash2 className="w-4 h-4 mr-1" />
