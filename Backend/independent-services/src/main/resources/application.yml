@@ -22,8 +22,8 @@ spring:
       ribbon:
         enabled: false
 
-#server:
-  port: ${PORT:8085}
+server:
+  port: 8085
   error:
     include-message: always
     include-binding-errors: always
@@ -51,7 +51,11 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
-##this is harsh yml file for idependent-service
+
+#   =============================================
+##  this is harsh yml file for idependent-service
+#   =============================================
+
 #spring:
 #  application:
 #    name: independent-services
