@@ -54,3 +54,5 @@ logging:
 app:
   profile-service:
     url: http://PROFILE-MANAGEMENT-SERVICE/api
+  jwt:
+    secret: ${SECRET_KEY}

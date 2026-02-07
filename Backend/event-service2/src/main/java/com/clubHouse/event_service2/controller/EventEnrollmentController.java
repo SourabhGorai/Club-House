@@ -3,6 +3,7 @@ package com.clubHouse.event_service2.controller;
 import com.clubHouse.event_service2.dto.*;
 import com.clubHouse.event_service2.service.EventEnrollmentService;
 import com.clubHouse.event_service2.service.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/enrollment")
+@RequestMapping("/api/enrollments")
 public class EventEnrollmentController {
 
     private final EventEnrollmentService enrollmentService;
@@ -24,12 +25,12 @@ public class EventEnrollmentController {
     @PostMapping("{eventId}")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollMe(
             @PathVariable Long eventId,
-            ServerWebExchange exchange
+            HttpServletRequest request
     ) {
 
         log.info("Request received to create an enrollment in event with ID: {}", eventId);
 
-        String prn = jwtService.extractPrnFromHeaders(exchange);
+        String prn = jwtService.extractPrnFromHeaders(request);
 
         EnrollmentResponse resp = enrollmentService.enrollMe(eventId, prn);
 
@@ -42,10 +43,10 @@ public class EventEnrollmentController {
 
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getMyAllEnrollments(
-            ServerWebExchange exchange
+            HttpServletRequest request
     ) {
 
-        String prn = jwtService.extractPrnFromHeaders(exchange);
+        String prn = jwtService.extractPrnFromHeaders(request);
         log.info("Request received to fetch all the event enrollments for prn: {}", prn);
 
         List<EnrollmentResponse> list = enrollmentService.getMyAllEnrollments(prn);
@@ -59,10 +60,10 @@ public class EventEnrollmentController {
 
     @GetMapping("/myEnrollments")
     public ResponseEntity<ApiResponse<Map<EventResponse, String>>> getMyEnrolledEvents(
-            ServerWebExchange exchange
+            HttpServletRequest request
     ) {
 
-        String prn = jwtService.extractPrnFromHeaders(exchange);
+        String prn = jwtService.extractPrnFromHeaders(request);
         log.info("Request received to fetch all the event enrolled events for prn: {}", prn);
 
         Map<EventResponse, String> list = enrollmentService.getMyEnrolledEvents(prn);

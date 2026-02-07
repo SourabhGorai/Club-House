@@ -84,14 +84,28 @@ public class JwtUtil {
      */
     public String extractPrn(String token) {
         try {
-            return (String) Jwts.parser()
+            Claims claims = Jwts.parser()
                     .setSigningKey(jwtSecret)
                     .parseClaimsJws(token)
-                    .getBody()
-                    .get("prn");  // Extract PRN claim
+                    .getBody();
+
+            // Try different claim names
+            Object prn = claims.get("prn");
+            if (prn == null) {
+                prn = claims.get("userId");  // Try userId
+            }
+            if (prn == null) {
+                prn = claims.get("id");  // Try id
+            }
+            if (prn == null) {
+                log.warn("No PRN/userId/id claim found in token. Available claims: {}", claims.keySet());
+                return null;
+            }
+
+            return prn.toString();
         } catch (Exception e) {
             log.error("Error extracting PRN from token: {}", e.getMessage());
-            throw new RuntimeException("Error extracting PRN from token");
+            return null;
         }
     }
 }

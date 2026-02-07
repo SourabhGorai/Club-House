@@ -2,9 +2,11 @@ package com.clubHouse.event_service2.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import lombok.Data;
 
 @Builder
 @JsonInclude
+@Data
 public class CompleteEnrollmentResponse {
 
     private Long enrollmentId;

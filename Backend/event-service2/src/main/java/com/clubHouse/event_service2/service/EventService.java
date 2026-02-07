@@ -11,6 +11,7 @@ import com.clubHouse.event_service2.model.Events;
 import com.clubHouse.event_service2.model.Ratings;
 import com.clubHouse.event_service2.model.TargetData;
 import com.clubHouse.event_service2.model.TargetType;
+import com.clubHouse.event_service2.repository.EventEnrollmentRepository;
 import com.clubHouse.event_service2.repository.EventRepository;
 import com.clubHouse.event_service2.repository.RatingsRepository;
 import com.clubHouse.event_service2.repository.TargetDataRepository;
@@ -34,7 +35,7 @@ EventService {
     private final ProfileManagementServiceClient profileManagementServiceClient;
     private final RatingsRepository ratingsRepository;
     private final TargetDataRepository targetDataRepository;
-    private final EventEnrollmentService eventEnrollmentService;
+    private final EventEnrollmentRepository eventEnrollmentRepository;
 
     @Transactional
     public EventResponse createEvent(EventRequest req, String prn) {
@@ -263,12 +264,12 @@ EventService {
         return toList(events);
     }
 
-    public List<EventResponse> getByDeadlineStatus(String status) {
+    public List<EventResponse> getByEnrollmentStatus(String status) {
 
         log.info("Attempting to fetch events where deadline is = {}", status);
         String sanitizedStatus = EventMapper.sanitizeName(status);
 
-        List<Events> events = eventRepository.findByEnrollmentDeadline(sanitizedStatus);
+        List<Events> events = eventRepository.findByEnrollmentStatus(sanitizedStatus);
 
         if (events.isEmpty()) {
             log.info("No events found with deadline = {}", sanitizedStatus);
@@ -346,7 +347,7 @@ EventService {
 
         log.info("Attempting to delete event with ID: {}", eventId);
 
-        eventEnrollmentService.revokeEnrollmentsOfEvent(eventId);
+        eventEnrollmentRepository.deleteByEvent_EventId(eventId); // ← Direct repository call
         targetDataRepository.deleteByEvents_EventId(eventId);
         ratingsRepository.deleteByEventId(eventId);
         eventRepository.deleteById(eventId);

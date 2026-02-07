@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.schedular;
+package com.clubHouse.event_service2.scheduler;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.repository.EventRepository;

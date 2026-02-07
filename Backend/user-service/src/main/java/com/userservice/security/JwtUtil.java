@@ -14,6 +14,29 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    /**
+     * ✅ UPDATED: Generate JWT token with username, role, and PRN (user ID)
+     * @param username User's username
+     * @param role User's role
+     * @param prn User's PRN (unique identifier)
+     * @return JWT token
+     */
+    public String generateToken(String username, String role, String prn) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role)
+                .claim("prn", prn)  // ✅ ADD PRN CLAIM
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .compact();
+    }
+
+    /**
+     * 🔄 BACKWARD COMPATIBILITY: Keep old method for existing code
+     * @deprecated Use generateToken(username, role, prn) instead
+     */
+    @Deprecated
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
@@ -36,6 +59,22 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("role");
+    }
+
+    /**
+     * ✅ NEW: Extract PRN from token
+     * @param token JWT token
+     * @return PRN (user ID) or null if not present
+     */
+    public String extractPrn(String token) {
+        try {
+            return (String) Jwts.parser().setSigningKey(jwtSecret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("prn");
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean validateToken(String token) {

@@ -44,6 +44,7 @@ public class Events {
 
     private boolean isCompleted = false;
 
+    @NotNull(message = "Enrollment Deadline is required")
     private LocalDateTime enrollmentDeadline;
 
     private String enrollmentStatus = "OPEN";

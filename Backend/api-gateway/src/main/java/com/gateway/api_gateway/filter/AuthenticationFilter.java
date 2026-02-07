@@ -52,20 +52,25 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 jwtUtil.validateToken(token);
 
                 // Extract user information
-                // In AuthenticationFilter.java, update this section:
-
-                // Extract user information
                 String username = jwtUtil.extractUsername(token);
                 String role = jwtUtil.extractRole(token);
-                String prn = jwtUtil.extractPrn(token);  // Extract PRN instead of userId
+                String prn = jwtUtil.extractPrn(token);
 
-                log.debug("Authenticated user: {} with role: {}", username, role);
+                // ⚠️ FALLBACK: Use username if PRN is not available
+                String userId = (prn != null && !prn.isEmpty()) ? prn : username;
+
+                if (prn == null || prn.isEmpty()) {
+                    log.warn("⚠️ PRN claim missing in token for user: {}. Using username as fallback. " +
+                            "UPDATE USER-SERVICE to include 'prn' claim in JWT!", username);
+                }
+
+                log.debug("Authenticated user: {} with role: {}, userId: {}", username, role, userId);
 
                 // Add user information to request headers for downstream services
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Username", username)
                         .header("X-User-Role", role)
-                        .header("X-User-Id", prn)  // Pass PRN as X-User-Id
+                        .header("X-User-Id", userId)  // Pass user ID (PRN or username fallback)
                         .build();
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());

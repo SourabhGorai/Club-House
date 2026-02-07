@@ -79,6 +79,24 @@ spring:
                 - StripPrefix=0
                 - AuthenticationFilter
 
+            # EVENT SERVICE - MUST BE SPECIFIC!
+            - id: event-service-events
+              uri: lb://EVENT-SERVICE2
+              predicates:
+                - Path=/api/events/**  # ← Changed from /api/** to /api/events/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
+
+            # Event Enrollment Service (if you have separate endpoints)
+            - id: event-service-enrollments
+              uri: lb://EVENT-SERVICE2
+              predicates:
+                - Path=/api/enrollments/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
+
             # ========== ADD MORE SERVICES HERE ==========
 
             # Example: Club Service (uncomment when ready)

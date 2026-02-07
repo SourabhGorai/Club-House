@@ -36,6 +36,7 @@ public class EventRequest {
 
     private List<Long> targetIds;
 
+    @NotNull(message = "Enrollment Deadline is required")
     private LocalDateTime enrollmentDeadline;
 
 }

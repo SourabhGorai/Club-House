@@ -3,11 +3,13 @@ package com.clubHouse.event_service2.dto;
 import com.clubHouse.event_service2.model.TargetType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
+@Data
 public class EventResponse {
 
     private Long eventId;

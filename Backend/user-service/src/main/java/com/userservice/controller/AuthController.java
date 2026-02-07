@@ -93,7 +93,7 @@ public class AuthController {
 //        return ResponseEntity.ok(created);
 //    }
 
-    // Login
+    // ✅ FIXED: Login with PRN in JWT token
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@Validated @RequestBody AuthRequestDto request) {
         try {
@@ -114,7 +114,13 @@ public class AuthController {
             }
 
             String role = user.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
-            String token = jwtUtil.generateToken(user.getUsername(), role);
+
+            // ✅ CRITICAL FIX: Pass PRN as third parameter
+            String token = jwtUtil.generateToken(
+                    user.getUsername(),
+                    role,
+                    userDto.getPrn()  // ✅ ADD PRN HERE - this is the fix!
+            );
 
             AuthResponseDto resp = AuthResponseDto.builder().token(token).user(userDto).build();
             return ResponseEntity.ok(resp);
