@@ -21,10 +21,34 @@ const RemoveUsersFromAnyClub = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClub, setSelectedClub] = useState('');
+  const [clubs, setClubs] = useState([]);
+  const [totalClubs, setTotalClubs] = useState(0);
 
-  // LOGIC PRESERVED
-  const clubs = [...new Set(userClubs.map(item => ({ id: item.clubId, name: item.clubName })))];
-  
+  //fetch all clubs
+    useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.get('http://localhost:8080/api/clubs', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.data.success) {
+          setClubs(response.data.data);
+          setTotalClubs(response.data.data.length);
+        }
+      } catch (error) {
+        console.error('Error fetching clubs:', error);
+      }
+    };
+    
+    fetchClubs();
+  }, []);
+
+
   const fetchUserClubs = async () => {
     try {
       setLoading(true);
@@ -129,16 +153,18 @@ const RemoveUsersFromAnyClub = () => {
           </div>
           <div className="lg:col-span-4 relative group">
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
-            <select
-              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
-              value={selectedClub}
-              onChange={(e) => setSelectedClub(e.target.value)}
-            >
-              <option value="">All Clubs</option>
-              {clubs.map((club) => (
-                <option key={club.id} value={club.id}>{club.name}</option>
-              ))}
-            </select>
+                <select
+        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
+        value={selectedClub}
+        onChange={(e) => setSelectedClub(e.target.value)}
+      >
+        <option value="">All Clubs ({totalClubs})</option>
+        {clubs.map((club) => (
+          <option key={club.clubId} value={club.clubId}>
+            {club.clubName}
+          </option>
+        ))}
+      </select>
           </div>
         </div>
 
