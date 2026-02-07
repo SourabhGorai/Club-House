@@ -1,9 +1,6 @@
 // import { useState, useEffect } from "react";
 // import axios from "axios";
 
-// // ----------------------------------------------------------------
-// // 1. SUB-COMPONENTS (Modals & Icons)
-// // ----------------------------------------------------------------
 
 // const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 //   if (!isOpen) return null;
@@ -110,6 +107,97 @@
 //   );
 // };
 
+// const AssignClubAdminModal = ({
+//   isOpen,
+//   onClose,
+//   onAssign,
+//   adminPrn,
+//   setAdminPrn,
+//   adminSearchResult,
+//   onSearchAdmin,
+//   adminSearchLoading,
+//   assignAdminLoading,
+// }) => {
+//   if (!isOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all duration-300">
+//       <div className="bg-white rounded-2xl shadow-2xl p-8 w-11/12 max-w-md transform transition-all animate-in fade-in zoom-in duration-200">
+//         <h3 className="font-display text-2xl font-bold text-[#8B5CF6] mb-6">
+//           Assign Club Admin
+//         </h3>
+
+//         <div className="mb-6">
+//           <label className="block text-sm font-semibold text-gray-600 mb-2">
+//             Enter User PRN
+//           </label>
+//           <div className="flex space-x-2">
+//             <input
+//               type="text"
+//               value={adminPrn}
+//               onChange={(e) => setAdminPrn(e.target.value)}
+//               className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all placeholder:text-gray-300"
+//               placeholder="e.g., 2214110270"
+//             />
+//             <button
+//               onClick={onSearchAdmin}
+//               disabled={adminSearchLoading || !adminPrn.trim()}
+//               className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+//             >
+//               {adminSearchLoading ? "..." : "Verify"}
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Search Result Display */}
+//         {adminSearchResult && (
+//           <div className={`mb-6 p-4 rounded-xl border ${
+//             adminSearchResult.role === "USERS" || adminSearchResult.role === "STUDENT"
+//               ? "bg-green-50 border-green-100" 
+//               : "bg-red-50 border-red-100"
+//           }`}>
+//             <p className="font-bold text-gray-800">{adminSearchResult.username || adminSearchResult.name}</p>
+//             <p className="text-xs text-gray-500 mb-2">{adminSearchResult.email}</p>
+//             <p className={`text-xs font-black uppercase tracking-wider ${
+//               adminSearchResult.role === "USERS" || adminSearchResult.role === "STUDENT" 
+//                 ? "text-green-600" 
+//                 : "text-red-600"
+//             }`}>
+//               {adminSearchResult.role} 
+//               {(adminSearchResult.role !== "USERS" && adminSearchResult.role !== "STUDENT") && " (Invalid Role - Must be Student/User)"}
+//             </p>
+//           </div>
+//         )}
+
+//         <div className="flex justify-end items-center space-x-3 mt-8">
+//           <button
+//             onClick={onClose}
+//             className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+//             disabled={assignAdminLoading}
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             onClick={onAssign}
+//             disabled={
+//               !adminSearchResult || 
+//               (adminSearchResult.role !== "USERS" && adminSearchResult.role !== "STUDENT") || 
+//               assignAdminLoading
+//             }
+//             className={`px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg ${
+//               (adminSearchResult?.role === "USERS" || adminSearchResult?.role === "STUDENT") && !assignAdminLoading
+//                 ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30"
+//                 : "bg-indigo-300 cursor-not-allowed shadow-none"
+//             }`}
+//           >
+//             {assignAdminLoading ? "Assigning..." : "Assign Admin"}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
 // // Icons
 // const EditIcon = (props) => (
 //   <svg {...props} className={`w-5 h-5 transition duration-200 ${props.className || ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +245,12 @@
 //   const [showAddClubModal, setShowAddClubModal] = useState(false);
 //   const [newClub, setNewClub] = useState({ name: "", clubDesc: "" });
 //   const [addClubLoading, setAddClubLoading] = useState(false);
+//   // Add these state variables
+// const [showClubAdminModal, setShowClubAdminModal] = useState(false);
+// const [adminPrn, setAdminPrn] = useState("");
+// const [adminSearchResult, setAdminSearchResult] = useState(null);
+// const [adminSearchLoading, setAdminSearchLoading] = useState(false);
+// const [assignAdminLoading, setAssignAdminLoading] = useState(false);
 
 //   const customStyles = `
 //     .font-display { font-family: 'Outfit', sans-serif; }
@@ -313,6 +407,76 @@
 //     }
 //   };
 
+
+//   // club admin searches
+//   const handleOpenClubAdminModal = () => {
+//   setShowClubAdminModal(true);
+//   setAdminPrn("");
+//   setAdminSearchResult(null);
+// };
+
+// const handleSearchAdmin = async () => {
+//   if (!adminPrn.trim()) return;
+//   setAdminSearchLoading(true);
+//   try {
+//     const token = localStorage.getItem("token");
+//     const response = await axios.get(`http://localhost:8080/api/users/${adminPrn}`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+//     if (response?.data) {
+//       setAdminSearchResult(response.data);
+//     } else {
+//       setAdminSearchResult(null);
+//     }
+//   } catch (err) {
+//     console.error("Error searching user:", err);
+//     setAdminSearchResult(null);
+//   } finally {
+//     setAdminSearchLoading(false);
+//   }
+// };
+
+// const handleAssignClubAdmin = async () => {
+//   if (!adminSearchResult || !selectedClub) return;
+  
+//   // Check if user role is valid for club admin
+//   const isValidRole = adminSearchResult.role === "USERS" || adminSearchResult.role === "STUDENT";
+//   if (!isValidRole) {
+//     alert("Only regular users/students can be assigned as club admins");
+//     return;
+//   }
+
+//   setAssignAdminLoading(true);
+//   try {
+//     const token = localStorage.getItem("token");
+//     const currentYear = new Date().getFullYear();
+//     const tenure = `${currentYear}-${currentYear + 1}`;
+
+//     const payload = {
+//       prn: adminPrn,
+//       clubId: selectedClub.clubId,
+//       role: "CLUB_ADMIN", // This is the key difference from teacher assignment
+//       tenure: tenure
+//     };
+
+//     const response = await axios.post("http://localhost:8080/api/user-clubs", payload, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+
+//     if (response?.data?.success) {
+//       alert("Club admin assigned successfully!");
+//       fetchAdminData(selectedClub.clubId); // Refresh UI
+//       setShowClubAdminModal(false);
+//     } else {
+//       alert("Failed to assign club admin.");
+//     }
+//   } catch (err) {
+//     console.error("Assignment error:", err);
+//     alert("Error during assignment. Check console.");
+//   } finally {
+//     setAssignAdminLoading(false);
+//   }
+// };
 //   // Club Handlers
 //   const handleAddClub = async () => {
 //     setAddClubLoading(true);
@@ -391,6 +555,18 @@
 //         onSearchTeacher={handleSearchTeacher} teacherSearchLoading={teacherSearchLoading} assignTeacherLoading={assignTeacherLoading}
 //       />
 
+//       <AssignClubAdminModal 
+//   isOpen={showClubAdminModal} 
+//   onClose={() => setShowClubAdminModal(false)} 
+//   onAssign={handleAssignClubAdmin}
+//   adminPrn={adminPrn} 
+//   setAdminPrn={setAdminPrn} 
+//   adminSearchResult={adminSearchResult}
+//   onSearchAdmin={handleSearchAdmin} 
+//   adminSearchLoading={adminSearchLoading} 
+//   assignAdminLoading={assignAdminLoading}
+// />
+
 //       {/* DASHBOARD CONTAINER */}
 //       <div className="w-full max-w-7xl bg-white bg-opacity-95 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-md">
 //         <header className="p-8 border-b border-gray-100 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] text-white rounded-t-3xl shadow-inner">
@@ -447,17 +623,29 @@
 //                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 //                         <div className="stat-card p-6 rounded-2xl"><MembersIcon className="text-purple-500 mb-3" /> <span className="text-4xl font-black text-purple-600">{adminData?.totalCount || 0}</span> <p className="text-xs font-bold uppercase text-gray-400">Active Members</p></div>
 //                         <div className="stat-card p-6 rounded-2xl"><EventsIcon className="text-teal-500 mb-3" /> <span className="text-4xl font-black text-teal-600">{details.upcomingEvents}</span> <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p></div>
-//                         <div className="stat-card p-6 rounded-2xl"><EstablishedIcon className="text-orange-400 mb-3" /> <span className="text-4xl font-black text-orange-500">{details.established}</span> <p className="text-xs font-bold uppercase text-gray-400">Foundation Year</p></div>
 //                       </div>
 
 //                       {/* LEADERSHIP */}
 //                       <div className="space-y-6">
 //                         <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2"><span className="w-1 h-6 bg-teal-500 rounded-full"></span> Leadership & Contact</h3>
 //                         <div className="grid gap-4">
-//                           <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-//                             <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
-//                             <span className="font-bold text-[#4C1D95]">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
-//                           </div>
+//                <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
+//   <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
+//   <div className="flex flex-col sm:flex-row items-center gap-3">
+//     <span className="font-bold text-[#4C1D95] text-center sm:text-left">
+//       {adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}
+//     </span>
+//     {/* Show button only if NO club admins are assigned */}
+//     {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
+//       <button 
+//         onClick={handleOpenClubAdminModal} 
+//         className="btn-gradient text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap"
+//       >
+//         + Assign Admin
+//       </button>
+//     )}
+//   </div>
+// </div>
 
 //                           <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
 //                             <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Teacher Advisor:</span>
@@ -497,22 +685,100 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// ----------------------------------------------------------------
-// 1. SUB-COMPONENTS (Modals & Icons)
-// ----------------------------------------------------------------
+// members of club
+const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-11/12 max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-display text-2xl font-bold text-[#4C1D95]">
+            Members of {clubName}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
+          >
+            ✕
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-2 text-gray-500">Loading members...</p>
+          </div>
+        ) : members.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No members found for this club
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            {members.map((member) => (
+              <div
+                key={member.userClubId}
+                className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-md transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="font-bold text-purple-600">
+                      {member.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">{member.name}</h4>
+                    <p className="text-xs text-gray-500">{member.prn}</p>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500">Role:</span>
+                    <span className={`text-xs font-bold uppercase ${
+                      member.role === 'CLUB_ADMIN' ? 'text-purple-600' :
+                      member.role === 'TEACHERS' ? 'text-green-600' :
+                      'text-blue-600'
+                    }`}>
+                      {member.role}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500">Department:</span>
+                    <span className="text-xs font-bold">{member.department}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500">Year:</span>
+                    <span className="text-xs font-bold">Year {member.year}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500">Tenure:</span>
+                    <span className="text-xs font-bold">{member.tenure}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center">
+          <span className="text-sm text-gray-500">
+            Total: {members.length} members
+          </span>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;
@@ -763,6 +1029,9 @@ const [adminPrn, setAdminPrn] = useState("");
 const [adminSearchResult, setAdminSearchResult] = useState(null);
 const [adminSearchLoading, setAdminSearchLoading] = useState(false);
 const [assignAdminLoading, setAssignAdminLoading] = useState(false);
+const [membersData, setMembersData] = useState([]);
+const [membersLoading, setMembersLoading] = useState(false);
+const [showMembersModal, setShowMembersModal] = useState(false);
 
   const customStyles = `
     .font-display { font-family: 'Outfit', sans-serif; }
@@ -802,6 +1071,45 @@ const [assignAdminLoading, setAssignAdminLoading] = useState(false);
         box-shadow: 0 12px 30px rgba(139, 92, 246, 0.1);
     }
   `;
+
+
+  // fetch users by club name
+  const fetchMembersByClubName = async (clubName) => {
+  if (!clubName) return;
+  
+  setMembersLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(
+      `http://localhost:8080/api/user-clubs/club/${clubName}`,
+      {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    if (response?.data?.success) {
+      setMembersData(response.data.data || []);
+    } else {
+      setMembersData([]);
+    }
+  } catch (err) {
+    console.error("Error fetching members:", err);
+    setMembersData([]);
+  } finally {
+    setMembersLoading(false);
+  }
+};
+
+const handleMembersHover = async () => {
+  if (selectedClub?.clubName) {
+    await fetchMembersByClubName(selectedClub.clubName);
+    setShowMembersModal(true);
+  }
+};
+
 
   // API Handlers
   const fetchClubs = async () => {
@@ -1079,6 +1387,15 @@ const handleAssignClubAdmin = async () => {
   assignAdminLoading={assignAdminLoading}
 />
 
+{/* members of club modal */}
+<MembersModal 
+  isOpen={showMembersModal}
+  onClose={() => setShowMembersModal(false)}
+  members={membersData}
+  loading={membersLoading}
+  clubName={selectedClub?.clubName || ""}
+/>
+
       {/* DASHBOARD CONTAINER */}
       <div className="w-full max-w-7xl bg-white bg-opacity-95 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-md">
         <header className="p-8 border-b border-gray-100 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] text-white rounded-t-3xl shadow-inner">
@@ -1133,9 +1450,23 @@ const handleAssignClubAdmin = async () => {
                     <div className="space-y-10">
                       {/* STATS */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="stat-card p-6 rounded-2xl"><MembersIcon className="text-purple-500 mb-3" /> <span className="text-4xl font-black text-purple-600">{adminData?.totalCount || 0}</span> <p className="text-xs font-bold uppercase text-gray-400">Active Members</p></div>
+        <div 
+  className="stat-card p-6 rounded-2xl cursor-pointer hover:shadow-xl transition-all duration-300 group relative"
+  onMouseEnter={handleMembersHover}
+  onClick={() => setShowMembersModal(true)}
+  title="Click or hover to view members"
+>
+  <MembersIcon className="text-purple-500 mb-3 group-hover:scale-110 transition-transform" /> 
+  <span className="text-4xl font-black text-purple-600 group-hover:text-purple-700">
+    {adminData?.totalCount || 0}
+  </span> 
+  <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-purple-400">
+    Active Members
+  </p>
+  {/* Hover indicator */}
+  <div className="absolute inset-0 border-2 border-transparent group-hover:border-purple-200 rounded-2xl pointer-events-none"></div>
+</div>
                         <div className="stat-card p-6 rounded-2xl"><EventsIcon className="text-teal-500 mb-3" /> <span className="text-4xl font-black text-teal-600">{details.upcomingEvents}</span> <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p></div>
-                        <div className="stat-card p-6 rounded-2xl"><EstablishedIcon className="text-orange-400 mb-3" /> <span className="text-4xl font-black text-orange-500">{details.established}</span> <p className="text-xs font-bold uppercase text-gray-400">Foundation Year</p></div>
                       </div>
 
                       {/* LEADERSHIP */}

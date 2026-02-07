@@ -1501,6 +1501,7 @@ export default function SuperAdminDashboard() {
               />
               
               <BigActionButton label="Manage Clubs" color="orange" icon={Database} onClick={() => window.location.href = "/manage-clubs"} />
+              <BigActionButton label="Club Admins" color="orange" icon={ShieldCheck} onClick={() => window.location.href = "/club-admins"} />
               <BigActionButton label="Add Student" color="cyan" icon={UserPlus} onClick={() => window.location.href = "/add-users-with-club"} />
               <BigActionButton label="Remove Students From Club" color="pink" icon={X} onClick={() => window.location.href='/remove-users-from-any-club'} />
               <BigActionButton label="Audit Logs" color="slate" icon={Database} onClick={() => alert("Audit Logs feature")} />
@@ -1646,42 +1647,7 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
 
-              {/* Form to add/edit */}
-              <form onSubmit={handleDeptSubmit} className="mb-8">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Enter department name..."
-                    className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
-                    value={deptInput}
-                    onChange={(e) => setDeptInput(e.target.value)}
-                    required
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg shadow-orange-100"
-                  >
-                    {editingDept ? <Edit size={18} /> : <Plus size={18} />}
-                    {editingDept ? "Update" : "Add Dept"}
-                  </button>
-                </div>
-                {editingDept && (
-                  <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-                    <span>Editing: <strong>{editingDept.name}</strong></span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingDept(null);
-                        setDeptInput("");
-                      }}
-                      className="text-xs text-red-500 hover:text-red-700"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </form>
+         
 
               {/* List of departments */}
               {deptLoading ? (
@@ -1704,23 +1670,6 @@ export default function SuperAdminDashboard() {
                           </span>
                         </div>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => toggleDepartmentStatus(dept.departmentId, dept.active)}
-                            className={`p-2 ${dept.active ? 'text-amber-500 hover:bg-amber-100' : 'text-emerald-500 hover:bg-emerald-100'} rounded-lg transition-colors`}
-                            title={dept.active ? 'Deactivate' : 'Activate'}
-                          >
-                            {dept.active ? 'Deactivate' : 'Activate'}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingDept(dept);
-                              setDeptInput(dept.name);
-                            }}
-                            className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
                           <button
                             onClick={() => deleteDepartment(dept.departmentId)}
                             className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
