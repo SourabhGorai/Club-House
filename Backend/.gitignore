@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Docker volumes
+volumes/
+
+# Build artifacts
+**/target/
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# IDE files
+**/.idea/
+**/.vscode/
+**/*.iml
+**/.classpath
+**/.project
+**/.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

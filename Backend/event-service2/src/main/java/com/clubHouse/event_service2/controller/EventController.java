@@ -51,7 +51,7 @@ public class EventController {
         ));
     }
 
-    // this will give the events which i have cerated till date
+    // this will give the events which I have cerated till date
     @GetMapping("/myEvents")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
             HttpServletRequest request  // ← Changed
