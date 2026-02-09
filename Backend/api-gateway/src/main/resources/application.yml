@@ -10,137 +10,38 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            # ========== USER SERVICE ROUTES ==========
+      # ========== ROUTES NOW DEFINED IN GatewayConfig.java ==========
+      # All route definitions have been moved to Java configuration
+      # for better control over authentication and authorization filters
 
-            # Auth endpoints (public - no authentication required)
-            - id: user-service-auth
-              uri: lb://USER-SERVICE
-              predicates:
-                - Path=/api/auth/**
-              filters:
-                - StripPrefix=0
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+              - X-User-Username
+              - X-User-Role
+              - X-User-Id
+              - X-User-Prn
+            allowCredentials: true
+            maxAge: 3600
 
-            # User management endpoints (protected)
-            - id: user-service-users
-              uri: lb://USER-SERVICE
-              predicates:
-                - Path=/api/users/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # Profile Management Service
-            - id: profile-management-service
-              uri: lb://PROFILE-MANAGEMENT-SERVICE
-              predicates:
-                - Path=/api/profiles/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # CLUB-SERVICE
-
-            # Profile Management Service
-            - id: club-service-management
-              uri: lb://CLUB-SERVICE2
-              predicates:
-                - Path=/api/clubs/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # Club Service
-            - id: club-service-assigning
-              uri: lb://CLUB-SERVICE2
-              predicates:
-                - Path=/api/user-clubs/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # Notification Service
-            - id: notification-service
-              uri: lb://NOTIFICATION-SERVICE
-              predicates:
-                - Path=/api/notifications/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # Independent Services
-            - id: independent-services
-              uri: lb://INDEPENDENT-SERVICES
-              predicates:
-                - Path=/api/department/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # EVENT SERVICE - MUST BE SPECIFIC!
-            - id: event-service-events
-              uri: lb://EVENT-SERVICE2
-              predicates:
-                - Path=/api/events/**  # ← Changed from /api/** to /api/events/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # Event Enrollment Service (if you have separate endpoints)
-            - id: event-service-enrollments
-              uri: lb://EVENT-SERVICE2
-              predicates:
-                - Path=/api/enrollments/**
-              filters:
-                - StripPrefix=0
-                - AuthenticationFilter
-
-            # ========== ADD MORE SERVICES HERE ==========
-
-            # Example: Club Service (uncomment when ready)
-            # - id: club-service
-            #   uri: lb://club-service
-            #   predicates:
-            #     - Path=/api/clubs/**
-            #   filters:
-            #     - StripPrefix=0
-            #     - AuthenticationFilter
-
-            # Example: Team Service (uncomment when ready)
-            # - id: team-service
-            #   uri: lb://team-service
-            #   predicates:
-            #     - Path=/api/teams/**
-            #   filters:
-            #     - StripPrefix=0
-            #     - AuthenticationFilter
-
-          # Global CORS configuration
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOriginPatterns:
-                  - "*"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - PATCH
-                  - OPTIONS
-                allowedHeaders: "*"
-                exposedHeaders:
-                  - Authorization
-                allowCredentials: true
-                maxAge: 3600
-
-          # Enable discovery locator
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
+      # Enable discovery locator
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
 
 server:
   port: 8080
@@ -169,6 +70,8 @@ management:
   endpoint:
     health:
       show-details: always
+    gateway:
+      enabled: true
 
 # Logging Configuration
 logging:
@@ -177,5 +80,6 @@ logging:
     com.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     reactor.netty.http.client: DEBUG
+    com.gateway.api_gateway.filter: DEBUG  # Added for better filter logging
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
