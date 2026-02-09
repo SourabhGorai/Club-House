@@ -89,7 +89,7 @@ const fetchStudentsFromClubs = async (clubs) => {
       if (response.data.success) {
         // Filter to keep only MEMBER and CLUB_ADMIN roles
         const students = response.data.data.filter(user => 
-          ['MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
+          ['TEAM_MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
         );
         allStudents.push(...students);
       }
@@ -109,7 +109,7 @@ const fetchUserClubs = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     
     // If user is a teacher, use teacher-specific logic
-    if (user?.role === 'TEACHERS' || user?.role === 'TEACHER') {
+    if (user?.role === 'TEACHERS' || user?.role === 'TEACHERS') {
       // Teacher logic - get their clubs and students
       await fetchTeacherClubs(user.prn);
       setLoading(false);
@@ -123,8 +123,9 @@ const fetchUserClubs = async () => {
     
     if (response.data.success) {
       const nonTeacherUsers = response.data.data.filter(user => 
-        user.role.toUpperCase() !== 'TEACHER'
+        user.role.toUpperCase() !== 'TEACHERS'
       );
+      console.log(nonTeacherUsers);
       setUserClubs(nonTeacherUsers);
       setFilteredUsers(nonTeacherUsers);
     }
@@ -268,7 +269,7 @@ if (loading || loadingClubs) {
             </div>
             <div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Unique Clubs</p>
-              <h3 className="text-3xl font-black text-slate-900">{clubs.length}</h3>
+              <h3 className="text-3xl font-black text-slate-900">{teacherClubs.length}</h3>
             </div>
           </div>
 
