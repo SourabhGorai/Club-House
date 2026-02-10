@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Gateway Configuration with Role-Based Authorization
- *
+ * <p>
  * Available Roles:
  * - USERS: Regular students
  * - TEACHERS: Faculty members
@@ -239,6 +239,68 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN"))))
                         .uri("lb://INDEPENDENT-SERVICES"))
 
+                // ==================== CLUB SERVICE ====================
+
+                // View departments - all authenticated users
+                .route("club-create", r -> r
+                        .path("/api/clubs")
+                        .and()
+                        .method("DELETE", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN"))))
+                        .uri("lb://CLUB-SERVICE2"))
+
+                .route("clubs-read", r -> r
+                        .path("/api/clubs", "/api/clubs/**")
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                        .uri("lb://CLUB-SERVICE2"))
+
+                // ==================== USER-CLUB SERVICE ====================
+
+                .route("user-club-write", r -> r
+                        .path("/api/user-clubs/getAll",
+                                "/api/user-clubs/bulk",
+                                "/api/user-clubs/permanentlyDelete/{prn}")
+                        .and()
+                        .method("POST", "GET", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN"))))
+                        .uri("lb://CLUB-SERVICE2"))
+
+                .route("user-club-teacher", r -> r
+                        .path("/api/user-clubs/user/**",
+                                "/api/user-clubs")
+                        .and()
+                        .method("GET", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://CLUB-SERVICE2"))
+
+                .route("user-club-all", r -> r
+                        .path(
+                                "/api/user-clubs/getAllByRole/{role}",
+                                "/api/user-clubs/club/**"
+
+                        )
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://CLUB-SERVICE2"))
+
                 .build();
     }
 }
@@ -252,7 +314,7 @@ public class GatewayConfig {
 //import org.springframework.context.annotation.Bean;
 //import org.springframework.context.annotation.Configuration;
 //
-///**
+/// **
 // * Gateway configuration class
 // * Routes can be defined here programmatically or in application.yml
 // * Currently using application.yml for route definitions
