@@ -7,7 +7,9 @@ import com.clubservice2.club_service2.dto.response.BulkUserClubResponse;
 import com.clubservice2.club_service2.dto.response.ClubPrnsResponse;
 import com.clubservice2.club_service2.dto.response.ProfileEnrichedUserClubResponse;
 import com.clubservice2.club_service2.dto.response.UserClubResponse;
+import com.clubservice2.club_service2.service.JwtService;
 import com.clubservice2.club_service2.service.UserClubService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +30,7 @@ import java.util.List;
 public class UserClubController {
 
     private final UserClubService userClubService;
+    private final JwtService jwtService;
 
     /**
      * Adds a user to a club
@@ -35,12 +38,17 @@ public class UserClubController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<UserClubResponse>> addUserToClub(
-            @Valid @RequestBody UserClubRequest request) {
+            @Valid @RequestBody UserClubRequest request,
+            HttpServletRequest req
+    ) {
 
         log.info("Request received to add user {} to club {}",
                 request.getPrn(), request.getClubId());
 
-        UserClubResponse response = userClubService.addUserToClub(request);
+        String prn = jwtService.extractPrnFromHeaders(req);
+        String role = jwtService.extractRoleFromHeaders(req);
+
+        UserClubResponse response = userClubService.addUserToClub(request, prn, role);
 
         log.info("User {} added to club {} successfully",
                 request.getPrn(), response.getClubName());
@@ -56,12 +64,19 @@ public class UserClubController {
      */
     @PostMapping("/bulk")
     public ResponseEntity<ApiResponse<BulkUserClubResponse>> addUsersToClubsBulk(
-            @Valid @RequestBody BulkUserClubRequest request) {
+            @Valid @RequestBody BulkUserClubRequest request,
+            HttpServletRequest req
+    ) {
 
         log.info("Request received to add {} user-club associations in bulk",
                 request.getAssociations().size());
 
-        BulkUserClubResponse response = userClubService.addUsersToClubsBulk(request);
+        String prn = jwtService.extractPrnFromHeaders(req);
+        String role = jwtService.extractRoleFromHeaders(req);
+
+        BulkUserClubResponse response = userClubService.addUsersToClubsBulk(
+                request, prn, role
+        );
 
         log.info("Bulk user-club creation completed. Success: {}, Failed: {}",
                 response.getSuccessCount(), response.getFailedCount());
@@ -76,13 +91,17 @@ public class UserClubController {
      * Retrieves all clubs for a specific user with profile details
      * GET /api/user-clubs/user/{prn}
      */
+    // SUPER_ADMIN, TEACHERS
     @GetMapping("/user/{prn}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getUserClubs(
-            @PathVariable @NotBlank(message = "PRN is required") String prn) {
+            @PathVariable @NotBlank(message = "PRN is required") String prn,
+            HttpServletRequest request
+    ) {
 
         System.out.println("Request received from unread notifications");
         log.debug("Request received to fetch clubs for user: {}", prn);
-        List<ProfileEnrichedUserClubResponse> clubs = userClubService.getUserClubs(prn);
+        String role = jwtService.extractRoleFromHeaders(request);
+        List<ProfileEnrichedUserClubResponse> clubs = userClubService.getUserClubs(prn, role);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -94,10 +113,12 @@ public class UserClubController {
     }
 
     // In UserClubController.java (club service)
+
     /**
      * Retrieves club names for a user (lightweight - no profile enrichment)
      * GET /api/user-clubs/user/{prn}/club-names
      */
+    // TEACHERS, SUPER_ADMIN
     @GetMapping("/user/{prn}/club-names")
     public ResponseEntity<ApiResponse<List<String>>> getUserClubNames(
             @PathVariable @NotBlank(message = "PRN is required") String prn) {
@@ -117,7 +138,8 @@ public class UserClubController {
      * Retrieves all user-club associations with profile details
      * GET /api/user-clubs
      */
-    @GetMapping
+    // SUPER_ADMIN
+    @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getAllUserClubAssociations() {
         log.debug("Request received to fetch all user-club associations");
         List<ProfileEnrichedUserClubResponse> associations = userClubService.getAllUserClubAssociations();
@@ -137,10 +159,17 @@ public class UserClubController {
      */
     @GetMapping("/club/{clubName}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getClubMembers(
-            @PathVariable @NotBlank(message = "Club name is required") String clubName) {
+            @PathVariable @NotBlank(message = "Club name is required") String clubName,
+            HttpServletRequest request
+    ) {
 
         log.debug("Request received to fetch members of club: {}", clubName);
-        List<ProfileEnrichedUserClubResponse> members = userClubService.getClubMembers(clubName);
+
+        String prn = jwtService.extractPrnFromHeaders(request);
+        String role = jwtService.extractRoleFromHeaders(request);
+
+        List<ProfileEnrichedUserClubResponse> members = userClubService
+                .getClubMembers(clubName, prn, role);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -201,10 +230,14 @@ public class UserClubController {
     @DeleteMapping("/user/{prn}/club/{clubName}")
     public ResponseEntity<ApiResponse<Void>> removeUserFromClub(
             @PathVariable @NotBlank(message = "PRN is required") String prn,
-            @PathVariable @NotBlank(message = "Club name is required") String clubName) {
+            @PathVariable @NotBlank(message = "Club name is required") String clubName,
+            HttpServletRequest request
+    ) {
 
         log.info("Request received to remove user {} from club {}", prn, clubName);
-        userClubService.removeUserFromClub(prn, clubName);
+        String requesterPrn = jwtService.extractPrnFromHeaders(request);
+        String requesterRole = jwtService.extractRoleFromHeaders(request);
+        userClubService.removeUserFromClub(prn, clubName, requesterPrn, requesterRole);
         log.info("User {} removed from club {} successfully", prn, clubName);
 
         return ResponseEntity.ok(
@@ -212,6 +245,7 @@ public class UserClubController {
         );
     }
 
+    // SUPER_ADMIN
     @DeleteMapping("/permanentlyDelete/{prn}")
     public void permanentlyDelete(@PathVariable String prn) {
         log.info("REST received to permanently delete user from club db with prn: {}", prn);
@@ -220,7 +254,7 @@ public class UserClubController {
     }
 
     @GetMapping("/getAllByRole/{role}")
-    public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getAllByRole (
+    public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getAllByRole(
             @PathVariable String role
     ) {
 

@@ -36,8 +36,15 @@ public class UserClubService {
      * Adds a user to a club with specified role and tenure
      */
     @Transactional
-    public UserClubResponse addUserToClub(UserClubRequest request) {
+    public UserClubResponse addUserToClub(UserClubRequest request, String requesterPrn, String role) {
         log.info("Adding user {} to club {}", request.getPrn(), request.getClubId());
+
+        if(!role.equals("SUPER_ADMIN") && !authorize(requesterPrn, request.getClubId())){
+            throw new RuntimeException(
+                    String.format("You are not authorize to add members in club: %d",
+                            request.getClubId())
+            );
+        }
 
         // Validate user exists
         userServiceClient.validateUser(request.getPrn());
@@ -91,7 +98,9 @@ public class UserClubService {
      * Adds multiple users to clubs in bulk
      */
     @Transactional
-    public BulkUserClubResponse addUsersToClubsBulk(BulkUserClubRequest request) {
+    public BulkUserClubResponse addUsersToClubsBulk(
+            BulkUserClubRequest request, String prn, String role
+    ) {
         log.info("Starting bulk user-club creation for {} associations",
                 request.getAssociations().size());
 
@@ -101,7 +110,7 @@ public class UserClubService {
         for (UserClubRequest userClubRequest : request.getAssociations()) {
             try {
                 // Attempt to add user to club
-                UserClubResponse response = addUserToClub(userClubRequest);
+                UserClubResponse response = addUserToClub(userClubRequest, prn, role);
                 successfulAssociations.add(response);
 
             } catch (UserClubAlreadyExistsException ex) {
@@ -187,8 +196,12 @@ public class UserClubService {
      * Retrieves all clubs for a specific user with profile enrichment
      */
     @Transactional(readOnly = true)
-    public List<ProfileEnrichedUserClubResponse> getUserClubs(String prn) {
+    public List<ProfileEnrichedUserClubResponse> getUserClubs(String prn, String role) {
         log.debug("Fetching clubs for user: {}", prn);
+
+//        if(!role.equals("SUPER_ADMIN") && !role.equals("TEACHERS")){
+//            throw new RuntimeException("You are not SUPER_ADMIN or a FACULTY_MEMBER");
+//        }
 
         // Validate user exists
         userServiceClient.validateUser(prn);
@@ -268,14 +281,20 @@ public class UserClubService {
      * Retrieves all members of a specific club with profile enrichment
      */
     @Transactional(readOnly = true)
-    public List<ProfileEnrichedUserClubResponse> getClubMembers(String clubName) {
+    public List<ProfileEnrichedUserClubResponse> getClubMembers(
+            String clubName, String prn, String role
+    ) {
         log.debug("Fetching members of club: {}", clubName);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
         // Verify club exists
-        clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
+        Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
                 .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
+
+//        if(!role.equals("SUPER_ADMIN") && !ofThisClub(prn, club.getClubId())){
+//            throw new RuntimeException("Can't look into the members of this club");
+//        }
 
         List<UserClub> members = userClubRepository.findByClubName(sanitizedName);
 
@@ -305,7 +324,8 @@ public class UserClubService {
      * Removes a user from a club
      */
     @Transactional
-    public void removeUserFromClub(String prn, String clubName) {
+    public void removeUserFromClub(String prn, String clubName,
+                                   String requesterPrn, String requesterRole) {
         log.info("Removing user {} from club {}", prn, clubName);
 
         // Validate user exists
@@ -318,6 +338,13 @@ public class UserClubService {
                     log.error("User-club association not found: PRN={}, Club={}", prn, sanitizedName);
                     return new UserClubNotFoundException(prn, sanitizedName);
                 });
+
+        if(!requesterRole.equals("SUPER_ADMIN")
+                && !requesterRole.equals("TEACHERS")
+                && !ofThisClub(requesterPrn, userClub.getClub().getClubId())
+        ) {
+            throw new RuntimeException("You are not authorized to delete members of this club.");
+        }
 
         try {
             userClubRepository.delete(userClub);
@@ -453,4 +480,26 @@ public class UserClubService {
         return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
 
     }
+
+    public boolean authorize(String prn, Long clubId){
+
+        UserClub user = userClubRepository.findByPrnAndClub_Id(prn, clubId);
+
+        if (user == null) {
+            return false;
+        }
+
+        String clubRole = user.getRole();
+        return clubRole.equals("TEACHERS") || clubRole.equals("CLUB_ADMIN");
+    }
+
+    private boolean ofThisClub(String prn, Long clubId) {
+        UserClub user = userClubRepository.findByPrnAndClub_Id(prn, clubId);
+        if(user == null) return false;
+        String clubRole = user.getRole();
+        return clubRole.equals("CLUB_ADMIN")
+                || clubRole.equals("TEACHERS")
+                || clubRole.equals("TEAM_MEMBERS");
+    }
+
 }
