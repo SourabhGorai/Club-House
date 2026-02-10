@@ -481,9 +481,37 @@ public class UserClubService {
 
     }
 
+    public List<GeneralClubResponse> getMyClubs(String prn) {
+
+        log.info("Attempting to fetch my clubs for PRN: {}", prn);
+
+        List<UserClub> clubs = userClubRepository.findByPrn(prn);
+
+        if (clubs.isEmpty()) {
+            log.info("No clubs found for PRN: {}", prn);
+            return List.of();
+        }
+
+        List<GeneralClubResponse> response = clubs.stream()
+                .map(userClub -> {
+                    Club club = userClub.getClub();
+
+                    return GeneralClubResponse.builder()
+                            .clubId(club.getClubId())
+                            .clubName(club.getClubName())
+                            .build();
+                })
+                .distinct()   // prevents duplicates if user has multiple roles/tenures in same club
+                .toList();
+
+        log.info("Found {} clubs for PRN: {}", response.size(), prn);
+        return response;
+    }
+
+
     public boolean authorize(String prn, Long clubId){
 
-        UserClub user = userClubRepository.findByPrnAndClub_Id(prn, clubId);
+        UserClub user = userClubRepository.findByPrnAndClub_ClubId(prn, clubId);
 
         if (user == null) {
             return false;
@@ -494,12 +522,13 @@ public class UserClubService {
     }
 
     private boolean ofThisClub(String prn, Long clubId) {
-        UserClub user = userClubRepository.findByPrnAndClub_Id(prn, clubId);
+        UserClub user = userClubRepository.findByPrnAndClub_ClubId(prn, clubId);
         if(user == null) return false;
         String clubRole = user.getRole();
         return clubRole.equals("CLUB_ADMIN")
                 || clubRole.equals("TEACHERS")
                 || clubRole.equals("TEAM_MEMBERS");
     }
+
 
 }

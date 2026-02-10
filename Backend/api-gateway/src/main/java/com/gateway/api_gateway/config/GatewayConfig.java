@@ -290,7 +290,8 @@ public class GatewayConfig {
                 .route("user-club-all", r -> r
                         .path(
                                 "/api/user-clubs/getAllByRole/{role}",
-                                "/api/user-clubs/club/**"
+                                "/api/user-clubs/club/**",
+                                "/api/user-clubs/getMyClubs"
 
                         )
                         .and()

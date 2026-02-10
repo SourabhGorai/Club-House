@@ -38,5 +38,6 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
     List<UserClub> findByRole(String role);
 
-    UserClub findByPrnAndClub_Id(String prn, Long clubId);
+    UserClub findByPrnAndClub_ClubId(String prn, Long clubId);
+
 }

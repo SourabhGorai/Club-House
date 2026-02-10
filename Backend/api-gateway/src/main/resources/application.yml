@@ -2,46 +2,11 @@ spring:
   application:
     name: api-gateway
 
-  # Enable Caffeine cache for LoadBalancer
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=600s
-
   cloud:
-    gateway:
-      # ========== ROUTES NOW DEFINED IN GatewayConfig.java ==========
-      # All route definitions have been moved to Java configuration
-      # for better control over authentication and authorization filters
-
-      # Global CORS configuration
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders: "*"
-            exposedHeaders:
-              - Authorization
-              - X-User-Username
-              - X-User-Role
-              - X-User-Id
-              - X-User-Prn
-            allowCredentials: true
-            maxAge: 3600
-
-      # Enable discovery locator
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+    loadbalancer:
+      cache:
+        caffeine:
+          spec: maximumSize=500,expireAfterWrite=600s
 
 server:
   port: 8080
@@ -50,36 +15,129 @@ server:
 jwt:
   secret: ${SECRET_KEY}
 
+# ===============================
 # Eureka Client Configuration
+# ===============================
 eureka:
   client:
-    serviceUrl:
+    service-url:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
   instance:
     prefer-ip-address: true
-    hostname: localhost
 
+# ===============================
 # Actuator Configuration
+# ===============================
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,routes
+        include:
+          - health
+          - info
+          - gateway
+          - routes
   endpoint:
     health:
       show-details: always
     gateway:
-      enabled: true
+      access: read_only
 
+# ===============================
 # Logging Configuration
+# ===============================
 logging:
   level:
     root: INFO
     com.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty.http.client: DEBUG
-    com.gateway.api_gateway.filter: DEBUG  # Added for better filter logging
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    com.gateway.api_gateway.filter: DEBUG
+
+
+
+#spring:
+#  application:
+#    name: api-gateway
+#
+#  # Enable Caffeine cache for LoadBalancer
+#  cache:
+#    type: caffeine
+#    caffeine:
+#      spec: maximumSize=500,expireAfterWrite=600s
+#
+#  cloud:
+#    gateway:
+#      # ========== ROUTES NOW DEFINED IN GatewayConfig.java ==========
+#      # All route definitions have been moved to Java configuration
+#      # for better control over authentication and authorization filters
+#
+#      # Global CORS configuration
+#      globalcors:
+#        cors-configurations:
+#          '[/**]':
+#            allowedOriginPatterns:
+#              - "*"
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - PUT
+#              - DELETE
+#              - PATCH
+#              - OPTIONS
+#            allowedHeaders: "*"
+#            exposedHeaders:
+#              - Authorization
+#              - X-User-Username
+#              - X-User-Role
+#              - X-User-Id
+#              - X-User-Prn
+#            allowCredentials: true
+#            maxAge: 3600
+#
+#      # Enable discovery locator
+#      discovery:
+#        locator:
+#          enabled: true
+#          lower-case-service-id: true
+#
+#server:
+#  port: 8080
+#
+## JWT Configuration (MUST match user-service secret)
+#jwt:
+#  secret: ${SECRET_KEY}
+#
+## Eureka Client Configuration
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
+#    fetch-registry: true
+#    register-with-eureka: true
+#  instance:
+#    prefer-ip-address: true
+#    hostname: localhost
+#
+## Actuator Configuration
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,gateway,routes
+#  endpoint:
+#    health:
+#      show-details: always
+#    gateway:
+#      enabled: true
+#
+## Logging Configuration
+#logging:
+#  level:
+#    root: INFO
+#    com.gateway: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    reactor.netty.http.client: DEBUG
+#    com.gateway.api_gateway.filter: DEBUG  # Added for better filter logging
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

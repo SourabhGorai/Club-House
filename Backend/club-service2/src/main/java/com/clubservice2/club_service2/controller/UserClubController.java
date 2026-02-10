@@ -3,10 +3,7 @@ package com.clubservice2.club_service2.controller;
 import com.clubservice2.club_service2.dto.*;
 import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
 import com.clubservice2.club_service2.dto.request.UserClubRequest;
-import com.clubservice2.club_service2.dto.response.BulkUserClubResponse;
-import com.clubservice2.club_service2.dto.response.ClubPrnsResponse;
-import com.clubservice2.club_service2.dto.response.ProfileEnrichedUserClubResponse;
-import com.clubservice2.club_service2.dto.response.UserClubResponse;
+import com.clubservice2.club_service2.dto.response.*;
 import com.clubservice2.club_service2.service.JwtService;
 import com.clubservice2.club_service2.service.UserClubService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -167,7 +164,7 @@ public class UserClubController {
 
         String prn = jwtService.extractPrnFromHeaders(request);
         String role = jwtService.extractRoleFromHeaders(request);
-
+        log.info("{} + {}", prn, role);
         List<ProfileEnrichedUserClubResponse> members = userClubService
                 .getClubMembers(clubName, prn, role);
 
@@ -267,5 +264,18 @@ public class UserClubController {
                 resp
         ));
 
+    }
+
+    @GetMapping("/getMyClubs")
+    public ResponseEntity<ApiResponse<List<GeneralClubResponse>>> getMyClub(
+            HttpServletRequest request
+    ) {
+        log.info("Request received to display all my clubs");
+        String prn = jwtService.extractPrnFromHeaders(request);
+        List<GeneralClubResponse> resp = userClubService.getMyClubs(prn);
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Successfully fetched %d response", resp.size()),
+                resp
+        ));
     }
 }
