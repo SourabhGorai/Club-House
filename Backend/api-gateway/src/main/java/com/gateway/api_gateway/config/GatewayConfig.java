@@ -302,6 +302,65 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
                         .uri("lb://CLUB-SERVICE2"))
 
+                // ==================== EVENT-SERVICE ====================
+
+                .route("event-admin", r -> r
+                        .path("/api/events")
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("event-teachers", r -> r
+                        .path(
+                                "/api/events/create",
+                                "/api/events/myEvents",
+                                "/api/events/targetTypes",
+                                "/api/events/getByTargetType/{targetType}",
+                                "/api/events/getByEventCreator/{prn}",
+                                "/api/events/ratings/{rating}",
+                                "/api/events/endEvent/{eventId}",
+                                "/api/events/deleteEvent/{eventId}",
+                                "/api/events/enrollment/{status}"
+                        )
+                        .and()
+                        .method("GET", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("event-all", r -> r
+                        .path(
+                                "/api/events/getById/{eventId}",
+                                "/api/events/organizer/{organizer}",
+                                "/api/events/targetData/{targetType}/{targetId}",
+                                "/api/events/endEvent/{status}"
+                        )
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("enrollment-all", r -> r
+                        .path(
+                                "/api/enrollments/**"
+                        )
+                        .and()
+                        .method("GET", "POST", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
                 .build();
     }
 }

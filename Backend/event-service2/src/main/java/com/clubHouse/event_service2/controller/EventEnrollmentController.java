@@ -22,6 +22,7 @@ public class EventEnrollmentController {
     private final EventEnrollmentService enrollmentService;
     private final JwtService jwtService;
 
+    // ALL
     @PostMapping("{eventId}")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollMe(
             @PathVariable Long eventId,
@@ -41,6 +42,7 @@ public class EventEnrollmentController {
 
     }
 
+    // ALL
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getMyAllEnrollments(
             HttpServletRequest request
@@ -58,6 +60,7 @@ public class EventEnrollmentController {
 
     }
 
+    // ALL
     @GetMapping("/myEnrollments")
     public ResponseEntity<ApiResponse<Map<EventResponse, String>>> getMyEnrolledEvents(
             HttpServletRequest request
@@ -75,6 +78,7 @@ public class EventEnrollmentController {
 
     }
 
+    // ALL
     @GetMapping("/getForEvent/{eventId}")
     public ResponseEntity<ApiResponse<List<CompleteEnrollmentResponse>>>
     getEnrollmentsForEventId(
@@ -91,6 +95,7 @@ public class EventEnrollmentController {
         ));
     }
 
+    // ALL
     @DeleteMapping("/revokeEnrollment/{enrollmentId}")
     public ResponseEntity<ApiResponse<String>> revokeMyEnrollment(
             @PathVariable Long enrollmentId

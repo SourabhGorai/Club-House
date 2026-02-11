@@ -27,7 +27,8 @@ public class EventController {
 //    private final EventRepository eventRepository;
 //    private final EventEnrollmentService eventEnrollmentService;
 
-    @PostMapping
+    // SUPER_ADMIN, TEACHERS
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @RequestBody EventRequest req,
             HttpServletRequest request  // ← Changed
@@ -41,6 +42,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN
     @GetMapping
     public ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents() {
         log.info("REST received to get all the events");
@@ -51,7 +53,8 @@ public class EventController {
         ));
     }
 
-    // this will give the events which I have cerated till date
+    // SUPER_ADMIN, TEACHERS
+    // this will give the events which I have created till date
     @GetMapping("/myEvents")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
             HttpServletRequest request  // ← Changed
@@ -65,6 +68,7 @@ public class EventController {
         ));
     }
 
+    // ALL
     @GetMapping("/getById/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> getEventById(
             @PathVariable Long eventId
@@ -77,6 +81,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @GetMapping("/targetTypes")
     public ResponseEntity<ApiResponse<List<String>>> getTargetTypes(){
         log.info("REST received to fetch all the target types");
@@ -87,6 +92,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @GetMapping("/getByTargetType/{targetType}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetType (
             @PathVariable String targetType
@@ -100,6 +106,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @GetMapping("/getByEventCreator/{prn}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByEventCreator (
             @PathVariable String prn
@@ -112,6 +119,7 @@ public class EventController {
         ));
     }
 
+    // ALL
     @GetMapping("/organizer/{organizer}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByOrganizer (
             @PathVariable String organizer
@@ -124,6 +132,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @GetMapping("/ratings/{rating}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByRatings(
             @PathVariable int rating
@@ -136,6 +145,7 @@ public class EventController {
         ));
     }
 
+    // ALL
     @GetMapping("/targetData/{targetType}/{targetId}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetData (
             @PathVariable String targetType,
@@ -150,6 +160,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @PostMapping("/endEvent/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> markEventComplete(
             @PathVariable Long eventId,
@@ -165,6 +176,7 @@ public class EventController {
         ));
     }
 
+    // ALL
     @GetMapping("/endEvent/{status}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByStatus(
             @PathVariable boolean status,
@@ -178,6 +190,7 @@ public class EventController {
         ));
     }
 
+    // ALL
     @GetMapping("/enrollment/{status}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByEnrollmentStatus(
             @PathVariable String status,
@@ -191,6 +204,7 @@ public class EventController {
         ));
     }
 
+    // SUPER_ADMIN, TEACHERS
     @DeleteMapping("/deleteEvent/{eventId}")
     public ResponseEntity<ApiResponse<String>> deleteEvent(@PathVariable Long eventId){
         log.info("Request received to delete event with ID: {}", eventId);
