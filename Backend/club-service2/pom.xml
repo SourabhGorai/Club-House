@@ -72,6 +72,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- ⚡ Spring Cache (In-Memory) - ONLY NEW DEPENDENCY -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

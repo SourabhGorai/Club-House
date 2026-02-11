@@ -3,9 +3,11 @@ package com.clubHouse.event_service2.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
-
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude
 @Builder
 @Data

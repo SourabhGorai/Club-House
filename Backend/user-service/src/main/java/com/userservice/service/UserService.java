@@ -10,6 +10,9 @@ import com.userservice.model.User;
 import com.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,10 @@ public class UserService {
     private final ProfileManagementServiceClient profileManagementServiceClient;
     private final ClubServiceClient clubServiceClient;
 
+    /**
+     * Register user - evicts all user list cache since new user is added
+     */
+    @CacheEvict(value = "users", allEntries = true)
     public UserDto registerUser(UserCreateDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username already taken");
@@ -50,18 +57,40 @@ public class UserService {
         return mapper.toDto(saved);
     }
 
+    /**
+     * Get all users - cached with 'users' cache
+     * This is useful for admin dashboards or user lists
+     */
+    @Cacheable(value = "users")
     public List<UserDto> getAllUsers() {
+        log.debug("Fetching all users from database (cache miss)");
         return userRepository.findAll().stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get user by PRN - cached individually with PRN as key
+     * Most frequently accessed method in user services
+     */
+    @Cacheable(value = "userByPrn", key = "#prn", unless = "#result == null")
     public UserDto getUserByPrn(String prn) {
+        log.debug("Fetching user by PRN: {} from database (cache miss)", prn);
         return userRepository.findByPrn(prn)
                 .map(mapper::toDto)
                 .orElse(null);
     }
 
+    /**
+     * Update user - evicts specific user caches and all users list
+     * Uses @Caching to evict multiple cache entries
+     */
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#prn"),
+            @CacheEvict(value = "userByUsername", key = "#result.username"),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userValidation", key = "#prn")
+    })
     public UserDto updateUser(String prn, UserUpdateDto dto) {
         User user = userRepository.findByPrn(prn)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -70,16 +99,25 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
         User saved = userRepository.save(user);
+        log.debug("Updated user {} and evicted related caches", prn);
         return mapper.toDto(saved);
     }
 
     /**
      * Delete user with cascading deletion across services
+     * Evicts all related caches for the user
+     *
      * NOTE: @Transactional only controls the local database transaction.
      * External service calls (WebClient) are NOT part of the transaction.
      * If external calls fail, local DB changes will still rollback due to exception propagation.
      */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#prn"),
+            @CacheEvict(value = "userByUsername", allEntries = true), // evict all since we don't know username
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userValidation", key = "#prn")
+    })
     public void deleteUser(String prn) {
         log.info("Starting deletion process for user with PRN: {}", prn);
 
@@ -113,7 +151,7 @@ public class UserService {
 
     /**
      * Validate credentials (used by validate-credentials endpoint)
-     * Returns true if username/password are valid and user is verified.
+     * NOT cached - credentials validation should always be fresh for security
      */
     public boolean validateCredentials(String username, String rawPassword) {
         return userRepository.findByUsername(username)
@@ -121,13 +159,25 @@ public class UserService {
                 .orElse(false);
     }
 
+    /**
+     * Find by username - cached with username as key
+     * Used for login and authentication flows
+     */
+    @Cacheable(value = "userByUsername", key = "#username", unless = "#result == null")
     public UserDto findByUsername(String username) {
+        log.debug("Fetching user by username: {} from database (cache miss)", username);
         return userRepository.findByUsername(username)
                 .map(mapper::toDto)
                 .orElse(null);
     }
 
+    /**
+     * Validate user existence - cached for quick lookups
+     * Frequently used for authorization checks
+     */
+    @Cacheable(value = "userValidation", key = "#prn")
     public boolean validate(String prn) {
+        log.debug("Validating user existence for PRN: {} (cache miss)", prn);
         return userRepository.existsByPrn(prn);
     }
 }
