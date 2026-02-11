@@ -1,6 +1,7 @@
 package com.clubHouse.event_service2.service;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
+import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.CompleteEnrollmentResponse;
 import com.clubHouse.event_service2.dto.EnrollmentResponse;
 import com.clubHouse.event_service2.dto.EventResponse;
@@ -14,9 +15,11 @@ import com.clubHouse.event_service2.repository.EventEnrollmentRepository;
 import com.clubHouse.event_service2.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,11 @@ public class EventEnrollmentService {
     private final EnrollmentMapper enrollmentMapper;
     private final ProfileManagementServiceClient profileManagementServiceClient;
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+    })
     public EnrollmentResponse enrollMe(Long eventId, String prn) throws ServiceException {
 
         log.info("Attempting to enroll {} in event with ID {}", prn, eventId);
@@ -59,10 +67,10 @@ public class EventEnrollmentService {
         return EnrollmentMapper.toResponse(saved, prn);
     }
 
-
+    @Cacheable(value = CacheConfig.MY_ENROLLMENTS, key = "#prn")
     public List<EnrollmentResponse> getMyAllEnrollments(String prn) {
 
-        log.info("Attempting to fetch all the enrollments of prn: {}", prn);
+        log.info("Attempting to fetch all the enrollments of prn: {} - Cache miss, loading from DB", prn);
 
         List<EventEnrollment> resp = enrollmentRepository.findByPrn(prn);
 
@@ -70,9 +78,10 @@ public class EventEnrollmentService {
 
     }
 
+    @Cacheable(value = CacheConfig.MY_ENROLLED_EVENTS, key = "#prn")
     public Map<EventResponse, String> getMyEnrolledEvents(String prn) {
 
-        log.info("Attempting to fetch events in which I have enrolled till date");
+        log.info("Attempting to fetch events in which I have enrolled till date - Cache miss, loading from DB");
 
         List<EventEnrollment> enrollments = enrollmentRepository.findByPrn(prn);
 
@@ -81,7 +90,6 @@ public class EventEnrollmentService {
             return Map.of();
         }
 
-        // Extract events in same order as enrollments
         List<Events> events = enrollments.stream()
                 .map(EventEnrollment::getEvent)
                 .toList();
@@ -100,9 +108,10 @@ public class EventEnrollmentService {
         return finalResp;
     }
 
+    @Cacheable(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
     public List<CompleteEnrollmentResponse> getForEvent(Long eventId) {
 
-        log.info("Attempting to fetch all enrolled users for event id: {}", eventId);
+        log.info("Attempting to fetch all enrolled users for event id: {} - Cache miss, loading from DB", eventId);
 
         List<EventEnrollment> enrollments = enrollmentRepository.findByEvent_EventId(eventId);
 
@@ -144,11 +153,21 @@ public class EventEnrollmentService {
                 .toList();
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, allEntries = true)
+    })
     public void revokeMyEnrollment(Long enrollmentId) {
         log.info("Attempting to delete enrollment");
         enrollmentRepository.deleteById(enrollmentId);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+    })
     public void revokeEnrollmentsOfEvent(Long eventId){
         log.info("Attempting to delete all the enrollments with event id: {}", eventId);
         enrollmentRepository.deleteByEvent_EventId(eventId);

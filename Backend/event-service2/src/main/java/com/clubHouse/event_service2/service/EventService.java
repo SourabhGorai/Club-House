@@ -1,6 +1,7 @@
 package com.clubHouse.event_service2.service;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
+import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
 import com.clubHouse.event_service2.dto.ProfileResponse;
@@ -18,6 +19,9 @@ import com.clubHouse.event_service2.repository.TargetDataRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -28,8 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class
-EventService {
+public class EventService {
 
     private final EventRepository eventRepository;
     private final ProfileManagementServiceClient profileManagementServiceClient;
@@ -38,6 +41,16 @@ EventService {
     private final EventEnrollmentRepository eventEnrollmentRepository;
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, key = "#prn"),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
+    })
     public EventResponse createEvent(EventRequest req, String prn) {
 
         log.info("Attempting to create event for PRN: {}", prn);
@@ -67,11 +80,6 @@ EventService {
         if ((req.getTarget() == TargetType.CLUB || req.getTarget() == TargetType.DEPARTMENT)
                 && req.getTargetIds() != null && !req.getTargetIds().isEmpty()) {
 
-//            Events event = eventRepository.findById(saved.getEventId())
-//                    .orElseThrow(() ->
-//                            new NotFoundException("Event", saved.getEventId().toString())
-//                    );
-
             List<TargetData> targetDataList = req.getTargetIds().stream()
                     .map(id -> TargetData.builder()
                             .events(saved)
@@ -90,9 +98,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.ALL_EVENTS, key = "'all'")
     public List<EventResponse> getAll() {
 
-        log.info("Attempting to fetch all the events");
+        log.info("Attempting to fetch all the events - Cache miss, loading from DB");
 
         List<Events> events = eventRepository.findAll();
 
@@ -100,9 +109,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.MY_EVENTS, key = "#prn")
     public List<EventResponse> getMyEvents(String prn) {
 
-        log.info("Attempting to fetch all the events created by PRN: {}", prn);
+        log.info("Attempting to fetch all the events created by PRN: {} - Cache miss, loading from DB", prn);
 
         List<Events> events = eventRepository.findByEventCreator(prn);
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
@@ -111,9 +121,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.EVENT_BY_ID, key = "#eventId")
     public EventResponse getEventById(Long eventId) {
 
-        log.info("Attempting to fetch event with ID: {}", eventId);
+        log.info("Attempting to fetch event with ID: {} - Cache miss, loading from DB", eventId);
 
         Events event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event", eventId.toString()));
@@ -125,18 +136,20 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.TARGET_TYPES, key = "'all'")
     public List<String> getAllTargetTypes() {
 
-        log.info("Attempting to fetch all the target types");
+        log.info("Attempting to fetch all the target types - Cache miss, loading from DB");
 
         return Arrays.stream(TargetType.values())
                 .map(Enum::name)
                 .toList();
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_TARGET_TYPE, key = "#targetType")
     public List<EventResponse> getByTargetType(TargetType targetType) {
 
-        log.info("Attempting to fetch events with target type: {}", targetType);
+        log.info("Attempting to fetch events with target type: {} - Cache miss, loading from DB", targetType);
 
         List<Events> events = eventRepository.findByTarget(targetType);
 
@@ -144,9 +157,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_CREATOR, key = "#prn")
     public List<EventResponse> getByEventCreator(String prn) {
 
-        log.info("Attempting to fetch events for prn: {}", prn);
+        log.info("Attempting to fetch events for prn: {} - Cache miss, loading from DB", prn);
 
         List<Events> events = eventRepository.findByEventCreator(prn);
 
@@ -171,9 +185,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_ORGANIZER, key = "#organizer")
     public List<EventResponse> getByOrganizer(String organizer) {
 
-        log.info("Attempting to fetch ");
+        log.info("Attempting to fetch events by organizer: {} - Cache miss, loading from DB", organizer);
 
         List<Events> events = eventRepository.findByOrganizer(organizer);
 
@@ -181,9 +196,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_RATING, key = "#rating")
     public List<EventResponse> getByRatings(int rating) {
 
-        log.info("Attempting to fetch events with ratings >= {}", rating);
+        log.info("Attempting to fetch events with ratings >= {} - Cache miss, loading from DB", rating);
 
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
@@ -202,9 +218,10 @@ EventService {
         return toList(events);
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_TARGET_DATA, key = "#type + '_' + #targetId")
     public List<EventResponse> getByTargetData(TargetType type, Long targetId) {
 
-        log.info("Attempting to fetch events for {} with ID: {}", type, targetId);
+        log.info("Attempting to fetch events for {} with ID: {} - Cache miss, loading from DB", type, targetId);
 
         // GLOBAL events don't need targetData
         if (type == TargetType.GLOBAL) {
@@ -228,6 +245,18 @@ EventService {
         return toList(events);
     }
 
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
+    })
     public EventResponse markEventAsCompleted(Long eventId, String prn, String role) {
 
         log.info("Attempting to update event status to complete with ID: {}", eventId);
@@ -250,9 +279,10 @@ EventService {
 
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_STATUS, key = "#status")
     public List<EventResponse> getByStatus(boolean status) {
 
-        log.info("Attempting to fetch events where isCompleted = {}", status);
+        log.info("Attempting to fetch events where isCompleted = {} - Cache miss, loading from DB", status);
 
         List<Events> events = eventRepository.findByIsCompleted(status);
 
@@ -264,9 +294,10 @@ EventService {
         return toList(events);
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, key = "#status")
     public List<EventResponse> getByEnrollmentStatus(String status) {
 
-        log.info("Attempting to fetch events where deadline is = {}", status);
+        log.info("Attempting to fetch events where deadline is = {} - Cache miss, loading from DB", status);
         String sanitizedStatus = EventMapper.sanitizeName(status);
 
         List<Events> events = eventRepository.findByEnrollmentStatus(sanitizedStatus);
@@ -288,7 +319,6 @@ EventService {
      */
     private Map<String, ProfileResponse> fetchProfilesMap(List<String> prns) {
         try {
-            // You'll need to add this batch endpoint to your ProfileManagementServiceClient
             List<ProfileResponse> profiles = profileManagementServiceClient.getProfilesByPrns(prns);
 
             return profiles.stream()
@@ -299,7 +329,7 @@ EventService {
                     ));
         } catch (Exception e) {
             log.error("Error batch fetching profiles: {}", e.getMessage());
-            return Map.of(); // Return empty map on error
+            return Map.of();
         }
     }
 
@@ -312,7 +342,6 @@ EventService {
 
         log.info("Found {} events", events.size());
 
-        // Extract unique organizer PRNs
         List<String> creatorPrns = events.stream()
                 .map(Events::getEventCreator)
                 .distinct()
@@ -320,17 +349,14 @@ EventService {
 
         log.info("Fetching profiles for {} unique creators", creatorPrns.size());
 
-        // Batch fetch all profiles at once
         Map<String, ProfileResponse> profileMap = fetchProfilesMap(creatorPrns);
-//        Map<String, String>
 
-        // Map events to responses
         return events.stream()
                 .map(event -> {
                     ProfileResponse profile = profileMap.get(event.getEventCreator());
                     String eventCreatorName = profile != null
                             ? profile.getFullName()
-                            : event.getEventCreator(); // Fallback to PRN
+                            : event.getEventCreator();
 
                     return EventMapper.toResponse(
                             event,
@@ -343,11 +369,26 @@ EventService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_RATING, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+    })
     public void deleteById(Long eventId) {
 
         log.info("Attempting to delete event with ID: {}", eventId);
 
-        eventEnrollmentRepository.deleteByEvent_EventId(eventId); // ← Direct repository call
+        eventEnrollmentRepository.deleteByEvent_EventId(eventId);
         targetDataRepository.deleteByEvents_EventId(eventId);
         ratingsRepository.deleteByEventId(eventId);
         eventRepository.deleteById(eventId);

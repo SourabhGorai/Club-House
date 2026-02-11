@@ -1,6 +1,7 @@
 package com.clubservice2.club_service2.service;
 
 import com.clubservice2.club_service2.client.ProfileServiceClient;
+import com.clubservice2.club_service2.config.CacheConfig;
 import com.clubservice2.club_service2.dto.request.ClubRequest;
 import com.clubservice2.club_service2.dto.response.AdminResponse;
 import com.clubservice2.club_service2.dto.response.ClubResponse;
@@ -16,6 +17,10 @@ import com.clubservice2.club_service2.repository.ClubRepository;
 import com.clubservice2.club_service2.repository.UserClubRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,57 +38,12 @@ public class ClubService {
     private final UserClubRepository userClubRepository;
     private final ProfileServiceClient profileServiceClient;
 
-    /**
-     * Creates a new club or reactivates a deleted club
-     */
-//    @Transactional
-//    public ClubResponse createClub(String clubName) {
-//        log.info("Creating club with name: {}", clubName);
-//
-//        String sanitizedName = ClubMapper.sanitizeClubName(clubName);
-//
-//        if (sanitizedName == null || sanitizedName.isEmpty()) {
-//            throw new ClubServiceException("Invalid club name provided");
-//        }
-//
-//        // Check if active club exists
-//        if (clubRepository.existsByClubNameAndIsActiveTrue(sanitizedName)) {
-//            log.warn("Attempt to create club that already exists: {}", sanitizedName);
-//            throw new ClubAlreadyExistsException(sanitizedName);
-//        }
-//
-//        // Check if deleted club exists - reactivate it
-//        if (clubRepository.existsByClubNameAndIsActiveFalse(sanitizedName)) {
-//            log.info("Reactivating previously deleted club: {}", sanitizedName);
-//            Club club = clubRepository.findByClubNameAndIsActiveFalse(sanitizedName)
-//                    .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
-//
-//            club.setIsActive(true);
-//            club.setCreatedAt(LocalDateTime.now());
-//            club.setDeletedAt(null);
-//
-//            Club reactivated = clubRepository.save(club);
-//            log.info("Successfully reactivated club: {}", sanitizedName);
-//            return ClubMapper.toResponse(reactivated);
-//        }
-//
-//        // Create new club
-//        Club club = Club.builder()
-//                .clubName(sanitizedName)
-//                .isActive(true)
-//                .build();
-//
-//        try {
-//            Club savedClub = clubRepository.save(club);
-//            log.info("Successfully created new club: {}", sanitizedName);
-//            return ClubMapper.toResponse(savedClub);
-//        } catch (Exception e) {
-//            log.error("Failed to create club: {}", sanitizedName, e);
-//            throw new ClubServiceException("Failed to create club: " + sanitizedName, e);
-//        }
-//    }
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.ALL_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ACTIVE_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.PUBLIC_CLUBS, allEntries = true)
+    })
     public ClubResponse createClub(ClubRequest request) {
         String clubName = request.getName();
         String clubDesc = request.getClubDesc();
@@ -135,10 +95,17 @@ public class ClubService {
         }
     }
 
-    /**
-     * Soft deletes a club by marking it as inactive
-     */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CLUB_BY_NAME, key = "#clubName"),
+            @CacheEvict(value = CacheConfig.ALL_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ACTIVE_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.PUBLIC_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ADMIN_RESPONSE, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_PRNS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, allEntries = true)
+    })
     public void deleteClub(String clubName) {
         log.info("Deleting club: {}", clubName);
 
@@ -163,45 +130,37 @@ public class ClubService {
         }
     }
 
-    /**
-     * Retrieves all clubs (including inactive)
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ALL_CLUBS, key = "'all'")
     public List<ClubResponse> getAllClubs() {
-        log.debug("Fetching all clubs");
+        log.debug("Fetching all clubs - Cache miss, loading from DB");
         List<Club> clubs = clubRepository.findAll();
         log.info("Found {} clubs", clubs.size());
         return ClubMapper.toResponseList(clubs);
     }
 
-    /**
-     * Retrieves only active clubs
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ACTIVE_CLUBS, key = "'active'")
     public List<ClubResponse> getActiveClubs() {
-        log.debug("Fetching active clubs");
+        log.debug("Fetching active clubs - Cache miss, loading from DB");
         List<Club> clubs = clubRepository.findAllActiveClubs();
         log.info("Found {} active clubs", clubs.size());
         return ClubMapper.toResponseList(clubs);
     }
 
-    /**
-     * Retrieves public club summaries (only active clubs)
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.PUBLIC_CLUBS, key = "'public'")
     public List<ClubSummaryResponse> getPublicClubSummaries() {
-        log.debug("Fetching public club summaries");
+        log.debug("Fetching public club summaries - Cache miss, loading from DB");
         List<Club> clubs = clubRepository.findAllActiveClubs();
         log.info("Found {} active clubs for public view", clubs.size());
         return ClubMapper.toSummaryResponseList(clubs);
     }
 
-    /**
-     * Retrieves a single club by name
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CLUB_BY_NAME, key = "#clubName")
     public ClubResponse getClubByName(String clubName) {
-        log.debug("Fetching club by name: {}", clubName);
+        log.debug("Fetching club by name: {} - Cache miss, loading from DB", clubName);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
         Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
@@ -210,12 +169,10 @@ public class ClubService {
         return ClubMapper.toResponse(club);
     }
 
-    /**
-     * Retrieves admin dashboard data for a specific club with profile enrichment
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ADMIN_RESPONSE, key = "#clubId")
     public AdminResponse getAdminResponse(Long clubId) {
-        log.debug("Fetching data for the admin request for clubId: {}", clubId);
+        log.debug("Fetching data for the admin request for clubId: {} - Cache miss, loading from DB", clubId);
 
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("Club not found with id: " + clubId));
@@ -234,7 +191,6 @@ public class ClubService {
             teacherPrn = teachers.get(0).getPrn();
             log.debug("Found teacher with PRN: {}", teacherPrn);
             try {
-                // ProfileServiceClient already unwraps and returns ProfileSummaryResponse directly
                 ProfileSummaryResponse teacherProfile = profileServiceClient.getProfileSummary(teacherPrn);
                 System.out.println(teacherProfile);
                 if (teacherProfile != null && teacherProfile.getFullName() != null
@@ -252,7 +208,6 @@ public class ClubService {
             }
         }
 
-        // Get Club Admins (role = "CLUB_ADMIN")
         List<UserClub> admins = userClubRepository.findByClubIdAndRole(clubId, "CLUB_ADMIN");
 
         List<AdminResponse.AdminInfo> clubAdminsList;
@@ -265,7 +220,6 @@ public class ClubService {
                     .distinct()
                     .collect(Collectors.toList());
 
-            // ProfileServiceClient already unwraps and returns Map directly
             Map<String, ProfileSummaryResponse> profileMap =
                     profileServiceClient.getProfileSummariesBulk(uniqueAdminPrns);
 

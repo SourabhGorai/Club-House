@@ -1,5 +1,6 @@
 package com.independent.independent_services.service;
 
+import com.independent.independent_services.config.CacheConfig;
 import com.independent.independent_services.dto.DepartmentResponse;
 import com.independent.independent_services.exception.NotFoundException;
 import com.independent.independent_services.mapper.DepartmentMapper;
@@ -7,6 +8,10 @@ import com.independent.independent_services.model.Department;
 import com.independent.independent_services.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +23,11 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.DEPARTMENTS_LIST_CACHE, allEntries = true)
+    }, put = {
+            @CachePut(value = CacheConfig.DEPARTMENT_CACHE, key = "#result.departmentId")
+    })
     public DepartmentResponse addDepartment(String name) {
 
         log.info("Attempting to add department: {}", name);
@@ -46,10 +56,10 @@ public class DepartmentService {
         return DepartmentMapper.toResponse(saved);
     }
 
-
+    @Cacheable(value = CacheConfig.DEPARTMENTS_LIST_CACHE, key = "'all'")
     public List<DepartmentResponse> getAll() {
 
-        log.info("Attempting to fetch all the departments");
+        log.info("Attempting to fetch all the departments - Cache miss, fetching from DB");
 
         List<Department> list = departmentRepository.findAll();
 
@@ -57,9 +67,10 @@ public class DepartmentService {
 
     }
 
+    @Cacheable(value = CacheConfig.DEPARTMENT_CACHE, key = "#id")
     public DepartmentResponse getById(Long id) {
 
-        log.info("Attempting to fetch department with ID: {}", id);
+        log.info("Attempting to fetch department with ID: {} - Cache miss, fetching from DB", id);
 
         Department resp = departmentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Department", id.toString()));
@@ -83,6 +94,10 @@ public class DepartmentService {
 
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.DEPARTMENT_CACHE, key = "#id"),
+            @CacheEvict(value = CacheConfig.DEPARTMENTS_LIST_CACHE, allEntries = true)
+    })
     public DepartmentResponse delete(Long id) {
 
         log.info("Attemping to delete department with ID: {}", id);

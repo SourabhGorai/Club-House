@@ -2,15 +2,22 @@ package com.userservice.service;
 
 import com.userservice.model.User;
 import com.userservice.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Random;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OtpService {
 
     private final UserRepository userRepository;
@@ -21,15 +28,16 @@ public class OtpService {
     private static final int OTP_LENGTH = 6;
     private static final int OTP_EXPIRY_MINUTES = 10;
 
-    public OtpService(UserRepository userRepository,
-                      JavaMailSender mailSender,
-                      PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.mailSender = mailSender;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    // Generate OTP, save on user and email it
+    /**
+     * Generate OTP, save on user and email it (for existing users - password reset)
+     * Evicts user caches since OTP fields are being updated
+     */
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", allEntries = true), // Evict all since we don't know PRN from email
+            @CacheEvict(value = "userByUsername", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void generateAndSendOtpForEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User with email not found"));
@@ -38,15 +46,26 @@ public class OtpService {
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
         userRepository.save(user);
         sendOtpEmail(email, otp, OTP_EXPIRY_MINUTES);
+        log.info("Generated and sent OTP for email: {}", email);
     }
 
-    // Generate OTP for a non-existing user (registration flow) - user passed in saved state
+    /**
+     * Generate OTP for a non-existing user (registration flow) - user passed in saved state
+     * Evicts user caches since OTP fields are being updated
+     */
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#user.prn"),
+            @CacheEvict(value = "userByUsername", key = "#user.username"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void generateAndSendOtpForUser(User user) {
         String otp = generateOtp();
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
         userRepository.save(user);
         sendOtpEmail(user.getEmail(), otp, OTP_EXPIRY_MINUTES);
+        log.info("Generated and sent OTP for user: {}", user.getUsername());
     }
 
     private String generateOtp() {
@@ -60,41 +79,85 @@ public class OtpService {
         msg.setSubject("Your verification OTP");
         msg.setText("Your OTP is: " + otp + "\nThis OTP is valid for " + validityMinutes + " minutes.");
         mailSender.send(msg);
+        log.debug("Sent OTP email to: {}", toEmail);
     }
 
-    // verify OTP (used for email verification)
+    /**
+     * Verify OTP (used for email verification during registration)
+     * Evicts all user caches since verification status changes
+     * Returns boolean for backward compatibility
+     */
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", allEntries = true), // Evict all since we don't know PRN
+            @CacheEvict(value = "userByUsername", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userValidation", allEntries = true)
+    })
     public boolean verifyOtpForEmail(String email, String otp) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (user.getOtp() == null) return false;
-        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+
+        if (user.getOtp() == null) {
+            log.warn("No OTP found for email: {}", email);
             return false;
         }
-        if (!user.getOtp().equals(otp)) return false;
+
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            log.warn("OTP expired for email: {}", email);
+            return false;
+        }
+
+        if (!user.getOtp().equals(otp)) {
+            log.warn("Invalid OTP for email: {}", email);
+            return false;
+        }
 
         // success: mark verified and clear otp
         user.setVerified(true);
         user.setOtp(null);
         user.setOtpExpiry(null);
         userRepository.save(user);
+        log.info("User {} successfully verified via OTP", email);
         return true;
     }
 
-    // verify OTP and reset password (password passed raw)
+    /**
+     * Verify OTP and reset password (password passed raw)
+     * Evicts all user caches since password is changing
+     * Returns boolean for backward compatibility
+     */
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", allEntries = true), // Evict all since we don't know PRN
+            @CacheEvict(value = "userByUsername", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public boolean verifyOtpAndResetPassword(String email, String otp, String newPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (user.getOtp() == null) return false;
-        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+
+        if (user.getOtp() == null) {
+            log.warn("No OTP found for password reset: {}", email);
             return false;
         }
-        if (!user.getOtp().equals(otp)) return false;
+
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            log.warn("OTP expired for password reset: {}", email);
+            return false;
+        }
+
+        if (!user.getOtp().equals(otp)) {
+            log.warn("Invalid OTP for password reset: {}", email);
+            return false;
+        }
 
         // success -> encode new password, clear otp
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setOtp(null);
         user.setOtpExpiry(null);
         userRepository.save(user);
+        log.info("Password successfully reset for user: {}", email);
         return true;
     }
 }

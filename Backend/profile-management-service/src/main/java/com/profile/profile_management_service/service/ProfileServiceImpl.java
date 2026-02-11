@@ -11,6 +11,9 @@ import com.profile.profile_management_service.model.UserProfile;
 import com.profile.profile_management_service.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Implementation of ProfileService interface
  * Handles all business logic for profile management
+ * NOW WITH CACHING FOR IMPROVED PERFORMANCE
  */
 @Service
 @RequiredArgsConstructor
@@ -49,8 +53,17 @@ public class ProfileServiceImpl implements ProfileService {
     // ========== Core CRUD Operations ==========
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", key = "#result.prn"),
+            @CacheEvict(value = "publicProfile", key = "#result.prn"),
+            @CacheEvict(value = "profileSummary", key = "#result.prn"),
+            @CacheEvict(value = "profileExists", key = "#result.prn"),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public ProfileResponse createProfile(ProfileCreateRequest request) {
-        log.info("Creating profile for PRN: {}", request.getPrn());
+        log.info("Creating profile for PRN: {} (will evict caches)", request.getPrn());
 
         try {
             // Validate uniqueness
@@ -81,8 +94,18 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", allEntries = true),
+            @CacheEvict(value = "publicProfile", allEntries = true),
+            @CacheEvict(value = "profileSummary", allEntries = true),
+            @CacheEvict(value = "profileExists", allEntries = true),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public BulkProfileCreateResponse bulkCreateProfiles(BulkProfileCreateRequest request) {
-        log.info("Starting bulk profile creation for {} profiles", request.getProfiles().size());
+        log.info("Starting bulk profile creation for {} profiles (will evict all caches)",
+                request.getProfiles().size());
 
         List<ProfileResponse> successfulProfiles = new ArrayList<>();
         List<BulkProfileCreateResponse.BulkProfileError> errors = new ArrayList<>();
@@ -136,8 +159,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profileByPrn", key = "#prn", unless = "#result == null")
     public ProfileResponse getProfileByPrn(String prn) {
-        log.debug("Fetching profile by PRN: {}", prn);
+        log.debug("Fetching profile by PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -153,8 +177,19 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", key = "#prn"),
+            @CacheEvict(value = "publicProfile", key = "#prn"),
+            @CacheEvict(value = "profileSummary", key = "#prn"),
+            @CacheEvict(value = "profileExists", key = "#prn"),
+            @CacheEvict(value = "profileImage", key = "#prn"),
+            @CacheEvict(value = "imageMetadata", key = "#prn"),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public ProfileResponse updateProfile(String prn, ProfileUpdateRequest request) {
-        log.info("Updating profile for PRN: {}", prn);
+        log.info("Updating profile for PRN: {} (will evict caches)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -205,8 +240,19 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", key = "#prn"),
+            @CacheEvict(value = "publicProfile", key = "#prn"),
+            @CacheEvict(value = "profileSummary", key = "#prn"),
+            @CacheEvict(value = "profileExists", key = "#prn"),
+            @CacheEvict(value = "profileImage", key = "#prn"),
+            @CacheEvict(value = "imageMetadata", key = "#prn"),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public void deleteProfile(String prn) {
-        log.info("Soft deleting profile for PRN: {}", prn);
+        log.info("Soft deleting profile for PRN: {} (will evict caches)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -248,8 +294,14 @@ public class ProfileServiceImpl implements ProfileService {
     // ========== Image Operations ==========
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileImage", key = "#prn"),
+            @CacheEvict(value = "imageMetadata", key = "#prn"),
+            @CacheEvict(value = "profileByPrn", key = "#prn"),
+            @CacheEvict(value = "publicProfile", key = "#prn")
+    })
     public void uploadProfileImage(String prn, MultipartFile image) {
-        log.info("Uploading profile image for PRN: {}", prn);
+        log.info("Uploading profile image for PRN: {} (will evict caches)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
 
@@ -283,8 +335,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profileImage", key = "#prn", unless = "#result == null")
     public byte[] getProfileImage(String prn) {
-        log.debug("Fetching profile image for PRN: {}", prn);
+        log.debug("Fetching profile image for PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -303,8 +356,14 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileImage", key = "#prn"),
+            @CacheEvict(value = "imageMetadata", key = "#prn"),
+            @CacheEvict(value = "profileByPrn", key = "#prn"),
+            @CacheEvict(value = "publicProfile", key = "#prn")
+    })
     public void deleteProfileImage(String prn) {
-        log.info("Deleting profile image for PRN: {}", prn);
+        log.info("Deleting profile image for PRN: {} (will evict caches)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -329,8 +388,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "imageMetadata", key = "#prn", unless = "#result == null")
     public ImageMetadataResponse getImageMetadata(String prn) {
-        log.debug("Fetching image metadata for PRN: {}", prn);
+        log.debug("Fetching image metadata for PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -347,8 +407,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "allProfiles")
     public List<ProfileResponse> getAllProfiles() {
-        log.debug("Fetching all active profiles");
+        log.debug("Fetching all active profiles (cache miss)");
 
         List<UserProfile> profiles = profileRepository.findByIsActiveTrue();
         log.debug("Found {} active profiles", profiles.size());
@@ -358,8 +419,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profilesByDept", key = "#departmentId")
     public List<ProfileResponse> getProfilesByDepartment(Long departmentId) {
-        log.debug("Fetching profiles for departmentId: {}", departmentId);
+        log.debug("Fetching profiles for departmentId: {} (cache miss)", departmentId);
 
         if (departmentId == null || departmentId <= 0) {
             log.error("Invalid departmentId: {}", departmentId);
@@ -374,8 +436,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profilesByYear", key = "#year")
     public List<ProfileResponse> getProfilesByYear(Integer year) {
-        log.debug("Fetching profiles for year: {}", year);
+        log.debug("Fetching profiles for year: {} (cache miss)", year);
 
         if (year == null || year < 1 || year > 4) {
             log.error("Invalid year: {}", year);
@@ -489,8 +552,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "publicProfile", key = "#prn", unless = "#result == null")
     public PublicProfileResponse getPublicProfile(String prn) {
-        log.debug("Fetching public profile for PRN: {}", prn);
+        log.debug("Fetching public profile for PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -507,8 +571,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profileSummary", key = "#prn", unless = "#result == null")
     public ProfileSummaryResponse getProfileSummary(String prn) {
-        log.debug("Fetching profile summary for PRN: {}", prn);
+        log.debug("Fetching profile summary for PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         UserProfile profile = profileRepository.findByPrnAndIsActiveTrue(sanitizedPrn)
@@ -526,8 +591,17 @@ public class ProfileServiceImpl implements ProfileService {
     // ========== Batch Operations ==========
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", allEntries = true),
+            @CacheEvict(value = "publicProfile", allEntries = true),
+            @CacheEvict(value = "profileSummary", allEntries = true),
+            @CacheEvict(value = "profileExists", allEntries = true),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public BatchOperationResponse createProfilesBatch(BatchProfileRequest request) {
-        log.info("Creating {} profiles in batch", request.getProfiles().size());
+        log.info("Creating {} profiles in batch (will evict all caches)", request.getProfiles().size());
 
         List<BatchOperationResult> results = request.getProfiles().stream()
                 .map(this::createSingleProfileInBatch)
@@ -565,8 +639,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "profileExists", key = "#prn")
     public ProfileExistenceResponse checkProfileExistsByPrn(String prn) {
-        log.debug("Checking profile existence by PRN: {}", prn);
+        log.debug("Checking profile existence by PRN: {} (cache miss)", prn);
 
         String sanitizedPrn = profileMapper.sanitizePrn(prn);
         boolean exists = profileRepository.existsByPrnAndIsActiveTrue(sanitizedPrn);
@@ -681,8 +756,19 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "profileByPrn", key = "#prn"),
+            @CacheEvict(value = "publicProfile", key = "#prn"),
+            @CacheEvict(value = "profileSummary", key = "#prn"),
+            @CacheEvict(value = "profileExists", key = "#prn"),
+            @CacheEvict(value = "profileImage", key = "#prn"),
+            @CacheEvict(value = "imageMetadata", key = "#prn"),
+            @CacheEvict(value = "allProfiles", allEntries = true),
+            @CacheEvict(value = "profilesByDept", allEntries = true),
+            @CacheEvict(value = "profilesByYear", allEntries = true)
+    })
     public void permanentlyDelete(String prn) {
-        log.info("Attempting to delete profile with prn: {}", prn);
+        log.info("Attempting to permanently delete profile with prn: {} (will evict caches)", prn);
 
         if (!profileRepository.existsByPrn(prn)) {
             throw new UserNotFoundException(

@@ -2,6 +2,7 @@ package com.clubservice2.club_service2.service;
 
 import com.clubservice2.club_service2.client.ProfileServiceClient;
 import com.clubservice2.club_service2.client.UserServiceClient;
+import com.clubservice2.club_service2.config.CacheConfig;
 import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
 import com.clubservice2.club_service2.dto.request.UserClubRequest;
 import com.clubservice2.club_service2.dto.response.*;
@@ -14,6 +15,9 @@ import com.clubservice2.club_service2.repository.ClubRepository;
 import com.clubservice2.club_service2.repository.UserClubRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +36,18 @@ public class UserClubService {
     private final UserServiceClient userServiceClient;
     private final ProfileServiceClient profileServiceClient;
 
-    /**
-     * Adds a user to a club with specified role and tenure
-     */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.USER_CLUBS, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.USER_CLUB_NAMES, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_PRNS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_USER_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ADMIN_RESPONSE, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_CLUBS, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.USERS_BY_ROLE, allEntries = true)
+    })
     public UserClubResponse addUserToClub(UserClubRequest request, String requesterPrn, String role) {
         log.info("Adding user {} to club {}", request.getPrn(), request.getClubId());
 
@@ -46,17 +58,14 @@ public class UserClubService {
             );
         }
 
-        // Validate user exists
         userServiceClient.validateUser(request.getPrn());
 
-        // Validate club exists
         Club club = clubRepository.findById(request.getClubId())
                 .orElseThrow(() -> {
                     log.error("Club not found with ID: {}", request.getClubId());
                     return new ClubNotFoundException("Club with ID: " + request.getClubId());
                 });
 
-        // Check if this exact association already exists
         boolean exists = userClubRepository.existsByPrnAndClubClubIdAndRoleAndTenure(
                 request.getPrn(),
                 request.getClubId(),
@@ -75,7 +84,6 @@ public class UserClubService {
             );
         }
 
-        // Create association
         UserClub userClub = UserClub.builder()
                 .prn(request.getPrn())
                 .club(club)
@@ -94,9 +102,6 @@ public class UserClubService {
         }
     }
 
-    /**
-     * Adds multiple users to clubs in bulk
-     */
     @Transactional
     public BulkUserClubResponse addUsersToClubsBulk(
             BulkUserClubRequest request, String prn, String role
@@ -109,12 +114,10 @@ public class UserClubService {
 
         for (UserClubRequest userClubRequest : request.getAssociations()) {
             try {
-                // Attempt to add user to club
                 UserClubResponse response = addUserToClub(userClubRequest, prn, role);
                 successfulAssociations.add(response);
 
             } catch (UserClubAlreadyExistsException ex) {
-                // Get club name for error reporting
                 String clubName = getClubNameById(userClubRequest.getClubId());
 
                 errors.add(BulkUserClubResponse.BulkUserClubError.builder()
@@ -142,7 +145,6 @@ public class UserClubService {
                         .build());
 
             } catch (Exception ex) {
-                // Handle user not found or other errors from UserServiceClient
                 String errorType = "CREATION_ERROR";
                 String errorMessage = ex.getMessage();
 
@@ -179,9 +181,6 @@ public class UserClubService {
                 .build();
     }
 
-    /**
-     * Helper method to get club name by ID
-     */
     private String getClubNameById(Long clubId) {
         try {
             return clubRepository.findById(clubId)
@@ -192,18 +191,11 @@ public class UserClubService {
         }
     }
 
-    /**
-     * Retrieves all clubs for a specific user with profile enrichment
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.USER_CLUBS, key = "#prn")
     public List<ProfileEnrichedUserClubResponse> getUserClubs(String prn, String role) {
-        log.debug("Fetching clubs for user: {}", prn);
+        log.debug("Fetching clubs for user: {} - Cache miss, loading from DB", prn);
 
-//        if(!role.equals("SUPER_ADMIN") && !role.equals("TEACHERS")){
-//            throw new RuntimeException("You are not SUPER_ADMIN or a FACULTY_MEMBER");
-//        }
-
-        // Validate user exists
         userServiceClient.validateUser(prn);
 
         List<UserClub> userClubs = userClubRepository.findByPrn(prn);
@@ -215,7 +207,6 @@ public class UserClubService {
 
         log.info("Found {} clubs for user: {}, enriching with profile data", userClubs.size(), prn);
 
-        // Fetch profile for the single PRN
         ProfileSummaryResponse profile = profileServiceClient.getProfileSummary(prn);
         System.out.println(profile);
 
@@ -224,14 +215,11 @@ public class UserClubService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Retrieves only club names for a specific user (lightweight)
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.USER_CLUB_NAMES, key = "#prn")
     public List<String> getUserClubNames(String prn) {
-        log.debug("Fetching club names for user: {}", prn);
+        log.debug("Fetching club names for user: {} - Cache miss, loading from DB", prn);
 
-        // Validate user exists
         userServiceClient.validateUser(prn);
 
         List<UserClub> userClubs = userClubRepository.findByPrn(prn);
@@ -247,12 +235,10 @@ public class UserClubService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Retrieves all user-club associations with profile enrichment
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ALL_USER_CLUBS, key = "'all'")
     public List<ProfileEnrichedUserClubResponse> getAllUserClubAssociations() {
-        log.debug("Fetching all user-club associations");
+        log.debug("Fetching all user-club associations - Cache miss, loading from DB");
 
         List<UserClub> associations = userClubRepository.findAll();
 
@@ -263,38 +249,28 @@ public class UserClubService {
 
         log.info("Found {} user-club associations, enriching with profiles", associations.size());
 
-        // Extract unique PRNs
         List<String> prns = associations.stream()
                 .map(UserClub::getPrn)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Fetch all profiles in bulk
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(prns);
 
-        // Map with profile enrichment
         return UserClubMapper.toProfileEnrichedResponseList(associations, profileMap);
     }
 
-    /**
-     * Retrieves all members of a specific club with profile enrichment
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CLUB_MEMBERS, key = "#clubName")
     public List<ProfileEnrichedUserClubResponse> getClubMembers(
             String clubName, String prn, String role
     ) {
-        log.debug("Fetching members of club: {}", clubName);
+        log.debug("Fetching members of club: {} - Cache miss, loading from DB", clubName);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
-        // Verify club exists
         Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
                 .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
-
-//        if(!role.equals("SUPER_ADMIN") && !ofThisClub(prn, club.getClubId())){
-//            throw new RuntimeException("Can't look into the members of this club");
-//        }
 
         List<UserClub> members = userClubRepository.findByClubName(sanitizedName);
 
@@ -306,29 +282,33 @@ public class UserClubService {
         log.info("Found {} members for club: {}, enriching with profiles",
                 members.size(), sanitizedName);
 
-        // Extract unique PRNs
         List<String> prns = members.stream()
                 .map(UserClub::getPrn)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Fetch all profiles in bulk
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(prns);
 
-        // Map with profile enrichment
         return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
     }
 
-    /**
-     * Removes a user from a club
-     */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.USER_CLUBS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.USER_CLUB_NAMES, key = "#prn"),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_PRNS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_USER_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ADMIN_RESPONSE, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_CLUBS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.USERS_BY_ROLE, allEntries = true)
+    })
     public void removeUserFromClub(String prn, String clubName,
                                    String requesterPrn, String requesterRole) {
         log.info("Removing user {} from club {}", prn, clubName);
 
-        // Validate user exists
         userServiceClient.validateUser(prn);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
@@ -355,12 +335,10 @@ public class UserClubService {
         }
     }
 
-    /**
-     * Retrieves all PRNs associated with a club
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CLUB_PRNS, key = "#clubName")
     public ClubPrnsResponse getClubPrns(String clubName) {
-        log.debug("Fetching PRNs for club: {}", clubName);
+        log.debug("Fetching PRNs for club: {} - Cache miss, loading from DB", clubName);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
@@ -384,20 +362,16 @@ public class UserClubService {
                 .build();
     }
 
-    /**
-     * Retrieves PRNs of club members filtered by academic year with profile enrichment
-     */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, key = "#clubName + '_' + #year")
     public List<ProfileEnrichedUserClubResponse> getClubMembersByYear(String clubName, Integer year) {
-        log.info("Fetching club members for club {} filtered by year {}", clubName, year);
+        log.info("Fetching club members for club {} filtered by year {} - Cache miss, loading from DB", clubName, year);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
-        // Verify club exists
         Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
                 .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
 
-        // Get all members
         List<UserClub> allMembers = userClubRepository.findByClubName(sanitizedName);
 
         if (allMembers.isEmpty()) {
@@ -405,13 +379,11 @@ public class UserClubService {
             return List.of();
         }
 
-        // Extract all PRNs
         List<String> allPrns = allMembers.stream()
                 .map(UserClub::getPrn)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Filter PRNs by year using profile service
         List<String> filteredPrns = profileServiceClient.filterPrnsByYear(allPrns, year);
 
         if (filteredPrns.isEmpty()) {
@@ -419,7 +391,6 @@ public class UserClubService {
             return List.of();
         }
 
-        // Filter user clubs to only include filtered PRNs
         List<UserClub> filteredMembers = allMembers.stream()
                 .filter(uc -> filteredPrns.contains(uc.getPrn()))
                 .collect(Collectors.toList());
@@ -427,15 +398,24 @@ public class UserClubService {
         log.info("Filtered {} members to {} for club {} and year {}",
                 allMembers.size(), filteredMembers.size(), sanitizedName, year);
 
-        // Fetch profiles in bulk for filtered PRNs
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(filteredPrns);
 
-        // Map with profile enrichment
         return UserClubMapper.toProfileEnrichedResponseList(filteredMembers, profileMap);
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.USER_CLUBS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.USER_CLUB_NAMES, key = "#prn"),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_PRNS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_USER_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ADMIN_RESPONSE, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_CLUBS, key = "#prn"),
+            @CacheEvict(value = CacheConfig.USERS_BY_ROLE, allEntries = true)
+    })
     public void permanentlyDelete(String prn) {
         log.info("Attempting to delete club user with PRN: {}", prn);
 
@@ -450,11 +430,13 @@ public class UserClubService {
         log.info("Deleted {} club memberships for PRN: {}", deletedCount, prn);
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.USERS_BY_ROLE, key = "#role")
     public List<ProfileEnrichedUserClubResponse> getAllByRole(String role) {
 
         String sanitizedRole = UserClubMapper.sanitizeRole(role);
 
-        log.info("Attempting to fetch all the users from clubs with role: {}", sanitizedRole);
+        log.info("Attempting to fetch all the users from clubs with role: {} - Cache miss, loading from DB", sanitizedRole);
 
         List<UserClub> members = userClubRepository.findByRole(sanitizedRole);
 
@@ -466,24 +448,23 @@ public class UserClubService {
         log.info("Found {} members with role: {}, enriching with profiles",
                 members.size(), sanitizedRole);
 
-        // Extract unique PRNs
         List<String> prns = members.stream()
                 .map(UserClub::getPrn)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Fetch all profiles in bulk
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(prns);
 
-        // Map with profile enrichment
         return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
 
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.MY_CLUBS, key = "#prn")
     public List<GeneralClubResponse> getMyClubs(String prn) {
 
-        log.info("Attempting to fetch my clubs for PRN: {}", prn);
+        log.info("Attempting to fetch my clubs for PRN: {} - Cache miss, loading from DB", prn);
 
         List<UserClub> clubs = userClubRepository.findByPrn(prn);
 
@@ -501,7 +482,7 @@ public class UserClubService {
                             .clubName(club.getClubName())
                             .build();
                 })
-                .distinct()   // prevents duplicates if user has multiple roles/tenures in same club
+                .distinct()
                 .toList();
 
         log.info("Found {} clubs for PRN: {}", response.size(), prn);
@@ -529,6 +510,4 @@ public class UserClubService {
                 || clubRole.equals("TEACHERS")
                 || clubRole.equals("TEAM_MEMBERS");
     }
-
-
 }

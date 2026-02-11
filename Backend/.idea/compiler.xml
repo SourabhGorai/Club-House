@@ -20,19 +20,6 @@
         <module name="api-gateway" />
         <module name="user-service" />
       </profile>
-      <profile name="Annotation profile for club-service2" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="club-service2" />
-        <module name="notification-service2" />
-        <module name="independent-services" />
-        <module name="profile-management-service" />
-        <module name="club-service" />
-      </profile>
       <profile name="Annotation profile for event-service2" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -41,6 +28,19 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="event-service2" />
+      </profile>
+      <profile name="Annotation profile for club-service2" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="club-service2" />
+        <module name="independent-services" />
+        <module name="notification-service2" />
+        <module name="profile-management-service" />
+        <module name="club-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
