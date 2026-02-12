@@ -23,6 +23,7 @@ import {
   Camera,
   Trash2,
   Plus,
+  Building2,
 } from "lucide-react";
 
 export default function SuperAdminDashboard() {
@@ -725,7 +726,7 @@ export default function SuperAdminDashboard() {
               <BigActionButton label="Manage Clubs" color="orange" icon={Database} onClick={() => window.location.href = "/manage-clubs"} />
               <BigActionButton label="Club Admins" color="orange" icon={ShieldCheck} onClick={() => window.location.href = "/club-admins"} />
               <BigActionButton label="Add Student" color="cyan" icon={UserPlus} onClick={() => window.location.href = "/add-users-with-club"} />
-              <BigActionButton label="Remove Students From Club" color="pink" icon={X} onClick={() => window.location.href='/remove-users-from-any-club'} />
+              <BigActionButton label="Club Association" color="pink" icon={Building2} onClick={() => window.location.href='/remove-users-from-any-club'} />
               <BigActionButton label="Audit Logs" color="slate" icon={Database} onClick={() => alert("Audit Logs feature")} />
             </div>
           </section>
