@@ -29,7 +29,7 @@
         </processorPath>
         <module name="event-service2" />
       </profile>
-      <profile name="Annotation profile for club-service2" enabled="true">
+      <profile name="Annotation profile for profile-management-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

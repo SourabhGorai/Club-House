@@ -52,7 +52,7 @@ const RemoveUsersFromAnyClub = () => {
   const fetchUserClubs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/api/user-clubs', {
+      const response = await axios.get('http://localhost:8080/api/user-clubs/getAll', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.data.success) {
