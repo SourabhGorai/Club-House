@@ -570,7 +570,7 @@ const UserManagement = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold tracking-wide text-[#4C1D95]">Back to Dashboard</span>
+              {/* <span className="text-sm font-semibold tracking-wide text-[#4C1D95]">Back to Dashboard</span> */}
             </button>
             
             <div className="text-left">

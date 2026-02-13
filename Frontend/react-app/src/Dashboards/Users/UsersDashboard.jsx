@@ -2157,3 +2157,359 @@ function FormInput({ label, ...props }) {
     </div>
   );
 }
+
+// import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Settings, BookOpen, ShieldCheck, Mail, Phone, AtSign } from "lucide-react";
+// import { useState, useEffect } from "react";
+// import axios from "axios";
+
+// export default function UsersDashboard() {
+//   const user = JSON.parse(localStorage.getItem("user"));
+//   const token = localStorage.getItem("token");
+//   const [showProfileForm, setShowProfileForm] = useState(false);
+//   const [profileData, setProfileData] = useState({
+//     prn: user?.prn || "",
+//     fullName: "",
+//     departmentId: "",
+//     year: "",
+//     phoneNumber: "",
+//   });
+//   const [selectedImage, setSelectedImage] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [message, setMessage] = useState("");
+//   const [userProfile, setUserProfile] = useState(null);
+//   const [profileImage, setProfileImage] = useState(null);
+//   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+//   const [departments, setDepartments] = useState([]);
+
+//   useEffect(() => {
+//     fetchUserProfile();
+//     fetchDepartments();
+//   }, []);
+
+//   useEffect(() => {
+//     if (departments.length > 0 && profileData.departmentId && typeof profileData.departmentId === "string" && isNaN(profileData.departmentId)) {
+//       const dept = departments.find((d) => d.name === profileData.departmentId);
+//       if (dept) {
+//         setProfileData((prev) => ({ ...prev, departmentId: dept.departmentId }));
+//       }
+//     }
+//   }, [departments, profileData.departmentId]);
+
+//   const fetchDepartments = async () => {
+//     try {
+//       const response = await axios.get("http://localhost:8080/api/department", {
+//         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+//       });
+//       if (response.data && response.data.data) setDepartments(response.data.data);
+//     } catch (error) {
+//       console.error("Error fetching departments:", error);
+//     }
+//   };
+
+//   const fetchUserProfile = async () => {
+//     try {
+//       setIsLoadingProfile(true);
+//       const response = await axios.get(`http://localhost:8080/api/profiles/prn/${user?.prn}`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+
+//       if (response.data) {
+//         setUserProfile(response.data);
+//         let deptId = "";
+//         if (response.data.data.department) {
+//           deptId = typeof response.data.data.department === "object" ? response.data.data.department.departmentId : response.data.data.department;
+//         }
+
+//         setProfileData({
+//           prn: response.data.data.prn || user?.prn || "",
+//           fullName: response.data.data.fullName || "",
+//           departmentId: deptId,
+//           year: response.data.data.year || "",
+//           phoneNumber: response.data.data.phoneNumber || "",
+//         });
+//         fetchProfileImage();
+//       }
+//     } catch (error) {
+//       console.error("Error fetching profile:", error);
+//     } finally {
+//       setIsLoadingProfile(false);
+//     }
+//   };
+
+//   const fetchProfileImage = async () => {
+//     try {
+//       const response = await axios.get(`http://localhost:8080/api/profiles/${user?.prn}/image`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//         responseType: "blob",
+//       });
+//       if (response.data) setProfileImage(URL.createObjectURL(response.data));
+//     } catch (error) {
+//       setProfileImage(null);
+//     }
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     window.location.href = "/login";
+//   };
+
+//   const handleSubmitProfile = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     try {
+//       const requestData = {
+//         fullName: profileData.fullName,
+//         departmentId: parseInt(profileData.departmentId),
+//         year: profileData.year,
+//         phoneNumber: profileData.phoneNumber,
+//       };
+
+//       if (userProfile) {
+//         await axios.put(`http://localhost:8080/api/profiles/${profileData.prn}`, requestData, {
+//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+//         });
+//       } else {
+//         await axios.post("http://localhost:8080/api/profiles", { ...requestData, prn: profileData.prn }, {
+//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+//         });
+//       }
+
+//       if (selectedImage) {
+//         const formData = new FormData();
+//         formData.append("image", selectedImage);
+//         await axios.post(`http://localhost:8080/api/profiles/${profileData.prn}/image`, formData, {
+//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+//         });
+//       }
+
+//       fetchUserProfile();
+//       setShowProfileForm(false);
+//     } catch (error) {
+//       setMessage("Error saving profile.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const getDepartmentName = (id) => {
+//     if (typeof id === "string" && isNaN(id)) return id;
+//     const dept = departments.find((d) => d.departmentId === parseInt(id));
+//     return dept ? dept.name : "Not set";
+//   };
+
+//   return (
+//     <div className="flex min-h-screen bg-[#F8FAFC]">
+//       {/* SIDEBAR - Wide and Detailed */}
+//       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
+//         <div className="flex items-center gap-3 mb-8">
+//           <div className="bg-[#7C3AED] p-2 rounded-xl">
+//             <LayoutDashboard className="text-white w-7 h-7" />
+//           </div>
+//           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">User<span className="text-[#7C3AED]">Portal</span></h1>
+//         </div>
+
+//         {/* Profile Image Section */}
+//         <div className="relative group mx-auto mb-6">
+//           <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+//             {profileImage ? (
+//               <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+//             ) : (
+//               <div className="w-full h-full flex items-center justify-center text-gray-400">
+//                 <User size={48} />
+//               </div>
+//             )}
+//           </div>
+//           <button 
+//             onClick={() => setShowProfileForm(true)}
+//             className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 text-[#7C3AED] hover:scale-110 transition-transform"
+//           >
+//             <Edit size={18} />
+//           </button>
+//         </div>
+
+//         <div className="text-center mb-6">
+//           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">{profileData.fullName || user?.username}</h2>
+//           <span className="mt-2 inline-block text-[10px] font-black bg-[#7C3AED]/10 text-[#7C3AED] px-4 py-1.5 rounded-full uppercase tracking-widest">
+//             {user?.role || "USERS"}
+//           </span>
+//         </div>
+
+//         {/* DETAILED INFO LIST - Scrollable if content overflows */}
+//         <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
+//           <SidebarInfoBox label="Full Name" value={profileData.fullName} />
+//           <SidebarInfoBox label="Username" value={user?.username} />
+//           <SidebarInfoBox label="PRN / ID" value={profileData.prn} />
+//           <SidebarInfoBox label="Email" value={user?.email} />
+//           <SidebarInfoBox label="Department" value={getDepartmentName(profileData.departmentId)} />
+//           <SidebarInfoBox label="Year" value={profileData.year} />
+//           <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
+//         </div>
+
+//         {/* Sign Out Button */}
+//         <button 
+//           onClick={handleLogout}
+//           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100"
+//         >
+//           <LogOut size={20} /> Sign Out
+//         </button>
+//       </aside>
+
+//       {/* MAIN CONTENT AREA */}
+//       <main className="flex-1 p-10">
+//         <header className="flex justify-between items-center mb-10">
+//           <div>
+//             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
+//             <p className="text-gray-500 mt-1">Welcome back, <span className="text-[#7C3AED] font-semibold">{user?.username}</span>. System is healthy.</p>
+//           </div>
+//           <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
+//             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+//             <span className="text-xs font-bold uppercase tracking-widest">All Systems Live</span>
+//           </div>
+//         </header>
+
+//         {/* Statistics Grid */}
+//         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+//           <StatCard icon={<CalendarDays />} label="Joined Clubs" value="0" color="blue" />
+//           <StatCard icon={<BookOpen />} label="Total Events" value="12" color="orange" />
+//           <StatCard icon={<ShieldCheck />} label="Verified Status" value={user?.verified ? "Verified" : "Pending"} color="purple" isStatus />
+//         </div>
+
+//         {/* Control Center Section */}
+//         <section>
+//           <div className="flex items-center gap-4 mb-8">
+//             <h2 className="text-xl font-bold text-gray-800">Control Center</h2>
+//             <div className="h-[1px] flex-1 bg-gray-100"></div>
+//           </div>
+
+//           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+//             <ActionCard icon={<CalendarDays className="text-blue-500" />} label="Events" color="blue" />
+//             <ActionCard icon={<User className="text-orange-500" />} label="My Clubs" color="orange" />
+//             <ActionCard icon={<BookOpen className="text-green-500" />} label="Resources" color="green" />
+//             <ActionCard icon={<Settings className="text-purple-500" />} label="Settings" color="purple" />
+//           </div>
+//         </section>
+//       </main>
+
+//       {/* Profile Form Modal */}
+//       {showProfileForm && (
+//         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+//           <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
+//             <div className="flex justify-between items-center mb-8">
+//               <h3 className="text-2xl font-bold text-gray-800">{userProfile ? "Edit Profile" : "Complete Profile"}</h3>
+//               <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
+//                 <X size={20} />
+//               </button>
+//             </div>
+            
+//             <form onSubmit={handleSubmitProfile} className="space-y-5">
+//               <div className="grid grid-cols-2 gap-4">
+//                 <FormInput label="PRN (Read Only)" value={profileData.prn} readOnly />
+//                 <FormInput label="Full Name" value={profileData.fullName} onChange={(e) => setProfileData({...profileData, fullName: e.target.value})} required />
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="space-y-1">
+//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">Department</label>
+//                   <select 
+//                     value={profileData.departmentId} 
+//                     onChange={(e) => setProfileData({...profileData, departmentId: e.target.value})}
+//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium"
+//                     required
+//                   >
+//                     <option value="">Select Dept</option>
+//                     {departments.map(dept => <option key={dept.departmentId} value={dept.departmentId}>{dept.name}</option>)}
+//                   </select>
+//                 </div>
+//                 <div className="space-y-1">
+//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">Year</label>
+//                   <select 
+//                     value={profileData.year} 
+//                     onChange={(e) => setProfileData({...profileData, year: e.target.value})}
+//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium"
+//                     required
+//                   >
+//                     <option value="">Select Year</option>
+//                     {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
+//                   </select>
+//                 </div>
+//               </div>
+
+//               <FormInput label="Phone Number" value={profileData.phoneNumber} onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})} required />
+
+//               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-[#7C3AED]/30 transition-colors">
+//                 <input type="file" accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} className="hidden" id="profile-upload" />
+//                 <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#7C3AED]">
+//                   <Upload size={24} />
+//                   <span className="text-sm font-semibold">{selectedImage ? selectedImage.name : "Upload Profile Photo"}</span>
+//                 </label>
+//               </div>
+
+//               <button 
+//                 type="submit" 
+//                 disabled={loading}
+//                 className="w-full bg-[#7C3AED] text-white py-4 rounded-2xl font-bold shadow-lg shadow-purple-100 hover:bg-[#6D28D9] transition-all disabled:opacity-50"
+//               >
+//                 {loading ? "Saving..." : userProfile ? "Update Profile" : "Complete Profile"}
+//               </button>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// /* HELPER COMPONENTS */
+// function SidebarInfoBox({ label, value }) {
+//   return (
+//     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent hover:border-gray-100 transition-colors group">
+//       <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest group-hover:text-[#7C3AED] transition-colors">{label}</p>
+//       <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
+//     </div>
+//   );
+// }
+
+// function StatCard({ icon, label, value, color, isStatus }) {
+//   const bgColors = { blue: "bg-blue-50 text-blue-500", orange: "bg-orange-50 text-orange-500", purple: "bg-purple-50 text-purple-500" };
+//   return (
+//     <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6">
+//       <div className={`${bgColors[color]} p-5 rounded-[1.5rem]`}>{icon}</div>
+//       <div>
+//         <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
+//         <h3 className={`text-2xl font-black tracking-tight ${isStatus ? (value === "Verified" ? "text-green-500" : "text-amber-500") : "text-gray-800"}`}>
+//           {value}
+//         </h3>
+//       </div>
+//     </div>
+//   );
+// }
+
+// function ActionCard({ icon, label, color }) {
+//   const themes = {
+//     blue: "bg-blue-50/40 hover:bg-blue-50",
+//     orange: "bg-orange-50/40 hover:bg-orange-50",
+//     green: "bg-green-50/40 hover:bg-green-50",
+//     purple: "bg-purple-50/40 hover:bg-purple-50"
+//   };
+//   return (
+//     <button className={`${themes[color]} p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm`}>
+//       <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1">
+//         {icon}
+//       </div>
+//       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
+//     </button>
+//   );
+// }
+
+// function FormInput({ label, ...props }) {
+//   return (
+//     <div className="space-y-1">
+//       <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">{label}</label>
+//       <input 
+//         className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium transition-all"
+//         {...props} 
+//       />
+//     </div>
+//   );
+// }
