@@ -14,4 +14,6 @@ import lombok.NoArgsConstructor;
 public class GeneralClubResponse {
     private Long clubId;
     private String clubName;
+    private String desc;
+    private Long memberCount;
 }

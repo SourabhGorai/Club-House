@@ -476,10 +476,12 @@ public class UserClubService {
         List<GeneralClubResponse> response = clubs.stream()
                 .map(userClub -> {
                     Club club = userClub.getClub();
-
+                    Long size = userClubRepository.countByClub_ClubId(club.getClubId());
                     return GeneralClubResponse.builder()
                             .clubId(club.getClubId())
                             .clubName(club.getClubName())
+                            .desc(club.getClubDesc())
+                            .memberCount(size)
                             .build();
                 })
                 .distinct()
