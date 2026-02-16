@@ -278,9 +278,11 @@ public class GatewayConfig {
 
                 .route("user-club-teacher", r -> r
                         .path("/api/user-clubs/user/**",
-                                "/api/user-clubs")
+                                "/api/user-clubs",
+                                "/api/user-clubs/user/{prn}/club/{clubName}")
+
                         .and()
-                        .method("GET", "POST")
+                        .method("GET", "POST", "DELETE")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(

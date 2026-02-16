@@ -31,10 +31,10 @@ public class EventController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @RequestBody EventRequest req,
-            HttpServletRequest request  // ← Changed
+            HttpServletRequest request
     ) {
         log.info("REST received to create event");
-        String prn = jwtService.extractPrnFromHeaders(request);  // ← Changed
+        String prn = jwtService.extractPrnFromHeaders(request);
         EventResponse response = eventService.createEvent(req, prn);
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully created Event",
@@ -57,7 +57,7 @@ public class EventController {
     // this will give the events which I have created till date
     @GetMapping("/myEvents")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
-            HttpServletRequest request  // ← Changed
+            HttpServletRequest request
     ) {
         String prn = jwtService.extractPrnFromHeaders(request);  // ← Changed
         log.info("REST received to get events created by PRN: {}", prn);
