@@ -2066,7 +2066,7 @@ export default function ManageClubs() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 mb-8 gap-4">
                   <div>
-                    <h2 className="text-5xl font-black text-[#4C1D95] tracking-tight">{selectedClub.clubName}</h2>
+                    <h2 className="text-5xl font-black text-[#8B5CF6] tracking-tight">{selectedClub.clubName}</h2>
                     <p className="text-gray-400 mt-2 font-medium">Dashboard Overview • Founded {formatDate(selectedClub.createdAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -2093,11 +2093,11 @@ export default function ManageClubs() {
                           className="stat-card p-6 rounded-2xl cursor-pointer hover:shadow-xl transition-all duration-300 group"
                           onClick={handleMembersClick}
                         >
-                          <MembersIcon className="text-purple-500 mb-3 group-hover:scale-110 transition-transform" /> 
-                          <span className="text-4xl font-black text-purple-600 group-hover:text-purple-700">
+                          <MembersIcon className="text-teal-600 mb-3 group-hover:scale-110 transition-transform" /> 
+                          <span className="text-4xl font-black text-teal-600 group-hover:text-teal-700">
                             {adminData?.totalCount || 0}
                           </span> 
-                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-purple-400">
+                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-teal-400">
                             Active Members
                           </p>
                         </div>
@@ -2117,7 +2117,7 @@ export default function ManageClubs() {
                           <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
                             <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
                             <div className="flex flex-col sm:flex-row items-center gap-3">
-                              <span className="font-bold text-[#4C1D95] text-center sm:text-left">
+                              <span className="font-bold text-black text-center sm:text-left">
                                 {adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}
                               </span>
                               {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
@@ -2145,7 +2145,7 @@ export default function ManageClubs() {
 
                           <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
                             <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Contact Email:</span>
-                            <span className="font-bold text-purple-400">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
+                            <span className="font-bold text-black">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
                           </div>
                         </div>
                       </div>

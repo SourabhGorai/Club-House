@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate } from 'react-router-dom';
 import {
   User,
   Mail,
@@ -49,7 +48,7 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   );
 };
 
-// Filter Modal Component - UPDATED with Role Selection
+// Filter Modal Component
 const FilterModal = ({ 
   isOpen, 
   onClose, 
@@ -69,7 +68,6 @@ const FilterModal = ({
   const roles = [
     { label: 'Users', value: 'USERS' },
     { label: 'Teachers', value: 'TEACHERS' },
-    // { label: 'Club Admin', value: 'CLUB_ADMIN' },
     { label: 'Super Admin', value: 'SUPER_ADMIN' }
   ];
 
@@ -90,7 +88,7 @@ const FilterModal = ({
         </div>
 
         <div className="space-y-6">
-          {/* Role Filter - NEW */}
+          {/* Role Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               User Role
@@ -232,7 +230,8 @@ const customStyles = `
 
     .user-card-container {
         perspective: 1000px;
-        height: 20rem; 
+        height: 20rem;
+        cursor: pointer;
     }
 
     .user-card {
@@ -258,6 +257,10 @@ const customStyles = `
         padding: 1.5rem;
     }
 
+    .card-face button {
+        cursor: pointer;
+    }
+
     .card-back {
         transform: rotateY(180deg);
         background: linear-gradient(135deg, #8B5CF6, #A78BFA);
@@ -269,7 +272,7 @@ const customStyles = `
 // ----------------------------------------------------------------
 
 const UserManagement = () => {
-  const navigate = useNavigate(); // Add navigate hook
+  const navigate = useNavigate();
   
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -294,7 +297,7 @@ const UserManagement = () => {
 
   // Back button handler
   const handleGoBack = () => {
-    navigate(-1); // Navigate to previous page
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -396,8 +399,6 @@ const UserManagement = () => {
     setYears(Array.from(yearSet).sort((a, b) => a - b));
   };
 
-  // --- Filter Functions Updated to include Role ---
-
   const handleFilterChange = (newDept = selectedDept, newYear = selectedYear, newRole = selectedRole) => {
     setSelectedDept(newDept);
     setSelectedYear(newYear);
@@ -413,12 +414,12 @@ const UserManagement = () => {
       try {
         let usersToFilter = [...users];
         
-        // 1. Filter by Role (Client Side)
+        // Filter by Role
         if (newRole) {
           usersToFilter = usersToFilter.filter(user => user.role === newRole);
         }
 
-        // 2. Filter by Department (Client Side)
+        // Filter by Department
         if (newDept) {
           usersToFilter = usersToFilter.filter((user) => {
             const profile = userProfiles[user.prn];
@@ -426,7 +427,7 @@ const UserManagement = () => {
           });
         }
         
-        // 3. Filter by Year (API + Client Fallback)
+        // Filter by Year
         if (newYear) {
           try {
             const response = await axios.get(
@@ -496,8 +497,6 @@ const UserManagement = () => {
         return 'bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30';
       case 'TEACHERS':
         return 'bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30';
-      // case 'CLUB_ADMIN':
-      //   return 'bg-orange-400 text-white font-bold shadow-md shadow-orange-400/30';
       case 'USERS':
         return 'bg-blue-400 text-white font-bold shadow-md shadow-blue-400/30';
       default:
@@ -553,10 +552,9 @@ const UserManagement = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header with Back Button - Glassmorphism Style */}
+        {/* Header with Back Button */}
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div className="flex items-center gap-6">
-            {/* Glassmorphism Back Button - Same as ManageClubs */}
             <button
               onClick={handleGoBack}
               className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 hover:border-white/40 text-[#4C1D95] font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -570,7 +568,6 @@ const UserManagement = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </div>
-              {/* <span className="text-sm font-semibold tracking-wide text-[#4C1D95]">Back to Dashboard</span> */}
             </button>
             
             <div className="text-left">
@@ -578,8 +575,7 @@ const UserManagement = () => {
                 User Directory & Access Control
               </h1>
               <p className="text-gray-500 mt-2 text-lg">
-                Manage all staff, teachers, and club administrators. Hover over
-                cards for details.
+                Manage all staff, teachers, and club administrators.
               </p>
             </div>
           </div>
@@ -705,19 +701,25 @@ const UserManagement = () => {
                   <div
                     key={userItem.prn || userItem.id}
                     className={`user-card-container ${isFlipped ? "flipped" : ""}`}
-                    onClick={() =>
-                      setOpenOverlayFor(isFlipped ? null : userItem.prn)
-                    }
+                    onClick={() => setOpenOverlayFor(isFlipped ? null : userItem.prn)}
                   >
                     <div className="user-card">
                       {/* Front of Card */}
                       <div className="card-face bg-white border border-gray-200 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-xl hover:border-[#A78BFA]">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl mb-4">
                           {imageUrl ? (
-                            <img src={imageUrl} alt={userItem.username} className="w-full h-full object-cover" />
+                            <img 
+                              src={imageUrl} 
+                              alt={userItem.username} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.style.display = 'none';
+                              }}
+                            />
                           ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-3xl font-display font-bold text-gray-600">
+                            <div className="w-full h-full bg-gradient-to-br from-[#8B5CF6] to-[#A78BFA] flex items-center justify-center">
+                              <span className="text-3xl font-display font-bold text-white">
                                 {userItem.username?.charAt(0)?.toUpperCase() ?? "?"}
                               </span>
                             </div>
@@ -733,6 +735,7 @@ const UserManagement = () => {
                             {userItem.role?.replace("_", " ") || "STANDARD USER"}
                           </span>
                         </div>
+
                       </div>
 
                       {/* Back of Card */}
@@ -808,9 +811,9 @@ export default UserManagement;
 
 
 
-
 // import { useState, useEffect } from 'react';
 // import axios from 'axios';
+// import { useNavigate } from 'react-router-dom'; // Add this import
 // import {
 //   User,
 //   Mail,
@@ -1078,6 +1081,8 @@ export default UserManagement;
 // // ----------------------------------------------------------------
 
 // const UserManagement = () => {
+//   const navigate = useNavigate(); // Add navigate hook
+  
 //   const [users, setUsers] = useState([]);
 //   const [filteredUsers, setFilteredUsers] = useState([]);
 //   const [userProfiles, setUserProfiles] = useState({});
@@ -1091,13 +1096,18 @@ export default UserManagement;
 //   // Filter states
 //   const [selectedDept, setSelectedDept] = useState('');
 //   const [selectedYear, setSelectedYear] = useState('');
-//   const [selectedRole, setSelectedRole] = useState(''); // NEW ROLE STATE
+//   const [selectedRole, setSelectedRole] = useState('');
 //   const [departments, setDepartments] = useState([]);
 //   const [years, setYears] = useState([]);
 //   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 //   const [isLoadingFilteredUsers, setIsLoadingFilteredUsers] = useState(false);
 
 //   const token = localStorage.getItem("token");
+
+//   // Back button handler
+//   const handleGoBack = () => {
+//     navigate(-1); // Navigate to previous page
+//   };
 
 //   useEffect(() => {
 //     fetchAllData();
@@ -1355,16 +1365,39 @@ export default UserManagement;
 //       />
 
 //       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//         <div className="mb-10 text-center">
-//           <h1 className="font-display text-4xl font-extrabold text-[#4C1D95] tracking-tight">
-//             User Directory & Access Control
-//           </h1>
-//           <p className="text-gray-500 mt-2 text-lg">
-//             Manage all staff, teachers, and club administrators. Hover over
-//             cards for details.
-//           </p>
+//         {/* Header with Back Button - Glassmorphism Style */}
+//         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+//           <div className="flex items-center gap-6">
+//             {/* Glassmorphism Back Button - Same as ManageClubs */}
+//             <button
+//               onClick={handleGoBack}
+//               className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 hover:border-white/40 text-[#4C1D95] font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl"
+//               style={{
+//                 background: "rgba(255, 255, 255, 0.7)",
+//                 backdropFilter: "blur(8px)"
+//               }}
+//             >
+//               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#8B5CF6]/10 group-hover:bg-[#8B5CF6]/20 transition-all duration-300">
+//                 <svg className="w-3.5 h-3.5 text-[#8B5CF6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+//                 </svg>
+//               </div>
+//               {/* <span className="text-sm font-semibold tracking-wide text-[#4C1D95]">Back to Dashboard</span> */}
+//             </button>
+            
+//             <div className="text-left">
+//               <h1 className="font-display text-4xl font-extrabold text-[#4C1D95] tracking-tight">
+//                 User Directory & Access Control
+//               </h1>
+//               <p className="text-gray-500 mt-2 text-lg">
+//                 Manage all staff, teachers, and club administrators. Hover over
+//                 cards for details.
+//               </p>
+//             </div>
+//           </div>
 //         </div>
 
+//         {/* Stats and Filter Bar */}
 //         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
 //           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 //             <div>
@@ -1457,6 +1490,7 @@ export default UserManagement;
 //           </div>
 //         </div>
 
+//         {/* Users Grid */}
 //         <div className="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
 //           {isLoadingFilteredUsers ? (
 //             <div className="text-center py-12">
@@ -1583,3 +1617,7 @@ export default UserManagement;
 // };
 
 // export default UserManagement;
+
+
+
+
