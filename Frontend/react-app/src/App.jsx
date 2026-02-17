@@ -14,6 +14,7 @@ import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyCl
 
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
+import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 
 
 export default function App() {
@@ -74,6 +75,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* <Route
+          path="/club-admins"
+          element={
+            <ProtectedRoute>
+              <ClubAdminsManagement />
+            </ProtectedRoute>
+          }
+        /> */}
+
         <Route
           path="/manage-users"
           element={

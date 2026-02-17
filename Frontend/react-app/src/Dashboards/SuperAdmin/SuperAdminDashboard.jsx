@@ -40,6 +40,7 @@ export default function SuperAdminDashboard() {
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
+  const [clubAdmins, setCount] = useState({});
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -68,9 +69,26 @@ export default function SuperAdminDashboard() {
   const [deptMessage, setDeptMessage] = useState({ text: "", type: "" });
 
   useEffect(() => {
+    fetchUserCount();
     fetchAllData();
     fetchUserProfile();
   }, []);
+
+  const fetchUserCount = async () => {
+    try {      const response = await axios.get(
+      "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    setCount(response.data.data.length);
+  } catch (error) {
+    console.error("Error fetching club admin count:", error);
+  }
+};
 
   // Fetch all users and calculate stats
   const fetchAllData = async () => {
@@ -100,33 +118,37 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Fetch departments
   const fetchDepartments = async () => {
-    setDeptLoading(true);
-    setDeptMessage({ text: "", type: "" });
-    try {
-      const response = await axios.get("http://localhost:8080/api/department", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+  setDeptLoading(true);
+  setDeptMessage({ text: "", type: "" });
+  try {
+    const response = await axios.get("http://localhost:8080/api/department", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (response.data.success) {
-        setDepartments(response.data.data || []);
-      } else {
-        setDeptMessage({
-          text: response.data.message || "Failed to fetch departments",
-          type: "error",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-      setDeptMessage({ text: "Error fetching departments", type: "error" });
-    } finally {
-      setDeptLoading(false);
+    console.log("Departments fetched:", response.data.data);
+
+    // The API returns data in response.data.data
+    if (response.data.success && response.data.data) {
+      setDepartments(response.data.data);
+    } else {
+      setDepartments([]); // Set empty array if no data
+      setDeptMessage({
+        text: response.data.message || "No departments found",
+        type: "error",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Error fetching departments:", error);
+    setDepartments([]); // Set empty array on error
+    setDeptMessage({ text: "Error fetching departments", type: "error" });
+  } finally {
+    setDeptLoading(false);
+  }
+};
 
   // Handle department form submission (Create/Update)
   const handleDeptSubmit = async (e) => {
@@ -763,7 +785,7 @@ export default function SuperAdminDashboard() {
             />
             <StatCard
               title="Club Admins"
-              count={stats.CLUB_ADMIN || 0}
+              count={clubAdmins || 0}
               color="emerald"
               icon={ShieldCheck}
             />
