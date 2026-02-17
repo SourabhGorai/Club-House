@@ -1,5 +1,4 @@
-
-
+import { useFilteredUsersCount } from './UserRemoveFromClub';
 import {
   Calendar,
   Trophy,
@@ -15,7 +14,8 @@ import {
   BookOpen,
   Trash2,
   Mail,
-  GraduationCap
+  GraduationCap,
+  Building2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -41,6 +41,9 @@ export default function TeachersDashboard() {
   const [profileImage, setProfileImage] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [departments, setDepartments] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [error, setError] = useState(null);
+  const assignedStudentsCount = useFilteredUsersCount();
 
   useEffect(() => {
     fetchUserProfile();
@@ -156,7 +159,42 @@ export default function TeachersDashboard() {
     return dept ? dept.name : "Not set";
   };
 
-  
+  useEffect(() => {
+        fetchUserClubs();
+    }, []);
+
+    const fetchUserClubs = async () => {
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem('token'); // or 'authToken' depending on your key name
+            // or if using Bearer format
+            // const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                setError('No authentication token found');
+                
+                return;
+            }
+
+            const response = await axios.get('http://localhost:8080/api/user-clubs/getMyClubs', {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Adjust based on your token format
+                }
+            });
+
+            if (response.data.success) {
+                setClubs(response.data.data);
+                setError(null);
+            } else {
+                setError('Failed to fetch clubs');
+            }
+        } catch (err) {
+            console.error('Error fetching clubs:', err);
+            setError(err.response?.data?.message || 'Error fetching clubs');
+        } finally {
+            
+        }
+    };
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -229,10 +267,50 @@ export default function TeachersDashboard() {
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <StatCard icon={<Calendar className="w-6 h-6" />} label="Events Managed" value="0" color="blue" />
-          <StatCard icon={<Trophy className="w-6 h-6" />} label="Advised Clubs" value="0" color="green" />
-          <StatCard icon={<Users className="w-6 h-6" />} label="Assigned Students" value="0" color="orange" />
+          <StatCard icon={<Trophy className="w-6 h-6" />} label="My Clubs" value={clubs.length.toString()} color="green" />
+          <StatCard icon={<Users className="w-6 h-6" />} label="Assigned Students" value={assignedStudentsCount.toString()} color="orange" />
         </div>
 
+{/* Clubs List Section */}
+{clubs.length > 0 && (
+  <section className="mt-12">
+    <div className="flex items-center gap-4 mb-8">
+      <h2 className="text-xl font-bold text-gray-800">My Clubs</h2>
+      <div className="h-[1px] flex-1 bg-gray-100"></div>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {clubs.map((club) => (
+        <div 
+          key={club.clubId} 
+          className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-md transition-all"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-green-50 p-3 rounded-xl">
+              <Trophy className="w-5 h-5 text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800">{club.clubName}</h3>
+          </div>
+          
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{club.desc}</p>
+          
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Users size={16} />
+              <span>{club.memberCount} {club.memberCount === 1 ? 'Member' : 'Members'}</span>
+            </div>
+            <button 
+              onClick={() => console.log('View club:', club.clubId)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+            >
+              View Details →
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
         {/* CONTROL CENTER */}
         <section>
           <div className="flex items-center gap-4 mb-8">
@@ -250,8 +328,8 @@ export default function TeachersDashboard() {
               onClick={() => navigate("/add-users-with-club")}
             />
             <ActionCard 
-              icon={<X className="text-orange-500" />} 
-              label="Remove Student" 
+              icon={<Building2 className="text-orange-500" />} 
+              label="Club Association" 
               color="orange" 
               onClick={() => navigate("/remove-users-from-club")}
             />

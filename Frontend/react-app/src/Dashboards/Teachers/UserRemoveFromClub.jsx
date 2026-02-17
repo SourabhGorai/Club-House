@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -13,6 +12,69 @@ import {
   Briefcase,
   Layers
 } from 'lucide-react';
+
+
+export const useFilteredUsersCount = () => {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        
+        if (user?.role === 'TEACHERS' || user?.role === 'TEACHERS') {
+          // For teachers, fetch their students
+          const clubsResponse = await axios.get(
+            `http://localhost:8080/api/user-clubs/user/${user.prn}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          
+          if (clubsResponse.data.success) {
+            const teacherRoleClubs = clubsResponse.data.data.filter(club => 
+              ['TEACHER', 'TEACHERS'].includes(club.role.toUpperCase())
+            );
+            
+            let totalStudents = 0;
+            for (const club of teacherRoleClubs) {
+              const studentsResponse = await axios.get(
+                `http://localhost:8080/api/user-clubs/club/${club.clubName}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              
+              if (studentsResponse.data.success) {
+                const students = studentsResponse.data.data.filter(user => 
+                  ['TEAM_MEMBER', 'CLUB_ADMIN'].includes(user.role.toUpperCase())
+                );
+                totalStudents += students.length;
+              }
+            }
+            setCount(totalStudents);
+          }
+        } else {
+          // For non-teachers, fetch all user-clubs
+          const response = await axios.get('http://localhost:8080/api/user-clubs', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.data.success) {
+            const nonTeacherUsers = response.data.data.filter(user => 
+              user.role.toUpperCase() !== 'TEACHERS'
+            );
+            setCount(nonTeacherUsers.length);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching count:', err);
+        setCount(0);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  return count;
+};
 
 const UserRemoveFromClub = () => {
   const [userClubs, setUserClubs] = useState([]);
@@ -387,7 +449,7 @@ if (loading || loadingClubs) {
                                 ? 'bg-purple-50 text-purple-700 border-purple-100'
                                 : 'bg-blue-50 text-blue-700 border-blue-100'
                             }`}>
-                              {user.role}
+                              {user.role.replace(/_/g, ' ')}
                             </span>
                           </div>
                         </div>

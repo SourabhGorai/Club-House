@@ -916,6 +916,9 @@ export default function AddStudent() {
   const [prnError, setPrnError] = useState("");
   const [prnTouched, setPrnTouched] = useState(false);
   const [autoFilled, setAutoFilled] = useState(false);
+  const [userRole, setUserRole] = useState("");
+const [teacherClubs, setTeacherClubs] = useState([]);
+const [loadingTeacherClubs, setLoadingTeacherClubs] = useState(false);
   
   const [form, setForm] = useState({
     prn: "",
@@ -935,24 +938,59 @@ export default function AddStudent() {
   // Refs for debouncing
   const debouncedFetchProfileRef = useRef();
 
-  useEffect(() => {
-    fetchClubs();
+useEffect(() => {
+  // Get user role from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role || "";
+  setUserRole(role);
+  
+  if (role === "SUPER_ADMIN") {
+    fetchAllClubs(); // Fetch all clubs for super admin
+  } else {
+    fetchTeacherClubs(); // Fetch only teacher's clubs
+  }
+  
+  // Create debounced function
+  debouncedFetchProfileRef.current = debounce((prn) => {
+    if (prn && prn.trim().length > 0) {
+      fetchProfileByPRN(prn.trim());
+    }
+  }, 500);
+
+  return () => {
+    if (debouncedFetchProfileRef.current) {
+      debouncedFetchProfileRef.current.cancel();
+    }
+  };
+}, []);
+
+
+const fetchTeacherClubs = async () => {
+  try {
+    setLoadingTeacherClubs(true);
+    const response = await axios.get("http://localhost:8080/api/user-clubs/getMyClubs", {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
     
-    // Create debounced function
-    debouncedFetchProfileRef.current = debounce((prn) => {
-      if (prn && prn.trim().length > 0) {
-        fetchProfileByPRN(prn.trim());
-      }
-    }, 500); // 500ms delay
-
-    return () => {
-      if (debouncedFetchProfileRef.current) {
-        debouncedFetchProfileRef.current.cancel();
-      }
-    };
-  }, []);
-
-  const fetchClubs = async () => {
+    console.log("Teacher clubs response:", response.data);
+    
+    if (response.data.success) {
+      setTeacherClubs(response.data.data);
+    } else if (Array.isArray(response.data)) {
+      setTeacherClubs(response.data);
+    } else {
+      setTeacherClubs([]);
+    }
+  } catch (error) {
+    console.error("Error fetching teacher's clubs:", error);
+    setTeacherClubs([]);
+  } finally {
+    setLoadingTeacherClubs(false);
+  }
+};
+  const fetchAllClubs = async () => {
     try {
       setLoadingClubs(true);
       const response = await axios.get("http://localhost:8080/api/clubs", {
@@ -1455,29 +1493,43 @@ export default function AddStudent() {
             {/* Row 5: Club and Tenure Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Club Field */}
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                  Club * {loadingClubs && <span className="text-xs text-gray-500">(Loading...)</span>}
-                </label>
-                <select
-                  name="clubId"
-                  value={form.clubId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-                  disabled={loadingClubs}
-                  required
-                >
-                  <option value="">Select Club</option>
-                  {clubs.map((club) => (
-                    <option key={club.clubId} value={club.clubId}>
-                      {club.clubName}
-                    </option>
-                  ))}
-                </select>
-                {clubs.length === 0 && !loadingClubs && (
-                  <p className="text-xs text-gray-500 mt-1">No clubs available</p>
-                )}
-              </div>
+<div>
+  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+    Club * 
+    {userRole === "SUPER_ADMIN" 
+      ? (loadingClubs && <span className="text-xs text-gray-500 ml-2">(Loading all clubs...)</span>)
+      : (loadingTeacherClubs && <span className="text-xs text-gray-500 ml-2">(Loading your clubs...)</span>)
+    }
+  </label>
+  <select
+    name="clubId"
+    value={form.clubId}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+    disabled={userRole === "SUPER_ADMIN" ? loadingClubs : loadingTeacherClubs}
+    required
+  >
+    <option value="">
+      {userRole === "SUPER_ADMIN" 
+        ? "Select Club" 
+        : "Select Your Club"
+      }
+    </option>
+    {(userRole === "SUPER_ADMIN" ? clubs : teacherClubs).map((club) => (
+      <option key={club.clubId} value={club.clubId}>
+        {club.clubName}
+      </option>
+    ))}
+  </select>
+  {(userRole === "SUPER_ADMIN" ? clubs : teacherClubs).length === 0 
+    && !(userRole === "SUPER_ADMIN" ? loadingClubs : loadingTeacherClubs) && (
+    <p className="text-xs text-gray-500 mt-1">
+      {userRole === "SUPER_ADMIN" 
+        ? "No clubs available" 
+        : "You don't have any clubs assigned"}
+    </p>
+  )}
+</div>
 
               {/* Tenure Field */}
               <div>

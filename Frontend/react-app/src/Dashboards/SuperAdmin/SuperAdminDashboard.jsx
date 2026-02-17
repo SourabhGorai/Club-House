@@ -1120,17 +1120,6 @@ export default function SuperAdminDashboard() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent triggering the parent onClick
-                              setEditingDept(dept);
-                              setDeptInput(dept.name);
-                            }}
-                            className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent triggering the parent onClick
                               deleteDepartment(dept.departmentId);
                             }}
                             className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"

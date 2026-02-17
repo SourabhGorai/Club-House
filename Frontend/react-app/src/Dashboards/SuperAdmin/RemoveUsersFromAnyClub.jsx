@@ -264,7 +264,7 @@ const RemoveUsersFromAnyClub = () => {
                                 ? 'bg-purple-50 text-purple-700 border-purple-100'
                                 : 'bg-blue-50 text-blue-700 border-blue-100'
                             }`}>
-                              {user.role}
+                              {user.role.replace(/_/g, ' ')}
                             </span>
                           </div>
                         </div>
