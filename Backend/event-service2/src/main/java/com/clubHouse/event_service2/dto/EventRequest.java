@@ -31,6 +31,8 @@ public class EventRequest {
 
     private String venue;
 
+    private Integer maxEnrollments;
+
     @NotNull(message = "Target type is required")
     private TargetType target;
 

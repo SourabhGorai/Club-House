@@ -59,6 +59,8 @@ public class EventMapper {
                 .creatorPrn(prn)
                 .creatorName(creatorName)
                 .venue(event.getVenue())
+                .maxEnrollments(event.getMaxEnrollments())
+                .currEnrollments(event.getCurrEnrollments())
                 .isCompleted(event.isCompleted())
                 .enrollmentDeadline(event.getEnrollmentDeadline())
                 .enrollmentStatus(event.getEnrollmentStatus())

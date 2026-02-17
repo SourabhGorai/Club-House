@@ -65,6 +65,8 @@ public class EventService {
                 .organizer(req.getOrganizer())
                 .eventCreator(prn)
                 .venue(req.getVenue())
+                .maxEnrollments(req.getMaxEnrollments())
+                .currEnrollments(0) // Initialize to 0
                 .target(targetType)
                 .enrollmentDeadline(req.getEnrollmentDeadline())
                 .enrollmentStatus("OPEN")
@@ -265,8 +267,10 @@ public class EventService {
                 () -> new NotFoundException("Event", eventId.toString())
         );
 
-        if(!role.equals("SUPER_ADMIN") || !prn.equals(event.getEventCreator())) {
-            log.warn("You are not allowed to change the status of the event");
+        // FIXED: Changed || to && - user must be EITHER super admin OR event creator
+        if(!role.equals("SUPER_ADMIN") && !prn.equals(event.getEventCreator())) {
+            log.warn("User {} with role {} is not allowed to change the status of event created by {}",
+                    prn, role, event.getEventCreator());
             throw new ServiceException("You are not allowed to change the status of the event");
         }
 

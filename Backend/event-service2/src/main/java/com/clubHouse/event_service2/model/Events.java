@@ -35,6 +35,9 @@ public class Events {
     private String eventCreator;
     private String venue;
 
+    private Integer maxEnrollments;
+    private int currEnrollments = 0;
+
     @Enumerated(EnumType.STRING)
     private TargetType target;
 

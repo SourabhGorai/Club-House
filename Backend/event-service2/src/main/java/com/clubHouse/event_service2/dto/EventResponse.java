@@ -34,6 +34,10 @@ public class EventResponse {
 
     private String venue;
 
+    private Integer maxEnrollments;
+
+    private int currEnrollments;
+
     private boolean isCompleted;
 
     private LocalDateTime enrollmentDeadline;
