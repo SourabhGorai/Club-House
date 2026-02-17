@@ -196,10 +196,10 @@ export default function UsersDashboard() {
       {/* SIDEBAR - Wide and Detailed */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-[#7C3AED] p-2 rounded-xl">
+          <div className="p-2 rounded-xl" style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
             <LayoutDashboard className="text-white w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">User<span className="text-[#7C3AED]">Portal</span></h1>
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">User<span style={{color: '#4CA1AF'}}>Portal</span></h1>
         </div>
 
         {/* Profile Image Section */}
@@ -215,7 +215,8 @@ export default function UsersDashboard() {
           </div>
           <button 
             onClick={() => setShowProfileForm(true)}
-            className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 text-[#7C3AED] hover:scale-110 transition-transform"
+            className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+            style={{color: '#4CA1AF'}}
           >
             <Edit size={18} />
           </button>
@@ -223,7 +224,8 @@ export default function UsersDashboard() {
 
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">{profileData.fullName || user?.username}</h2>
-          <span className="mt-2 inline-block text-[10px] font-black bg-[#7C3AED]/10 text-[#7C3AED] px-4 py-1.5 rounded-full uppercase tracking-widest">
+          <span className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
+                style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
             {user?.role || "USERS"}
           </span>
         </div>
@@ -242,7 +244,7 @@ export default function UsersDashboard() {
         {/* Sign Out Button */}
         <button 
           onClick={handleLogout}
-          className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100"
+          className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
         >
           <LogOut size={20} /> Sign Out
         </button>
@@ -253,7 +255,7 @@ export default function UsersDashboard() {
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
-            <p className="text-gray-500 mt-1">Welcome back, <span className="text-[#7C3AED] font-semibold">{user?.username}</span>. System is healthy.</p>
+            <p className="text-gray-500 mt-1">Welcome back, <span className="font-semibold" style={{color: '#4CA1AF'}}>{user?.username}</span>. System is healthy.</p>
           </div>
           <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
@@ -293,7 +295,8 @@ export default function UsersDashboard() {
             </div>
             <button 
               onClick={fetchMyClubs}
-              className="text-xs font-bold text-[#7C3AED] bg-purple-50 px-4 py-2 rounded-full hover:bg-purple-100 transition-colors flex items-center gap-2"
+              className="text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+              style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
               disabled={isLoadingClubs}
             >
               <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -306,7 +309,8 @@ export default function UsersDashboard() {
           {/* Clubs Grid */}
           {isLoadingClubs ? (
             <div className="bg-white rounded-[2.5rem] p-12 text-center">
-              <div className="animate-spin w-10 h-10 border-4 border-[#7C3AED] border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-10 h-10 border-4 rounded-full mx-auto mb-4" 
+                   style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
               <p className="text-gray-500 font-medium">Loading your clubs...</p>
             </div>
           ) : clubsError ? (
@@ -320,7 +324,8 @@ export default function UsersDashboard() {
               <p className="text-red-500/70 mb-4">{clubsError}</p>
               <button 
                 onClick={fetchMyClubs}
-                className="bg-white px-6 py-3 rounded-full text-sm font-bold text-[#7C3AED] border border-purple-200 hover:bg-purple-50 transition-colors"
+                className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
+                style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
               >
                 Try Again
               </button>
@@ -332,7 +337,8 @@ export default function UsersDashboard() {
               </div>
               <h3 className="text-lg font-bold text-gray-800 mb-2">No Clubs Joined Yet</h3>
               <p className="text-gray-500 mb-6">You haven't joined any clubs. Explore and join clubs to see them here.</p>
-              <button className="bg-[#7C3AED] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-200">
+              <button className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
+                      style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
                 Browse Clubs
               </button>
             </div>
@@ -349,7 +355,8 @@ export default function UsersDashboard() {
                 <div className="text-center mt-8">
                   <button
                     onClick={() => setShowAllClubs(!showAllClubs)}
-                    className="bg-white px-6 py-3 rounded-full text-sm font-bold text-[#7C3AED] border border-purple-200 hover:bg-purple-50 transition-colors inline-flex items-center gap-2"
+                    className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+                    style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
                   >
                     {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
                     <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,33 +370,33 @@ export default function UsersDashboard() {
         </section>
 
         {/* Control Center Section */}
-        <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl font-bold text-gray-800">Control Center</h2>
-            <div className="h-[1px] flex-1 bg-gray-100"></div>
-          </div>
+<section className="mt-12">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-1 h-6 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
+    <h2 className="text-xl font-bold text-gray-800">User Control Center</h2>
+  </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <ActionCard 
-              icon={<CalendarDays className="text-blue-500" />} 
+              icon={<CalendarDays />} 
               label="Events" 
               color="blue" 
               onClick={() => window.location.href = "/events"}
             />
             <ActionCard 
-              icon={<Users className="text-orange-500" />} 
+              icon={<Users />} 
               label="My Clubs" 
               color="orange" 
               onClick={() => document.getElementById('my-clubs-section')?.scrollIntoView({ behavior: 'smooth' })}
             />
             <ActionCard 
-              icon={<BookOpen className="text-green-500" />} 
+              icon={<BookOpen />} 
               label="Resources" 
               color="green" 
               onClick={() => window.location.href = "/resources"}
             />
             <ActionCard 
-              icon={<Settings className="text-purple-500" />} 
+              icon={<Settings />} 
               label="Settings" 
               color="purple" 
               onClick={() => window.location.href = "/settings"}
@@ -404,7 +411,7 @@ export default function UsersDashboard() {
           <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-bold text-gray-800">{userProfile ? "Edit Profile" : "Complete Profile"}</h3>
-              <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
+              <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -421,7 +428,8 @@ export default function UsersDashboard() {
                   <select 
                     value={profileData.departmentId} 
                     onChange={(e) => setProfileData({...profileData, departmentId: e.target.value})}
-                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium"
+                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                    style={{focus: {ringColor: '#4CA1AF'}}}
                     required
                   >
                     <option value="">Select Dept</option>
@@ -433,7 +441,8 @@ export default function UsersDashboard() {
                   <select 
                     value={profileData.year} 
                     onChange={(e) => setProfileData({...profileData, year: e.target.value})}
-                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium"
+                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                    style={{focus: {ringColor: '#4CA1AF'}}}
                     required
                   >
                     <option value="">Select Year</option>
@@ -444,9 +453,10 @@ export default function UsersDashboard() {
 
               <FormInput label="Phone Number" value={profileData.phoneNumber} onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})} required />
 
-              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-[#7C3AED]/30 transition-colors">
+              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer"
+                   style={{hover: {borderColor: '#4CA1AF'}}}>
                 <input type="file" accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} className="hidden" id="profile-upload" />
-                <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#7C3AED]">
+                <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#4CA1AF]">
                   <Upload size={24} />
                   <span className="text-sm font-semibold">{selectedImage ? selectedImage.name : "Upload Profile Photo"}</span>
                 </label>
@@ -455,7 +465,8 @@ export default function UsersDashboard() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-[#7C3AED] text-white py-4 rounded-2xl font-bold shadow-lg shadow-purple-100 hover:bg-[#6D28D9] transition-all disabled:opacity-50"
+                className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
               >
                 {loading ? "Saving..." : userProfile ? "Update Profile" : "Complete Profile"}
               </button>
@@ -470,18 +481,22 @@ export default function UsersDashboard() {
 /* HELPER COMPONENTS */
 function SidebarInfoBox({ label, value }) {
   return (
-    <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent hover:border-gray-100 transition-colors group">
-      <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest group-hover:text-[#7C3AED] transition-colors">{label}</p>
+    <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
+      <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">{label}</p>
       <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
     </div>
   );
 }
 
 function StatCard({ icon, label, value, color, isStatus }) {
-  const bgColors = { blue: "bg-blue-50 text-blue-500", orange: "bg-orange-50 text-orange-500", purple: "bg-purple-50 text-purple-500" };
+  const bgColors = { 
+    blue: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'}, 
+    orange: {bg: 'rgba(249, 115, 22, 0.1)', text: '#F97316'}, 
+    purple: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'} 
+  };
   return (
-    <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6">
-      <div className={`${bgColors[color]} p-5 rounded-[1.5rem]`}>{icon}</div>
+    <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 cursor-pointer hover:shadow-md transition-all">
+      <div className="p-5 rounded-[1.5rem]" style={{backgroundColor: bgColors[color].bg, color: bgColors[color].text}}>{icon}</div>
       <div>
         <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
         <h3 className={`text-2xl font-black tracking-tight ${isStatus ? (value === "Verified" ? "text-green-500" : "text-amber-500") : "text-gray-800"}`}>
@@ -503,37 +518,28 @@ function ClubCard({ club }) {
   const clubLogo = club.logo || club.image || club.logoUrl || null;
   
   // Generate a consistent color based on club name
-  const colors = ['blue', 'orange', 'purple', 'green', 'red', 'indigo'];
+  const colors = ['blue', 'orange', 'purple', 'green', 'red'];
   const colorIndex = (clubName.length % colors.length);
   const color = colors[colorIndex];
   
   const bgColors = {
-    blue: 'bg-blue-50',
-    orange: 'bg-orange-50',
-    purple: 'bg-purple-50',
-    green: 'bg-green-50',
-    red: 'bg-red-50',
-    indigo: 'bg-indigo-50'
-  };
-
-  const textColors = {
-    blue: 'text-blue-600',
-    orange: 'text-orange-600',
-    purple: 'text-purple-600',
-    green: 'text-green-600',
-    red: 'text-red-600',
-    indigo: 'text-indigo-600'
+    blue: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'},
+    orange: {bg: 'rgba(249, 115, 22, 0.1)', text: '#F97316'},
+    purple: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'},
+    green: {bg: 'rgba(16, 185, 129, 0.1)', text: '#10B981'},
+    red: {bg: 'rgba(239, 68, 68, 0.1)', text: '#EF4444'}
   };
 
   return (
-    <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-xl transition-all group hover:scale-[1.02]">
+    <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-xl transition-all group hover:scale-[1.02] cursor-pointer">
       <div className="flex items-start gap-4">
         {/* Club Logo/Icon */}
-        <div className={`${bgColors[color]} w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
+             style={{backgroundColor: bgColors[color].bg}}>
           {clubLogo ? (
             <img src={clubLogo} alt={clubName} className="w-10 h-10 object-contain" />
           ) : (
-            <Users className={`w-8 h-8 ${textColors[color]}`} />
+            <Users className="w-8 h-8" style={{color: bgColors[color].text}} />
           )}
         </div>
         
@@ -558,7 +564,8 @@ function ClubCard({ club }) {
               <span className="text-xs font-bold text-gray-600">{memberCount} Members</span>
             </div>
             <span className="text-xs text-gray-300">|</span>
-            <span className="text-xs font-medium text-[#7C3AED] bg-purple-50 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium px-3 py-1 rounded-full"
+                  style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
               ID: {clubId}
             </span>
           </div>
@@ -567,11 +574,12 @@ function ClubCard({ club }) {
       
       {/* Action Buttons */}
       <div className="flex gap-2 mt-5 pt-4 border-t border-gray-50">
-        <button className="flex-1 bg-gray-50 hover:bg-[#7C3AED] hover:text-white text-gray-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+        <button className="flex-1 bg-gray-50 hover:bg-[#4CA1AF] hover:text-white text-gray-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
           <CalendarDays size={14} />
           Events
         </button>
-        <button className="flex-1 bg-[#7C3AED]/5 hover:bg-[#7C3AED] hover:text-white text-[#7C3AED] font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+        <button className="flex-1 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
           <Users size={14} />
           View Club
         </button>
@@ -582,17 +590,19 @@ function ClubCard({ club }) {
 
 function ActionCard({ icon, label, color, onClick }) {
   const themes = {
-    blue: "bg-blue-50/40 hover:bg-blue-50",
-    orange: "bg-orange-50/40 hover:bg-orange-50",
-    green: "bg-green-50/40 hover:bg-green-50",
-    purple: "bg-purple-50/40 hover:bg-purple-50"
+    blue: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'},
+    orange: {bg: 'rgba(249, 115, 22, 0.05)', hover: 'rgba(249, 115, 22, 0.1)', icon: '#F97316'},
+    green: {bg: 'rgba(16, 185, 129, 0.05)', hover: 'rgba(16, 185, 129, 0.1)', icon: '#10B981'},
+    purple: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'}
   };
   return (
     <button 
       onClick={onClick}
-      className={`${themes[color]} p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm`}
+      className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
+      style={{backgroundColor: themes[color].bg}}
     >
-      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1">
+      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+           style={{color: themes[color].icon}}>
         {icon}
       </div>
       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
@@ -605,10 +615,10 @@ function FormInput({ label, ...props }) {
     <div className="space-y-1">
       <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">{label}</label>
       <input 
-        className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#7C3AED] outline-none text-gray-700 font-medium transition-all"
+        className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium transition-all cursor-text"
+        style={{focus: {ringColor: '#4CA1AF'}}}
         {...props} 
       />
     </div>
   );
 }
-

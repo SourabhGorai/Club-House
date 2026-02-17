@@ -1035,12 +1035,12 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
         
         {/* HEADER */}
         <div className="flex justify-between items-center p-8 pb-4">
-          <h3 className="font-display text-2xl font-bold text-[#4C1D95]">
+          <h3 className="font-display text-2xl font-bold" style={{color: '#4CA1AF'}}>
             Members of {clubName}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
+            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 cursor-pointer"
           >
             ✕
           </button>
@@ -1050,7 +1050,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
         <div className="flex-1 overflow-y-auto px-8">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{borderColor: '#4CA1AF'}}></div>
               <p className="mt-2 text-gray-500">Loading members...</p>
             </div>
           ) : members.length === 0 ? (
@@ -1065,8 +1065,9 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
                   className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="font-bold text-purple-600">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                         style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
+                      <span className="font-bold" style={{color: '#4CA1AF'}}>
                         {member.name.charAt(0)}
                       </span>
                     </div>
@@ -1082,7 +1083,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
                       <span
                         className={`text-xs font-bold uppercase ${
                           member.role === "CLUB_ADMIN"
-                            ? "text-purple-600"
+                            ? "text-[#4CA1AF]"
                             : member.role === "TEACHERS"
                             ? "text-green-600"
                             : "text-blue-600"
@@ -1128,7 +1129,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 cursor-pointer"
           >
             Close
           </button>
@@ -1150,14 +1151,15 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel, isLoad
         <div className="flex justify-end space-x-3">
           <button 
             onClick={onCancel} 
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition cursor-pointer"
             disabled={isLoading}
           >
             Cancel
           </button>
           <button 
             onClick={onConfirm} 
-            className="bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-full py-2 px-6 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-white font-medium rounded-full py-2 px-6 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
             disabled={isLoading}
           >
             {isLoading ? "Deleting..." : "Delete"}
@@ -1184,7 +1186,7 @@ const AssignTeacherModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all duration-300">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-11/12 max-w-md transform transition-all animate-in fade-in zoom-in duration-200">
-        <h3 className="font-display text-2xl font-bold text-[#4C1D95] mb-6">
+        <h3 className="font-display text-2xl font-bold mb-6" style={{color: '#4CA1AF'}}>
           Assign Teacher Advisor
         </h3>
 
@@ -1197,13 +1199,15 @@ const AssignTeacherModal = ({
               type="text"
               value={teacherPrn}
               onChange={(e) => setTeacherPrn(e.target.value)}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none transition-all placeholder:text-gray-300"
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent outline-none transition-all placeholder:text-gray-300 cursor-text"
+              style={{focus: {ringColor: '#4CA1AF'}}}
               placeholder="e.g., 2214110270"
             />
             <button
               onClick={onSearchTeacher}
               disabled={teacherSearchLoading || !teacherPrn.trim()}
-              className="px-6 py-2.5 bg-purple-700 text-white font-bold rounded-xl hover:bg-purple-800"
+              className="px-6 py-2.5 text-white font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+              style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
             >
               {teacherSearchLoading ? "..." : "Verify"}
             </button>
@@ -1230,7 +1234,7 @@ const AssignTeacherModal = ({
         <div className="flex justify-end items-center space-x-3 mt-8">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+            className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
             disabled={assignTeacherLoading}
           >
             Cancel
@@ -1238,11 +1242,15 @@ const AssignTeacherModal = ({
           <button
             onClick={onAssign}
             disabled={!teacherSearchResult || teacherSearchResult.role !== "TEACHERS" || assignTeacherLoading}
-            className={`px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg ${
+            className={`px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg cursor-pointer ${
               teacherSearchResult?.role === "TEACHERS" && !assignTeacherLoading
-                ? "bg-purple-700 hover:bg-purple-800"
-                : "bg-purple-300 cursor-not-allowed shadow-none"
+                ? "hover:opacity-90"
+                : "opacity-50 cursor-not-allowed shadow-none"
             }`}
+            style={teacherSearchResult?.role === "TEACHERS" && !assignTeacherLoading 
+              ? {background: 'linear-gradient(135deg, #4CA1AF, #315169)'}
+              : {background: 'linear-gradient(135deg, #4CA1AF, #315169)', opacity: 0.5}
+            }
           >
             {assignTeacherLoading ? "Assigning..." : "Assign Teacher"}
           </button>
@@ -1268,7 +1276,7 @@ const AssignClubAdminModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all duration-300">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-11/12 max-w-md transform transition-all animate-in fade-in zoom-in duration-200">
-        <h3 className="font-display text-2xl font-bold text-[#8B5CF6] mb-6">
+        <h3 className="font-display text-2xl font-bold mb-6" style={{color: '#4CA1AF'}}>
           Assign Club Admin
         </h3>
 
@@ -1281,13 +1289,15 @@ const AssignClubAdminModal = ({
               type="text"
               value={adminPrn}
               onChange={(e) => setAdminPrn(e.target.value)}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all placeholder:text-gray-300"
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent outline-none transition-all placeholder:text-gray-300 cursor-text"
+              style={{focus: {ringColor: '#4CA1AF'}}}
               placeholder="e.g., 2214110270"
             />
             <button
               onClick={onSearchAdmin}
               disabled={adminSearchLoading || !adminPrn.trim()}
-              className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 text-white font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+              style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
             >
               {adminSearchLoading ? "..." : "Verify"}
             </button>
@@ -1317,7 +1327,7 @@ const AssignClubAdminModal = ({
         <div className="flex justify-end items-center space-x-3 mt-8">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+            className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
             disabled={assignAdminLoading}
           >
             Cancel
@@ -1329,11 +1339,15 @@ const AssignClubAdminModal = ({
               (adminSearchResult.role !== "USERS" && adminSearchResult.role !== "STUDENT") || 
               assignAdminLoading
             }
-            className={`px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg ${
+            className={`px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg cursor-pointer ${
               (adminSearchResult?.role === "USERS" || adminSearchResult?.role === "STUDENT") && !assignAdminLoading
-                ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30"
-                : "bg-indigo-300 cursor-not-allowed shadow-none"
+                ? "hover:opacity-90"
+                : "opacity-50 cursor-not-allowed shadow-none"
             }`}
+            style={(adminSearchResult?.role === "USERS" || adminSearchResult?.role === "STUDENT") && !assignAdminLoading
+              ? {background: 'linear-gradient(135deg, #4CA1AF, #315169)'}
+              : {background: 'linear-gradient(135deg, #4CA1AF, #315169)', opacity: 0.5}
+            }
           >
             {assignAdminLoading ? "Assigning..." : "Assign Admin"}
           </button>
@@ -1403,21 +1417,22 @@ export default function ManageClubs() {
   const customStyles = `
     .font-display { font-family: 'Outfit', sans-serif; }
     .btn-gradient {
-        background-image: linear-gradient(90deg, #A78BFA 0%, #8B5CF6 100%);
+        background-image: linear-gradient(135deg, #4CA1AF, #315169);
         color: white;
         font-weight: 500;
         border-radius: 9999px;
         padding: 0.5rem 1.5rem;
         transition: all 0.25s ease;
-        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.18);
+        box-shadow: 0 5px 15px rgba(76, 161, 175, 0.18);
+        cursor: pointer;
     }
     .btn-gradient:hover { transform: translateY(-2px); }
-    .club-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .club-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
     .club-item:hover { transform: translateX(8px); }
     .club-item.active {
         position: relative;
         background: white;
-        box-shadow: 0 10px 25px rgba(139, 92, 246, 0.15);
+        box-shadow: 0 10px 25px rgba(76, 161, 175, 0.15);
     }
     .club-item.active::before {
         content: '';
@@ -1425,17 +1440,18 @@ export default function ManageClubs() {
         top: 15%; bottom: 15%; left: 0;
         width: 4px;
         border-radius: 0 4px 4px 0;
-        background: #8B5CF6;
+        background: #4CA1AF;
     }
     .stat-card {
         transition: all 0.3s ease-out;
         background: white;
         border: 1px solid #f3f4f6;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        cursor: pointer;
     }
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 30px rgba(139, 92, 246, 0.1);
+        box-shadow: 0 12px 30px rgba(76, 161, 175, 0.1);
     }
   `;
 
@@ -1840,31 +1856,33 @@ const handleSearchAdmin = async () => {
       {showAddClubModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
-            <h3 className="text-2xl font-bold text-[#4C1D95] mb-6">Create New Club</h3>
+            <h3 className="text-2xl font-bold mb-6" style={{color: '#4CA1AF'}}>Create New Club</h3>
             <div className="space-y-4">
               <input 
                 type="text" 
                 placeholder="Club Name" 
                 value={newClub.name} 
                 onChange={(e) => setNewClub({ ...newClub, name: e.target.value })} 
-                className="w-full px-4 py-3 border rounded-xl outline-none focus:ring-2 focus:ring-purple-400" 
+                className="w-full px-4 py-3 border rounded-xl outline-none focus:ring-2 focus:border-transparent cursor-text"
+                style={{focus: {ringColor: '#4CA1AF'}}}
               />
               <textarea 
                 placeholder="Description" 
                 value={newClub.clubDesc} 
                 onChange={(e) => setNewClub({ ...newClub, clubDesc: e.target.value })} 
-                className="w-full px-4 py-3 border rounded-xl h-32 outline-none focus:ring-2 focus:ring-purple-400" 
+                className="w-full px-4 py-3 border rounded-xl h-32 outline-none focus:ring-2 focus:border-transparent cursor-text"
+                style={{focus: {ringColor: '#4CA1AF'}}}
               />
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button 
-                className="px-6 py-2 bg-gray-100 rounded-full font-medium" 
+                className="px-6 py-2 bg-gray-100 rounded-full font-medium cursor-pointer hover:bg-gray-200" 
                 onClick={() => setShowAddClubModal(false)}
               >
                 Cancel
               </button>
               <button 
-                className="btn-gradient px-8" 
+                className="btn-gradient px-8 cursor-pointer" 
                 onClick={handleAddClub} 
                 disabled={addClubLoading}
               >
@@ -1921,20 +1939,23 @@ const handleSearchAdmin = async () => {
 
       {/* DASHBOARD CONTAINER */}
       <div className="w-full max-w-7xl bg-white bg-opacity-95 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-md">
-        <header className="p-8 border-b border-gray-100 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] text-white rounded-t-3xl shadow-inner">
+        <header className="p-8 border-b border-gray-100 rounded-t-3xl shadow-inner"
+                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full lg:w-auto">
               {/* Glassmorphism Back Button - Premium Style */}
             <button
               onClick={handleGoBack}
-              className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 hover:border-white/40 text-[#4C1D95] font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               style={{
                 background: "rgba(255, 255, 255, 0.7)",
-                backdropFilter: "blur(8px)"
+                backdropFilter: "blur(8px)",
+                color: '#4CA1AF'
               }}
             >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#8B5CF6]/10 group-hover:bg-[#8B5CF6]/20 transition-all duration-300">
-                <svg className="w-3.5 h-3.5 text-[#8B5CF6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
+                   style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
+                <svg className="w-3.5 h-3.5" style={{color: '#4CA1AF'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </div>
@@ -1942,17 +1963,18 @@ const handleSearchAdmin = async () => {
             </button>
               
               <div className="text-left">
-                <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight drop-shadow-md">
+                <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
                   ClubLink Stellar Dashboard
                 </h1>
-                <p className="mt-2 text-base sm:text-lg font-light opacity-90">
+                <p className="mt-2 text-base sm:text-lg font-light text-white/90">
                   Manage all college clubs with ease and style.
                 </p>
               </div>
             </div>
             
             <button 
-              className="flex-shrink-0 bg-white text-purple-700 font-bold rounded-full py-3 px-8 shadow-xl hover:bg-purple-50 hover:scale-105 transition-all duration-300 w-full sm:w-auto" 
+              className="flex-shrink-0 bg-white font-bold rounded-full py-3 px-8 shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer"
+              style={{color: '#4CA1AF'}}
               onClick={() => setShowAddClubModal(true)}
             >
               + Add New Club
@@ -1963,7 +1985,7 @@ const handleSearchAdmin = async () => {
         <div className="flex flex-col lg:flex-row min-h-[70vh]">
           {/* LEFT PANEL */}
           <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
-            <h2 className="font-display text-2xl font-bold text-[#4C1D95] mb-2 px-2">Your Clubs</h2>
+            <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{color: '#4CA1AF'}}>Your Clubs</h2>
             <div className="overflow-y-auto max-h-[60vh] lg:max-h-full space-y-2 pr-2">
               {clubs.map((club) => (
                 <div 
@@ -1972,7 +1994,7 @@ const handleSearchAdmin = async () => {
                   onClick={() => handleSelectClub(club)}
                 >
                   <div className="flex flex-col">
-                    <span className={`font-display text-lg font-bold ${selectedClub?.clubId === club.clubId ? "text-[#4C1D95]" : "text-gray-700 uppercase tracking-wide"}`}>
+                    <span className={`font-display text-lg font-bold ${selectedClub?.clubId === club.clubId ? "text-[#4CA1AF]" : "text-gray-700 uppercase tracking-wide"}`}>
                       {club.clubName}
                     </span>
                     <div className="mt-2 flex items-center">
@@ -1995,7 +2017,7 @@ const handleSearchAdmin = async () => {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 mb-8 gap-4">
                   <div>
-                    <h2 className="text-5xl font-black text-[#8B5CF6] tracking-tight">{selectedClub.clubName}</h2>
+                    <h2 className="text-5xl font-black tracking-tight" style={{color: '#4CA1AF'}}>{selectedClub.clubName}</h2>
                     <p className="text-gray-400 mt-2 font-medium">Description: {selectedClub.clubDesc}</p>
                     <p className="text-gray-400 mt-2 font-medium">Club Added on {formatDate(selectedClub.createdAt)}</p>
                   </div>
@@ -2007,7 +2029,7 @@ const handleSearchAdmin = async () => {
       setClubToDelete(selectedClub); 
       setIsModalOpen(true); 
     }} 
-    className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors"
+    className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
     disabled={deleteLoading}
     title="Deactivate Club"
   >
@@ -2017,7 +2039,7 @@ const handleSearchAdmin = async () => {
   // Show activate button for inactive clubs
   <button 
     onClick={() => handleActivateClub(selectedClub.clubId)} 
-    className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors"
+    className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors cursor-pointer"
     title="Activate Club"
   >
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2038,17 +2060,17 @@ const handleSearchAdmin = async () => {
   className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
   onClick={selectedClub?.isActive ? handleMembersClick : null}
 >
-                          <MembersIcon className="text-teal-600 mb-3 group-hover:scale-110 transition-transform" /> 
-                          <span className="text-4xl font-black text-teal-600 group-hover:text-teal-700">
+                          <MembersIcon className="text-[#4CA1AF] mb-3 group-hover:scale-110 transition-transform" /> 
+                          <span className="text-4xl font-black text-[#4CA1AF] group-hover:text-[#315169]">
                             {adminData?.totalCount || 0}
                           </span> 
-                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-teal-400">
+                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-[#4CA1AF]">
                             Active Members
                           </p>
                         </div>
                         <div className="stat-card p-6 rounded-2xl">
-                          <EventsIcon className="text-teal-500 mb-3" /> 
-                          <span className="text-4xl font-black text-teal-600">{details.upcomingEvents}</span> 
+                          <EventsIcon className="text-[#4CA1AF] mb-3" /> 
+                          <span className="text-4xl font-black text-[#4CA1AF]">{details.upcomingEvents}</span> 
                           <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p>
                         </div>
                       </div>
@@ -2056,7 +2078,7 @@ const handleSearchAdmin = async () => {
                       {/* LEADERSHIP */}
                       <div className="space-y-6">
                         <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                          <span className="w-1 h-6 bg-teal-500 rounded-full"></span> Leadership & Contact
+                          <span className="w-1 h-6 rounded-full" style={{backgroundColor: '#4CA1AF'}}></span> Leadership & Contact
                         </h3>
                         <div className="grid gap-4">
                           <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
@@ -2125,4 +2147,3 @@ const handleSearchAdmin = async () => {
     </div>
   );
 }
-

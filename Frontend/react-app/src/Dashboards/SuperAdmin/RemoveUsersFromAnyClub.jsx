@@ -117,7 +117,8 @@ const RemoveUsersFromAnyClub = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
-        <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 rounded-full animate-spin" 
+             style={{borderColor: 'rgba(76, 161, 175, 0.1)', borderTopColor: '#4CA1AF'}}></div>
         <p className="mt-4 font-medium text-slate-500 animate-pulse tracking-wide">Synchronizing database...</p>
       </div>
     );
@@ -129,12 +130,13 @@ const RemoveUsersFromAnyClub = () => {
         
         {/* 1. Header Section */}
         <div className="mb-8">
-          <div className="inline-flex items-center space-x-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
+               style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
             <ShieldCheck size={14} />
             <span>Membership Management</span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
-            Remove User <span className="text-indigo-600">from Club</span>
+            Remove User <span style={{color: '#4CA1AF'}}>from Club</span>
           </h1>
           <p className="text-slate-500 mt-2 text-lg font-medium">Refine your organization by managing club rosters and permissions.</p>
         </div>
@@ -142,19 +144,23 @@ const RemoveUsersFromAnyClub = () => {
         {/* 2. Search & Filter Bar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
           <div className="lg:col-span-8 relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors" size={20} 
+                   style={{color: 'var(--primary-color-1)'}} />
             <input
               type="text"
               placeholder="Search by name, PRN, or department..."
-              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm outline-none text-slate-700 font-medium"
+              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none text-slate-700 font-medium cursor-text"
+              style={{focus: {ringColor: '#4CA1AF'}}}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="lg:col-span-4 relative group">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors" size={20} 
+                   style={{color: 'var(--primary-color-1)'}} />
                 <select
-        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
+        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
+        style={{focus: {ringColor: '#4CA1AF'}}}
         value={selectedClub}
         onChange={(e) => setSelectedClub(e.target.value)}
       >
@@ -170,8 +176,8 @@ const RemoveUsersFromAnyClub = () => {
 
         {/* 3. Stat Cards Section (Positioned below Search) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02]">
-            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+            <div className="p-4 rounded-2xl" style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
               <Users size={28} />
             </div>
             <div>
@@ -180,8 +186,8 @@ const RemoveUsersFromAnyClub = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02]">
-            <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600">
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+            <div className="p-4 rounded-2xl" style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
               <Building2 size={28} />
             </div>
             <div>
@@ -190,8 +196,8 @@ const RemoveUsersFromAnyClub = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02]">
-            <div className="p-4 rounded-2xl bg-purple-50 text-purple-600">
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+            <div className="p-4 rounded-2xl" style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
               <Layers size={28} />
             </div>
             <div>
@@ -240,14 +246,16 @@ const RemoveUsersFromAnyClub = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredUsers.map((user) => (
-                    <tr key={user.userClubId} className="group hover:bg-indigo-50/30 transition-all duration-300">
+                    <tr key={user.userClubId} className="group hover:bg-[#4CA1AF]/5 transition-all duration-300">
                       <td className="px-10 py-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg group-hover:scale-110 transition-transform"
+                               style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
                             {user.name.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-black text-slate-900 text-lg leading-tight group-hover:text-indigo-600 transition-colors">{user.name}</p>
+                            <p className="font-black text-slate-900 text-lg leading-tight group-hover:transition-colors"
+                               style={{groupHover: {color: '#4CA1AF'}}}>{user.name}</p>
                             <p className="text-xs font-bold text-slate-400 mt-1">{user.prn}</p>
                           </div>
                         </div>
@@ -255,15 +263,15 @@ const RemoveUsersFromAnyClub = () => {
                       <td className="px-10 py-6">
                         <div className="flex flex-col space-y-2">
                           <span className="inline-flex items-center text-sm font-black text-slate-800">
-                            <Building2 size={16} className="mr-2 text-indigo-400" />
+                            <Building2 size={16} className="mr-2" style={{color: '#4CA1AF'}} />
                             {user.clubName}
                           </span>
                           <div>
                             <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border ${
                               user.role === 'CLUB_ADMIN' 
-                                ? 'bg-purple-50 text-purple-700 border-purple-100'
-                                : 'bg-blue-50 text-blue-700 border-blue-100'
-                            }`}>
+                                ? 'text-purple-700 border-purple-100'
+                                : 'text-blue-700 border-blue-100'
+                            }`} style={user.role === 'CLUB_ADMIN' ? {backgroundColor: 'rgba(76, 161, 175, 0.1)'} : {backgroundColor: 'rgba(59, 130, 246, 0.1)'}}>
                               {user.role.replace(/_/g, ' ')}
                             </span>
                           </div>
@@ -281,7 +289,8 @@ const RemoveUsersFromAnyClub = () => {
                       <td className="px-10 py-6 text-right">
                         <button
                           onClick={() => handleRemoveUser(user)}
-                          className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 hover:rotate-12 transition-all shadow-sm active:scale-90"
+                          className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 transition-all shadow-sm active:scale-90 cursor-pointer"
+                          style={{hover: {backgroundColor: '#4CA1AF'}}}
                           title="Remove from club"
                         >
                           <UserMinus size={22} />
@@ -299,7 +308,7 @@ const RemoveUsersFromAnyClub = () => {
         <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 opacity-60">
           <p>Database synchronization active • {filteredUsers.length} Users Listed</p>
           <div className="flex items-center space-x-6 mt-4 md:mt-0">
-            <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-purple-500 mr-2 shadow-sm"></span> Admin</span>
+            <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm" style={{backgroundColor: '#4CA1AF'}}></span> Admin</span>
             <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 shadow-sm"></span> Member</span>
           </div>
         </div>

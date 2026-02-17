@@ -201,10 +201,10 @@ export default function TeachersDashboard() {
       {/* SIDEBAR - Wide and Professional */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
         <div className="flex items-center gap-3 mb-10">
-          <div className="bg-blue-600 p-2 rounded-xl">
+          <div className="p-2 rounded-xl" style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
             <GraduationCap className="text-white w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Teacher<span className="text-blue-600">Hub</span></h1>
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Teacher<span style={{color: '#4CA1AF'}}>Hub</span></h1>
         </div>
 
         {/* Profile Section */}
@@ -220,7 +220,8 @@ export default function TeachersDashboard() {
           </div>
           <button 
             onClick={() => setShowProfileForm(true)}
-            className="absolute bottom-2 right-2 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 text-blue-600 hover:scale-110 transition-transform"
+            className="absolute bottom-2 right-2 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+            style={{color: '#4CA1AF'}}
           >
             <Edit size={18} />
           </button>
@@ -228,7 +229,8 @@ export default function TeachersDashboard() {
 
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">{profileData.fullName || user?.username}</h2>
-          <span className="mt-2 inline-block text-[10px] font-black bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full uppercase tracking-widest">
+          <span className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
+                style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
             {user?.role || "Professor"}
           </span>
         </div>
@@ -245,7 +247,7 @@ export default function TeachersDashboard() {
 
         <button 
           onClick={handleLogout}
-          className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100"
+          className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
         >
           <LogOut size={20} /> Sign Out
         </button>
@@ -256,10 +258,11 @@ export default function TeachersDashboard() {
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Dashboard Overview</h1>
-            <p className="text-gray-500 mt-1">Hope, You had a good day <span className="text-blue-600 font-semibold">Prof. {user?.username}</span></p>
+            <p className="text-gray-500 mt-1">Hope, You had a good day <span className="font-semibold" style={{color: '#4CA1AF'}}>Prof. {user?.username}</span></p>
           </div>
-          <div className="flex items-center gap-3 bg-blue-50 text-blue-600 px-5 py-2.5 rounded-full border border-blue-100">
-            <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
+          <div className="flex items-center gap-3 px-5 py-2.5 rounded-full border"
+               style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}>
+            <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{backgroundColor: '#4CA1AF'}}></div>
             <span className="text-xs font-bold uppercase tracking-widest">Systems Active</span>
           </div>
         </header>
@@ -272,6 +275,7 @@ export default function TeachersDashboard() {
         </div>
 
 {/* Clubs List Section */}
+
 {clubs.length > 0 && (
   <section className="mt-12">
     <div className="flex items-center gap-4 mb-8">
@@ -283,11 +287,12 @@ export default function TeachersDashboard() {
       {clubs.map((club) => (
         <div 
           key={club.clubId} 
-          className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-md transition-all"
+          className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+          onClick={() => navigate(`/club/${club.clubId}`)} // Add navigation or function here
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-green-50 p-3 rounded-xl">
-              <Trophy className="w-5 h-5 text-green-600" />
+            <div className="p-3 rounded-xl" style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
+              <Trophy className="w-5 h-5" style={{color: '#4CA1AF'}} />
             </div>
             <h3 className="text-lg font-bold text-gray-800">{club.clubName}</h3>
           </div>
@@ -300,8 +305,12 @@ export default function TeachersDashboard() {
               <span>{club.memberCount} {club.memberCount === 1 ? 'Member' : 'Members'}</span>
             </div>
             <button 
-              onClick={() => console.log('View club:', club.clubId)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent triggering the parent click
+                navigate(`/club/${club.clubId}/details`); // Different action for button
+              }}
+              className="text-sm font-semibold hover:underline cursor-pointer"
+              style={{color: '#4CA1AF'}}
             >
               View Details →
             </button>
@@ -311,24 +320,26 @@ export default function TeachersDashboard() {
     </div>
   </section>
 )}
+
         {/* CONTROL CENTER */}
-        <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl font-bold text-gray-800">Professor Control Center</h2>
-            <div className="h-[1px] flex-1 bg-gray-100"></div>
-          </div>
+<section className="mt-12">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-1 h-6 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
+    <h2 className="text-xl font-bold text-gray-800">Professor Control Center</h2>
+    
+  </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <ActionCard icon={<Plus className="text-blue-500" />} label="Create Event" color="blue" />
-            <ActionCard icon={<Trash2 className="text-red-500" />} label="Delete Event" color="red" />
+            <ActionCard icon={<Plus />} label="Create Event" color="blue" />
+            <ActionCard icon={<Trash2 />} label="Delete Event" color="red" />
             <ActionCard 
-              icon={<Users className="text-purple-500" />} 
+              icon={<Users />} 
               label="Add Student" 
-              color="purple" 
+              color="teal" 
               onClick={() => navigate("/add-users-with-club")}
             />
             <ActionCard 
-              icon={<Building2 className="text-orange-500" />} 
+              icon={<Building2 />} 
               label="Club Association" 
               color="orange" 
               onClick={() => navigate("/remove-users-from-club")}
@@ -343,7 +354,7 @@ export default function TeachersDashboard() {
           <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-bold text-gray-800">{userProfile ? "Edit Profile" : "Complete Profile"}</h3>
-              <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
+              <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -364,7 +375,8 @@ export default function TeachersDashboard() {
                 <select 
                   value={profileData.departmentId} 
                   onChange={(e) => setProfileData({...profileData, departmentId: e.target.value})}
-                  className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none text-gray-700 font-medium"
+                  className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                  style={{focus: {ringColor: '#4CA1AF'}}}
                   required
                 >
                   <option value="">Select Department</option>
@@ -379,9 +391,9 @@ export default function TeachersDashboard() {
                  required 
               />
 
-              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-blue-300 transition-colors cursor-pointer">
+              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-[#4CA1AF] transition-colors cursor-pointer">
                 <input type="file" accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} className="hidden" id="profile-upload" />
-                <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-blue-600">
+                <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#4CA1AF]">
                   <Upload size={24} />
                   <span className="text-sm font-semibold">{selectedImage ? selectedImage.name : "Update Photo"}</span>
                 </label>
@@ -390,7 +402,8 @@ export default function TeachersDashboard() {
               <button 
                 type="submit" 
                 disabled={profileLoading}
-                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50"
+                className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)', boxShadow: '0 10px 15px -3px rgba(76, 161, 175, 0.2)'}}
               >
                 {profileLoading ? "Processing..." : userProfile ? "Save Profile Changes" : "Create Professional Profile"}
               </button>
@@ -405,8 +418,8 @@ export default function TeachersDashboard() {
 /* HELPER COMPONENTS */
 function SidebarInfoBox({ label, value }) {
   return (
-    <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent hover:border-blue-100 transition-colors group">
-      <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest group-hover:text-blue-600 transition-colors">{label}</p>
+    <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
+      <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">{label}</p>
       <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
     </div>
   );
@@ -414,13 +427,13 @@ function SidebarInfoBox({ label, value }) {
 
 function StatCard({ icon, label, value, color }) {
   const bgColors = { 
-    blue: "bg-blue-50 text-blue-600", 
-    green: "bg-green-50 text-green-600", 
-    orange: "bg-orange-50 text-orange-600" 
+    blue: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'}, 
+    green: {bg: 'rgba(16, 185, 129, 0.1)', text: '#10B981'}, 
+    orange: {bg: 'rgba(249, 115, 22, 0.1)', text: '#F97316'} 
   };
   return (
-    <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6">
-      <div className={`${bgColors[color]} p-5 rounded-[1.5rem]`}>{icon}</div>
+    <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 cursor-pointer hover:shadow-md transition-all">
+      <div className="p-5 rounded-[1.5rem]" style={{backgroundColor: bgColors[color].bg, color: bgColors[color].text}}>{icon}</div>
       <div>
         <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
         <h3 className="text-2xl font-black tracking-tight text-gray-800">{value}</h3>
@@ -431,17 +444,19 @@ function StatCard({ icon, label, value, color }) {
 
 function ActionCard({ icon, label, color, onClick }) {
   const themes = {
-    blue: "bg-blue-50/40 hover:bg-blue-50",
-    red: "bg-red-50/40 hover:bg-red-50",
-    purple: "bg-purple-50/40 hover:bg-purple-50",
-    orange: "bg-orange-50/40 hover:bg-orange-50"
+    blue: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'},
+    red: {bg: 'rgba(239, 68, 68, 0.05)', hover: 'rgba(239, 68, 68, 0.1)', icon: '#EF4444'},
+    teal: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'},
+    orange: {bg: 'rgba(249, 115, 22, 0.05)', hover: 'rgba(249, 115, 22, 0.1)', icon: '#F97316'}
   };
   return (
     <button 
       onClick={onClick}
-      className={`${themes[color]} p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm`}
+      className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
+      style={{backgroundColor: themes[color].bg, hover: {backgroundColor: themes[color].hover}}}
     >
-      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1">
+      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+           style={{color: themes[color].icon}}>
         {icon}
       </div>
       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
@@ -454,7 +469,8 @@ function FormInput({ label, ...props }) {
     <div className="space-y-1">
       <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">{label}</label>
       <input 
-        className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none text-gray-700 font-medium transition-all"
+        className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium transition-all cursor-text"
+        style={{focus: {ringColor: '#4CA1AF'}}}
         {...props} 
       />
     </div>

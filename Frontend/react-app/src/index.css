@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
+/* CSS Variables - Theme Configuration */
+:root {
+  --primary-gradient: linear-gradient(135deg, #4CA1AF, #315169);
+  --primary-color-1: #4CA1AF;
+  --primary-color-2: #315169;
+}
 
+/* Apply gradient to body */
+body {
+  background: var(--primary-gradient);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Animations */
 @keyframes float {
   0%, 100% {
     transform: translateY(0) translateX(0);
@@ -34,6 +48,7 @@
   }
 }
 
+/* Animation Classes */
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -45,4 +60,17 @@
 .animate-gradient {
   animation: gradient-shift 3s ease infinite;
   background-size: 200% 200%;
+}
+
+/* Optional: Create a gradient background class */
+.bg-primary-gradient {
+  background: var(--primary-gradient);
+}
+
+/* Optional: Text gradient class */
+.text-primary-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

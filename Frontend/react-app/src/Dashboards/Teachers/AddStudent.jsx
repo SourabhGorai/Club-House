@@ -902,7 +902,6 @@
 // }
 
 
-
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -1280,7 +1279,7 @@ const fetchTeacherClubs = async () => {
                     PRN *
                   </label>
                   {loadingProfile && (
-                    <span className="text-xs text-blue-600 animate-pulse">
+                    <span className="text-xs animate-pulse" style={{color: '#4CA1AF'}}>
                       Fetching profile...
                     </span>
                   )}
@@ -1293,11 +1292,12 @@ const fetchTeacherClubs = async () => {
                     value={form.prn}
                     onChange={handleChange}
                     onBlur={() => setPrnTouched(true)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base ${
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base cursor-text ${
                       prnError && prnTouched
                         ? "border-red-300"
                         : "border-gray-200"
                     }`}
+                    style={{focus: {ringColor: '#4CA1AF'}}}
                     required
                     pattern="\d{10}"
                     maxLength={10}
@@ -1311,7 +1311,7 @@ const fetchTeacherClubs = async () => {
                         resetAutoFilledFields();
                         setPrnError("");
                       }}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                     >
                       ✕
                     </button>
@@ -1345,19 +1345,21 @@ const fetchTeacherClubs = async () => {
                   placeholder="Student's full name"
                   value={form.fullName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base cursor-text"
+                  style={{focus: {ringColor: '#4CA1AF'}}}
                   disabled={loadingProfile || autoFilled}
                 />
                 {autoFilled && (
-                  <p className="mt-1 text-xs text-green-600">Auto-filled from profile</p>
+                  <p className="mt-1 text-xs" style={{color: '#4CA1AF'}}>Auto-filled from profile</p>
                 )}
               </div>
             </div>
 
             {/* Auto-fill notification */}
             {autoFilled && !loadingProfile && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700 text-sm">
+              <div className="p-3 rounded-lg border" 
+                   style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', borderColor: '#4CA1AF'}}>
+                <div className="flex items-center gap-2 text-sm" style={{color: '#4CA1AF'}}>
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -1378,19 +1380,21 @@ const fetchTeacherClubs = async () => {
                   placeholder="Auto-generated username"
                   value={form.username}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 text-sm md:text-base ${
+                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 text-sm md:text-base cursor-text ${
                     autoFilled ? 'bg-gray-50 text-gray-700' : 'bg-white/50'
                   }`}
+                  style={{focus: {ringColor: '#4CA1AF'}}}
                   disabled={autoFilled}
                 />
                 {autoFilled && form.username && (
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs px-2 py-1 rounded"
+                        style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
                     From PRN
                   </span>
                 )}
               </div>
               {autoFilled && form.username && (
-                <p className="mt-1 text-xs text-green-600">Fetched from user profile</p>
+                <p className="mt-1 text-xs" style={{color: '#4CA1AF'}}>Fetched from user profile</p>
               )}
             </div>
 
@@ -1406,19 +1410,21 @@ const fetchTeacherClubs = async () => {
                   placeholder="Auto-generated email"
                   value={form.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 text-sm md:text-base ${
+                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 text-sm md:text-base cursor-text ${
                     autoFilled ? 'bg-gray-50 text-gray-700' : 'bg-white/50'
                   }`}
+                  style={{focus: {ringColor: '#4CA1AF'}}}
                   disabled={autoFilled}
                 />
                 {autoFilled && form.email && (
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs px-2 py-1 rounded"
+                        style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
                     From PRN
                   </span>
                 )}
               </div>
               {autoFilled && form.email && (
-                <p className="mt-1 text-xs text-green-600">Fetched from user profile</p>
+                <p className="mt-1 text-xs" style={{color: '#4CA1AF'}}>Fetched from user profile</p>
               )}
             </div>
 
@@ -1434,7 +1440,8 @@ const fetchTeacherClubs = async () => {
                     <div className="flex items-center justify-between">
                       <span>{form.department}</span>
                       {autoFilled && (
-                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                        <span className="text-xs px-2 py-1 rounded"
+                              style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
                           From PRN
                         </span>
                       )}
@@ -1457,7 +1464,8 @@ const fetchTeacherClubs = async () => {
                     <div className="flex items-center justify-between">
                       <span>{form.year}</span>
                       {autoFilled && (
-                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                        <span className="text-xs px-2 py-1 rounded"
+                              style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
                           From PRN
                         </span>
                       )}
@@ -1482,11 +1490,12 @@ const fetchTeacherClubs = async () => {
                 placeholder="Phone number"
                 value={form.phoneNumber}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base cursor-text"
+                style={{focus: {ringColor: '#4CA1AF'}}}
                 disabled={loadingProfile || autoFilled}
               />
               {autoFilled && form.phoneNumber && (
-                <p className="mt-1 text-xs text-green-600">Auto-filled from profile</p>
+                <p className="mt-1 text-xs" style={{color: '#4CA1AF'}}>Auto-filled from profile</p>
               )}
             </div>
 
@@ -1505,7 +1514,8 @@ const fetchTeacherClubs = async () => {
     name="clubId"
     value={form.clubId}
     onChange={handleChange}
-    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+    style={{focus: {ringColor: '#4CA1AF'}}}
     disabled={userRole === "SUPER_ADMIN" ? loadingClubs : loadingTeacherClubs}
     required
   >
@@ -1540,7 +1550,8 @@ const fetchTeacherClubs = async () => {
                   name="tenure"
                   value={form.tenure}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
+                  style={{focus: {ringColor: '#4CA1AF'}}}
                   required
                 >
                   <option value="">Select Tenure</option>
@@ -1557,7 +1568,7 @@ const fetchTeacherClubs = async () => {
               <button
                 type="submit"
                 disabled={loading || loadingProfile || !form.prn || !form.clubId || !form.tenure || prnError.includes('role')}
-                className={`w-full text-white py-3 px-5 rounded-full font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wide text-sm ${
+                className={`w-full text-white py-3 px-5 rounded-full font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wide text-sm cursor-pointer ${
                   loading || loadingProfile || !form.prn || !form.clubId || !form.tenure || prnError.includes('role') 
                     ? "opacity-70 cursor-not-allowed" 
                     : ""
@@ -1565,7 +1576,7 @@ const fetchTeacherClubs = async () => {
                 style={{
                   background: !form.prn || !form.clubId || !form.tenure || prnError.includes('role')
                     ? "linear-gradient(90deg, #9CA3AF 0%, #D1D5DB 100%)"
-                    : "linear-gradient(90deg, #10B981 0%, #34D399 100%)",
+                    : "linear-gradient(135deg, #4CA1AF, #315169)",
                 }}
               >
                 {loading ? (
@@ -1619,7 +1630,7 @@ const fetchTeacherClubs = async () => {
                 onClick={() => navigate(-1)}
                 type="button"
                 className="cursor-pointer w-full text-center text-sm font-semibold transition-colors hover:opacity-80 py-2 rounded-lg hover:bg-gray-50"
-                style={{ color: "#8B5CF6" }}
+                style={{ color: "#4CA1AF" }}
               >
                 ← Back to Dashboard
               </button>
@@ -1631,7 +1642,7 @@ const fetchTeacherClubs = async () => {
         <div
           className="hidden md:flex md:w-2/5 flex-col items-center justify-center relative overflow-hidden rounded-r-[2.5rem]"
           style={{
-            background: "linear-gradient(135deg, #10B981 0%, #34D399 100%)",
+            background: "linear-gradient(135deg, #4CA1AF, #315169)",
           }}
         >
           <div className="text-center px-8">
@@ -1679,4 +1690,3 @@ const fetchTeacherClubs = async () => {
     </div>
   );
 }
-

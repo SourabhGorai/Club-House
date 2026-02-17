@@ -76,14 +76,14 @@ export default function App() {
           }
         />
 
-        {/* <Route
+        <Route
           path="/club-admins"
           element={
             <ProtectedRoute>
               <ClubAdminsManagement />
             </ProtectedRoute>
           }
-        /> */}
+        />
 
         <Route
           path="/manage-users"
