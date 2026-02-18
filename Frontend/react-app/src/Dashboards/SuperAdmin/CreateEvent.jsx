@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -41,13 +41,20 @@ L.Icon.Default.mergeOptions({
 
 export default function CreateEvent() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+
+  // Get pre-selected club from URL params
+  const preSelectedClubId = searchParams.get("clubId");
+  const preSelectedClubName = searchParams.get("clubName");
 
   // Map references
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const circleRef = useRef(null);
   const mapContainerRef = useRef(null);
+  const mapInitializedRef = useRef(false); // Use ref to track initialization
 
   // Form state based on Events model
   const [formData, setFormData] = useState({
@@ -61,7 +68,7 @@ export default function CreateEvent() {
     maxEnrollments: "",
     currEnrollments: 0,
     target: "GLOBAL",
-    targetIds: [],
+    targetIds: preSelectedClubId ? [preSelectedClubId] : [],
     isCompleted: false,
     enrollmentDeadline: "",
     enrollmentStatus: "OPEN",
@@ -87,74 +94,106 @@ export default function CreateEvent() {
   const [selectedTargets, setSelectedTargets] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [enableAttendance, setEnableAttendance] = useState(false);
-  const [mapInitialized, setMapInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMap, setShowMap] = useState(false);
 
+  // Initialize selected targets from pre-selected club
+  useEffect(() => {
+    if (preSelectedClubId && preSelectedClubName) {
+      setSelectedTargets([{
+        id: preSelectedClubId,
+        name: preSelectedClubName
+      }]);
+    }
+  }, [preSelectedClubId, preSelectedClubName]);
+
   // Initialize map when attendance is enabled
   useEffect(() => {
-    if (enableAttendance && !mapInitialized && mapContainerRef.current) {
-      initializeMap();
+    if (enableAttendance && mapContainerRef.current && !mapInitializedRef.current) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        initializeMap();
+      });
     }
-  }, [enableAttendance, mapInitialized]);
+    
+    // Cleanup map on unmount or when attendance is disabled
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+        circleRef.current = null;
+        mapInitializedRef.current = false;
+      }
+    };
+  }, [enableAttendance]); // Only depend on enableAttendance
 
   const initializeMap = () => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || mapInitializedRef.current) return;
 
     // Default coordinates (Pune, India)
     const defaultLat = parseFloat(formData.latitude) || 18.5204;
     const defaultLng = parseFloat(formData.longitude) || 73.8567;
 
-    // Initialize map
-    mapRef.current = L.map(mapContainerRef.current).setView([defaultLat, defaultLng], 15);
+    try {
+      // Initialize map
+      mapRef.current = L.map(mapContainerRef.current).setView([defaultLat, defaultLng], 15);
 
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(mapRef.current);
+      // Add tile layer (OpenStreetMap)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(mapRef.current);
 
-    // Add marker
-    markerRef.current = L.marker([defaultLat, defaultLng], {
-      draggable: true,
-      autoPan: true,
-    }).addTo(mapRef.current);
+      // Add marker
+      markerRef.current = L.marker([defaultLat, defaultLng], {
+        draggable: true,
+        autoPan: true,
+      }).addTo(mapRef.current);
 
-    // Add circle for radius visualization
-    const circle = L.circle([defaultLat, defaultLng], {
-      radius: formData.radiusInMeters,
-      color: '#4CA1AF',
-      fillColor: '#4CA1AF',
-      fillOpacity: 0.2,
-      weight: 2,
-    }).addTo(mapRef.current);
+      // Add circle for radius visualization
+      circleRef.current = L.circle([defaultLat, defaultLng], {
+        radius: formData.radiusInMeters,
+        color: '#4CA1AF',
+        fillColor: '#4CA1AF',
+        fillOpacity: 0.2,
+        weight: 2,
+      }).addTo(mapRef.current);
 
-    // Handle marker drag events
-    markerRef.current.on('dragend', function(e) {
-      const position = e.target.getLatLng();
-      updateCoordinates(position.lat, position.lng);
-      
-      // Update circle position
-      circle.setLatLng([position.lat, position.lng]);
-    });
-
-    // Handle map click events
-    mapRef.current.on('click', function(e) {
-      const { lat, lng } = e.latlng;
-      markerRef.current.setLatLng([lat, lng]);
-      circle.setLatLng([lat, lng]);
-      updateCoordinates(lat, lng);
-    });
-
-    // Update circle when radius changes
-    const radiusInput = document.querySelector('input[name="radiusInMeters"]');
-    if (radiusInput) {
-      radiusInput.addEventListener('change', function(e) {
-        circle.setRadius(parseInt(e.target.value));
+      // Handle marker drag events
+      markerRef.current.on('dragend', function(e) {
+        const position = e.target.getLatLng();
+        updateCoordinates(position.lat, position.lng);
+        
+        // Update circle position
+        if (circleRef.current) {
+          circleRef.current.setLatLng([position.lat, position.lng]);
+        }
       });
-    }
 
-    setMapInitialized(true);
+      // Handle map click events
+      mapRef.current.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        }
+        if (circleRef.current) {
+          circleRef.current.setLatLng([lat, lng]);
+        }
+        updateCoordinates(lat, lng);
+      });
+
+      // Force a resize after initialization to fix any rendering issues
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 100);
+
+      mapInitializedRef.current = true;
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    }
   };
 
   const updateCoordinates = (lat, lng) => {
@@ -165,10 +204,37 @@ export default function CreateEvent() {
     }));
   };
 
+  // Update circle radius when radius changes
+  useEffect(() => {
+    if (circleRef.current && formData.radiusInMeters) {
+      circleRef.current.setRadius(parseInt(formData.radiusInMeters));
+    }
+  }, [formData.radiusInMeters]);
+
+  // Handle window resize to fix map rendering
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapRef.current && enableAttendance) {
+        mapRef.current.invalidateSize();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [enableAttendance]);
+
   const searchLocation = async () => {
     if (!searchQuery.trim()) return;
 
     try {
+      setMessage({
+        text: "Searching location...",
+        type: "success"
+      });
+
       const response = await axios.get(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
       );
@@ -181,14 +247,12 @@ export default function CreateEvent() {
         // Update map view
         if (mapRef.current) {
           mapRef.current.setView([latitude, longitude], 16);
-          markerRef.current.setLatLng([latitude, longitude]);
-          
-          // Update circle
-          mapRef.current.eachLayer((layer) => {
-            if (layer instanceof L.Circle) {
-              layer.setLatLng([latitude, longitude]);
-            }
-          });
+          if (markerRef.current) {
+            markerRef.current.setLatLng([latitude, longitude]);
+          }
+          if (circleRef.current) {
+            circleRef.current.setLatLng([latitude, longitude]);
+          }
         }
 
         // Update form data
@@ -234,14 +298,12 @@ export default function CreateEvent() {
         
         if (mapRef.current) {
           mapRef.current.setView([latitude, longitude], 16);
-          markerRef.current.setLatLng([latitude, longitude]);
-          
-          // Update circle
-          mapRef.current.eachLayer((layer) => {
-            if (layer instanceof L.Circle) {
-              layer.setLatLng([latitude, longitude]);
-            }
-          });
+          if (markerRef.current) {
+            markerRef.current.setLatLng([latitude, longitude]);
+          }
+          if (circleRef.current) {
+            circleRef.current.setLatLng([latitude, longitude]);
+          }
         }
 
         updateCoordinates(latitude, longitude);
@@ -265,38 +327,50 @@ export default function CreateEvent() {
   const fetchTargetOptions = async () => {
     setLoadingOptions(true);
     try {
-      const clubsResponse = await axios.get("http://localhost:8080/api/clubs", {
+      const userRole = user?.role;
+      
+      // Fetch clubs based on user role
+      let clubsEndpoint = "http://localhost:8080/api/clubs";
+      if (userRole === "TEACHER") {
+        clubsEndpoint = "http://localhost:8080/api/user-clubs/getMyClubs";
+      }
+      
+      const clubsResponse = await axios.get(clubsEndpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (Array.isArray(clubsResponse.data)) {
-        setClubs(clubsResponse.data);
-      } else if (clubsResponse.data.success && Array.isArray(clubsResponse.data.data)) {
+      // Handle clubs response
+      if (clubsResponse.data.success && Array.isArray(clubsResponse.data.data)) {
         setClubs(clubsResponse.data.data);
+      } else if (Array.isArray(clubsResponse.data)) {
+        setClubs(clubsResponse.data);
       } else if (clubsResponse.data.data && Array.isArray(clubsResponse.data.data)) {
         setClubs(clubsResponse.data.data);
       } else {
         setClubs([]);
       }
 
-      const deptResponse = await axios.get("http://localhost:8080/api/department", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      // Fetch departments (only for SUPERADMIN)
+      if (userRole === "SUPERADMIN") {
+        const deptResponse = await axios.get("http://localhost:8080/api/department", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      if (Array.isArray(deptResponse.data)) {
-        setDepartments(deptResponse.data);
-      } else if (deptResponse.data.success && Array.isArray(deptResponse.data.data)) {
-        setDepartments(deptResponse.data.data);
-      } else if (deptResponse.data.data && Array.isArray(deptResponse.data.data)) {
-        setDepartments(deptResponse.data.data);
-      } else {
-        setDepartments([]);
+        if (deptResponse.data.success && Array.isArray(deptResponse.data.data)) {
+          setDepartments(deptResponse.data.data);
+        } else if (Array.isArray(deptResponse.data)) {
+          setDepartments(deptResponse.data);
+        } else if (deptResponse.data.data && Array.isArray(deptResponse.data.data)) {
+          setDepartments(deptResponse.data.data);
+        } else {
+          setDepartments([]);
+        }
       }
 
     } catch (error) {
@@ -495,7 +569,7 @@ export default function CreateEvent() {
         });
 
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate(-1);
         }, 1500);
       } else {
         setMessage({
@@ -551,11 +625,11 @@ export default function CreateEvent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
-              <span>Back to Dashboard</span>
+              <span>Back</span>
             </button>
             <div className="flex items-center gap-2">
               <CalendarPlus className="w-5 h-5" style={{color: '#4CA1AF'}} />
@@ -573,6 +647,11 @@ export default function CreateEvent() {
                style={{background: 'linear-gradient(to right, rgba(76, 161, 175, 0.1), rgba(49, 81, 105, 0.1))'}}>
             <h1 className="text-2xl font-semibold text-gray-900">Event Details</h1>
             <p className="text-sm text-gray-600 mt-1">Fill in the information below to create your event</p>
+            {preSelectedClubName && (
+              <p className="text-sm mt-2" style={{color: '#4CA1AF'}}>
+                Creating event for: <span className="font-semibold">{preSelectedClubName}</span>
+              </p>
+            )}
           </div>
 
           {/* Status Message */}
@@ -767,7 +846,7 @@ export default function CreateEvent() {
               )}
             </div>
 
-            {/* Row 6: Target Type */}
+            {/* Row 6: Target Type - Hide DEPARTMENT for TEACHERS */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Target Audience <span className="text-red-500">*</span>
@@ -807,22 +886,25 @@ export default function CreateEvent() {
                   )}
                 </button>
                 
-                <button
-                  type="button"
-                  onClick={() => handleTargetTypeChange("DEPARTMENT")}
-                  className={`px-5 py-2.5 rounded-lg border transition-colors flex items-center gap-2 cursor-pointer ${
-                    formData.target === "DEPARTMENT"
-                      ? "border-[#4CA1AF] text-[#4CA1AF]"
-                      : "border-gray-300 hover:border-[#4CA1AF] hover:bg-[#4CA1AF]/5"
-                  }`}
-                  style={formData.target === "DEPARTMENT" ? {backgroundColor: 'rgba(76, 161, 175, 0.1)'} : {}}
-                >
-                  <Building2 className="w-4 h-4" />
-                  <span className="font-medium">Specific Departments</span>
-                  {formData.target === "DEPARTMENT" && (
-                    <Check className="w-4 h-4 ml-1" style={{color: '#4CA1AF'}} />
-                  )}
-                </button>
+                {/* Only show DEPARTMENT option for SUPERADMIN */}
+                {user?.role === "SUPERADMIN" && (
+                  <button
+                    type="button"
+                    onClick={() => handleTargetTypeChange("DEPARTMENT")}
+                    className={`px-5 py-2.5 rounded-lg border transition-colors flex items-center gap-2 cursor-pointer ${
+                      formData.target === "DEPARTMENT"
+                        ? "border-[#4CA1AF] text-[#4CA1AF]"
+                        : "border-gray-300 hover:border-[#4CA1AF] hover:bg-[#4CA1AF]/5"
+                    }`}
+                    style={formData.target === "DEPARTMENT" ? {backgroundColor: 'rgba(76, 161, 175, 0.1)'} : {}}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span className="font-medium">Specific Departments</span>
+                    {formData.target === "DEPARTMENT" && (
+                      <Check className="w-4 h-4 ml-1" style={{color: '#4CA1AF'}} />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -910,6 +992,14 @@ export default function CreateEvent() {
                         setShowMap(true);
                       } else {
                         setShowMap(false);
+                        // Clean up map when disabling
+                        if (mapRef.current) {
+                          mapRef.current.remove();
+                          mapRef.current = null;
+                          markerRef.current = null;
+                          circleRef.current = null;
+                          mapInitializedRef.current = false;
+                        }
                       }
                     }}
                     className="sr-only"
@@ -1088,7 +1178,7 @@ export default function CreateEvent() {
             <div className="flex gap-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate(-1)}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Cancel

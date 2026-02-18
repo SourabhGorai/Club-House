@@ -15,7 +15,7 @@ import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyCl
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
 import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
-
+import ClubDetails from "./components/ClubDetails";
 
 export default function App() {
   return (
@@ -129,7 +129,13 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+          <Route path="/club/:clubName/details" element={            <ProtectedRoute>
+              <ClubDetails />
+            </ProtectedRoute> } />
+
       </Routes>
+
+    
     </div>
   );
 }
