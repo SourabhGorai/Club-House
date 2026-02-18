@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   BookOpen,
@@ -8,17 +8,26 @@ import {
   Layers,
   Filter,
   X,
-  ShieldCheck
-} from 'lucide-react';
+  ShieldCheck,
+} from "lucide-react";
 
 // ----------------------------------------------------------------
 // Filter Modal
 // ----------------------------------------------------------------
 const FilterModal = ({
-  isOpen, onClose, clubs, departments, years,
-  selectedClub, selectedDept, selectedYear,
-  onClubChange, onDeptChange, onYearChange,
-  onResetFilters, onApplyFilters
+  isOpen,
+  onClose,
+  clubs,
+  departments,
+  years,
+  selectedClub,
+  selectedDept,
+  selectedYear,
+  onClubChange,
+  onDeptChange,
+  onYearChange,
+  onResetFilters,
+  onApplyFilters,
 }) => {
   if (!isOpen) return null;
 
@@ -26,61 +35,78 @@ const FilterModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-lg transition-all duration-300">
       <div className="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-md transform transition-all duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-xl flex items-center" style={{color: '#4CA1AF'}}>
+          <h3
+            className="font-bold text-xl flex items-center"
+            style={{ color: "#4CA1AF" }}
+          >
             <Filter className="w-5 h-5 mr-2" />
             Filter Club Admins
           </h3>
-          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 cursor-pointer">
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="space-y-6">
-
           {/* Club Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Club</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Club
+            </label>
             <select
               value={selectedClub}
               onChange={(e) => onClubChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Clubs</option>
               {clubs.map((club) => (
-                <option key={club.clubId} value={club.clubId}>{club.clubName}</option>
+                <option key={club.clubId} value={club.clubId}>
+                  {club.clubName}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Department Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Department
+            </label>
             <select
               value={selectedDept}
               onChange={(e) => onDeptChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept.departmentId} value={dept.name}>{dept.name}</option>
+                <option key={dept.departmentId} value={dept.name}>
+                  {dept.name}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Year Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Year
+            </label>
             <select
               value={selectedYear}
               onChange={(e) => onYearChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Years</option>
               {years.map((year) => (
-                <option key={year} value={year}>Year {year}</option>
+                <option key={year} value={year}>
+                  Year {year}
+                </option>
               ))}
             </select>
           </div>
@@ -88,25 +114,50 @@ const FilterModal = ({
           {/* Active Filters */}
           {(selectedClub || selectedDept || selectedYear) && (
             <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs font-medium text-gray-600 mb-2">Active Filters:</p>
+              <p className="text-xs font-medium text-gray-600 mb-2">
+                Active Filters:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selectedClub && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                    Club: {clubs.find(c => c.clubId === parseInt(selectedClub))?.clubName || selectedClub}
-                    <button onClick={() => onClubChange('')} className="ml-1 cursor-pointer"><X className="w-3 h-3" /></button>
+                    Club:{" "}
+                    {clubs.find((c) => c.clubId === parseInt(selectedClub))
+                      ?.clubName || selectedClub}
+                    <button
+                      onClick={() => onClubChange("")}
+                      className="ml-1 cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {selectedDept && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" 
-                        style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
+                  <span
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                    style={{
+                      backgroundColor: "rgba(76, 161, 175, 0.1)",
+                      color: "#4CA1AF",
+                    }}
+                  >
                     Dept: {selectedDept}
-                    <button onClick={() => onDeptChange('')} className="ml-1 cursor-pointer" style={{color: '#4CA1AF'}}><X className="w-3 h-3" /></button>
+                    <button
+                      onClick={() => onDeptChange("")}
+                      className="ml-1 cursor-pointer"
+                      style={{ color: "#4CA1AF" }}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {selectedYear && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Year: {selectedYear}
-                    <button onClick={() => onYearChange('')} className="ml-1 cursor-pointer"><X className="w-3 h-3" /></button>
+                    <button
+                      onClick={() => onYearChange("")}
+                      className="ml-1 cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
               </div>
@@ -114,17 +165,28 @@ const FilterModal = ({
           )}
 
           <div className="flex justify-between pt-4">
-            <button onClick={onResetFilters} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition cursor-pointer">
+            <button
+              onClick={onResetFilters}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition cursor-pointer"
+            >
               Reset All
             </button>
             <div className="space-x-3">
-              <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition cursor-pointer">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition cursor-pointer"
+              >
                 Cancel
               </button>
               <button
-                onClick={() => { onApplyFilters(); onClose(); }}
+                onClick={() => {
+                  onApplyFilters();
+                  onClose();
+                }}
                 className="px-6 py-2 text-sm font-medium rounded-full text-white transition cursor-pointer"
-                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
+                style={{
+                  background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                }}
               >
                 Apply Filters
               </button>
@@ -216,9 +278,9 @@ const ClubAdminsManagement = () => {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isLoadingFilteredAdmins, setIsLoadingFilteredAdmins] = useState(false);
 
-  const [selectedClub, setSelectedClub] = useState('');
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedClub, setSelectedClub] = useState("");
+  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [clubs, setClubs] = useState([]);
 
   // Full department objects { departmentId, name, active } from /api/department
@@ -231,8 +293,10 @@ const ClubAdminsManagement = () => {
     fetchAllData();
 
     return () => {
-      setProfileImages(prev => {
-        Object.values(prev).forEach(url => { if (url) URL.revokeObjectURL(url); });
+      setProfileImages((prev) => {
+        Object.values(prev).forEach((url) => {
+          if (url) URL.revokeObjectURL(url);
+        });
         return {};
       });
     };
@@ -243,9 +307,12 @@ const ClubAdminsManagement = () => {
     setError(null);
     try {
       const [adminsResponse, clubsResponse, deptsResponse] = await Promise.all([
-        axios.get("http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        axios.get(
+          "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        ),
         axios.get("http://localhost:8080/api/clubs", {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -264,7 +331,6 @@ const ClubAdminsManagement = () => {
       setDepartments(deptsResponse.data.data || []);
 
       await fetchProfileImages(adminEntries);
-
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load club admin data.");
@@ -280,7 +346,7 @@ const ClubAdminsManagement = () => {
    */
   const fetchProfileImages = async (adminsList) => {
     const adminsWithImages = adminsList.filter(
-      (admin) => admin.hasProfileImage && admin.imageUrl
+      (admin) => admin.hasProfileImage && admin.imageUrl,
     );
 
     const imagePromises = adminsWithImages.map(async (admin) => {
@@ -289,11 +355,14 @@ const ClubAdminsManagement = () => {
           `http://localhost:8080${admin.imageUrl}`,
           {
             headers: { Authorization: `Bearer ${token}` },
-            responseType: 'blob',
-          }
+            responseType: "blob",
+          },
         );
         if (response.data && response.data.size > 0) {
-          return { prn: admin.prn, blobUrl: URL.createObjectURL(response.data) };
+          return {
+            prn: admin.prn,
+            blobUrl: URL.createObjectURL(response.data),
+          };
         }
         return { prn: admin.prn, blobUrl: null };
       } catch {
@@ -316,7 +385,7 @@ const ClubAdminsManagement = () => {
   const handleFilterChange = (
     newClub = selectedClub,
     newDept = selectedDept,
-    newYear = selectedYear
+    newYear = selectedYear,
   ) => {
     setSelectedClub(newClub);
     setSelectedDept(newDept);
@@ -347,25 +416,28 @@ const ClubAdminsManagement = () => {
 
       setFilteredAdmins(result);
     } catch (err) {
-      console.error('Error filtering:', err);
+      console.error("Error filtering:", err);
     } finally {
       setIsLoadingFilteredAdmins(false);
     }
   };
 
-  const handleClubChange = (v) => handleFilterChange(v, selectedDept, selectedYear);
-  const handleDeptChange = (v) => handleFilterChange(selectedClub, v, selectedYear);
-  const handleYearChange = (v) => handleFilterChange(selectedClub, selectedDept, v);
+  const handleClubChange = (v) =>
+    handleFilterChange(v, selectedDept, selectedYear);
+  const handleDeptChange = (v) =>
+    handleFilterChange(selectedClub, v, selectedYear);
+  const handleYearChange = (v) =>
+    handleFilterChange(selectedClub, selectedDept, v);
 
   const resetFilters = () => {
-    setSelectedClub('');
-    setSelectedDept('');
-    setSelectedYear('');
+    setSelectedClub("");
+    setSelectedDept("");
+    setSelectedYear("");
     setFilteredAdmins(clubAdmins);
   };
 
   const getClubName = (clubId) =>
-    clubs.find((c) => c.clubId === clubId)?.clubName || 'Unknown Club';
+    clubs.find((c) => c.clubId === clubId)?.clubName || "Unknown Club";
 
   // ----------------------------------------------------------------
   // Render
@@ -375,8 +447,13 @@ const ClubAdminsManagement = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <style dangerouslySetInnerHTML={{ __html: customStyles }} />
         <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 mx-auto cursor-wait" style={{borderColor: '#4CA1AF'}} />
-          <p className="mt-6 font-medium" style={{color: '#4CA1AF'}}>Loading club admins...</p>
+          <div
+            className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 mx-auto cursor-wait"
+            style={{ borderColor: "#4CA1AF" }}
+          />
+          <p className="mt-6 font-medium" style={{ color: "#4CA1AF" }}>
+            Loading club admins...
+          </p>
         </div>
       </div>
     );
@@ -385,7 +462,10 @@ const ClubAdminsManagement = () => {
   return (
     <div
       className="min-h-screen font-sans py-12"
-      style={{ background: "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)" }}
+      style={{
+        background:
+          "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)",
+      }}
     >
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
@@ -406,7 +486,6 @@ const ClubAdminsManagement = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Header */}
         <div className="mb-8 flex items-center gap-6">
           <button
@@ -415,21 +494,38 @@ const ClubAdminsManagement = () => {
             style={{
               background: "rgba(255,255,255,0.7)",
               backdropFilter: "blur(8px)",
-              color: '#4CA1AF'
+              color: "#4CA1AF",
             }}
           >
-            <div className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-                 style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
-              <svg className="w-3.5 h-3.5" style={{color: '#4CA1AF'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <div
+              className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
+              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                style={{ color: "#4CA1AF" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
             </div>
           </button>
 
           <div>
-            <h1 className="font-display text-4xl font-extrabold tracking-tight" style={{color: '#4CA1AF'}}>
+            {/* <h1 className="font-display text-4xl font-extrabold tracking-tight" style={{color: '#4CA1AF'}}>
+              Club Admins Management
+            </h1> */}
+            <h1 className="font-display text-4xl font-extrabold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
               Club Admins Management
             </h1>
+
             <p className="text-gray-500 mt-2 text-lg">
               Manage all club administrators and their roles.
             </p>
@@ -439,8 +535,11 @@ const ClubAdminsManagement = () => {
         {/* Stats + Filter Bar */}
         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-xl font-semibold font-display flex items-center" style={{color: '#4CA1AF'}}>
-              <Filter className="mr-3 w-5 h-5" style={{color: '#4CA1AF'}} />
+            <h2
+              className="text-xl font-semibold font-display flex items-center"
+              style={{ color: "#26727e" }}
+            >
+              <Filter className="mr-3 w-5 h-5" style={{ color: "#26727e" }} />
               Active Club Admins ({filteredAdmins.length})
             </h2>
 
@@ -449,20 +548,42 @@ const ClubAdminsManagement = () => {
               {selectedClub && (
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200">
                   Club: {getClubName(parseInt(selectedClub))}
-                  <button onClick={() => handleClubChange('')} className="ml-2 cursor-pointer"><X className="w-3 h-3" /></button>
+                  <button
+                    onClick={() => handleClubChange("")}
+                    className="ml-2 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
               )}
               {selectedDept && (
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border"
-                      style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}>
+                <span
+                  className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border"
+                  style={{
+                    backgroundColor: "rgba(76, 161, 175, 0.1)",
+                    color: "#4CA1AF",
+                    borderColor: "rgba(76, 161, 175, 0.2)",
+                  }}
+                >
                   Dept: {selectedDept}
-                  <button onClick={() => handleDeptChange('')} className="ml-2 cursor-pointer" style={{color: '#4CA1AF'}}><X className="w-3 h-3" /></button>
+                  <button
+                    onClick={() => handleDeptChange("")}
+                    className="ml-2 cursor-pointer"
+                    style={{ color: "#4CA1AF" }}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
               )}
               {selectedYear && (
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
                   Year: {selectedYear}
-                  <button onClick={() => handleYearChange('')} className="ml-2 cursor-pointer"><X className="w-3 h-3" /></button>
+                  <button
+                    onClick={() => handleYearChange("")}
+                    className="ml-2 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
               )}
 
@@ -474,7 +595,9 @@ const ClubAdminsManagement = () => {
                 Filter
                 {(selectedClub || selectedDept || selectedYear) && (
                   <span className="ml-2 bg-white text-[#4CA1AF] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {(selectedClub ? 1 : 0) + (selectedDept ? 1 : 0) + (selectedYear ? 1 : 0)}
+                    {(selectedClub ? 1 : 0) +
+                      (selectedDept ? 1 : 0) +
+                      (selectedYear ? 1 : 0)}
                   </span>
                 )}
               </button>
@@ -494,20 +617,28 @@ const ClubAdminsManagement = () => {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Total Admins</div>
-              <div className="text-2xl font-bold" style={{color: '#4CA1AF'}}>{clubAdmins.length}</div>
+              <div className="text-2xl font-bold" style={{ color: "#4CA1AF" }}>
+                {clubAdmins.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Currently Showing</div>
-              <div className="text-2xl font-bold" style={{color: '#4CA1AF'}}>{filteredAdmins.length}</div>
+              <div className="text-2xl font-bold" style={{ color: "#4CA1AF" }}>
+                {filteredAdmins.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Total Clubs</div>
-              <div className="text-2xl font-bold text-[#10B981]">{clubs.length}</div>
+              <div className="text-2xl font-bold text-[#10B981]">
+                {clubs.length}
+              </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Active Filters</div>
               <div className="text-2xl font-bold text-[#F59E0B]">
-                {(selectedClub ? 1 : 0) + (selectedDept ? 1 : 0) + (selectedYear ? 1 : 0)}
+                {(selectedClub ? 1 : 0) +
+                  (selectedDept ? 1 : 0) +
+                  (selectedYear ? 1 : 0)}
               </div>
             </div>
           </div>
@@ -517,7 +648,10 @@ const ClubAdminsManagement = () => {
         <div className="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
           {isLoadingFilteredAdmins ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-6 cursor-wait" style={{borderColor: '#4CA1AF'}} />
+              <div
+                className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-6 cursor-wait"
+                style={{ borderColor: "#4CA1AF" }}
+              />
               <p className="text-gray-600">Applying filters...</p>
             </div>
           ) : filteredAdmins.length === 0 ? (
@@ -525,9 +659,16 @@ const ClubAdminsManagement = () => {
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <Filter className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No club admins found</h3>
-              <p className="text-gray-500 mb-6">Try adjusting your filters to see more admins.</p>
-              <button onClick={resetFilters} className="btn-gradient px-6 py-2.5 cursor-pointer">
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No club admins found
+              </h3>
+              <p className="text-gray-500 mb-6">
+                Try adjusting your filters to see more admins.
+              </p>
+              <button
+                onClick={resetFilters}
+                className="btn-gradient px-6 py-2.5 cursor-pointer"
+              >
                 Clear All Filters
               </button>
             </div>
@@ -540,11 +681,12 @@ const ClubAdminsManagement = () => {
                 return (
                   <div
                     key={admin.userClubId}
-                    className={`user-card-container ${isFlipped ? 'flipped' : ''}`}
-                    onClick={() => setOpenOverlayFor(isFlipped ? null : admin.userClubId)}
+                    className={`user-card-container ${isFlipped ? "flipped" : ""}`}
+                    onClick={() =>
+                      setOpenOverlayFor(isFlipped ? null : admin.userClubId)
+                    }
                   >
                     <div className="user-card">
-
                       {/* Front of Card */}
                       <div className="card-face bg-white border border-gray-200 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-xl hover:border-[#4CA1AF]">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl mb-4">
@@ -555,10 +697,15 @@ const ClubAdminsManagement = () => {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center"
-                                 style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
+                            <div
+                              className="w-full h-full flex items-center justify-center"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, #4CA1AF, #315169)",
+                              }}
+                            >
                               <span className="text-3xl font-display font-bold text-white">
-                                {admin.name?.charAt(0)?.toUpperCase() ?? '?'}
+                                {admin.name?.charAt(0)?.toUpperCase() ?? "?"}
                               </span>
                             </div>
                           )}
@@ -566,10 +713,15 @@ const ClubAdminsManagement = () => {
 
                         <div className="text-center">
                           <div className="text-xl font-display font-semibold text-gray-900 truncate max-w-[20rem]">
-                            {admin.name || 'Unknown'}
+                            {admin.name || "Unknown"}
                           </div>
-                          <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full text-white font-bold shadow-md"
-                                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
+                          <span
+                            className="inline-block mt-2 px-3 py-1 text-xs rounded-full text-white font-bold shadow-md"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #4CA1AF, #315169)",
+                            }}
+                          >
                             CLUB ADMIN
                           </span>
                         </div>
@@ -581,38 +733,41 @@ const ClubAdminsManagement = () => {
                           <div className="flex items-center gap-3 mb-4">
                             <User className="w-6 h-6" />
                             <div className="font-display font-semibold text-2xl">
-                              {admin.prn || 'N/A'}
+                              {admin.prn || "N/A"}
                             </div>
                           </div>
 
                           <div className="mt-4 text-sm space-y-3">
                             <div className="flex items-center gap-3">
                               <Layers className="w-4 h-4 text-[#2DD4BF]" />
-                              <span className="truncate">{admin.clubName || getClubName(admin.clubId)}</span>
+                              <span className="truncate">
+                                {admin.clubName || getClubName(admin.clubId)}
+                              </span>
                             </div>
                             <div className="flex items-center gap-3">
                               <BookOpen className="w-4 h-4 text-white/90" />
-                              <span>{admin.department || 'N/A'}</span>
+                              <span>{admin.department || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <Calendar className="w-4 h-4 text-white/90" />
-                              <span>Year: {admin.year || '—'}</span>
+                              <span>Year: {admin.year || "—"}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <Calendar className="w-4 h-4 text-[#FB923C]" />
-                              <span>Tenure: {admin.tenure || 'N/A'}</span>
+                              <span>Tenure: {admin.tenure || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-3 pt-2">
                               <ShieldCheck className="w-4 h-4 text-white/90" />
-                              <span className="px-3 py-1 text-xs rounded-full bg-white font-semibold"
-                                    style={{color: '#4CA1AF'}}>
+                              <span
+                                className="px-3 py-1 text-xs rounded-full bg-white font-semibold"
+                                style={{ color: "#4CA1AF" }}
+                              >
                                 CLUB ADMIN
                               </span>
                             </div>
                           </div>
                         </div>
                       </div>
-
                     </div>
                   </div>
                 );

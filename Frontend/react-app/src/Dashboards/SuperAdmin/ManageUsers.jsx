@@ -17,7 +17,6 @@
 //   ShieldCheck
 // } from 'lucide-react';
 
-
 // const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 //   if (!isOpen) return null;
 
@@ -46,19 +45,19 @@
 // };
 
 // // Filter Modal Component
-// const FilterModal = ({ 
-//   isOpen, 
-//   onClose, 
-//   departments, 
-//   years, 
-//   selectedDept, 
-//   selectedYear, 
+// const FilterModal = ({
+//   isOpen,
+//   onClose,
+//   departments,
+//   years,
+//   selectedDept,
+//   selectedYear,
 //   selectedRole,
-//   onDeptChange, 
-//   onYearChange, 
+//   onDeptChange,
+//   onYearChange,
 //   onRoleChange,
-//   onResetFilters, 
-//   onApplyFilters 
+//   onResetFilters,
+//   onApplyFilters
 // }) => {
 //   if (!isOpen) return null;
 
@@ -211,7 +210,7 @@
 // const customStyles = `
 //     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 //     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap');
-    
+
 //     .font-sans { font-family: 'Poppins', sans-serif; }
 //     .font-display { font-family: 'Outfit', sans-serif; }
 
@@ -239,7 +238,7 @@
 //         position: relative;
 //     }
 
-//     .user-card-container:hover .user-card, 
+//     .user-card-container:hover .user-card,
 //     .user-card-container.flipped .user-card {
 //         transform: rotateY(180deg);
 //     }
@@ -270,7 +269,7 @@
 
 // const UserManagement = () => {
 //   const navigate = useNavigate();
-  
+
 //   const [users, setUsers] = useState([]);
 //   const [filteredUsers, setFilteredUsers] = useState([]);
 //   const [userProfiles, setUserProfiles] = useState({});
@@ -387,7 +386,7 @@
 
 //   const extractFiltersData = (profilesMap) => {
 //     const deptSet = new Set();
-//     const yearSet = new Set([1, 2, 3, 4]); 
+//     const yearSet = new Set([1, 2, 3, 4]);
 //     Object.values(profilesMap).forEach(profile => {
 //       if (profile?.department) deptSet.add(profile.department);
 //       if (profile?.year) yearSet.add(profile.year);
@@ -400,17 +399,17 @@
 //     setSelectedDept(newDept);
 //     setSelectedYear(newYear);
 //     setSelectedRole(newRole);
-    
+
 //     if (!newDept && !newYear && !newRole) {
 //       setFilteredUsers(users);
 //       return;
 //     }
-    
+
 //     const applyImmediateFilters = async () => {
 //       setIsLoadingFilteredUsers(true);
 //       try {
 //         let usersToFilter = [...users];
-        
+
 //         // Filter by Role
 //         if (newRole) {
 //           usersToFilter = usersToFilter.filter(user => user.role === newRole);
@@ -423,7 +422,7 @@
 //             return profile?.department === newDept;
 //           });
 //         }
-        
+
 //         // Filter by Year
 //         if (newYear) {
 //           try {
@@ -524,7 +523,7 @@
 //       }}
 //     >
 //       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-      
+
 //       <ConfirmationModal
 //         isOpen={isModalOpen}
 //         title="Confirm User Deletion"
@@ -545,7 +544,7 @@
 //         onYearChange={handleYearChange}
 //         onRoleChange={handleRoleChange}
 //         onResetFilters={resetFilters}
-//         onApplyFilters={() => handleFilterChange()} 
+//         onApplyFilters={() => handleFilterChange()}
 //       />
 
 //       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -566,7 +565,7 @@
 //                 </svg>
 //               </div>
 //             </button>
-            
+
 //             <div className="text-left">
 //               <h1 className="font-display text-4xl font-extrabold text-[#4C1D95] tracking-tight">
 //                 User Directory & Access Control
@@ -617,7 +616,7 @@
 //                   )}
 //                 </div>
 //               )}
-              
+
 //               <button
 //                 onClick={() => setIsFilterModalOpen(true)}
 //                 className="cursor-pointer btn-gradient flex items-center px-4 py-2.5 rounded-xl"
@@ -630,7 +629,7 @@
 //                   </span>
 //                 )}
 //               </button>
-              
+
 //               {(selectedDept || selectedYear || selectedRole) && (
 //                 <button
 //                   onClick={resetFilters}
@@ -642,7 +641,7 @@
 //               )}
 //             </div>
 //           </div>
-          
+
 //           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 //             <div className="bg-gray-50 p-3 rounded-xl">
 //               <div className="text-xs text-gray-500">Total Users</div>
@@ -705,9 +704,9 @@
 //                       <div className="card-face bg-white border border-gray-200 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-xl hover:border-[#A78BFA]">
 //                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl mb-4">
 //                           {imageUrl ? (
-//                             <img 
-//                               src={imageUrl} 
-//                               alt={userItem.username} 
+//                             <img
+//                               src={imageUrl}
+//                               alt={userItem.username}
 //                               className="w-full h-full object-cover"
 //                               onError={(e) => {
 //                                 e.target.onerror = null;
@@ -796,10 +795,9 @@
 
 // export default UserManagement;
 
-
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -813,9 +811,8 @@ import {
   Layers,
   Filter,
   X,
-  ShieldCheck
-} from 'lucide-react';
-
+  ShieldCheck,
+} from "lucide-react";
 
 const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;
@@ -845,33 +842,33 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 };
 
 // Filter Modal Component
-const FilterModal = ({ 
-  isOpen, 
-  onClose, 
-  departments, 
-  years, 
-  selectedDept, 
-  selectedYear, 
+const FilterModal = ({
+  isOpen,
+  onClose,
+  departments,
+  years,
+  selectedDept,
+  selectedYear,
   selectedRole,
-  onDeptChange, 
-  onYearChange, 
+  onDeptChange,
+  onYearChange,
   onRoleChange,
-  onResetFilters, 
-  onApplyFilters 
+  onResetFilters,
+  onApplyFilters,
 }) => {
   if (!isOpen) return null;
 
   const roles = [
-    { label: 'Users', value: 'USERS' },
-    { label: 'Teachers', value: 'TEACHERS' },
-    { label: 'Super Admin', value: 'SUPER_ADMIN' }
+    { label: "Users", value: "USERS" },
+    { label: "Teachers", value: "TEACHERS" },
+    { label: "Super Admin", value: "SUPER_ADMIN" },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-lg transition-all duration-300">
       <div className="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-md transform transition-all duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-xl" style={{color: '#4CA1AF'}}>
+          <h3 className="font-bold text-xl" style={{ color: "#4CA1AF" }}>
             <Filter className="w-5 h-5 mr-2 inline" />
             Filter Users
           </h3>
@@ -893,7 +890,7 @@ const FilterModal = ({
               value={selectedRole}
               onChange={(e) => onRoleChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Roles</option>
               {roles.map((role) => (
@@ -913,7 +910,7 @@ const FilterModal = ({
               value={selectedDept}
               onChange={(e) => onDeptChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
@@ -933,7 +930,7 @@ const FilterModal = ({
               value={selectedYear}
               onChange={(e) => onYearChange(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{focus: {ringColor: '#4CA1AF'}}}
+              style={{ focus: { ringColor: "#4CA1AF" } }}
             >
               <option value="">All Years</option>
               {years.map((year) => (
@@ -953,17 +950,29 @@ const FilterModal = ({
               <div className="flex flex-wrap gap-2">
                 {selectedRole && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                    Role: {selectedRole.replace('_', ' ')}
-                    <button onClick={() => onRoleChange('')} className="ml-1 text-orange-600 hover:text-orange-800 cursor-pointer">
+                    Role: {selectedRole.replace("_", " ")}
+                    <button
+                      onClick={() => onRoleChange("")}
+                      className="ml-1 text-orange-600 hover:text-orange-800 cursor-pointer"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
                 {selectedDept && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" 
-                        style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
+                  <span
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                    style={{
+                      backgroundColor: "rgba(76, 161, 175, 0.1)",
+                      color: "#4CA1AF",
+                    }}
+                  >
                     Dept: {selectedDept}
-                    <button onClick={() => onDeptChange('')} className="ml-1" style={{color: '#4CA1AF'}}>
+                    <button
+                      onClick={() => onDeptChange("")}
+                      className="ml-1"
+                      style={{ color: "#4CA1AF" }}
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -971,7 +980,10 @@ const FilterModal = ({
                 {selectedYear && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Year: {selectedYear}
-                    <button onClick={() => onYearChange('')} className="ml-1 text-blue-600 hover:text-blue-800 cursor-pointer">
+                    <button
+                      onClick={() => onYearChange("")}
+                      className="ml-1 text-blue-600 hover:text-blue-800 cursor-pointer"
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -1000,7 +1012,9 @@ const FilterModal = ({
                   onClose();
                 }}
                 className="px-6 py-2 text-sm font-medium rounded-full text-white transition cursor-pointer"
-                style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
+                style={{
+                  background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                }}
               >
                 Apply Filters
               </button>
@@ -1074,7 +1088,7 @@ const customStyles = `
 
 const UserManagement = () => {
   const navigate = useNavigate();
-  
+
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userProfiles, setUserProfiles] = useState({});
@@ -1086,9 +1100,9 @@ const UserManagement = () => {
   const [userToDelete, setUserToDelete] = useState(null);
 
   // Filter states
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
   const [departments, setDepartments] = useState([]);
   const [years, setYears] = useState([]);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -1191,8 +1205,8 @@ const UserManagement = () => {
 
   const extractFiltersData = (profilesMap) => {
     const deptSet = new Set();
-    const yearSet = new Set([1, 2, 3, 4]); 
-    Object.values(profilesMap).forEach(profile => {
+    const yearSet = new Set([1, 2, 3, 4]);
+    Object.values(profilesMap).forEach((profile) => {
       if (profile?.department) deptSet.add(profile.department);
       if (profile?.year) yearSet.add(profile.year);
     });
@@ -1200,24 +1214,28 @@ const UserManagement = () => {
     setYears(Array.from(yearSet).sort((a, b) => a - b));
   };
 
-  const handleFilterChange = (newDept = selectedDept, newYear = selectedYear, newRole = selectedRole) => {
+  const handleFilterChange = (
+    newDept = selectedDept,
+    newYear = selectedYear,
+    newRole = selectedRole,
+  ) => {
     setSelectedDept(newDept);
     setSelectedYear(newYear);
     setSelectedRole(newRole);
-    
+
     if (!newDept && !newYear && !newRole) {
       setFilteredUsers(users);
       return;
     }
-    
+
     const applyImmediateFilters = async () => {
       setIsLoadingFilteredUsers(true);
       try {
         let usersToFilter = [...users];
-        
+
         // Filter by Role
         if (newRole) {
-          usersToFilter = usersToFilter.filter(user => user.role === newRole);
+          usersToFilter = usersToFilter.filter((user) => user.role === newRole);
         }
 
         // Filter by Department
@@ -1227,18 +1245,21 @@ const UserManagement = () => {
             return profile?.department === newDept;
           });
         }
-        
+
         // Filter by Year
         if (newYear) {
           try {
             const response = await axios.get(
               `http://localhost:8080/api/profiles/year/${newYear}`,
-              { headers: { Authorization: `Bearer ${token}` } }
+              { headers: { Authorization: `Bearer ${token}` } },
             );
-            const yearFilteredPrns = response.data.data?.map(profile => profile.prn) || [];
-            usersToFilter = usersToFilter.filter(user => yearFilteredPrns.includes(user.prn));
+            const yearFilteredPrns =
+              response.data.data?.map((profile) => profile.prn) || [];
+            usersToFilter = usersToFilter.filter((user) =>
+              yearFilteredPrns.includes(user.prn),
+            );
           } catch (yearError) {
-            usersToFilter = usersToFilter.filter(user => {
+            usersToFilter = usersToFilter.filter((user) => {
               const profile = userProfiles[user.prn];
               return profile?.year?.toString() === newYear;
             });
@@ -1247,7 +1268,7 @@ const UserManagement = () => {
 
         setFilteredUsers(usersToFilter);
       } catch (error) {
-        console.error('Error filtering:', error);
+        console.error("Error filtering:", error);
       } finally {
         setIsLoadingFilteredUsers(false);
       }
@@ -1256,14 +1277,17 @@ const UserManagement = () => {
     applyImmediateFilters();
   };
 
-  const handleRoleChange = (role) => handleFilterChange(selectedDept, selectedYear, role);
-  const handleDeptChange = (dept) => handleFilterChange(dept, selectedYear, selectedRole);
-  const handleYearChange = (year) => handleFilterChange(selectedDept, year, selectedRole);
+  const handleRoleChange = (role) =>
+    handleFilterChange(selectedDept, selectedYear, role);
+  const handleDeptChange = (dept) =>
+    handleFilterChange(dept, selectedYear, selectedRole);
+  const handleYearChange = (year) =>
+    handleFilterChange(selectedDept, year, selectedRole);
 
   const resetFilters = () => {
-    setSelectedDept('');
-    setSelectedYear('');
-    setSelectedRole('');
+    setSelectedDept("");
+    setSelectedYear("");
+    setSelectedRole("");
     setFilteredUsers(users);
   };
 
@@ -1277,48 +1301,55 @@ const UserManagement = () => {
   };
 
   const executeDelete = async () => {
-  if (!userToDelete) return;
-  try {
-    // Change from userToDelete.id to userToDelete.prn in the URL
-    await axios.delete(`http://localhost:8080/api/users/${userToDelete.prn}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-    // Update both users and filteredUsers arrays
-    const updatedUsers = users.filter((user) => user.prn !== userToDelete.prn);
-    setUsers(updatedUsers);
-    setFilteredUsers(updatedUsers);
-    
-    // Also clean up profiles and images
-    setUserProfiles(prev => {
-      const updated = { ...prev };
-      delete updated[userToDelete.prn];
-      return updated;
-    });
-    
-    setProfileImages(prev => {
-      const updated = { ...prev };
-      delete updated[userToDelete.prn];
-      return updated;
-    });
-    
-    setIsModalOpen(false);
-    setUserToDelete(null);
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    alert(error.response?.data?.message || 'Error deleting user. Please try again.');
-  }
-};
+    if (!userToDelete) return;
+    try {
+      // Change from userToDelete.id to userToDelete.prn in the URL
+      await axios.delete(
+        `http://localhost:8080/api/users/${userToDelete.prn}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
+      // Update both users and filteredUsers arrays
+      const updatedUsers = users.filter(
+        (user) => user.prn !== userToDelete.prn,
+      );
+      setUsers(updatedUsers);
+      setFilteredUsers(updatedUsers);
+
+      // Also clean up profiles and images
+      setUserProfiles((prev) => {
+        const updated = { ...prev };
+        delete updated[userToDelete.prn];
+        return updated;
+      });
+
+      setProfileImages((prev) => {
+        const updated = { ...prev };
+        delete updated[userToDelete.prn];
+        return updated;
+      });
+
+      setIsModalOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert(
+        error.response?.data?.message ||
+          "Error deleting user. Please try again.",
+      );
+    }
+  };
 
   function getRoleBadgeClass(role) {
     switch (role) {
-      case 'SUPER_ADMIN':
-        return 'bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30';
-      case 'TEACHERS':
-        return 'bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30';
-      case 'USERS':
-        return 'bg-blue-400 text-white font-bold shadow-md shadow-blue-400/30';
+      case "SUPER_ADMIN":
+        return "bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30";
+      case "TEACHERS":
+        return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
+      case "USERS":
+        return "bg-blue-400 text-white font-bold shadow-md shadow-blue-400/30";
       default:
         return "bg-gray-300 text-gray-700";
     }
@@ -1329,8 +1360,11 @@ const UserManagement = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <style dangerouslySetInnerHTML={{ __html: customStyles }} />
         <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 mx-auto cursor-wait" style={{borderColor: '#4CA1AF'}}></div>
-          <p className="mt-6 font-medium" style={{color: '#4CA1AF'}}>
+          <div
+            className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 mx-auto cursor-wait"
+            style={{ borderColor: "#4CA1AF" }}
+          ></div>
+          <p className="mt-6 font-medium" style={{ color: "#4CA1AF" }}>
             Loading user profiles...
           </p>
         </div>
@@ -1347,14 +1381,14 @@ const UserManagement = () => {
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-      
-     <ConfirmationModal
-  isOpen={isModalOpen}
-  title="Confirm User Deletion"
-  message={`You are about to delete user: ${userToDelete?.username || userToDelete?.prn || "N/A"}. This action is irreversible. Proceed?`}
-  onConfirm={executeDelete}
-  onCancel={() => setIsModalOpen(false)}
-/>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        title="Confirm User Deletion"
+        message={`You are about to delete user: ${userToDelete?.username || userToDelete?.prn || "N/A"}. This action is irreversible. Proceed?`}
+        onConfirm={executeDelete}
+        onCancel={() => setIsModalOpen(false)}
+      />
 
       <FilterModal
         isOpen={isFilterModalOpen}
@@ -1368,7 +1402,7 @@ const UserManagement = () => {
         onYearChange={handleYearChange}
         onRoleChange={handleRoleChange}
         onResetFilters={resetFilters}
-        onApplyFilters={() => handleFilterChange()} 
+        onApplyFilters={() => handleFilterChange()}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1381,19 +1415,32 @@ const UserManagement = () => {
               style={{
                 background: "rgba(255, 255, 255, 0.7)",
                 backdropFilter: "blur(8px)",
-                color: '#4CA1AF'
+                color: "#4CA1AF",
               }}
             >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-                   style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
-                <svg className="w-3.5 h-3.5" style={{color: '#4CA1AF'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <div
+                className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  style={{ color: "#4CA1AF" }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
                 </svg>
               </div>
             </button>
-            
+
             <div className="text-left">
-              <h1 className="font-display text-4xl font-extrabold tracking-tight" style={{color: '#4CA1AF'}}>
+              <h1 className="font-display text-4xl font-extrabold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
                 User Directory & Access Control
               </h1>
               <p className="text-gray-500 mt-2 text-lg">
@@ -1407,8 +1454,11 @@ const UserManagement = () => {
         <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-xl font-semibold font-display flex items-center" style={{color: '#4CA1AF'}}>
-                <Filter className="mr-3 w-5 h-5" style={{color: '#4CA1AF'}} />
+              <h2
+                className="text-xl font-semibold font-display flex items-center"
+                style={{ color: "#2d8391" }}
+              >
+                <Filter className="mr-3 w-5 h-5" style={{ color: "#26727e" }} />
                 Active Users ({filteredUsers.length})
               </h2>
             </div>
@@ -1418,17 +1468,30 @@ const UserManagement = () => {
                 <div className="flex flex-wrap gap-2">
                   {selectedRole && (
                     <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200">
-                      Role: {selectedRole.replace('_', ' ')}
-                      <button onClick={() => handleRoleChange('')} className="ml-2 text-orange-600 hover:text-orange-800 cursor-pointer">
+                      Role: {selectedRole.replace("_", " ")}
+                      <button
+                        onClick={() => handleRoleChange("")}
+                        className="ml-2 text-orange-600 hover:text-orange-800 cursor-pointer"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                   {selectedDept && (
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border"
-                          style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}>
+                    <span
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border"
+                      style={{
+                        backgroundColor: "rgba(76, 161, 175, 0.1)",
+                        color: "#377882",
+                        borderColor: "rgba(76, 161, 175, 0.2)",
+                      }}
+                    >
                       Dept: {selectedDept}
-                      <button onClick={() => handleDeptChange('')} className="ml-2" style={{color: '#4CA1AF'}}>
+                      <button
+                        onClick={() => handleDeptChange("")}
+                        className="ml-2"
+                        style={{ color: "#4CA1AF" }}
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -1436,14 +1499,17 @@ const UserManagement = () => {
                   {selectedYear && (
                     <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
                       Year: {selectedYear}
-                      <button onClick={() => handleYearChange('')} className="ml-2 text-blue-600 hover:text-blue-800 cursor-pointer">
+                      <button
+                        onClick={() => handleYearChange("")}
+                        className="ml-2 text-blue-600 hover:text-blue-800 cursor-pointer"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                 </div>
               )}
-              
+
               <button
                 onClick={() => setIsFilterModalOpen(true)}
                 className="cursor-pointer btn-gradient flex items-center px-4 py-2.5 rounded-xl"
@@ -1452,11 +1518,13 @@ const UserManagement = () => {
                 Filter
                 {(selectedDept || selectedYear || selectedRole) && (
                   <span className="ml-2 bg-white text-[#4CA1AF] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {(selectedDept ? 1 : 0) + (selectedYear ? 1 : 0) + (selectedRole ? 1 : 0)}
+                    {(selectedDept ? 1 : 0) +
+                      (selectedYear ? 1 : 0) +
+                      (selectedRole ? 1 : 0)}
                   </span>
                 )}
               </button>
-              
+
               {(selectedDept || selectedYear || selectedRole) && (
                 <button
                   onClick={resetFilters}
@@ -1468,17 +1536,17 @@ const UserManagement = () => {
               )}
             </div>
           </div>
-          
+
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Total Users</div>
-              <div className="text-2xl font-bold" style={{color: '#4CA1AF'}}>
+              <div className="text-2xl font-bold" style={{ color: "#4CA1AF" }}>
                 {users.length}
               </div>
             </div>
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Currently Showing</div>
-              <div className="text-2xl font-bold" style={{color: '#4CA1AF'}}>
+              <div className="text-2xl font-bold" style={{ color: "#4CA1AF" }}>
                 {filteredUsers.length}
               </div>
             </div>
@@ -1491,7 +1559,9 @@ const UserManagement = () => {
             <div className="bg-gray-50 p-3 rounded-xl">
               <div className="text-xs text-gray-500">Active Filters</div>
               <div className="text-2xl font-bold text-[#F59E0B]">
-                {(selectedDept ? 1 : 0) + (selectedYear ? 1 : 0) + (selectedRole ? 1 : 0)}
+                {(selectedDept ? 1 : 0) +
+                  (selectedYear ? 1 : 0) +
+                  (selectedRole ? 1 : 0)}
               </div>
             </div>
           </div>
@@ -1501,7 +1571,10 @@ const UserManagement = () => {
         <div className="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
           {isLoadingFilteredUsers ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-6 cursor-wait" style={{borderColor: '#4CA1AF'}}></div>
+              <div
+                className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-6 cursor-wait"
+                style={{ borderColor: "#4CA1AF" }}
+              ></div>
               <p className="text-gray-600">Applying filters...</p>
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -1509,9 +1582,18 @@ const UserManagement = () => {
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <Filter className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No users found</h3>
-              <p className="text-gray-500 mb-6">Try adjusting your filters to see more users.</p>
-              <button onClick={resetFilters} className="btn-gradient px-6 py-2.5 cursor-pointer">Clear All Filters</button>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No users found
+              </h3>
+              <p className="text-gray-500 mb-6">
+                Try adjusting your filters to see more users.
+              </p>
+              <button
+                onClick={resetFilters}
+                className="btn-gradient px-6 py-2.5 cursor-pointer"
+              >
+                Clear All Filters
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1524,27 +1606,35 @@ const UserManagement = () => {
                   <div
                     key={userItem.prn || userItem.id}
                     className={`user-card-container ${isFlipped ? "flipped" : ""}`}
-                    onClick={() => setOpenOverlayFor(isFlipped ? null : userItem.prn)}
+                    onClick={() =>
+                      setOpenOverlayFor(isFlipped ? null : userItem.prn)
+                    }
                   >
                     <div className="user-card">
                       {/* Front of Card */}
                       <div className="card-face bg-white border border-gray-200 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-xl hover:border-[#4CA1AF]">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl mb-4">
                           {imageUrl ? (
-                            <img 
-                              src={imageUrl} 
-                              alt={userItem.username} 
+                            <img
+                              src={imageUrl}
+                              alt={userItem.username}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.style.display = 'none';
+                                e.target.style.display = "none";
                               }}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center"
-                                 style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
+                            <div
+                              className="w-full h-full flex items-center justify-center"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, #4CA1AF, #315169)",
+                              }}
+                            >
                               <span className="text-3xl font-display font-bold text-white">
-                                {userItem.username?.charAt(0)?.toUpperCase() ?? "?"}
+                                {userItem.username?.charAt(0)?.toUpperCase() ??
+                                  "?"}
                               </span>
                             </div>
                           )}
@@ -1556,10 +1646,10 @@ const UserManagement = () => {
                           <span
                             className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${getRoleBadgeClass(userItem.role)}`}
                           >
-                            {userItem.role?.replace("_", " ") || "STANDARD USER"}
+                            {userItem.role?.replace("_", " ") ||
+                              "STANDARD USER"}
                           </span>
                         </div>
-
                       </div>
 
                       {/* Back of Card */}
@@ -1580,35 +1670,40 @@ const UserManagement = () => {
                             </div>
                             <div className="flex items-center gap-3">
                               <Phone className="w-4 h-4 text-[#FB923C]" />
-                              <span>{userProfile?.phoneNumber || 'No contact info'}</span>
+                              <span>
+                                {userProfile?.phoneNumber || "No contact info"}
+                              </span>
                             </div>
                             <div className="flex items-center gap-3">
                               <BookOpen className="w-4 h-4 text-white/90" />
-                              <span>{userProfile?.department || '—'}</span>
+                              <span>{userProfile?.department || "—"}</span>
                               <Calendar className="w-4 h-4 ml-4 text-white/90" />
-                              <span>Year: {userProfile?.year || '—'}</span>
+                              <span>Year: {userProfile?.year || "—"}</span>
                             </div>
                             <div className="flex items-center gap-3 pt-2">
-                              <Briefcase className='w-4 h-4 text-white/90'/>
-                              <span className="px-3 py-1 text-xs rounded-full bg-white font-semibold"
-                                    style={{color: '#4CA1AF'}}>
-                                {userItem.role?.replace('_', ' ') || 'STANDARD USER'}
+                              <Briefcase className="w-4 h-4 text-white/90" />
+                              <span
+                                className="px-3 py-1 text-xs rounded-full bg-white font-semibold"
+                                style={{ color: "#4CA1AF" }}
+                              >
+                                {userItem.role?.replace("_", " ") ||
+                                  "STANDARD USER"}
                               </span>
                             </div>
                           </div>
                         </div>
-                    <div className="flex items-center justify-center mt-6">
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      confirmDelete(userItem);
-    }}
-    className="px-3 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition flex items-center shadow-md shadow-red-500/30 w-auto min-w-[120px] justify-center cursor-pointer"
-  >
-    <Trash2 className="w-4 h-4 mr-1" />
-    Remove
-  </button>
-</div>
+                        <div className="flex items-center justify-center mt-6">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDelete(userItem);
+                            }}
+                            className="px-3 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition flex items-center shadow-md shadow-red-500/30 w-auto min-w-[120px] justify-center cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

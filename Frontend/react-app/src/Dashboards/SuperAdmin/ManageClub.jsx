@@ -1948,7 +1948,7 @@ const handleSearchAdmin = async () => {
               onClick={handleGoBack}
               className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               style={{
-                background: "rgba(255, 255, 255, 0.7)",
+                background: "rgb(255, 255, 255)",
                 backdropFilter: "blur(8px)",
                 color: '#4CA1AF'
               }}
@@ -1985,7 +1985,7 @@ const handleSearchAdmin = async () => {
         <div className="flex flex-col lg:flex-row min-h-[70vh]">
           {/* LEFT PANEL */}
           <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
-            <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{color: '#4CA1AF'}}>Your Clubs</h2>
+            <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{color: '#2d8391'}}>Your Clubs</h2>
             <div className="overflow-y-auto max-h-[60vh] lg:max-h-full space-y-2 pr-2">
               {clubs.map((club) => (
                 <div 
@@ -2017,7 +2017,7 @@ const handleSearchAdmin = async () => {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 mb-8 gap-4">
                   <div>
-                    <h2 className="text-5xl font-black tracking-tight" style={{color: '#4CA1AF'}}>{selectedClub.clubName}</h2>
+                    <h2 className="text-5xl font-black tracking-tight" style={{color: '#2d8391'}}>{selectedClub.clubName}</h2>
                     <p className="text-gray-400 mt-2 font-medium">Description: {selectedClub.clubDesc}</p>
                     <p className="text-gray-400 mt-2 font-medium">Club Added on {formatDate(selectedClub.createdAt)}</p>
                   </div>
@@ -2060,17 +2060,17 @@ const handleSearchAdmin = async () => {
   className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
   onClick={selectedClub?.isActive ? handleMembersClick : null}
 >
-                          <MembersIcon className="text-[#4CA1AF] mb-3 group-hover:scale-110 transition-transform" /> 
-                          <span className="text-4xl font-black text-[#4CA1AF] group-hover:text-[#315169]">
+                          <MembersIcon className="text-[#5db2be] mb-3 group-hover:scale-110 transition-transform" /> 
+                          <span className="text-4xl font-black text-[#5db2be] group-hover:text-[#315169]">
                             {adminData?.totalCount || 0}
                           </span> 
-                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-[#4CA1AF]">
+                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-[#5db2be]">
                             Active Members
                           </p>
                         </div>
                         <div className="stat-card p-6 rounded-2xl">
-                          <EventsIcon className="text-[#4CA1AF] mb-3" /> 
-                          <span className="text-4xl font-black text-[#4CA1AF]">{details.upcomingEvents}</span> 
+                          <EventsIcon className="text-[#5db2be] mb-3" /> 
+                          <span className="text-4xl font-black text-[#5db2be]">{details.upcomingEvents}</span> 
                           <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p>
                         </div>
                       </div>

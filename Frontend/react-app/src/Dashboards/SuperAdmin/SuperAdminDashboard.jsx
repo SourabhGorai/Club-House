@@ -520,7 +520,7 @@ export default function SuperAdminDashboard() {
             <LayoutDashboard className="text-white" size={24} />
           </div>
           <h2 className="text-2xl font-black tracking-tight text-gray-800">
-            Super<span style={{color: '#4CA1AF'}}>Admin</span>
+            Super<span style={{color: '#2d8391'}}>Admin</span>
           </h2>
         </div>
 
@@ -538,7 +538,7 @@ export default function SuperAdminDashboard() {
             <button
               onClick={() => setShowProfileForm(true)}
               className="absolute -bottom-1 -right-1 bg-white p-2 rounded-xl shadow-lg border border-gray-50 transition-all duration-200 hover:scale-110 cursor-pointer"
-              style={{color: '#4CA1AF'}}
+              style={{color: '#2d8391'}}
             >
               <Edit size={16} />
             </button>
@@ -547,7 +547,7 @@ export default function SuperAdminDashboard() {
             {profileData.fullName || currentUser.username}
           </h3>
           <p className="text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-[0.1em] transition-colors cursor-pointer"
-             style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
+             style={{color: '#2d8391', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
             {currentUser.role.replace("_", " ")}
           </p>
         </div>
