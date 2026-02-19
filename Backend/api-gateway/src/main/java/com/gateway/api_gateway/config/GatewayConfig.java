@@ -364,6 +364,37 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
+                // *********** ATTENDANCE ***********
+
+                .route("attendance-teachers", r -> r
+                        .path(
+                                "/api/attendance/start/**",
+                                "/api/attendance/qr-code/**",
+                                "/api/attendance/stop/**",
+                                "/api/attendance/list/**"
+                        )
+                        .and()
+                        .method("GET", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("attendance-all", r -> r
+                        .path(
+                                "/api/attendance/mark/**",
+                                "/api/attendance/my-attendance",
+                                "/api/attendance/status/**"
+                        )
+                        .and()
+                        .method("GET", "POST", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
                 .build();
     }
 }

@@ -41,4 +41,13 @@ public class EventRequest {
     @NotNull(message = "Enrollment Deadline is required")
     private LocalDateTime enrollmentDeadline;
 
+    private Double latitude;
+    private Double longitude;
+    private Integer radiusInMeters = 50;
+
+    private LocalDateTime attendanceWindowStart;
+    private LocalDateTime attendanceWindowEnd;
+
+    private int qrRefreshInterval = 120;
+
 }

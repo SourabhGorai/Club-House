@@ -3,6 +3,7 @@ package com.clubHouse.event_service2.controller;
 import com.clubHouse.event_service2.dto.ApiResponse;
 import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
+import com.clubHouse.event_service2.dto.UpdateEventRequest;
 import com.clubHouse.event_service2.model.TargetType;
 import com.clubHouse.event_service2.repository.EventRepository;
 import com.clubHouse.event_service2.service.EventEnrollmentService;
@@ -212,6 +213,23 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully deleted event",
                 String.format("Successfully deleted event with ID: %d", eventId)
+        ));
+    }
+
+    // SUPER_ADMIN, TEACHERS (only event creator or admin)
+    @PutMapping("/updateEvent/{eventId}")
+    public ResponseEntity<ApiResponse<EventResponse>> updateEvent(
+            @PathVariable Long eventId,
+            @RequestBody UpdateEventRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        log.info("REST received to update event with ID: {}", eventId);
+        String prn = jwtService.extractPrnFromHeaders(httpRequest);
+        String role = jwtService.extractRoleFromHeaders(httpRequest);
+        EventResponse resp = eventService.updateEvent(eventId, request, prn, role);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Event updated successfully",
+                resp
         ));
     }
 }

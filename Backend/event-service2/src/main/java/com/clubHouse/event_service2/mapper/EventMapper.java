@@ -58,12 +58,19 @@ public class EventMapper {
                 .organizer(event.getOrganizer())
                 .creatorPrn(prn)
                 .creatorName(creatorName)
+                .speakerName(event.getSpeakerName())
                 .venue(event.getVenue())
                 .maxEnrollments(event.getMaxEnrollments())
                 .currEnrollments(event.getCurrEnrollments())
                 .isCompleted(event.isCompleted())
                 .enrollmentDeadline(event.getEnrollmentDeadline())
                 .enrollmentStatus(event.getEnrollmentStatus())
+                .latitude(event.getLatitude())
+                .longitude(event.getLongitude())
+                .radiusInMeters(event.getRadiusInMeters())
+                .attendanceWindowStart(event.getAttendanceWindowStart())
+                .attendanceWindowEnd(event.getAttendanceWindowEnd())
+                .qrRefreshInterval(event.getQrRefreshIntervalSeconds())
                 .build();
 
     }

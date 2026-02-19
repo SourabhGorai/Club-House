@@ -32,6 +32,8 @@ public class EventResponse {
 
     private String creatorName;
 
+    private String speakerName;
+
     private String venue;
 
     private Integer maxEnrollments;
@@ -43,5 +45,14 @@ public class EventResponse {
     private LocalDateTime enrollmentDeadline;
 
     private String enrollmentStatus;
+
+    private Double latitude;
+    private Double longitude;
+    private Integer radiusInMeters;
+
+    private LocalDateTime attendanceWindowStart;
+    private LocalDateTime attendanceWindowEnd;
+
+    private int qrRefreshInterval;
 
 }

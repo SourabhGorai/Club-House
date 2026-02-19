@@ -5,6 +5,7 @@ import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.EventRequest;
 import com.clubHouse.event_service2.dto.EventResponse;
 import com.clubHouse.event_service2.dto.ProfileResponse;
+import com.clubHouse.event_service2.dto.UpdateEventRequest;
 import com.clubHouse.event_service2.exception.NotFoundException;
 import com.clubHouse.event_service2.exception.ServiceException;
 import com.clubHouse.event_service2.mapper.EventMapper;
@@ -70,6 +71,12 @@ public class EventService {
                 .target(targetType)
                 .enrollmentDeadline(req.getEnrollmentDeadline())
                 .enrollmentStatus("OPEN")
+                .latitude(req.getLatitude())
+                .longitude(req.getLongitude())
+                .radiusInMeters(req.getRadiusInMeters())
+                .attendanceWindowStart(req.getAttendanceWindowStart())
+                .attendanceWindowEnd(req.getAttendanceWindowEnd())
+                .qrRefreshIntervalSeconds(req.getQrRefreshInterval())
                 .build();
 
         Events saved = eventRepository.save(events);
@@ -313,6 +320,72 @@ public class EventService {
 
         return toList(events);
 
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
+    })
+    public EventResponse updateEvent(Long eventId, UpdateEventRequest request, String prn, String role) {
+
+        log.info("Attempting to update event with ID: {} by {}", eventId, prn);
+
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event", eventId.toString()));
+
+        // Authorization: only event creator or SUPER_ADMIN
+        if (!event.getEventCreator().equals(prn) && !"SUPER_ADMIN".equals(role)) {
+            throw new ServiceException("You are not allowed to update this event");
+        }
+
+        // Cannot update a completed event
+        if (event.isCompleted()) {
+            throw new ServiceException("Cannot update a completed event");
+        }
+
+        // Validate attendance window if both are provided
+        if (request.getAttendanceWindowStart() != null && request.getAttendanceWindowEnd() != null) {
+            if (request.getAttendanceWindowStart().isAfter(request.getAttendanceWindowEnd())) {
+                throw new ServiceException("Attendance window start must be before end time");
+            }
+        }
+
+        // Validate event date vs enrollment deadline if both provided
+        if (request.getEventDate() != null && request.getEnrollmentDeadline() != null) {
+            if (request.getEnrollmentDeadline().isAfter(request.getEventDate())) {
+                throw new ServiceException("Enrollment deadline must be before event date");
+            }
+        }
+
+        // Apply updates — only update fields that are present in the request (partial update support)
+        if (request.getTitle() != null)                   event.setTitle(request.getTitle());
+        if (request.getDescription() != null)             event.setDescription(request.getDescription());
+        if (request.getSpeakerName() != null)             event.setSpeakerName(request.getSpeakerName());
+        if (request.getVenue() != null)                   event.setVenue(request.getVenue());
+        if (request.getOrganizer() != null)               event.setOrganizer(request.getOrganizer());
+        if (request.getEventDate() != null)               event.setEventDate(request.getEventDate());
+        if (request.getEnrollmentDeadline() != null)      event.setEnrollmentDeadline(request.getEnrollmentDeadline());
+        if (request.getMaxEnrollments() != null)          event.setMaxEnrollments(request.getMaxEnrollments());
+        if (request.getLatitude() != null)                event.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null)               event.setLongitude(request.getLongitude());
+        if (request.getRadiusInMeters() != null)          event.setRadiusInMeters(request.getRadiusInMeters());
+        if (request.getAttendanceWindowStart() != null)   event.setAttendanceWindowStart(request.getAttendanceWindowStart());
+        if (request.getAttendanceWindowEnd() != null)     event.setAttendanceWindowEnd(request.getAttendanceWindowEnd());
+        if (request.getQrRefreshInterval() != null)       event.setQrRefreshIntervalSeconds(request.getQrRefreshInterval());
+
+        Events saved = eventRepository.save(event);
+
+        ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
+
+        log.info("Event {} updated successfully by {}", eventId, prn);
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName());
     }
 
 

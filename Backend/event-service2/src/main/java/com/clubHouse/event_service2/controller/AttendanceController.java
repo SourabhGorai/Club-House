@@ -26,7 +26,7 @@ public class AttendanceController {
      * POST /api/attendance/start/{eventId}
      */
     @PostMapping("/start/{eventId}")
-    public ResponseEntity<ApiResponse<QRCodeResponse>> startAttendance(
+    public ResponseEntity<ApiResponse<QRCodeResponse>> AddAndStartAttendance(
             @PathVariable Long eventId,
             @Valid @RequestBody StartAttendanceRequest request,
             HttpServletRequest httpRequest
@@ -39,6 +39,22 @@ public class AttendanceController {
                 eventId, request, prn, role
         );
         
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/start/now/{eventId}")
+    public ResponseEntity<ApiResponse<QRCodeResponse>> startAttendance(
+            @PathVariable Long eventId,
+            HttpServletRequest httpRequest
+    ) {
+        log.info("Request received to start the attendance for eventId: {}", eventId);
+        String prn = jwtService.extractPrnFromHeaders(httpRequest);
+        String role = jwtService.extractRoleFromHeaders(httpRequest);
+
+        ApiResponse<QRCodeResponse> response = attendanceService.startAttendanceSaved(
+                eventId, prn, role
+        );
+
         return ResponseEntity.ok(response);
     }
     

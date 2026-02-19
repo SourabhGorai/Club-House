@@ -96,6 +96,32 @@ public class AttendanceService {
         log.info("✅ Attendance started for event {}", eventId);
         return ApiResponse.success("Attendance session started successfully", response);
     }
+
+    @Transactional
+    public ApiResponse<QRCodeResponse> startAttendanceSaved(Long eventId, String prn, String role) {
+        log.info("Attempting to start attendance with saved details for event {}", eventId);
+
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Events", eventId.toString()));
+
+        // Validate saved details exist before attempting to start
+        if (event.getLatitude() == null || event.getLongitude() == null ||
+                event.getRadiusInMeters() == null ||
+                event.getAttendanceWindowStart() == null ||
+                event.getAttendanceWindowEnd() == null) {
+            throw new ServiceException("Attendance location and time window must be configured before starting");
+        }
+
+        StartAttendanceRequest req = StartAttendanceRequest.builder()
+                .latitude(event.getLatitude())
+                .longitude(event.getLongitude())
+                .radiusInMeters(event.getRadiusInMeters())
+                .attendanceWindowStart(event.getAttendanceWindowStart())
+                .attendanceWindowEnd(event.getAttendanceWindowEnd())
+                .build();
+
+        return startAttendance(eventId, req, prn, role);
+    }
     
     /**
      * Get current QR code for organizer's display
