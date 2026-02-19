@@ -13,4 +13,10 @@ public interface TargetDataRepository extends JpaRepository<TargetData, Long> {
     void deleteByEvents_EventId(Long eventId);
 
     int deleteByEvents_EventIdIn(List<Long> eventIds);
+
+    // Fetch all target data for a single event
+    List<TargetData> findByEvents_EventId(Long eventId);
+
+    // Fetch all target data for multiple events (used in batch toList)
+    List<TargetData> findByEvents_EventIdIn(List<Long> eventIds);
 }

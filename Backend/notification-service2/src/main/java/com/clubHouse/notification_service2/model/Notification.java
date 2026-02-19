@@ -27,7 +27,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notificationId;
 
-    @NotNull(message = "Event Id is required")
+//    @NotNull(message = "Event Id is required")
     private Long eventId;
 
     @NotNull(message = "Title required")

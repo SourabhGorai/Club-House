@@ -30,23 +30,29 @@ public class EventMapper {
                 .toUpperCase();
     }
 
+    // ── With targetIds ──────────────────────────────────────────────────────────
+
     public static List<EventResponse> toResponseList(
             List<Events> events,
             String prn,
-            String name
+            String name,
+            List<Long> targetIds
     ) {
-
         if (events == null || events.isEmpty()) {
             return List.of();
         }
 
         return events.stream()
-                .map(event -> toResponse(event, prn, name))
+                .map(event -> toResponse(event, prn, name, targetIds))
                 .collect(Collectors.toList());
     }
 
-    public static EventResponse toResponse(Events event, String prn, String creatorName) {
-
+    public static EventResponse toResponse(
+            Events event,
+            String prn,
+            String creatorName,
+            List<Long> targetIds
+    ) {
         if (event == null) return null;
 
         return EventResponse.builder()
@@ -65,6 +71,8 @@ public class EventMapper {
                 .isCompleted(event.isCompleted())
                 .enrollmentDeadline(event.getEnrollmentDeadline())
                 .enrollmentStatus(event.getEnrollmentStatus())
+                .targetType(event.getTarget().toString())
+                .targetIds(targetIds)
                 .latitude(event.getLatitude())
                 .longitude(event.getLongitude())
                 .radiusInMeters(event.getRadiusInMeters())
@@ -72,8 +80,33 @@ public class EventMapper {
                 .attendanceWindowEnd(event.getAttendanceWindowEnd())
                 .qrRefreshInterval(event.getQrRefreshIntervalSeconds())
                 .build();
-
     }
+
+    // ── Without targetIds (defaults to null) ───────────────────────────────────
+
+    public static List<EventResponse> toResponseList(
+            List<Events> events,
+            String prn,
+            String name
+    ) {
+        if (events == null || events.isEmpty()) {
+            return List.of();
+        }
+
+        return events.stream()
+                .map(event -> toResponse(event, prn, name, null))
+                .collect(Collectors.toList());
+    }
+
+    public static EventResponse toResponse(
+            Events event,
+            String prn,
+            String creatorName
+    ) {
+        return toResponse(event, prn, creatorName, null);
+    }
+
+    // ── Private helpers ─────────────────────────────────────────────────────────
 
     private static String format(LocalDateTime time) {
         return time != null ? time.format(FORMATTER) : null;
@@ -84,7 +117,4 @@ public class EventMapper {
                 ? time.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH)
                 : null;
     }
-
-
-
 }

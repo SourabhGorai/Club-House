@@ -13,11 +13,15 @@ public class NotificationResponse {
 
     private Long notificationId;
 
+    private String eventTitle;
+
     private String title;
 
     private String message;
 
     private SourceType sourceType;
+
+
 
 //    private
 
