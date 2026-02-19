@@ -263,13 +263,12 @@ public class UserClubService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CLUB_MEMBERS, key = "#clubName")
     public List<ProfileEnrichedUserClubResponse> getClubMembers(
-            String clubName, String prn, String role
-    ) {
+            String clubName, String prn, String role) {
         log.debug("Fetching members of club: {} - Cache miss, loading from DB", clubName);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
-        Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
+        clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
                 .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
 
         List<UserClub> members = userClubRepository.findByClubName(sanitizedName);
@@ -279,9 +278,6 @@ public class UserClubService {
             return List.of();
         }
 
-        log.info("Found {} members for club: {}, enriching with profiles",
-                members.size(), sanitizedName);
-
         List<String> prns = members.stream()
                 .map(UserClub::getPrn)
                 .distinct()
@@ -290,7 +286,13 @@ public class UserClubService {
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(prns);
 
-        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
+        Map<String, String> imageUrlMap =
+                profileServiceClient.getImageUrlsByPrns(prns);
+
+        log.info("Found {} members for club: {}, enriching with profiles + image URLs",
+                members.size(), sanitizedName);
+
+        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap, imageUrlMap);
     }
 
     @Transactional
@@ -365,11 +367,12 @@ public class UserClubService {
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, key = "#clubName + '_' + #year")
     public List<ProfileEnrichedUserClubResponse> getClubMembersByYear(String clubName, Integer year) {
-        log.info("Fetching club members for club {} filtered by year {} - Cache miss, loading from DB", clubName, year);
+        log.info("Fetching club members for club {} filtered by year {} - Cache miss, loading from DB",
+                clubName, year);
 
         String sanitizedName = ClubMapper.sanitizeClubName(clubName);
 
-        Club club = clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
+        clubRepository.findByClubNameAndIsActiveTrue(sanitizedName)
                 .orElseThrow(() -> new ClubNotFoundException(sanitizedName));
 
         List<UserClub> allMembers = userClubRepository.findByClubName(sanitizedName);
@@ -395,13 +398,16 @@ public class UserClubService {
                 .filter(uc -> filteredPrns.contains(uc.getPrn()))
                 .collect(Collectors.toList());
 
-        log.info("Filtered {} members to {} for club {} and year {}",
-                allMembers.size(), filteredMembers.size(), sanitizedName, year);
-
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(filteredPrns);
 
-        return UserClubMapper.toProfileEnrichedResponseList(filteredMembers, profileMap);
+        Map<String, String> imageUrlMap =
+                profileServiceClient.getImageUrlsByPrns(filteredPrns);
+
+        log.info("Filtered {} members to {} for club {} and year {}, fetched image URLs",
+                allMembers.size(), filteredMembers.size(), sanitizedName, year);
+
+        return UserClubMapper.toProfileEnrichedResponseList(filteredMembers, profileMap, imageUrlMap);
     }
 
     @Transactional
@@ -430,13 +436,43 @@ public class UserClubService {
         log.info("Deleted {} club memberships for PRN: {}", deletedCount, prn);
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
+//    @Cacheable(value = CacheConfig.USERS_BY_ROLE, key = "#role")
+//    public List<ProfileEnrichedUserClubResponse> getAllByRole(String role) {
+//
+//        String sanitizedRole = UserClubMapper.sanitizeRole(role);
+//
+//        log.info("Attempting to fetch all the users from clubs with role: {} - Cache miss, loading from DB", sanitizedRole);
+//
+//        List<UserClub> members = userClubRepository.findByRole(sanitizedRole);
+//
+//        if (members.isEmpty()) {
+//            log.info("No members found with role: {}", sanitizedRole);
+//            return List.of();
+//        }
+//
+//        log.info("Found {} members with role: {}, enriching with profiles",
+//                members.size(), sanitizedRole);
+//
+//        List<String> prns = members.stream()
+//                .map(UserClub::getPrn)
+//                .distinct()
+//                .collect(Collectors.toList());
+//
+//        Map<String, ProfileSummaryResponse> profileMap =
+//                profileServiceClient.getProfileSummariesBulk(prns);
+//
+//        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
+//
+//    }
+
     @Cacheable(value = CacheConfig.USERS_BY_ROLE, key = "#role")
     public List<ProfileEnrichedUserClubResponse> getAllByRole(String role) {
 
         String sanitizedRole = UserClubMapper.sanitizeRole(role);
 
-        log.info("Attempting to fetch all the users from clubs with role: {} - Cache miss, loading from DB", sanitizedRole);
+        log.info("Attempting to fetch all the users from clubs with role: {} - Cache miss, loading from DB",
+                sanitizedRole);
 
         List<UserClub> members = userClubRepository.findByRole(sanitizedRole);
 
@@ -445,19 +481,25 @@ public class UserClubService {
             return List.of();
         }
 
-        log.info("Found {} members with role: {}, enriching with profiles",
-                members.size(), sanitizedRole);
-
         List<String> prns = members.stream()
                 .map(UserClub::getPrn)
                 .distinct()
                 .collect(Collectors.toList());
 
+        log.info("{}", prns);
+
         Map<String, ProfileSummaryResponse> profileMap =
                 profileServiceClient.getProfileSummariesBulk(prns);
 
-        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap);
+        Map<String, String> imageUrlMap =
+                profileServiceClient.getImageUrlsByPrns(prns);
 
+        log.info("{}", imageUrlMap);
+
+        log.info("Found {} members with role: {}, enriching with profiles + image URLs",
+                members.size(), sanitizedRole);
+
+        return UserClubMapper.toProfileEnrichedResponseList(members, profileMap, imageUrlMap);
     }
 
     @Transactional(readOnly = true)

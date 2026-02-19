@@ -311,6 +311,40 @@ public class ProfileServiceClient {
         }
     }
 
+    public Map<String, String> getImageUrlsByPrns(List<String> prns) {
+        if (prns == null || prns.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String authHeader = request.getHeader("Authorization");
+        log.debug("Fetching image URLs for {} PRNs", prns.size());
+
+        try {
+            ApiResponseWrapper<Map<String, String>> response = profileServiceWebClient.post()
+                    .uri("/api/profiles/image-urls")
+                    .header("Authorization", authHeader)
+                    .bodyValue(prns)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponseWrapper<Map<String, String>>>() {})
+                    .block();
+
+            if (response == null || response.getData() == null) {
+                log.warn("Profile service returned null for image URLs fetch");
+                return Collections.emptyMap();
+            }
+
+            return response.getData();
+
+        } catch (WebClientResponseException e) {
+            log.error("Profile service error fetching image URLs: {} - {}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            return Collections.emptyMap();
+        } catch (Exception e) {
+            log.error("Unexpected error fetching image URLs: {}", e.getMessage(), e);
+            return Collections.emptyMap();
+        }
+    }
+
     // ========== Private Helper Methods ==========
 
     /**

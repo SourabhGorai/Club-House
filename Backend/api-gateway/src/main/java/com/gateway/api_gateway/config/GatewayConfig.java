@@ -110,7 +110,8 @@ public class GatewayConfig {
                         .path(
                                 "/api/profiles/bulkCreate",
                                 "/api/profiles/batch",
-                                "/api/profiles/bulk"
+                                "/api/profiles/bulk",
+                                "/api/profiles/image-urls"
                         )
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))

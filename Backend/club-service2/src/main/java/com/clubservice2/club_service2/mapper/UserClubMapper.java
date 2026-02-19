@@ -79,6 +79,49 @@ public class UserClubMapper {
                 .collect(Collectors.toList());
     }
 
+    // New overload — used by the 3 targeted endpoints
+    public static ProfileEnrichedUserClubResponse toProfileEnrichedResponse(
+            UserClub userClub, ProfileSummaryResponse profile, String imageUrl) {
+
+        if (userClub == null) return null;
+
+        ProfileEnrichedUserClubResponse.ProfileEnrichedUserClubResponseBuilder builder =
+                ProfileEnrichedUserClubResponse.builder()
+                        .userClubId(userClub.getId())
+                        .prn(userClub.getPrn())
+                        .clubId(userClub.getClub().getClubId())
+                        .clubName(userClub.getClub().getClubName())
+                        .role(userClub.getRole())
+                        .tenure(userClub.getTenure());
+
+        if (profile != null) {
+            builder.name(profile.getFullName())
+                    .department(profile.getDepartment())
+                    .year(profile.getYear())
+                    .hasProfileImage(profile.getHasProfileImage())
+                    .imageUrl(imageUrl);
+        }
+
+        return builder.build();
+    }
+
+    // New overload — used by the 3 targeted endpoints
+    public static List<ProfileEnrichedUserClubResponse> toProfileEnrichedResponseList(
+            List<UserClub> userClubs,
+            Map<String, ProfileSummaryResponse> profileMap,
+            Map<String, String> imageUrlMap) {
+
+        if (userClubs == null || userClubs.isEmpty()) return List.of();
+
+        return userClubs.stream()
+                .map(userClub -> toProfileEnrichedResponse(
+                        userClub,
+                        profileMap.get(userClub.getPrn()),
+                        imageUrlMap.getOrDefault(userClub.getPrn(), null)
+                ))
+                .collect(Collectors.toList());
+    }
+
     /**
      * Maps list of UserClubs to basic responses without profile enrichment
      */

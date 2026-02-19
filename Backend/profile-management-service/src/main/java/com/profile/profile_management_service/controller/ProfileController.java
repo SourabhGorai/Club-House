@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST Controller for Profile Management
@@ -197,6 +198,16 @@ public class ProfileController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(image);
+    }
+
+    @PostMapping("/image-urls")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getImageUrlsByPrns(
+            @RequestBody List<String> prns) {
+        log.info("Received request to get image URLs for {} PRNs", prns.size());
+
+        Map<String, String> imageUrls = profileService.getImageUrlsByPrns(prns);
+
+        return ResponseEntity.ok(ApiResponse.success("Image URLs retrieved successfully", imageUrls));
     }
 
     /**
