@@ -1,6 +1,7 @@
 package com.clubHouse.notification_service2.controller;
 
 import com.clubHouse.notification_service2.dto.ApiResponse;
+import com.clubHouse.notification_service2.dto.NotificationResponse;
 import com.clubHouse.notification_service2.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

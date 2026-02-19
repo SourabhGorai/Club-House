@@ -41,6 +41,8 @@ public class EventService {
     private final TargetDataRepository targetDataRepository;
     private final EventEnrollmentRepository eventEnrollmentRepository;
 
+    // ── Create ──────────────────────────────────────────────────────────────────
+
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
@@ -67,7 +69,7 @@ public class EventService {
                 .eventCreator(prn)
                 .venue(req.getVenue())
                 .maxEnrollments(req.getMaxEnrollments())
-                .currEnrollments(0) // Initialize to 0
+                .currEnrollments(0)
                 .target(targetType)
                 .enrollmentDeadline(req.getEnrollmentDeadline())
                 .enrollmentStatus("OPEN")
@@ -80,6 +82,7 @@ public class EventService {
                 .build();
 
         Events saved = eventRepository.save(events);
+
         ratingsRepository.save(
                 Ratings.builder()
                         .eventId(saved.getEventId())
@@ -103,9 +106,10 @@ public class EventService {
 
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
-        return EventMapper.toResponse(saved, prn, profile.getFullName());
-
+        return EventMapper.toResponse(saved, prn, profile.getFullName(), req.getTargetIds());
     }
+
+    // ── Read ────────────────────────────────────────────────────────────────────
 
     @Cacheable(value = CacheConfig.ALL_EVENTS, key = "'all'")
     public List<EventResponse> getAll() {
@@ -115,7 +119,6 @@ public class EventService {
         List<Events> events = eventRepository.findAll();
 
         return toList(events);
-
     }
 
     @Cacheable(value = CacheConfig.MY_EVENTS, key = "#prn")
@@ -126,8 +129,7 @@ public class EventService {
         List<Events> events = eventRepository.findByEventCreator(prn);
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
-        return EventMapper.toResponseList(events, prn, profile.getFullName());
-
+        return toList(events);
     }
 
     @Cacheable(value = CacheConfig.EVENT_BY_ID, key = "#eventId")
@@ -141,8 +143,13 @@ public class EventService {
         ProfileResponse resp = profileManagementServiceClient
                 .getProfileByPrn(event.getEventCreator());
 
-        return EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName());
+        List<Long> targetIds = targetDataRepository
+                .findByEvents_EventId(eventId)
+                .stream()
+                .map(TargetData::getTargetId)
+                .toList();
 
+        return EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName(), targetIds);
     }
 
     @Cacheable(value = CacheConfig.TARGET_TYPES, key = "'all'")
@@ -163,7 +170,6 @@ public class EventService {
         List<Events> events = eventRepository.findByTarget(targetType);
 
         return toList(events);
-
     }
 
     @Cacheable(value = CacheConfig.EVENTS_BY_CREATOR, key = "#prn")
@@ -180,18 +186,7 @@ public class EventService {
 
         log.info("Found {} events", events.size());
 
-        ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
-
-        String creatorName = profile.getFullName();
-
-        return events.stream()
-                .map(event -> EventMapper.toResponse(
-                        event,
-                        prn,
-                        creatorName
-                ))
-                .toList();
-
+        return toList(events);
     }
 
     @Cacheable(value = CacheConfig.EVENTS_BY_ORGANIZER, key = "#organizer")
@@ -202,7 +197,6 @@ public class EventService {
         List<Events> events = eventRepository.findByOrganizer(organizer);
 
         return toList(events);
-
     }
 
     @Cacheable(value = CacheConfig.EVENTS_BY_RATING, key = "#rating")
@@ -214,8 +208,7 @@ public class EventService {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
 
-        List<Long> eventIds =
-                ratingsRepository.findEventIdsByMinRating(rating);
+        List<Long> eventIds = ratingsRepository.findEventIdsByMinRating(rating);
 
         if (eventIds.isEmpty()) {
             log.info("No events found with rating >= {}", rating);
@@ -232,7 +225,6 @@ public class EventService {
 
         log.info("Attempting to fetch events for {} with ID: {} - Cache miss, loading from DB", type, targetId);
 
-        // GLOBAL events don't need targetData
         if (type == TargetType.GLOBAL) {
             log.info("Fetching GLOBAL events");
             return getByTargetType(TargetType.GLOBAL);
@@ -254,6 +246,40 @@ public class EventService {
         return toList(events);
     }
 
+    @Cacheable(value = CacheConfig.EVENTS_BY_STATUS, key = "#status")
+    public List<EventResponse> getByStatus(boolean status) {
+
+        log.info("Attempting to fetch events where isCompleted = {} - Cache miss, loading from DB", status);
+
+        List<Events> events = eventRepository.findByIsCompleted(status);
+
+        if (events.isEmpty()) {
+            log.info("No events found with isCompleted = {}", status);
+            return List.of();
+        }
+
+        return toList(events);
+    }
+
+    @Cacheable(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, key = "#status")
+    public List<EventResponse> getByEnrollmentStatus(String status) {
+
+        log.info("Attempting to fetch events where deadline is = {} - Cache miss, loading from DB", status);
+
+        String sanitizedStatus = EventMapper.sanitizeName(status);
+
+        List<Events> events = eventRepository.findByEnrollmentStatus(sanitizedStatus);
+
+        if (events.isEmpty()) {
+            log.info("No events found with deadline = {}", sanitizedStatus);
+            return List.of();
+        }
+
+        return toList(events);
+    }
+
+    // ── Update ──────────────────────────────────────────────────────────────────
+
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
@@ -274,8 +300,7 @@ public class EventService {
                 () -> new NotFoundException("Event", eventId.toString())
         );
 
-        // FIXED: Changed || to && - user must be EITHER super admin OR event creator
-        if(!role.equals("SUPER_ADMIN") && !prn.equals(event.getEventCreator())) {
+        if (!role.equals("SUPER_ADMIN") && !prn.equals(event.getEventCreator())) {
             log.warn("User {} with role {} is not allowed to change the status of event created by {}",
                     prn, role, event.getEventCreator());
             throw new ServiceException("You are not allowed to change the status of the event");
@@ -286,40 +311,13 @@ public class EventService {
 
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
-        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName());
+        List<Long> targetIds = targetDataRepository
+                .findByEvents_EventId(saved.getEventId())
+                .stream()
+                .map(TargetData::getTargetId)
+                .toList();
 
-    }
-
-    @Cacheable(value = CacheConfig.EVENTS_BY_STATUS, key = "#status")
-    public List<EventResponse> getByStatus(boolean status) {
-
-        log.info("Attempting to fetch events where isCompleted = {} - Cache miss, loading from DB", status);
-
-        List<Events> events = eventRepository.findByIsCompleted(status);
-
-        if (events.isEmpty()) {
-            log.info("No events found with isCompleted = {}", status);
-            return List.of();
-        }
-
-        return toList(events);
-    }
-
-    @Cacheable(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, key = "#status")
-    public List<EventResponse> getByEnrollmentStatus(String status) {
-
-        log.info("Attempting to fetch events where deadline is = {} - Cache miss, loading from DB", status);
-        String sanitizedStatus = EventMapper.sanitizeName(status);
-
-        List<Events> events = eventRepository.findByEnrollmentStatus(sanitizedStatus);
-
-        if (events.isEmpty()) {
-            log.info("No events found with deadline = {}", sanitizedStatus);
-            return List.of();
-        }
-
-        return toList(events);
-
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds);
     }
 
     @Transactional
@@ -340,31 +338,26 @@ public class EventService {
         Events event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event", eventId.toString()));
 
-        // Authorization: only event creator or SUPER_ADMIN
         if (!event.getEventCreator().equals(prn) && !"SUPER_ADMIN".equals(role)) {
             throw new ServiceException("You are not allowed to update this event");
         }
 
-        // Cannot update a completed event
         if (event.isCompleted()) {
             throw new ServiceException("Cannot update a completed event");
         }
 
-        // Validate attendance window if both are provided
         if (request.getAttendanceWindowStart() != null && request.getAttendanceWindowEnd() != null) {
             if (request.getAttendanceWindowStart().isAfter(request.getAttendanceWindowEnd())) {
                 throw new ServiceException("Attendance window start must be before end time");
             }
         }
 
-        // Validate event date vs enrollment deadline if both provided
         if (request.getEventDate() != null && request.getEnrollmentDeadline() != null) {
             if (request.getEnrollmentDeadline().isAfter(request.getEventDate())) {
                 throw new ServiceException("Enrollment deadline must be before event date");
             }
         }
 
-        // Apply updates — only update fields that are present in the request (partial update support)
         if (request.getTitle() != null)                   event.setTitle(request.getTitle());
         if (request.getDescription() != null)             event.setDescription(request.getDescription());
         if (request.getSpeakerName() != null)             event.setSpeakerName(request.getSpeakerName());
@@ -384,66 +377,17 @@ public class EventService {
 
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
+        List<Long> targetIds = targetDataRepository
+                .findByEvents_EventId(saved.getEventId())
+                .stream()
+                .map(TargetData::getTargetId)
+                .toList();
+
         log.info("Event {} updated successfully by {}", eventId, prn);
-        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName());
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds);
     }
 
-
-    // ==================================================================================== //
-
-    /**
-     * Fetch multiple profiles and return as a Map for quick lookup
-     */
-    private Map<String, ProfileResponse> fetchProfilesMap(List<String> prns) {
-        try {
-            List<ProfileResponse> profiles = profileManagementServiceClient.getProfilesByPrns(prns);
-
-            return profiles.stream()
-                    .collect(Collectors.toMap(
-                            ProfileResponse::getPrn,
-                            profile -> profile,
-                            (existing, replacement) -> existing
-                    ));
-        } catch (Exception e) {
-            log.error("Error batch fetching profiles: {}", e.getMessage());
-            return Map.of();
-        }
-    }
-
-    public List<EventResponse> toList(List<Events> events){
-
-        if (events.isEmpty()) {
-            log.info("No events found");
-            return List.of();
-        }
-
-        log.info("Found {} events", events.size());
-
-        List<String> creatorPrns = events.stream()
-                .map(Events::getEventCreator)
-                .distinct()
-                .collect(Collectors.toList());
-
-        log.info("Fetching profiles for {} unique creators", creatorPrns.size());
-
-        Map<String, ProfileResponse> profileMap = fetchProfilesMap(creatorPrns);
-
-        return events.stream()
-                .map(event -> {
-                    ProfileResponse profile = profileMap.get(event.getEventCreator());
-                    String eventCreatorName = profile != null
-                            ? profile.getFullName()
-                            : event.getEventCreator();
-
-                    return EventMapper.toResponse(
-                            event,
-                            event.getEventCreator(),
-                            eventCreatorName
-                    );
-                })
-                .collect(Collectors.toList());
-
-    }
+    // ── Delete ──────────────────────────────────────────────────────────────────
 
     @Transactional
     @Caching(evict = {
@@ -469,6 +413,73 @@ public class EventService {
         targetDataRepository.deleteByEvents_EventId(eventId);
         ratingsRepository.deleteByEventId(eventId);
         eventRepository.deleteById(eventId);
+    }
 
+    // ── Private Helpers ─────────────────────────────────────────────────────────
+
+    private Map<String, ProfileResponse> fetchProfilesMap(List<String> prns) {
+        try {
+            List<ProfileResponse> profiles = profileManagementServiceClient.getProfilesByPrns(prns);
+
+            return profiles.stream()
+                    .collect(Collectors.toMap(
+                            ProfileResponse::getPrn,
+                            profile -> profile,
+                            (existing, replacement) -> existing
+                    ));
+        } catch (Exception e) {
+            log.error("Error batch fetching profiles: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
+    public List<EventResponse> toList(List<Events> events) {
+
+        if (events.isEmpty()) {
+            log.info("No events found");
+            return List.of();
+        }
+
+        log.info("Found {} events", events.size());
+
+        List<String> creatorPrns = events.stream()
+                .map(Events::getEventCreator)
+                .distinct()
+                .collect(Collectors.toList());
+
+        log.info("Fetching profiles for {} unique creators", creatorPrns.size());
+
+        Map<String, ProfileResponse> profileMap = fetchProfilesMap(creatorPrns);
+
+        // Batch fetch all target data for these events in a single query
+        List<Long> eventIds = events.stream()
+                .map(Events::getEventId)
+                .collect(Collectors.toList());
+
+        List<TargetData> allTargetData = targetDataRepository.findByEvents_EventIdIn(eventIds);
+
+        Map<Long, List<Long>> targetIdsMap = allTargetData.stream()
+                .collect(Collectors.groupingBy(
+                        td -> td.getEvents().getEventId(),
+                        Collectors.mapping(TargetData::getTargetId, Collectors.toList())
+                ));
+
+        return events.stream()
+                .map(event -> {
+                    ProfileResponse profile = profileMap.get(event.getEventCreator());
+                    String eventCreatorName = profile != null
+                            ? profile.getFullName()
+                            : event.getEventCreator();
+
+                    List<Long> targetIds = targetIdsMap.getOrDefault(event.getEventId(), List.of());
+
+                    return EventMapper.toResponse(
+                            event,
+                            event.getEventCreator(),
+                            eventCreatorName,
+                            targetIds
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }
