@@ -1218,10 +1218,10 @@ function ClubCard({ club, onViewDetails }) {
               <span className="text-xs font-bold text-gray-600">{memberCount} Members</span>
             </div>
             <span className="text-xs text-gray-300">|</span>
-            <span className="text-xs font-medium px-3 py-1 rounded-full"
+            {/* <span className="text-xs font-medium px-3 py-1 rounded-full"
                   style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
               ID: {clubId}
-            </span>
+            </span> */}
           </div>
         </div>
       </div>

@@ -22,8 +22,7 @@ export const useFilteredUsersCount = () => {
         const user = JSON.parse(localStorage.getItem("user"));
         const token = localStorage.getItem("token");
 
-        if (user?.role === "TEACHERS" || user?.role === "TEACHERS") {
-          // For teachers, fetch their students
+        if (user?.role === "TEACHERS") {
           const clubsResponse = await axios.get(
             `http://localhost:8080/api/user-clubs/user/${user.prn}`,
             { headers: { Authorization: `Bearer ${token}` } },
@@ -40,12 +39,9 @@ export const useFilteredUsersCount = () => {
                 `http://localhost:8080/api/user-clubs/club/${club.clubName}`,
                 { headers: { Authorization: `Bearer ${token}` } },
               );
-
               if (studentsResponse.data.success) {
-                const students = studentsResponse.data.data.filter((user) =>
-                  ["TEAM_MEMBER", "CLUB_ADMIN"].includes(
-                    user.role.toUpperCase(),
-                  ),
+                const students = studentsResponse.data.data.filter((u) =>
+                  ["TEAM_MEMBER", "CLUB_ADMIN"].includes(u.role.toUpperCase()),
                 );
                 totalStudents += students.length;
               }
@@ -53,17 +49,12 @@ export const useFilteredUsersCount = () => {
             setCount(totalStudents);
           }
         } else {
-          // For non-teachers, fetch all user-clubs
-          const response = await axios.get(
-            "http://localhost:8080/api/user-clubs",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
-
+          const response = await axios.get("http://localhost:8080/api/user-clubs", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           if (response.data.success) {
             const nonTeacherUsers = response.data.data.filter(
-              (user) => user.role.toUpperCase() !== "TEACHERS",
+              (u) => u.role.toUpperCase() !== "TEACHERS",
             );
             setCount(nonTeacherUsers.length);
           }
@@ -73,7 +64,6 @@ export const useFilteredUsersCount = () => {
         setCount(0);
       }
     };
-
     fetchData();
   }, []);
 
@@ -88,21 +78,61 @@ const UserRemoveFromClub = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClub, setSelectedClub] = useState("");
-  // Add these state variables
   const [teacherPrn, setTeacherPrn] = useState("");
   const [teacherClubs, setTeacherClubs] = useState([]);
   const [teacherStudents, setTeacherStudents] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
 
-  // LOGIC PRESERVED
-  const clubs = [
-    ...new Set(
-      userClubs.map((item) => ({ id: item.clubId, name: item.clubName })),
-    ),
-  ];
+  // prn -> blob URL
+  const [profileImages, setProfileImages] = useState({});
 
+  const token = localStorage.getItem("token");
+
+  // Cleanup blob URLs on unmount
   useEffect(() => {
-    // Get teacher PRN from localStorage user object
+    return () => {
+      setProfileImages((prev) => {
+        Object.values(prev).forEach((url) => { if (url) URL.revokeObjectURL(url); });
+        return {};
+      });
+    };
+  }, []);
+
+  /**
+   * Fetches profile images via authenticated axios (responseType: blob).
+   * Plain <img src> cannot send the Authorization header, so blobs are required.
+   */
+  const fetchProfileImages = async (userList) => {
+    const withImages = userList.filter(u => u.hasProfileImage && u.imageUrl);
+
+    const results = await Promise.all(
+      withImages.map(async (user) => {
+        try {
+          const res = await axios.get(
+            `http://localhost:8080${user.imageUrl}`,
+            { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" }
+          );
+          if (res.data && res.data.size > 0) {
+            return { prn: user.prn, blobUrl: URL.createObjectURL(res.data) };
+          }
+          return { prn: user.prn, blobUrl: null };
+        } catch {
+          return { prn: user.prn, blobUrl: null };
+        }
+      })
+    );
+
+    const map = results.reduce((acc, r) => {
+      if (r) acc[r.prn] = r.blobUrl;
+      return acc;
+    }, {});
+
+    // Merge into existing map (don't wipe images already fetched)
+    setProfileImages((prev) => ({ ...prev, ...map }));
+  };
+
+  // ── Teacher flow ──
+  useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user?.prn) {
       setTeacherPrn(user.prn);
@@ -112,24 +142,17 @@ const UserRemoveFromClub = () => {
 
   const fetchTeacherClubs = async (prn) => {
     if (!prn) return;
-
     setLoadingClubs(true);
     try {
       const response = await axios.get(
         `http://localhost:8080/api/user-clubs/user/${prn}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-
       if (response.data.success) {
-        // Filter only clubs where user has TEACHER/TEACHERS role
         const teacherRoleClubs = response.data.data.filter((club) =>
           ["TEACHER", "TEACHERS"].includes(club.role.toUpperCase()),
         );
         setTeacherClubs(teacherRoleClubs);
-
-        // Fetch students from each club
         fetchStudentsFromClubs(teacherRoleClubs);
       }
     } catch (err) {
@@ -142,62 +165,52 @@ const UserRemoveFromClub = () => {
 
   const fetchStudentsFromClubs = async (clubs) => {
     if (!clubs.length) return;
-
     try {
       const allStudents = [];
-
-      // Fetch students from each club
       for (const club of clubs) {
         const response = await axios.get(
           `http://localhost:8080/api/user-clubs/club/${club.clubName}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          },
+          { headers: { Authorization: `Bearer ${token}` } },
         );
-
         if (response.data.success) {
-          // Filter to keep only MEMBER and CLUB_ADMIN roles
-          const students = response.data.data.filter((user) =>
-            ["TEAM_MEMBER", "CLUB_ADMIN"].includes(user.role.toUpperCase()),
+          const students = response.data.data.filter((u) =>
+            ["TEAM_MEMBER", "CLUB_ADMIN"].includes(u.role.toUpperCase()),
           );
           allStudents.push(...students);
         }
       }
-
       setTeacherStudents(allStudents);
+      // Fetch blob images for teacher's students
+      await fetchProfileImages(allStudents);
     } catch (err) {
       console.error("Error fetching club students:", err);
       setTeacherStudents([]);
     }
   };
 
+  // ── Non-teacher flow ──
   const fetchUserClubs = async () => {
     try {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem("user"));
 
-      // If user is a teacher, use teacher-specific logic
-      if (user?.role === "TEACHERS" || user?.role === "TEACHERS") {
-        // Teacher logic - get their clubs and students
+      if (user?.role === "TEACHERS") {
         await fetchTeacherClubs(user.prn);
         setLoading(false);
         return;
       }
 
-      // Original logic for non-teachers
       const response = await axios.get("http://localhost:8080/api/user-clubs", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.data.success) {
         const nonTeacherUsers = response.data.data.filter(
-          (user) => user.role.toUpperCase() !== "TEACHERS",
+          (u) => u.role.toUpperCase() !== "TEACHERS",
         );
-        console.log(nonTeacherUsers);
         setUserClubs(nonTeacherUsers);
         setFilteredUsers(nonTeacherUsers);
+        // Fetch blob images for non-teacher users
+        await fetchProfileImages(nonTeacherUsers);
       }
     } catch (err) {
       setError("Failed to fetch user data. Please try again.");
@@ -205,22 +218,12 @@ const UserRemoveFromClub = () => {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    fetchUserClubs();
-  }, []);
+
+  useEffect(() => { fetchUserClubs(); }, []);
 
   useEffect(() => {
-    let filtered = [];
+    let filtered = teacherStudents.length > 0 ? teacherStudents : userClubs;
 
-    // If teacher has students, use those
-    if (teacherStudents.length > 0) {
-      filtered = teacherStudents;
-    } else {
-      // Otherwise use original userClubs
-      filtered = userClubs;
-    }
-
-    // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -231,47 +234,33 @@ const UserRemoveFromClub = () => {
           user.role.toLowerCase().includes(term),
       );
     }
-
-    // Apply club filter
     if (selectedClub) {
       filtered = filtered.filter(
         (user) => user.clubId && user.clubId.toString() === selectedClub,
       );
     }
-
     setFilteredUsers(filtered);
   }, [searchTerm, selectedClub, userClubs, teacherStudents]);
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
-    if (
-      !window.confirm(
-        `Are you sure you want to remove ${name} from ${clubName}?`,
-      )
-    )
-      return;
+    if (!window.confirm(`Are you sure you want to remove ${name} from ${clubName}?`)) return;
 
     try {
       const response = await axios.delete(
         `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           data: { prn, clubId, role, tenure },
         },
       );
-
       if (response.data.success) {
         setSuccessMessage(`Successfully removed ${name} from ${clubName}`);
         fetchUserClubs();
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
-      setError(
-        `Failed to remove user. ${err.response?.data?.message || err.message}`,
-      );
+      setError(`Failed to remove user. ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -280,15 +269,10 @@ const UserRemoveFromClub = () => {
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
         <div
           className="w-16 h-16 border-4 rounded-full animate-spin"
-          style={{
-            borderColor: "rgba(76, 161, 175, 0.1)",
-            borderTopColor: "#4CA1AF",
-          }}
+          style={{ borderColor: "rgba(76, 161, 175, 0.1)", borderTopColor: "#4CA1AF" }}
         ></div>
         <p className="mt-4 font-medium text-slate-500 animate-pulse tracking-wide">
-          {teacherPrn
-            ? "Loading teacher's students..."
-            : "Synchronizing database..."}
+          {teacherPrn ? "Loading teacher's students..." : "Synchronizing database..."}
         </p>
       </div>
     );
@@ -297,14 +281,12 @@ const UserRemoveFromClub = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-20">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* 1. Header Section */}
+
+        {/* 1. Header */}
         <div className="mb-8">
           <div
             className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
-            style={{
-              backgroundColor: "rgba(76, 161, 175, 0.1)",
-              color: "#4CA1AF",
-            }}
+            style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
           >
             <ShieldCheck size={14} />
             <span>Membership Management</span>
@@ -317,32 +299,22 @@ const UserRemoveFromClub = () => {
           </p>
         </div>
 
-        {/* 2. Search & Filter Bar */}
+        {/* 2. Search & Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
           <div className="lg:col-span-8 relative group">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors"
-              size={20}
-              style={{ color: "var(--primary-color-1)" }}
-            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors" size={20} style={{ color: "#4CA1AF" }} />
             <input
               type="text"
               placeholder="Search by name, PRN, or department..."
               className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none text-slate-700 font-medium cursor-text"
-              style={{ focus: { ringColor: "#4CA1AF" } }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="lg:col-span-4 relative group">
-            <Filter
-              className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors"
-              size={20}
-              style={{ color: "var(--primary-color-1)" }}
-            />
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors" size={20} style={{ color: "#4CA1AF" }} />
             <select
               className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
-              style={{ focus: { ringColor: "#4CA1AF" } }}
               value={selectedClub}
               onChange={(e) => setSelectedClub(e.target.value)}
             >
@@ -356,132 +328,57 @@ const UserRemoveFromClub = () => {
           </div>
         </div>
 
-        {/* 3. Stat Cards Section (Positioned below Search) */}
+        {/* 3. Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                backgroundColor: "rgba(76, 161, 175, 0.1)",
-                color: "#4CA1AF",
-              }}
-            >
-              <Users size={28} />
+          {[
+            { icon: <Users size={28} />, label: "Total Users", value: filteredUsers.length },
+            { icon: <Building2 size={28} />, label: "Unique Clubs", value: teacherClubs.length },
+            { icon: <Layers size={28} />, label: "Active Roles", value: [...new Set(filteredUsers.map((u) => u.role))].length },
+          ].map(({ icon, label, value }) => (
+            <div key={label} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}>
+                {icon}
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{label}</p>
+                <h3 className="text-3xl font-black text-slate-900">{value}</h3>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                Total Users
-              </p>
-              <h3 className="text-3xl font-black text-slate-900">
-                {filteredUsers.length}
-              </h3>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                backgroundColor: "rgba(76, 161, 175, 0.1)",
-                color: "#4CA1AF",
-              }}
-            >
-              <Building2 size={28} />
-            </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                Unique Clubs
-              </p>
-              <h3 className="text-3xl font-black text-slate-900">
-                {teacherClubs.length}
-              </h3>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                backgroundColor: "rgba(76, 161, 175, 0.1)",
-                color: "#4CA1AF",
-              }}
-            >
-              <Layers size={28} />
-            </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                Active Roles
-              </p>
-              <h3 className="text-3xl font-black text-slate-900">
-                {[...new Set(filteredUsers.map((u) => u.role))].length}
-              </h3>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Teacher's Clubs Info Section */}
+        {/* Teacher Dashboard Banner */}
         {teacherClubs.length > 0 && (
           <div
             className="mb-6 p-6 border rounded-[2rem] shadow-xl"
             style={{
-              background:
-                "linear-gradient(to right, rgba(76, 161, 175, 0.1), rgba(49, 81, 105, 0.1))",
+              background: "linear-gradient(to right, rgba(76, 161, 175, 0.1), rgba(49, 81, 105, 0.1))",
               borderColor: "rgba(76, 161, 175, 0.2)",
             }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div
-                  className="p-3 rounded-2xl"
-                  style={{
-                    backgroundColor: "rgba(76, 161, 175, 0.2)",
-                    color: "#4CA1AF",
-                  }}
-                >
+                <div className="p-3 rounded-2xl" style={{ backgroundColor: "rgba(76, 161, 175, 0.2)", color: "#4CA1AF" }}>
                   <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <h3
-                    className="text-xl font-black"
-                    style={{ color: "#26727e" }}
-                  >
-                    Teacher Dashboard Mode
-                  </h3>
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "#26727e" }}
-                  >
-                    Showing students from your assigned clubs
-                  </p>
+                  <h3 className="text-xl font-black" style={{ color: "#26727e" }}>Teacher Dashboard Mode</h3>
+                  <p className="text-sm font-medium" style={{ color: "#26727e" }}>Showing students from your assigned clubs</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold" style={{ color: "#26727e" }}>
-                  PRN: {teacherPrn}
-                </p>
-                <p className="text-xs" style={{ color: "#26727e" }}>
-                  {teacherClubs.length} clubs assigned
-                </p>
+                <p className="text-sm font-bold" style={{ color: "#26727e" }}>PRN: {teacherPrn}</p>
+                <p className="text-xs" style={{ color: "#26727e" }}>{teacherClubs.length} clubs assigned</p>
               </div>
             </div>
-
-            {/* Teacher's Clubs List */}
             <div className="mt-4">
-              <p
-                className="text-sm font-bold mb-2"
-                style={{ color: "#34757e" }}
-              >
-                Your Clubs:
-              </p>
+              <p className="text-sm font-bold mb-2" style={{ color: "#34757e" }}>Your Clubs:</p>
               <div className="flex flex-wrap gap-2">
                 {teacherClubs.map((club) => (
                   <span
                     key={club.clubId}
                     className="px-4 py-2 bg-white text-sm font-bold rounded-full border shadow-sm hover:shadow-md transition-shadow"
-                    style={{
-                      color: "#34757e",
-                      borderColor: "rgba(76, 161, 175, 0.2)",
-                    }}
+                    style={{ color: "#34757e", borderColor: "rgba(76, 161, 175, 0.2)" }}
                   >
                     {club.clubName} • {club.role}
                   </span>
@@ -505,7 +402,7 @@ const UserRemoveFromClub = () => {
           </div>
         )}
 
-        {/* 4. Main Table Grid */}
+        {/* 4. Table */}
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
           <div className="overflow-x-auto">
             {filteredUsers.length === 0 ? (
@@ -513,141 +410,113 @@ const UserRemoveFromClub = () => {
                 <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search size={40} className="text-slate-300" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900">
-                  No members match your criteria
-                </h3>
-                <p className="text-slate-500 font-medium">
-                  Try broadening your search or adjusting filters.
-                </p>
+                <h3 className="text-xl font-black text-slate-900">No members match your criteria</h3>
+                <p className="text-slate-500 font-medium">Try broadening your search or adjusting filters.</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Member
-                    </th>
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Club & Status
-                    </th>
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Education
-                    </th>
-                    <th className="px-10 py-6 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      Actions
-                    </th>
+                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Member</th>
+                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Club & Status</th>
+                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Education</th>
+                    <th className="px-10 py-6 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.map((user) => (
-                    <tr
-                      key={user.userClubId}
-                      className="group hover:bg-[#4CA1AF]/5 transition-all duration-300"
-                    >
-                      <td className="px-10 py-6">
-                        <div className="flex items-center space-x-4">
-                          <div
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg group-hover:scale-110 transition-transform"
-                            style={{
-                              background:
-                                "linear-gradient(135deg, #4CA1AF, #315169)",
-                            }}
-                          >
-                            {user.name.charAt(0)}
+                  {filteredUsers.map((user) => {
+                    const blobUrl = profileImages[user.prn];
+                    return (
+                      <tr key={user.userClubId} className="group hover:bg-[#4CA1AF]/5 transition-all duration-300">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center space-x-4">
+                            {/* Profile Image Avatar */}
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                              {blobUrl ? (
+                                <img
+                                  src={blobUrl}
+                                  alt={user.name}
+                                  className="w-14 h-14 object-cover rounded-2xl"
+                                />
+                              ) : (
+                                <div
+                                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl"
+                                  style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                                >
+                                  {user.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-black text-slate-900 text-lg leading-tight transition-colors group-hover:text-[#4CA1AF]">
+                                {user.name}
+                              </p>
+                              <p className="text-xs font-bold text-slate-400 mt-1">{user.prn}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-black text-slate-900 text-lg leading-tight transition-colors group-hover:text-[#4CA1AF]">
-                              {user.name}
-                            </p>
-                            <p className="text-xs font-bold text-slate-400 mt-1">
-                              {user.prn}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-6">
-                        <div className="flex flex-col space-y-2">
-                          <span className="inline-flex items-center text-sm font-black text-slate-800">
-                            <Building2
-                              size={16}
-                              className="mr-2"
-                              style={{ color: "#4CA1AF" }}
-                            />
-                            {user.clubName}
-                          </span>
-                          <div>
-                            <span
-                              className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border ${
-                                user.role === "CLUB_ADMIN"
-                                  ? "text-purple-700 border-purple-100"
-                                  : "text-blue-700 border-blue-100"
-                              }`}
-                              style={
-                                user.role === "CLUB_ADMIN"
-                                  ? {
-                                      backgroundColor:
-                                        "rgba(76, 161, 175, 0.1)",
-                                    }
-                                  : {
-                                      backgroundColor:
-                                        "rgba(59, 130, 246, 0.1)",
-                                    }
-                              }
-                            >
-                              {user.role.replace(/_/g, " ")}
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="flex flex-col space-y-2">
+                            <span className="inline-flex items-center text-sm font-black text-slate-800">
+                              <Building2 size={16} className="mr-2" style={{ color: "#4CA1AF" }} />
+                              {user.clubName}
                             </span>
+                            <div>
+                              <span
+                                className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border ${
+                                  user.role === "CLUB_ADMIN"
+                                    ? "text-purple-700 border-purple-100"
+                                    : "text-blue-700 border-blue-100"
+                                }`}
+                                style={
+                                  user.role === "CLUB_ADMIN"
+                                    ? { backgroundColor: "rgba(76, 161, 175, 0.1)" }
+                                    : { backgroundColor: "rgba(59, 130, 246, 0.1)" }
+                                }
+                              >
+                                {user.role.replace(/_/g, " ")}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-6">
-                        <div className="space-y-1">
-                          <div className="flex items-center text-sm font-bold text-slate-700">
-                            <Briefcase
-                              size={14}
-                              className="mr-2 text-slate-400"
-                            />
-                            {user.department}
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm font-bold text-slate-700">
+                              <Briefcase size={14} className="mr-2 text-slate-400" />
+                              {user.department}
+                            </div>
+                            <p className="text-xs font-bold text-slate-400 ml-5">
+                              Year {user.year} • {user.tenure}
+                            </p>
                           </div>
-                          <p className="text-xs font-bold text-slate-400 ml-5">
-                            Year {user.year} • {user.tenure}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-10 py-6 text-right">
-                        <button
-                          onClick={() => handleRemoveUser(user)}
-                          className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 transition-all shadow-sm active:scale-90 cursor-pointer"
-                          style={{ hover: { backgroundColor: "#4CA1AF" } }}
-                          title="Remove from club"
-                        >
-                          <UserMinus size={22} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-10 py-6 text-right">
+                          <button
+                            onClick={() => handleRemoveUser(user)}
+                            className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-90 cursor-pointer"
+                            title="Remove from club"
+                          >
+                            <UserMinus size={22} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
           </div>
         </div>
 
-        {/* Footer Info */}
+        {/* Footer */}
         <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 opacity-60">
-          <p>
-            Database synchronization active • {filteredUsers.length} Users
-            Listed
-          </p>
+          <p>Database synchronization active • {filteredUsers.length} Users Listed</p>
           <div className="flex items-center space-x-6 mt-4 md:mt-0">
             <span className="flex items-center">
-              <span
-                className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm"
-                style={{ backgroundColor: "#4CA1AF" }}
-              ></span>{" "}
-              Admin
+              <span className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm" style={{ backgroundColor: "#4CA1AF" }}></span> Admin
             </span>
             <span className="flex items-center">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 shadow-sm"></span>{" "}
-              Member
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 shadow-sm"></span> Member
             </span>
           </div>
         </div>
