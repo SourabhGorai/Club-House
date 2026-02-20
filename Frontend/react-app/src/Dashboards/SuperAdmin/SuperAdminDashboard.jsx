@@ -37,6 +37,7 @@ export default function SuperAdminDashboard() {
     prn: user?.prn || "2021BCS001",
     verified: user?.verified || true,
   });
+  console.log(user);
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
@@ -702,7 +703,7 @@ export default function SuperAdminDashboard() {
               <BigActionButton
                 label="Events"
                 icon={CalendarDays}
-                onClick={() => alert("Events feature")}
+                onClick={() => (window.location.href = "/events")}
                 bgColor="rgba(16, 185, 129, 0.1)"
                 iconColor="#10B981"
               />

@@ -11,6 +11,7 @@ import UserManagement from "./Dashboards/SuperAdmin/ManageUsers";
 import AddStudent from "./Dashboards/Teachers/AddStudent";
 import UserRemoveFromClub from "./Dashboards/Teachers/UserRemoveFromClub";
 import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyClub";
+import MyEvents from "./components/MyEvents";
 
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
@@ -133,8 +134,18 @@ export default function App() {
               <ClubDetails />
             </ProtectedRoute> } />
 
-      </Routes>
+             <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
+            </ProtectedRoute>
+          }
+        />
 
+      </Routes>
+     
+        
     
     </div>
   );
