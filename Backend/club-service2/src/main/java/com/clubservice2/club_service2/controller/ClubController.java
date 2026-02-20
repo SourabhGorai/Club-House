@@ -5,6 +5,7 @@ import com.clubservice2.club_service2.dto.request.ClubRequest;
 import com.clubservice2.club_service2.dto.response.AdminResponse;
 import com.clubservice2.club_service2.dto.response.ClubResponse;
 import com.clubservice2.club_service2.dto.response.ClubSummaryResponse;
+import com.clubservice2.club_service2.model.Club;
 import com.clubservice2.club_service2.service.ClubService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -150,5 +151,12 @@ public class ClubController {
         return ResponseEntity.ok(
                 ApiResponse.success("Club deleted successfully")
         );
+    }
+
+    @GetMapping("/getById/{id}")
+    public ResponseEntity<ApiResponse<ClubResponse>> getById(@PathVariable Long id){
+        log.info("Request received to fetch club by ID: {}", id);
+        ClubResponse resp = clubService.getById(id);
+        return ResponseEntity.ok(ApiResponse.success("Fetched successfully", resp));
     }
 }

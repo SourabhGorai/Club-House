@@ -257,4 +257,10 @@ public class ClubService {
                 club.getClubName(), totalCount, clubAdminsList.size());
         return resp;
     }
+
+    public ClubResponse getById(Long id) {
+        log.info("Attempting to fetch club with id: {}", id);
+        Club club = clubRepository.findById(id).orElseThrow(() -> new ClubNotFoundException(id.toString()));
+        return ClubMapper.toResponse(club);
+    }
 }

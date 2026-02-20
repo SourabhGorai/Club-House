@@ -33,4 +33,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // Fetch notifications by type
     List<Notification> findByNotificationType(NotificationType notificationType);
+
+    List<Notification> findByIsActiveFalse();
 }

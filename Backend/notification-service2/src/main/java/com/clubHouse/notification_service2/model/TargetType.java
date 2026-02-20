@@ -1,7 +1,7 @@
 package com.clubHouse.notification_service2.model;
 
 public enum TargetType {
-    USER,
+//    USER,
     DEPARTMENT,
     GLOBAL,
     CLUB

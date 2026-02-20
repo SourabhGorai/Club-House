@@ -1,3 +1,10 @@
 spring:
   application:
     name: notification-service2
+
+
+app:
+  profile-service:
+    url: http://PROFILE-MANAGEMENT-SERVICE/api
+  jwt:
+    secret: ${SECRET_KEY}

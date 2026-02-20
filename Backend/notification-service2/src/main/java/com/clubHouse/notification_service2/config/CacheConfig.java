@@ -1,0 +1,20 @@
+package com.clubHouse.notification_service2.config;
+
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableCaching
+public class CacheConfig {
+
+    public static final String DEPARTMENT_CACHE = "departments";
+    public static final String DEPARTMENTS_LIST_CACHE = "departmentsList";
+
+    @Bean
+    public CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager(DEPARTMENT_CACHE, DEPARTMENTS_LIST_CACHE);
+    }
+}
