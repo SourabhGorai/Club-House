@@ -322,7 +322,6 @@ public class GatewayConfig {
                                 "/api/events/create",
                                 "/api/events/myEvents",
                                 "/api/events/targetTypes",
-                                "/api/events/getByTargetType/{targetType}",
                                 "/api/events/getByEventCreator/{prn}",
                                 "/api/events/ratings/{rating}",
                                 "/api/events/endEvent/{eventId}",
@@ -342,7 +341,8 @@ public class GatewayConfig {
                                 "/api/events/getById/{eventId}",
                                 "/api/events/organizer/{organizer}",
                                 "/api/events/targetData/{targetType}/{targetId}",
-                                "/api/events/endEvent/{status}"
+                                "/api/events/endEvent/{status}",
+                                "/api/events/getByTargetType/{targetType}"
                         )
                         .and()
                         .method("GET")
