@@ -1019,10 +1019,18 @@ export default function UsersDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <ActionCard 
               icon={<CalendarDays />} 
-              label="Events" 
+              label="Upcoming Events" 
               color="blue" 
               onClick={() => window.location.href = "/events"}
             />
+
+             <ActionCard 
+              icon={<CalendarDays />} 
+              label="Previous Events" 
+              color="blue" 
+              onClick={() => window.location.href = "/previous-events"}
+            />
+
             <ActionCard 
               icon={<Users />} 
               label="My Clubs" 

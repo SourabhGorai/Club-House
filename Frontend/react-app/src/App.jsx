@@ -17,6 +17,7 @@ import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
 import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 import ClubDetails from "./components/ClubDetails";
+import PreviousEvents from "./Dashboards/Users/PreviousEvents";
 
 export default function App() {
   return (
@@ -139,6 +140,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MyEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/previous-events"
+          element={
+            <ProtectedRoute>
+              <PreviousEvents />
             </ProtectedRoute>
           }
         />

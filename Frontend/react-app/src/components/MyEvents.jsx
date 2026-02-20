@@ -25,23 +25,115 @@ const MyEvents = () => {
   const [userRole, setUserRole] = useState('');
   const [targetTypes, setTargetTypes] = useState([]);
   const [selectedTarget, setSelectedTarget] = useState('GLOBAL');
+  const [userDept, setUserDept] = useState('');
+const [deptId, setDeptId] = useState(null);
+const [departments, setDepartments] = useState([]);
+const [filterType, setFilterType] = useState('GLOBAL'); 
+const [userClubs, setUserClubs] = useState([]);
+const [selectedClubId, setSelectedClubId] = useState('');
 
-  useEffect(() => {
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
+
+  const role = user?.role || 'user';
+  setUserRole(role);
+
+  if (!token) {
+    setError('No authentication token found. Please login again.');
+    setLoading(false);
+    return;
+  }
+
+  // Fetch target types, user profile, and departments
+  fetchTargetTypes(token);
+  fetchUserProfile(token);
+  fetchDepartments(token);
+  fetchUserClubs(token);
+  fetchEvents(token, role, 'GLOBAL'); 
+}, []);
+
+
+const fetchUserProfile = async (token) => {
+  try {
+    // You need to get PRN from localStorage or from user object
     const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-
-    const role = user?.role || 'user';
-    setUserRole(role);
-
-    if (!token) {
-      setError('No authentication token found. Please login again.');
-      setLoading(false);
-      return;
+    const prn = user?.prn; // Make sure prn is stored in user object
+    
+    if (!prn) return;
+    
+    const response = await axios.get(`http://localhost:8080/api/profiles/prn/${prn}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data.success) {
+      const profile = response.data.data;
+      setUserDept(profile.department);
+      
+      // After getting department, fetch department ID
+      fetchDepartmentId(token, profile.department);
     }
+  } catch (err) {
+    console.error('Error fetching user profile:', err);
+  }
+};
 
-    fetchTargetTypes(token);
-    fetchEvents(token, role); 
-  }, []);
+const fetchDepartments = async (token) => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/department', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data.success) {
+      setDepartments(response.data.data);
+    }
+  } catch (err) {
+    console.error('Error fetching departments:', err);
+  }
+};
+
+const fetchDepartmentId = async (token, deptName) => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/department', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data.success) {
+      const dept = response.data.data.find(d => d.name === deptName);
+      if (dept) {
+        setDeptId(dept.departmentId);
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching department ID:', err);
+  }
+};
+
+const fetchUserClubs = async (token) => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/user-clubs/getMyClubs', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data.success) {
+      setUserClubs(response.data.data);
+    }
+  } catch (err) {
+    console.error('Error fetching user clubs:', err);
+  }
+};
 
   const fetchTargetTypes = async (token) => {
     try {
@@ -60,49 +152,67 @@ const MyEvents = () => {
     }
   };
 
-  const fetchEvents = async (token, role) => {
-    try {
-      setLoading(true);
+const fetchEvents = async (token, role, filter = 'GLOBAL', targetId = null) => {
+  try {
+    setLoading(true);
+    console.log("ROLE:", role, "FILTER:", filter, "TARGET ID:", targetId);
 
-      console.log("ROLE:", role);
+    let response;
 
-      let response;
-
-      if (role === "SUPER_ADMIN") {
-        response = await axios.get('http://localhost:8080/api/events', {
+    if (role === "SUPER_ADMIN") {
+      response = await axios.get('http://localhost:8080/api/events', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    } else if (role === "USER" || role === "USERS") {
+      if (filter === 'DEPARTMENT' && targetId) {
+        // Fetch department-specific events
+        response = await axios.get(`http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-      } else if (role === "USER" || role === "USERS") {
-        response = await axios.get(`http://localhost:8080/api/events/getByTargetType/${selectedTarget}`, {
+      } else if (filter === 'CLUB' && targetId) {
+        // Fetch club-specific events (assuming you have club IDs)
+        response = await axios.get(`http://localhost:8080/api/events/targetData/CLUB/${targetId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-      } else if (role === "TEACHER" || role === "TEACHERS") {
-        response = await axios.get('http://localhost:8080/api/events/myEvents', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-
-      if (response && response.data && response.data.success) {
-        setEvents(response.data.data);
       } else {
-        throw new Error(response?.data?.message || 'Failed to fetch events');
+        // Fetch global events
+        response = await axios.get(`http://localhost:8080/api/events/getByTargetType/GLOBAL`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
       }
-    } catch (err) {
-      console.error('Error fetching events:', err);
-      setError(err.message || 'An error occurred while fetching events');
-    } finally {
-      setLoading(false);
+    } else if (role === "TEACHER" || role === "TEACHERS") {
+      response = await axios.get('http://localhost:8080/api/events/myEvents', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
     }
-  };
+
+    if (response && response.data && response.data.success) {
+      setEvents(response.data.data);
+    } else {
+      throw new Error(response?.data?.message || 'Failed to fetch events');
+    }
+  } catch (err) {
+    console.error('Error fetching events:', err);
+    setError(err.message || 'An error occurred while fetching events');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleTargetChange = async (e) => {
     const newTarget = e.target.value;
@@ -129,9 +239,38 @@ const MyEvents = () => {
     }
   };
 
-  const getFilteredEvents = () => {
+const getFilteredEvents = () => {
+  // If user is SUPER_ADMIN, show all events
+  if (userRole === "SUPER_ADMIN") {
     return events;
-  };
+  }
+  
+  // For other users (USER, TEACHER, etc.), filter out CLOSED events
+  return events.filter(event => event.enrollmentStatus?.toUpperCase() !== 'CLOSED');
+};
+
+const handleFilterChange = async (newFilterType, targetId = null) => {
+  setFilterType(newFilterType);
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role || 'user';
+  
+  if (newFilterType === 'DEPARTMENT' && deptId) {
+    await fetchEvents(token, role, 'DEPARTMENT', deptId);
+  } else if (newFilterType === 'CLUB') {
+    if (targetId) {
+      // If a club is selected from dropdown
+      setSelectedClubId(targetId);
+      await fetchEvents(token, role, 'CLUB', targetId);
+    } else {
+      // If button is clicked without selection, reset to show no events or show prompt
+      setEvents([]);
+    }
+  } else {
+    setSelectedClubId(''); // Reset club selection
+    await fetchEvents(token, role, 'GLOBAL');
+  }
+};
 
   const getEnrollmentStatusColor = (status) => {
     switch(status?.toLowerCase()) {
@@ -240,22 +379,118 @@ const MyEvents = () => {
         </div>
 
         {/* Target Type Selector for Users */}
-        {(userRole === "USER" || userRole === "USERS") && targetTypes.length > 0 && (
-          <div className="mb-8 flex justify-center">
-            <div className="bg-white rounded-lg shadow-md p-4 inline-flex items-center space-x-4">
-              <label className="text-sm font-medium text-gray-700">Filter by Target:</label>
-              <select 
-                value={selectedTarget}
-                onChange={handleTargetChange}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {targetTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
+       {/* Filter Options for Users */}
+{(userRole === "USER" || userRole === "USERS") && (
+  <div className="mb-8">
+    <div className="bg-white rounded-lg shadow-md p-4 max-w-3xl mx-auto">
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        {/* Filter Type Buttons */}
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleFilterChange('GLOBAL')}
+            className={`px-4 py-2 cursor-pointer rounded-lg font-medium transition-colors ${
+              filterType === 'GLOBAL' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Globe className="w-4 h-4 inline mr-2" />
+            Global Events
+          </button>
+          
+          {userDept && (
+            <button
+              onClick={() => handleFilterChange('DEPARTMENT')}
+              className={`px-4 py-2 cursor-pointer rounded-lg font-medium transition-colors ${
+                filterType === 'DEPARTMENT' 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Users className="w-4 h-4 inline mr-2" />
+              {userDept} Events
+            </button>
+          )}
+          
+          {/* Club Button with Integrated Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (filterType !== 'CLUB') {
+                  handleFilterChange('CLUB');
+                }
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${
+                filterType === 'CLUB' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Club Events
+              {filterType === 'CLUB' && (
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </button>
+            
+            {/* Dropdown Menu - Shows immediately when Club is selected */}
+            {filterType === 'CLUB' && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                <div className="p-2">
+                  <p className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider">
+                    Select a Club
+                  </p>
+                  {userClubs.length > 0 ? (
+                    userClubs.map((club) => (
+                      <button
+                        key={club.clubId}
+                        onClick={() => handleFilterChange('CLUB', club.clubId)}
+                        className={`w-full hover:bg-gray-100 cursor-pointer text-left px-3 py-2 rounded-md transition-colors ${
+                          selectedClubId === club.clubId.toString()
+                            ? 'bg-purple-50 text-purple-700'
+                            : 'hover:bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        <div className=" flex items-center justify-between">
+                          <span className="font-medium">{club.clubName}</span>
+                          <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                            {club.memberCount}
+                          </span>
+                        </div>
+                        {club.desc && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-1">{club.desc}</p>
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-4 text-center">
+                      <p className="text-sm text-gray-500">You are not a member of any clubs yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Show current filter info */}
+        {filterType === 'DEPARTMENT' && userDept && (
+          <div className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">
+            Showing events for {userDept} Department
           </div>
         )}
+        
+        {filterType === 'CLUB' && selectedClubId && (
+          <div className="text-sm text-gray-600 bg-purple-50 px-3 py-1 rounded-full">
+            Showing events for {userClubs.find(c => c.clubId.toString() === selectedClubId.toString())?.clubName} Club
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Events Grid */}
         {filteredEvents.length === 0 ? (
@@ -333,25 +568,27 @@ const MyEvents = () => {
                   </div>
 
                   {/* Enrollment Info */}
-                  <div className="flex items-start space-x-2">
-                    <Users className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-gray-900">
-                          {event.currEnrollments}/{event.maxEnrollments} Enrolled
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          {Math.round((event.currEnrollments / event.maxEnrollments) * 100)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                        <div 
-                          className="bg-blue-600 h-1.5 rounded-full"
-                          style={{ width: `${(event.currEnrollments / event.maxEnrollments) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
+                 {(userRole === "SUPER_ADMIN") && (
+  <div className="flex items-start space-x-2">
+    <Users className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+    <div className="flex-1">
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-900">
+          {event.currEnrollments}/{event.maxEnrollments} Enrolled
+        </p>
+        <span className="text-xs text-gray-500">
+          {Math.round((event.currEnrollments / event.maxEnrollments) * 100)}%
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+        <div 
+          className="bg-blue-600 h-1.5 rounded-full"
+          style={{ width: `${(event.currEnrollments / event.maxEnrollments) * 100}%` }}
+        ></div>
+      </div>
+    </div>
+  </div>
+)}
 
                   {/* Deadline */}
                   <div className="flex items-start space-x-2">
