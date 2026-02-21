@@ -600,10 +600,32 @@ export default function CreateEvent() {
           <div className="flex justify-between items-center h-16">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
+              className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+              style={{
+                background: "rgba(255,255,255,0.7)",
+                backdropFilter: "blur(8px)",
+                color: "#4CA1AF",
+              }}
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Back</span>
+              <div
+                className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  style={{ color: "#4CA1AF" }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+              </div>
             </button>
             <div className="flex items-center gap-2">
               <CalendarPlus className="w-5 h-5" style={{ color: "#4CA1AF" }} />
@@ -720,7 +742,10 @@ export default function CreateEvent() {
                   Event Date & Time <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Calendar
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+                    style={{ color: "#4CA1AF" }}
+                  />
                   <input
                     type="datetime-local"
                     name="eventDate"
@@ -746,7 +771,11 @@ export default function CreateEvent() {
                   Enrollment Deadline <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  {/* <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
+                  <Clock
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+                    style={{ color: "#4CA1AF" }}
+                  />
                   <input
                     type="datetime-local"
                     name="enrollmentDeadline"
@@ -776,7 +805,11 @@ export default function CreateEvent() {
                   Venue <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  {/* <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
+                  <MapPin
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+                    style={{ color: "#4CA1AF" }}
+                  />
                   <input
                     type="text"
                     name="venue"
@@ -828,7 +861,11 @@ export default function CreateEvent() {
                 Contact Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                {/* <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
+                <Mail
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+                  style={{ color: "#4CA1AF" }}
+                />
                 <input
                   type="email"
                   name="contactEmail"
