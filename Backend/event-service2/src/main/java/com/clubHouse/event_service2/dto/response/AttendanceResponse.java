@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.response;
 
 import com.clubHouse.event_service2.model.AttendanceStatus;
 import lombok.AllArgsConstructor;

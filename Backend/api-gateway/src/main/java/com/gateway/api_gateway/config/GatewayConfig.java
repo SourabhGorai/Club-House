@@ -267,6 +267,7 @@ public class GatewayConfig {
 
                 .route("user-club-write", r -> r
                         .path("/api/user-clubs/getAll",
+                                "/api/user-clubs/getAll/paged",
                                 "/api/user-clubs/bulk",
                                 "/api/user-clubs/permanentlyDelete/{prn}")
                         .and()
@@ -308,7 +309,10 @@ public class GatewayConfig {
                 // ==================== EVENT-SERVICE ====================
 
                 .route("event-admin", r -> r
-                        .path("/api/events")
+                        .path(
+                                "/api/events",
+                                "/api/events/paged"
+                        )
                         .and()
                         .method("GET")
                         .filters(f -> f
@@ -321,9 +325,12 @@ public class GatewayConfig {
                         .path(
                                 "/api/events/create",
                                 "/api/events/myEvents",
+                                "/api/events/myEvents/paged",
                                 "/api/events/targetTypes",
                                 "/api/events/getByEventCreator/{prn}",
+                                "/api/events/getByEventCreator/{prn}/paged",
                                 "/api/events/ratings/{rating}",
+                                "/api/events/ratings/{rating}/paged",
                                 "/api/events/endEvent/{eventId}",
                                 "/api/events/deleteEvent/{eventId}",
                                 "/api/events/enrollment/{status}"
@@ -340,9 +347,14 @@ public class GatewayConfig {
                         .path(
                                 "/api/events/getById/{eventId}",
                                 "/api/events/organizer/{organizer}",
+                                "/api/events/organizer/{organizer}/paged",
                                 "/api/events/targetData/{targetType}/{targetId}",
+                                "/api/events/targetData/{targetType}/{targetId}/paged",
                                 "/api/events/endEvent/{status}",
-                                "/api/events/getByTargetType/{targetType}"
+                                "/api/events/endEvent/{status}/paged",
+                                "/api/events/getByTargetType/{targetType}",
+                                "/api/events/getByTargetType/{targetType}/paged",
+                                "/api/events/enrollment/{status}/paged"
                         )
                         .and()
                         .method("GET")

@@ -1,7 +1,6 @@
 package com.clubHouse.event_service2.mapper;
 
-import com.clubHouse.event_service2.dto.EventResponse;
-import com.clubHouse.event_service2.dto.ProfileResponse;
+import com.clubHouse.event_service2.dto.response.EventResponse;
 import com.clubHouse.event_service2.model.Events;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component

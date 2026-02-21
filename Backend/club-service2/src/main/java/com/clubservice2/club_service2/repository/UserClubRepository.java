@@ -1,7 +1,8 @@
 package com.clubservice2.club_service2.repository;
 
 import com.clubservice2.club_service2.model.UserClub;
-import org.antlr.v4.runtime.atn.SemanticContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
+    // ── Original (non-paginated — untouched) ─────────────────────────────────
     List<UserClub> findByPrn(String prn);
 
     @Query("SELECT uc FROM UserClub uc JOIN FETCH uc.club WHERE uc.club.clubName = :clubName AND uc.club.isActive = true")
@@ -23,10 +25,8 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
     boolean existsByPrnAndClubClubIdAndRoleAndTenure(String prn, Long clubId, String role, String tenure);
 
-    // Add this method
     long countByClub_ClubId(Long clubId);
 
-    // Add these methods to fetch Teacher and Admin
     @Query("SELECT uc FROM UserClub uc WHERE uc.club.clubId = :clubId AND uc.role = :role")
     List<UserClub> findByClubIdAndRole(@Param("clubId") Long clubId, @Param("role") String role);
 
@@ -40,4 +40,12 @@ public interface UserClubRepository extends JpaRepository<UserClub, Long> {
 
     UserClub findByPrnAndClub_ClubId(String prn, Long clubId);
 
+    // ── Paginated overloads (new) ─────────────────────────────────────────────
+
+    // for getAllUserClubAssociations
+    Page<UserClub> findAll(Pageable pageable);
+
+    // for getClubMembers and getClubMembersByYear
+    @Query("SELECT uc FROM UserClub uc JOIN FETCH uc.club WHERE uc.club.clubName = :clubName AND uc.club.isActive = true")
+    Page<UserClub> findByClubName(@Param("clubName") String clubName, Pageable pageable);
 }

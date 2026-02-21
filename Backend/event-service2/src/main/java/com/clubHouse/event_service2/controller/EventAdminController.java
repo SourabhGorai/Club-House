@@ -1,6 +1,6 @@
 package com.clubHouse.event_service2.controller;
 
-import com.clubHouse.event_service2.dto.ApiResponse;
+import com.clubHouse.event_service2.dto.response.ApiResponse;
 import com.clubHouse.event_service2.scheduler.EnrollmentStatusScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,11 @@
 package com.clubHouse.event_service2.controller;
 
-import com.clubHouse.event_service2.dto.*;
+import com.clubHouse.event_service2.dto.request.MarkAttendanceRequest;
+import com.clubHouse.event_service2.dto.request.StartAttendanceRequest;
+import com.clubHouse.event_service2.dto.response.ApiResponse;
+import com.clubHouse.event_service2.dto.response.AttendanceListResponse;
+import com.clubHouse.event_service2.dto.response.AttendanceResponse;
+import com.clubHouse.event_service2.dto.response.QRCodeResponse;
 import com.clubHouse.event_service2.service.AttendanceService;
 import com.clubHouse.event_service2.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;

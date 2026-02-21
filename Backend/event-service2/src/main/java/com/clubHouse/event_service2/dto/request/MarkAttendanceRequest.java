@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StartAttendanceRequest {
+public class MarkAttendanceRequest {
+    
+    @NotNull(message = "QR token is required")
+    private String qrToken;
     
     @NotNull(message = "Latitude is required")
     private Double latitude;
@@ -20,11 +23,9 @@ public class StartAttendanceRequest {
     @NotNull(message = "Longitude is required")
     private Double longitude;
     
-    private Integer radiusInMeters = 50; // Default 50m
+    @NotNull(message = "Timestamp is required")
+    private LocalDateTime timestamp;
     
-    @NotNull(message = "Attendance window start time is required")
-    private LocalDateTime attendanceWindowStart;
-    
-    @NotNull(message = "Attendance window end time is required")
-    private LocalDateTime attendanceWindowEnd;
+    // Optional
+    private String deviceInfo;
 }

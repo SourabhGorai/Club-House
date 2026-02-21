@@ -1,6 +1,11 @@
 package com.clubHouse.event_service2.service;
 
-import com.clubHouse.event_service2.dto.*;
+import com.clubHouse.event_service2.dto.request.MarkAttendanceRequest;
+import com.clubHouse.event_service2.dto.request.StartAttendanceRequest;
+import com.clubHouse.event_service2.dto.response.ApiResponse;
+import com.clubHouse.event_service2.dto.response.AttendanceListResponse;
+import com.clubHouse.event_service2.dto.response.AttendanceResponse;
+import com.clubHouse.event_service2.dto.response.QRCodeResponse;
 import com.clubHouse.event_service2.exception.*;
 import com.clubHouse.event_service2.model.*;
 import com.clubHouse.event_service2.repository.AttendanceRepository;
@@ -33,9 +38,9 @@ public class AttendanceService {
      * Only event creator or SUPER_ADMIN can start
      */
     @Transactional
-    public ApiResponse<QRCodeResponse> startAttendance(Long eventId, 
+    public ApiResponse<QRCodeResponse> startAttendance(Long eventId,
                                                        StartAttendanceRequest request,
-                                                       String prn, 
+                                                       String prn,
                                                        String role) {
         log.info("Starting attendance for event {} by {}", eventId, prn);
         
@@ -172,7 +177,7 @@ public class AttendanceService {
      * Validates: Time Window + QR Code + Geofencing
      */
     @Transactional
-    public ApiResponse<AttendanceResponse> markAttendance(Long eventId, 
+    public ApiResponse<AttendanceResponse> markAttendance(Long eventId,
                                                           MarkAttendanceRequest request,
                                                           String prn,
                                                           HttpServletRequest httpRequest) {

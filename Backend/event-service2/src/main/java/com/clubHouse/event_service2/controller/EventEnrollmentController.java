@@ -1,6 +1,9 @@
 package com.clubHouse.event_service2.controller;
 
-import com.clubHouse.event_service2.dto.*;
+import com.clubHouse.event_service2.dto.response.ApiResponse;
+import com.clubHouse.event_service2.dto.response.CompleteEnrollmentResponse;
+import com.clubHouse.event_service2.dto.response.EnrollmentResponse;
+import com.clubHouse.event_service2.dto.response.EventResponse;
 import com.clubHouse.event_service2.service.EventEnrollmentService;
 import com.clubHouse.event_service2.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 import java.util.Map;
