@@ -1133,7 +1133,6 @@ export default function TeachersDashboard() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <ActionCard icon={<Plus />} label="Create Event" onClick={() => navigate("/create-event")} color="blue" />
             <ActionCard icon={<Trash2 />} label="Delete Event" color="red" />
             <ActionCard icon={<CalendarPlus/>} label="Events" onClick={() => navigate("/events")} color="red" />
             <ActionCard
