@@ -7,7 +7,7 @@
 //   const { clubName } = useParams();
 //   const navigate = useNavigate();
 //   const token = localStorage.getItem("token");
-  
+
 //   const [clubDetails, setClubDetails] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState(null);
@@ -130,7 +130,7 @@
 //                       <div className="flex items-center gap-3">
 //                         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
 //                           {member.hasProfileImage ? (
-//                             <img 
+//                             <img
 //                               src={`http://localhost:8080/api/profiles/${member.prn}/image`}
 //                               alt={member.name}
 //                               className="w-10 h-10 rounded-full object-cover"
@@ -154,8 +154,8 @@
 //                     <td className="p-4 text-sm text-gray-600">{member.year || 'N/A'}</td>
 //                     <td className="p-4">
 //                       <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
-//                         member.role === 'TEACHER' ? 'bg-purple-100 text-purple-700' : 
-//                         member.role === 'STUDENT' ? 'bg-green-100 text-green-700' : 
+//                         member.role === 'TEACHER' ? 'bg-purple-100 text-purple-700' :
+//                         member.role === 'STUDENT' ? 'bg-green-100 text-green-700' :
 //                         'bg-blue-100 text-blue-700'
 //                       }`}>
 //                         {member.role || 'MEMBER'}
@@ -191,7 +191,7 @@ import {
   Edit,
   Trash2,
   Plus,
-  X
+  X,
 } from "lucide-react";
 
 // Members Modal Component
@@ -201,10 +201,12 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
       <div className="bg-white rounded-2xl shadow-2xl w-11/12 max-w-4xl max-h-[80vh] flex flex-col overflow-hidden">
-        
         {/* HEADER */}
         <div className="flex justify-between items-center p-8 pb-4">
-          <h3 className="font-display text-2xl font-bold" style={{color: '#4CA1AF'}}>
+          <h3
+            className="font-display text-2xl font-bold"
+            style={{ color: "#4CA1AF" }}
+          >
             Members of {clubName}
           </h3>
           <button
@@ -219,7 +221,10 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
         <div className="flex-1 overflow-y-auto px-8">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{borderColor: '#4CA1AF'}}></div>
+              <div
+                className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+                style={{ borderColor: "#4CA1AF" }}
+              ></div>
               <p className="mt-2 text-gray-500">Loading members...</p>
             </div>
           ) : members.length === 0 ? (
@@ -234,21 +239,26 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
                   className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                         style={{backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+                    >
                       {member.hasProfileImage ? (
-                        <img 
+                        <img
                           src={`http://localhost:8080/api/profiles/${member.prn}/image`}
                           alt={member.name}
                           className="w-10 h-10 rounded-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.style.display = 'none';
+                            e.target.style.display = "none";
                           }}
                         />
                       ) : (
-                        <span className="font-bold" style={{color: '#4CA1AF'}}>
-                          {member.name?.charAt(0) || 'U'}
+                        <span
+                          className="font-bold"
+                          style={{ color: "#4CA1AF" }}
+                        >
+                          {member.name?.charAt(0) || "U"}
                         </span>
                       )}
                     </div>
@@ -266,18 +276,18 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
                           member.role === "CLUB_ADMIN"
                             ? "text-[#4CA1AF]"
                             : member.role === "TEACHER"
-                            ? "text-green-600"
-                            : "text-blue-600"
+                              ? "text-green-600"
+                              : "text-blue-600"
                         }`}
                       >
-                        {member.role?.replace(/_/g, ' ')}
+                        {member.role?.replace(/_/g, " ")}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
                       <span className="text-xs text-gray-500">Department:</span>
                       <span className="text-xs font-bold">
-                        {member.department || 'Not specified'}
+                        {member.department || "Not specified"}
                       </span>
                     </div>
 
@@ -293,7 +303,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName }) => {
                     <div className="flex justify-between">
                       <span className="text-xs text-gray-500">Tenure:</span>
                       <span className="text-xs font-bold">
-                        {member.tenure || 'Current'}
+                        {member.tenure || "Current"}
                       </span>
                     </div>
                   </div>
@@ -340,7 +350,9 @@ export default function ClubDetails() {
   const [membersLoading, setMembersLoading] = useState(false);
 
   // Check if user is a teacher (case insensitive)
-  const isTeacher = userRole?.toUpperCase() === "TEACHER" || userRole?.toUpperCase() === "TEACHERS";
+  const isTeacher =
+    userRole?.toUpperCase() === "TEACHER" ||
+    userRole?.toUpperCase() === "TEACHERS";
 
   useEffect(() => {
     fetchClubDetails();
@@ -350,7 +362,7 @@ export default function ClubDetails() {
     try {
       setLoading(true);
       const decodedClubName = decodeURIComponent(clubName);
-      
+
       // First, fetch club basic info
       const clubsResponse = await axios.get("http://localhost:8080/api/clubs", {
         headers: { Authorization: `Bearer ${token}` },
@@ -358,8 +370,10 @@ export default function ClubDetails() {
 
       if (clubsResponse?.data?.success) {
         const allClubs = clubsResponse.data.data || [];
-        const currentClub = allClubs.find(c => c.clubName === decodedClubName);
-        
+        const currentClub = allClubs.find(
+          (c) => c.clubName === decodedClubName,
+        );
+
         if (currentClub) {
           setClubDetails(currentClub);
           // Fetch admin data for this club
@@ -380,9 +394,12 @@ export default function ClubDetails() {
 
   const fetchAdminData = async (clubId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(
+        `http://localhost:8080/api/clubs/${clubId}/admin`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response?.data?.success) {
         const clubData = response.data.data || {};
@@ -390,7 +407,7 @@ export default function ClubDetails() {
           (clubData.clubAdmins || []).map(async (admin) => {
             const email = await fetchAdminEmail(admin.prn);
             return { ...admin, email: email || "N/A" };
-          })
+          }),
         );
         setAdminData({ ...clubData, clubAdmins: adminsWithEmail });
       }
@@ -401,9 +418,12 @@ export default function ClubDetails() {
 
   const fetchAdminEmail = async (prn) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/${prn}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(
+        `http://localhost:8080/api/users/${prn}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       return response?.data?.email || null;
     } catch (err) {
       return null;
@@ -416,13 +436,13 @@ export default function ClubDetails() {
       const response = await axios.get(
         `http://localhost:8080/api/user-clubs/club/${encodeURIComponent(clubName)}`,
         {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+            "Content-Type": "application/json",
+          },
+        },
       );
-      
+
       if (response?.data?.success) {
         setClubMembers(response.data.data || []);
       }
@@ -453,7 +473,9 @@ export default function ClubDetails() {
 
   const handleAddEvent = () => {
     // Navigate to create event page with club pre-selected
-    navigate(`/create-event?clubId=${clubDetails.clubId}&clubName=${encodeURIComponent(clubDetails.clubName)}`);
+    navigate(
+      `/create-event?clubId=${clubDetails.clubId}&clubName=${encodeURIComponent(clubDetails.clubName)}`,
+    );
   };
 
   const handleManageMembers = () => {
@@ -492,7 +514,16 @@ export default function ClubDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-blob"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000"
+          style={{ backgroundColor: "#4CA1AF" }}
+        ></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
       {/* Header with Back Button */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -500,7 +531,10 @@ export default function ClubDetails() {
             onClick={handleBack}
             className="flex items-center gap-2 text-gray-600 hover:text-[#4CA1AF] transition-colors group"
           >
-            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft
+              size={20}
+              className="group-hover:-translate-x-1 transition-transform"
+            />
             <span>Back to Dashboard</span>
           </button>
         </div>
@@ -540,16 +574,22 @@ export default function ClubDetails() {
                     <Calendar size={18} />
                     Added {formatDate(clubDetails.createdAt)}
                   </span>
-                  <div className={`px-2 py-1 rounded-md flex items-center gap-1.5 ${clubDetails.isActive ? "bg-green-50" : "bg-gray-100"}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${clubDetails.isActive ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
-                    <span className={`text-xs font-bold uppercase ${clubDetails.isActive ? "text-green-600" : "text-gray-500"}`}>
+                  <div
+                    className={`px-2 py-1 rounded-md flex items-center gap-1.5 ${clubDetails.isActive ? "bg-green-50" : "bg-gray-100"}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${clubDetails.isActive ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
+                    ></span>
+                    <span
+                      className={`text-xs font-bold uppercase ${clubDetails.isActive ? "text-green-600" : "text-gray-500"}`}
+                    >
                       {clubDetails.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             {/* Action Buttons - Conditional rendering based on role */}
             {clubDetails.isActive && (
               <div className="flex gap-3">
@@ -570,7 +610,7 @@ export default function ClubDetails() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div 
+          <div
             className="bg-white p-6 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-all cursor-pointer"
             onClick={handleMembersClick}
           >
@@ -643,13 +683,13 @@ export default function ClubDetails() {
         {/* Tab Content */}
         <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-50">
           {activeTab === "overview" && (
-            <OverviewTab 
-              clubDetails={clubDetails} 
+            <OverviewTab
+              clubDetails={clubDetails}
               membersCount={clubMembers.length}
             />
           )}
           {activeTab === "leadership" && (
-            <LeadershipTab 
+            <LeadershipTab
               adminData={adminData}
               clubId={clubDetails.clubId}
               isActive={clubDetails.isActive}
@@ -659,7 +699,7 @@ export default function ClubDetails() {
       </div>
 
       {/* Members Modal */}
-      <MembersModal 
+      <MembersModal
         isOpen={showMembersModal}
         onClose={() => setShowMembersModal(false)}
         members={clubMembers}
@@ -703,11 +743,13 @@ function OverviewTab({ clubDetails, membersCount }) {
           icon={<Award />}
           label="Status"
           value={
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-              clubDetails.isActive 
-                ? "bg-green-100 text-green-700" 
-                : "bg-gray-100 text-gray-500"
-            }`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold ${
+                clubDetails.isActive
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-500"
+              }`}
+            >
               {clubDetails.isActive ? "Active" : "Inactive"}
             </span>
           }
@@ -722,46 +764,61 @@ function LeadershipTab({ adminData, clubId, isActive }) {
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-        <span className="w-1 h-6 rounded-full" style={{backgroundColor: '#4CA1AF'}}></span> 
+        <span
+          className="w-1 h-6 rounded-full"
+          style={{ backgroundColor: "#4CA1AF" }}
+        ></span>
         Leadership & Contact
       </h3>
 
       <div className="grid gap-4">
         {/* Club Admins */}
         <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
+          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+            Club Admins:
+          </span>
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <span className="font-bold text-black text-center sm:text-left">
-              {adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}
+              {adminData?.clubAdmins?.map((a) => a.name).join(", ") ||
+                "None Assigned"}
             </span>
           </div>
         </div>
 
         {/* Teacher Advisor */}
         <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Teacher Advisor:</span>
+          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+            Teacher Advisor:
+          </span>
           <div className="flex items-center gap-3">
             <span className="font-bold text-gray-700">
-              {adminData?.teacherName && adminData.teacherName !== "Not Assigned" 
-                ? adminData.teacherName 
-                : <span className="text-gray-400 italic">Not Assigned</span>}
+              {adminData?.teacherName &&
+              adminData.teacherName !== "Not Assigned" ? (
+                adminData.teacherName
+              ) : (
+                <span className="text-gray-400 italic">Not Assigned</span>
+              )}
             </span>
           </div>
         </div>
 
         {/* Contact Email */}
         <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Contact Email:</span>
+          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+            Contact Email:
+          </span>
           <span className="font-bold text-black">
-            {adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}
+            {adminData?.clubAdmins?.map((a) => a.email).join(", ") || "N/A"}
           </span>
         </div>
 
         {/* Admin PRNs */}
         <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Admin PRNs:</span>
+          <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+            Admin PRNs:
+          </span>
           <span className="font-bold text-black">
-            {adminData?.clubAdmins?.map(a => a.prn).join(", ") || "N/A"}
+            {adminData?.clubAdmins?.map((a) => a.prn).join(", ") || "N/A"}
           </span>
         </div>
       </div>

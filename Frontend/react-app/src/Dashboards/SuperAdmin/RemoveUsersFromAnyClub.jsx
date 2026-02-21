@@ -146,8 +146,13 @@ const RemoveUsersFromAnyClub = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased pb-20">
+      {/* Animated Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {/* 1. Header Section */}
         <div className="mb-8">
           <div
@@ -213,7 +218,7 @@ const RemoveUsersFromAnyClub = () => {
 
         {/* 3. Stat Cards Section (Positioned below Search) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
             <div
               className="p-4 rounded-2xl"
               style={{
@@ -233,7 +238,7 @@ const RemoveUsersFromAnyClub = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
             <div
               className="p-4 rounded-2xl"
               style={{
@@ -253,7 +258,7 @@ const RemoveUsersFromAnyClub = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer">
             <div
               className="p-4 rounded-2xl"
               style={{
@@ -289,7 +294,7 @@ const RemoveUsersFromAnyClub = () => {
         )}
 
         {/* 4. Main Table Grid */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] border border-white/20 shadow-2xl shadow-slate-200/60 overflow-hidden">
           <div className="overflow-x-auto">
             {filteredUsers.length === 0 ? (
               <div className="py-24 text-center">

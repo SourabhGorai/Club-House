@@ -1251,14 +1251,13 @@ export default function AddStudent() {
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center p-4 overflow-auto"
-      style={{
-        background:
-          "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)",
-      }}
-    >
-      <div className="w-full max-w-6xl bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative mx-auto my-4 md:my-8">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 overflow-auto bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      {/* <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div> */}
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-[#4CA1AF] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      <div className="w-full max-w-6xl bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative mx-auto my-4 md:my-8 border border-white/20">
         {/* Left Side - Add Student Form */}
         <div className="w-full md:w-3/5 p-6 md:p-8 lg:p-10 flex flex-col">
           

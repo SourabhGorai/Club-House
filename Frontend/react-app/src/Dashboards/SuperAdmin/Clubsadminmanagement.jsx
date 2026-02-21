@@ -460,13 +460,12 @@ const ClubAdminsManagement = () => {
   }
 
   return (
-    <div
-      className="min-h-screen font-sans py-12"
-      style={{
-        background:
-          "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)",
-      }}
-    >
+    <div className="min-h-screen font-sans py-12 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+      
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       <FilterModal
@@ -645,7 +644,7 @@ const ClubAdminsManagement = () => {
         </div>
 
         {/* Admins Grid */}
-        <div className="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-6 sm:p-10 border border-white/20">
           {isLoadingFilteredAdmins ? (
             <div className="text-center py-12">
               <div

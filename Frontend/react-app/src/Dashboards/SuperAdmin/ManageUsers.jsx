@@ -1373,14 +1373,19 @@ const UserManagement = () => {
   }
 
   return (
-    <div
-      className="min-h-screen font-sans py-12"
-      style={{
-        background:
-          "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)",
-      }}
-    >
-      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 font-sans py-12">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
+          style={{ backgroundColor: "#4CA1AF" }}
+        ></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+      
+      <div className="relative">
+        <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       <ConfirmationModal
         isOpen={isModalOpen}
@@ -1451,7 +1456,7 @@ const UserManagement = () => {
         </div>
 
         {/* Stats and Filter Bar */}
-        <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2
@@ -1713,6 +1718,7 @@ const UserManagement = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

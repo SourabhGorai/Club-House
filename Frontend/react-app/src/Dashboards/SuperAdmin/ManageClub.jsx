@@ -1537,7 +1537,12 @@ export default function ManageClubs() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Dashboard...</div>;
 
   return (
-    <div className="min-h-screen p-6 sm:p-10 flex items-start justify-center" style={{ background: "radial-gradient(circle at top left, #F2EEFF, #FDFCFE 60%, #F8F5FF)" }}>
+    <div className="min-h-screen p-6 sm:p-10 flex items-start justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-[#4CA1AF] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* MODALS */}
@@ -1572,7 +1577,7 @@ export default function ManageClubs() {
       />
 
       {/* DASHBOARD CONTAINER */}
-      <div className="w-full max-w-7xl bg-white bg-opacity-95 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-md">
+      <div className="w-full max-w-7xl bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
         <header className="p-8 border-b border-gray-100 rounded-t-3xl shadow-inner" style={{ background: 'linear-gradient(135deg, #4CA1AF, #315169)' }}>
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full lg:w-auto">
