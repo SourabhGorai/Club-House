@@ -26,7 +26,7 @@ public class EventResponse {
 
     private String day;
 
-    private String dateTime;
+    private LocalDateTime dateTime;
 
     private String organizer;
 

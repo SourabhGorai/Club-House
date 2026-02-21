@@ -60,7 +60,7 @@ public class EventMapper {
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .day(getDay(event.getEventDate()))
-                .dateTime(format(event.getEventDate()))
+                .dateTime(event.getEventDate())
                 .organizer(event.getOrganizer())
                 .creatorPrn(prn)
                 .creatorName(creatorName)
