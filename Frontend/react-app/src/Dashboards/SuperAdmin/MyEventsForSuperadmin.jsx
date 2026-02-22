@@ -431,15 +431,22 @@ const MyEventsForSuperadmin = () => {
       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header with Admin Badge */}
         <div className="text-center mb-12">
-          <div className="inline-block mb-4">
+          {/* <div className="inline-block mb-4">
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
               <Award className="w-4 h-4 mr-2" />
               SUPER ADMIN DASHBOARD
             </span>
-          </div>
+          </div> */}
 
           <h1 className="text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               Event Management
             </span>
           </h1>
@@ -554,7 +561,10 @@ const MyEventsForSuperadmin = () => {
         {/* Admin Actions Bar */}
         <div className="mb-6 flex justify-end space-x-3">
           <button
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+            className="px-4 py-2 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+            style={{
+              background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+            }}
             onClick={() => navigate("/create-event")}
           >
             <Plus className="w-4 h-4" />
@@ -582,12 +592,17 @@ const MyEventsForSuperadmin = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  className="px-4 py-3 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                  }}
                 >
                   <Filter className="w-5 h-5" />
                   <span>Filters</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-300 ${showFilters ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      showFilters ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
@@ -644,7 +659,7 @@ const MyEventsForSuperadmin = () => {
 
                   {selectedStatus !== "all" && (
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
-                      Status: {selectedStatus}
+                      Enrollment Status: {selectedStatus}
                       <button
                         onClick={removeStatusFilter}
                         className="ml-2 hover:text-blue-900"
@@ -816,7 +831,10 @@ const MyEventsForSuperadmin = () => {
                       {/* Event Header with Primary Color Gradient */}
                       <div
                         className="relative h-32 p-3 overflow-hidden"
-                        style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                        }}
                       >
                         {/* Animated Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
@@ -872,43 +890,66 @@ const MyEventsForSuperadmin = () => {
                         {/* Organizer and Creator Info - Compact */}
                         <div className="grid grid-cols-2 gap-1">
                           <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">Organizer</p>
+                            <p className="text-[8px] text-gray-500">
+                              Organizer
+                            </p>
                             <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                               <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
-                              <span className="truncate">{event.organizer}</span>
+                              <span className="truncate">
+                                {event.organizer}
+                              </span>
                             </p>
                           </div>
                           <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">Created By</p>
+                            <p className="text-[8px] text-gray-500">
+                              Created By
+                            </p>
                             <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                               <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
-                              <span className="truncate">{event.creatorName}</span>
+                              <span className="truncate">
+                                {event.creatorName}
+                              </span>
                             </p>
                           </div>
                         </div>
 
                         {/* Target Type Badge */}
                         <div className="flex items-center justify-between">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
+                          >
                             {getTargetTypeIcon(event.targetType)}
-                            <span className="ml-1 capitalize text-xs">{event.targetType || "N/A"}</span>
+                            <span className="ml-1 capitalize text-xs">
+                              {event.targetType || "N/A"}
+                            </span>
                           </span>
                         </div>
 
                         {/* Flip Hint with Primary Color */}
-                        <div className="text-center text-[8px] mt-1 flex items-center justify-center" style={{ color: "#4CA1AF" }}>
-                          <span className="animate-pulse mr-1 text-[6px]">●</span>
+                        <div
+                          className="text-center text-[8px] mt-1 flex items-center justify-center"
+                          style={{ color: "#4CA1AF" }}
+                        >
+                          <span className="animate-pulse mr-1 text-[6px]">
+                            ●
+                          </span>
                           Hover to view all details
                         </div>
                       </div>
                     </div>
 
                     {/* Back of Card - All Details with Primary Color */}
-                    <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3" 
-                         style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}>
+                    <div
+                      className="card-face card-back rounded-xl shadow-md overflow-hidden p-3"
+                      style={{
+                        background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                      }}
+                    >
                       <div className="h-full flex flex-col">
-                        <h3 className="text-sm font-bold mb-2 line-clamp-1 text-white">{event.title}</h3>
-                        
+                        <h3 className="text-sm font-bold mb-2 line-clamp-1 text-white">
+                          {event.title}
+                        </h3>
+
                         <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
                           {/* Description */}
                           {/* <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
@@ -918,19 +959,39 @@ const MyEventsForSuperadmin = () => {
 
                           {/* Date & Time */}
                           <div className="grid grid-cols-2 gap-1">
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center mb-0.5">
                                 <Calendar className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">Date</p>
+                                <p className="text-[10px] text-white/80">
+                                  Date
+                                </p>
                               </div>
-                              <p className="text-xs font-medium text-white">{formatDateTime(event.dateTime)}</p>
+                              <p className="text-xs font-medium text-white">
+                                {formatDateTime(event.dateTime)}
+                              </p>
                             </div>
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center mb-0.5">
                                 <Clock className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">Deadline</p>
+                                <p className="text-[10px] text-white/80">
+                                  Enrollment Deadline
+                                </p>
                               </div>
-                              <p className="text-xs font-medium text-white">{new Date(event.enrollmentDeadline).toLocaleDateString()}</p>
+                              <p className="text-xs font-medium text-white">
+                                {new Date(
+                                  event.enrollmentDeadline,
+                                ).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
 
@@ -959,62 +1020,101 @@ const MyEventsForSuperadmin = () => {
                           </div> */}
 
                           {/* Target Info - Compact */}
-{event.targetType?.toUpperCase() === "DEPARTMENT" && event.targetIds?.length > 0 && (
-  <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
-    <p className="text-[10px] text-white/80 mb-1 flex items-center">
-      <Briefcase className="w-2.5 h-2.5 mr-1" />
-      Target Departments
-    </p>
-    <div className="flex flex-wrap gap-1 mt-1">
-      {event.targetIds.map((id) => {
-        const dept = departments.find((d) => d.departmentId === id);
-        return (
-          <span 
-            key={id} 
-            className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-            style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-          >
-            {dept?.name || `ID: ${id}`}
-          </span>
-        );
-      })}
-    </div>
-  </div>
-)}
+                          {event.targetType?.toUpperCase() === "DEPARTMENT" &&
+                            event.targetIds?.length > 0 && (
+                              <div
+                                className="p-1.5 rounded-lg"
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                }}
+                              >
+                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                                  <Briefcase className="w-2.5 h-2.5 mr-1" />
+                                  Target Departments
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {event.targetIds.map((id) => {
+                                    const dept = departments.find(
+                                      (d) => d.departmentId === id,
+                                    );
+                                    return (
+                                      <span
+                                        key={id}
+                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                        style={{
+                                          backgroundColor:
+                                            "rgba(255, 255, 255, 0.2)",
+                                        }}
+                                      >
+                                        {dept?.name || `ID: ${id}`}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
 
-{event.targetType?.toUpperCase() === "CLUB" && event.targetIds?.length > 0 && (
-  <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
-    <p className="text-[10px] text-white/80 mb-1 flex items-center">
-      <Users className="w-2.5 h-2.5 mr-1" />
-      Target Clubs
-    </p>
-    <div className="flex flex-wrap gap-1 mt-1">
-      {event.targetIds.map((id) => {
-        const club = clubs.find((c) => c.clubId === id);
-        return (
-          <span 
-            key={id} 
-            className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-            style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-          >
-            {club?.clubName || `ID: ${id}`}
-          </span>
-        );
-      })}
-    </div>
-  </div>
-)}
+                          {event.targetType?.toUpperCase() === "CLUB" &&
+                            event.targetIds?.length > 0 && (
+                              <div
+                                className="p-1.5 rounded-lg"
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                }}
+                              >
+                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                                  <Users className="w-2.5 h-2.5 mr-1" />
+                                  Target Clubs
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {event.targetIds.map((id) => {
+                                    const club = clubs.find(
+                                      (c) => c.clubId === id,
+                                    );
+                                    return (
+                                      <span
+                                        key={id}
+                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                        style={{
+                                          backgroundColor:
+                                            "rgba(255, 255, 255, 0.2)",
+                                        }}
+                                      >
+                                        {club?.clubName || `ID: ${id}`}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
 
                           {/* Enrollment Info - Compact */}
-                          <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                          <div
+                            className="p-1.5 rounded-lg"
+                            style={{
+                              backgroundColor: "rgba(255, 255, 255, 0.1)",
+                            }}
+                          >
                             <div className="flex justify-between items-center mb-1">
-                              <span className="text-[10px] text-white/80">Enrollment</span>
-                              <span className="text-xs text-white">{event.currEnrollments}/{event.maxEnrollments}</span>
+                              <span className="text-[10px] text-white/80">
+                                Enrollment
+                              </span>
+                              <span className="text-xs text-white">
+                                {event.currEnrollments}/{event.maxEnrollments}
+                              </span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}>
+                            <div
+                              className="w-full h-1.5 rounded-full overflow-hidden"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                              }}
+                            >
                               <div
                                 className="h-full rounded-full"
-                                style={{ width: `${enrollmentPercentage}%`, backgroundColor: "#4CA1AF" }}
+                                style={{
+                                  width: `${enrollmentPercentage}%`,
+                                  backgroundColor: "#4CA1AF",
+                                }}
                               ></div>
                             </div>
                           </div>
@@ -1036,19 +1136,34 @@ const MyEventsForSuperadmin = () => {
 
                         {/* Status Badges - Compact */}
                         <div className="mt-2 pt-1 border-t border-white/20 flex items-center justify-between">
-                          <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ${
-                            event.enrollmentStatus?.toLowerCase() === "open"
-                              ? "bg-green-500/30 text-white"
-                              : event.enrollmentStatus?.toLowerCase() === "closed"
-                                ? "bg-red-500/30 text-white"
-                                : "bg-yellow-500/30 text-white"
-                          }`}>
-                            {event.enrollmentStatus || "N/A"}
-                          </span>
+                          {/* Enrollment Status */}
+                          <div className="flex items-center gap-1">
+                            <span className="text-[9px] text-white/60 font-medium">
+                              Enrollment Status:
+                            </span>
 
-                          <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ${
-                            event.completed ? "bg-gray-500/30" : "bg-blue-500/30"
-                          } text-white`}>
+                            <span
+                              className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
+                                event.enrollmentStatus?.toLowerCase() === "open"
+                                  ? "bg-green-500/30 text-green-100"
+                                  : event.enrollmentStatus?.toLowerCase() ===
+                                      "closed"
+                                    ? "bg-red-500/30 text-red-100"
+                                    : "bg-yellow-500/30 text-yellow-100"
+                              }`}
+                            >
+                              {event.enrollmentStatus || "N/A"}
+                            </span>
+                          </div>
+
+                          {/* Event Completion Status */}
+                          <span
+                            className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
+                              event.completed
+                                ? "bg-gray-500/30 text-gray-100"
+                                : "bg-blue-500/30 text-blue-100"
+                            }`}
+                          >
                             {event.completed ? "Done" : "Upcoming"}
                           </span>
                         </div>
@@ -1061,9 +1176,17 @@ const MyEventsForSuperadmin = () => {
                               navigate(`/edit-event/${event.eventId}`);
                             }}
                             className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                            style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)"}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)"}
+                            style={{
+                              backgroundColor: "rgba(255, 255, 255, 0.2)",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(255, 255, 255, 0.3)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(255, 255, 255, 0.2)")
+                            }
                           >
                             <Edit className="w-2.5 h-2.5 mr-0.5" />
                             Edit
@@ -1074,9 +1197,17 @@ const MyEventsForSuperadmin = () => {
                               handleDeleteEvent(event.eventId);
                             }}
                             className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                            style={{ backgroundColor: "rgba(239, 68, 68, 0.5)" }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.6)"}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.5)"}
+                            style={{
+                              backgroundColor: "rgba(239, 68, 68, 0.5)",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(239, 68, 68, 0.6)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(239, 68, 68, 0.5)")
+                            }
                           >
                             <Trash2 className="w-2.5 h-2.5 mr-0.5" />
                             Del
@@ -1237,8 +1368,6 @@ const MyEventsForSuperadmin = () => {
 };
 
 export default MyEventsForSuperadmin;
-
-
 
 // import React, { useState, useEffect } from "react";
 // import axios from "axios";
@@ -1837,8 +1966,8 @@ export default MyEventsForSuperadmin;
 //                   <button
 //                     onClick={() => setViewMode('grid')}
 //                     className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-//                       viewMode === 'grid' 
-//                         ? 'bg-white text-purple-600 shadow-md' 
+//                       viewMode === 'grid'
+//                         ? 'bg-white text-purple-600 shadow-md'
 //                         : 'text-gray-600 hover:text-purple-600'
 //                     }`}
 //                   >
@@ -1847,8 +1976,8 @@ export default MyEventsForSuperadmin;
 //                   <button
 //                     onClick={() => setViewMode('list')}
 //                     className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-//                       viewMode === 'list' 
-//                         ? 'bg-white text-purple-600 shadow-md' 
+//                       viewMode === 'list'
+//                         ? 'bg-white text-purple-600 shadow-md'
 //                         : 'text-gray-600 hover:text-purple-600'
 //                     }`}
 //                   >
@@ -2128,21 +2257,21 @@ export default MyEventsForSuperadmin;
 
 //                     {/* Admin Actions Overlay */}
 //                     {/* <div className="absolute top-4 right-20 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-//                       <button 
+//                       <button
 //                         onClick={() => navigate(`/event/${event.eventId}`)}
 //                         className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors"
 //                         title="View Details"
 //                       >
 //                         <Eye className="w-4 h-4 text-white" />
 //                       </button>
-//                       <button 
+//                       <button
 //                         onClick={() => navigate(`/edit-event/${event.eventId}`)}
 //                         className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors"
 //                         title="Edit Event"
 //                       >
 //                         <Edit className="w-4 h-4 text-white" />
 //                       </button>
-//                       <button 
+//                       <button
 //                         onClick={() => handleDeleteEvent(event.eventId)}
 //                         className="p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors"
 //                         title="Delete Event"

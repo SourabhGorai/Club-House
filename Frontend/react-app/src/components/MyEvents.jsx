@@ -40,8 +40,8 @@ import {
   Edit,
   Trash2,
   Settings,
-  Eye
-} from 'lucide-react';
+  Eye,
+} from "lucide-react";
 
 const MyEvents = () => {
   const [events, setEvents] = useState([]);
@@ -50,25 +50,30 @@ const MyEvents = () => {
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState("");
   const [targetTypes, setTargetTypes] = useState([]);
-  const [selectedTarget, setSelectedTarget] = useState('GLOBAL');
-  const [userDept, setUserDept] = useState('');
+  const [selectedTarget, setSelectedTarget] = useState("GLOBAL");
+  const [userDept, setUserDept] = useState("");
   const [deptId, setDeptId] = useState(null);
   const [departments, setDepartments] = useState([]);
-  const [filterType, setFilterType] = useState('GLOBAL'); 
+  const [filterType, setFilterType] = useState("GLOBAL");
   const [userClubs, setUserClubs] = useState([]);
-  const [selectedClubId, setSelectedClubId] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('grid');
+  const [selectedClubId, setSelectedClubId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState("date");
   const [showClubDropdown, setShowClubDropdown] = useState(false);
   const [teacherClubs, setTeacherClubs] = useState([]);
   const [showCreatedEvents, setShowCreatedEvents] = useState(true);
   const navigate = useNavigate();
   const [enrollingEventId, setEnrollingEventId] = useState(null);
   const [enrolledEvents, setEnrolledEvents] = useState([]);
-  const [enrollmentMessage, setEnrollmentMessage] = useState({ show: false, eventId: null, success: false, message: '' });
-  const [userPrn, setUserPrn] = useState('');
+  const [enrollmentMessage, setEnrollmentMessage] = useState({
+    show: false,
+    eventId: null,
+    success: false,
+    message: "",
+  });
+  const [userPrn, setUserPrn] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Super admin color scheme - only for flip cards
@@ -81,18 +86,18 @@ const MyEvents = () => {
     slideUp: "animate-[slideUp_0.5s_ease-out]",
     pulse: "animate-pulse",
     bounce: "animate-bounce",
-    gradient: primaryGradient
+    gradient: primaryGradient,
   };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
 
-    const role = user?.role || 'user';
+    const role = user?.role || "user";
     setUserRole(role);
 
     if (!token) {
-      setError('No authentication token found. Please login again.');
+      setError("No authentication token found. Please login again.");
       setLoading(false);
       return;
     }
@@ -101,25 +106,28 @@ const MyEvents = () => {
     fetchDepartments(token);
     fetchUserProfile(token);
     fetchUserClubs(token);
-    fetchEvents(token, role, 'GLOBAL');
+    fetchEvents(token, role, "GLOBAL");
   }, []);
 
   const fetchUserProfile = async (token) => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const prn = user?.prn;
-      
+
       if (!prn) return;
-      
+
       setUserPrn(prn);
-      
-      const response = await axios.get(`http://localhost:8080/api/profiles/prn/${prn}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+
+      const response = await axios.get(
+        `http://localhost:8080/api/profiles/prn/${prn}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.data.success) {
         const profile = response.data.data;
         setUserDept(profile.department);
@@ -127,62 +135,65 @@ const MyEvents = () => {
         fetchUserEnrollments(token, prn);
       }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      console.error("Error fetching user profile:", err);
     }
   };
 
   const fetchDepartments = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/department', {
+      const response = await axios.get("http://localhost:8080/api/department", {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.data.success) {
         setDepartments(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching departments:', err);
+      console.error("Error fetching departments:", err);
     }
   };
 
   const fetchDepartmentId = async (token, deptName) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/department', {
+      const response = await axios.get("http://localhost:8080/api/department", {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.data.success) {
-        const dept = response.data.data.find(d => d.name === deptName);
+        const dept = response.data.data.find((d) => d.name === deptName);
         if (dept) {
           setDeptId(dept.departmentId);
         }
       }
     } catch (err) {
-      console.error('Error fetching department ID:', err);
+      console.error("Error fetching department ID:", err);
     }
   };
 
   const fetchUserClubs = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/user-clubs/getMyClubs', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await axios.get(
+        "http://localhost:8080/api/user-clubs/getMyClubs",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.data.success) {
         setUserClubs(response.data.data);
         setTeacherClubs(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching user clubs:', err);
+      console.error("Error fetching user clubs:", err);
     }
   };
 
@@ -206,7 +217,12 @@ const MyEvents = () => {
     }
   };
 
-  const fetchEvents = async (token, role, filter = 'GLOBAL', targetId = null) => {
+  const fetchEvents = async (
+    token,
+    role,
+    filter = "GLOBAL",
+    targetId = null,
+  ) => {
     try {
       setLoading(true);
       console.log("ROLE:", role, "FILTER:", filter, "TARGET ID:", targetId);
@@ -215,98 +231,123 @@ const MyEvents = () => {
       let fetchedEvents = [];
 
       if (role === "TEACHER" || role === "TEACHERS") {
-        if (filter === 'CREATED' || filter === 'GLOBAL' && showCreatedEvents) {
-          const createdEventsResponse = await axios.get('http://localhost:8080/api/events/myEvents', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
+        if (
+          filter === "CREATED" ||
+          (filter === "GLOBAL" && showCreatedEvents)
+        ) {
+          const createdEventsResponse = await axios.get(
+            "http://localhost:8080/api/events/myEvents",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
           if (createdEventsResponse.data.success) {
             fetchedEvents = createdEventsResponse.data.data;
           }
         }
 
-        if (filter === 'DEPARTMENT' && targetId) {
-          const deptResponse = await axios.get(`http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
+        if (filter === "DEPARTMENT" && targetId) {
+          const deptResponse = await axios.get(
+            `http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
           if (deptResponse.data.success) {
             const newEvents = deptResponse.data.data;
-            fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) => 
-              index === self.findIndex(e => e.eventId === event.eventId)
+            fetchedEvents = [...fetchedEvents, ...newEvents].filter(
+              (event, index, self) =>
+                index === self.findIndex((e) => e.eventId === event.eventId),
             );
           }
-        } else if (filter === 'CLUB' && targetId) {
-          const clubResponse = await axios.get(`http://localhost:8080/api/events/targetData/CLUB/${targetId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
+        } else if (filter === "CLUB" && targetId) {
+          const clubResponse = await axios.get(
+            `http://localhost:8080/api/events/targetData/CLUB/${targetId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
           if (clubResponse.data.success) {
             const newEvents = clubResponse.data.data;
-            fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) => 
-              index === self.findIndex(e => e.eventId === event.eventId)
+            fetchedEvents = [...fetchedEvents, ...newEvents].filter(
+              (event, index, self) =>
+                index === self.findIndex((e) => e.eventId === event.eventId),
             );
           }
-        } else if (filter === 'GLOBAL' && !showCreatedEvents) {
-          const globalResponse = await axios.get(`http://localhost:8080/api/events/getByTargetType/GLOBAL`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
+        } else if (filter === "GLOBAL" && !showCreatedEvents) {
+          const globalResponse = await axios.get(
+            `http://localhost:8080/api/events/getByTargetType/GLOBAL`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
           if (globalResponse.data.success) {
             fetchedEvents = globalResponse.data.data;
           }
         }
       } else {
-        if (filter === 'DEPARTMENT' && targetId) {
-          response = await axios.get(`http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } else if (filter === 'CLUB' && targetId) {
-          response = await axios.get(`http://localhost:8080/api/events/targetData/CLUB/${targetId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
+        if (filter === "DEPARTMENT" && targetId) {
+          response = await axios.get(
+            `http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+        } else if (filter === "CLUB" && targetId) {
+          response = await axios.get(
+            `http://localhost:8080/api/events/targetData/CLUB/${targetId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
         } else {
-          response = await axios.get(`http://localhost:8080/api/events/getByTargetType/GLOBAL`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          response = await axios.get(
+            `http://localhost:8080/api/events/getByTargetType/GLOBAL`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
         }
-        
+
         if (response && response.data && response.data.success) {
           fetchedEvents = response.data.data;
         }
       }
 
       const filteredEvents = fetchedEvents.filter(
-        event => event.enrollmentStatus?.toUpperCase() !== 'CLOSED'
+        (event) => event.enrollmentStatus?.toUpperCase() !== "CLOSED",
       );
-      
+
       setEvents(filteredEvents);
       setAllEvents(filteredEvents);
-      
     } catch (err) {
-      console.error('Error fetching events:', err);
-      setError(err.message || 'An error occurred while fetching events');
+      console.error("Error fetching events:", err);
+      setError(err.message || "An error occurred while fetching events");
     } finally {
       setLoading(false);
     }
@@ -315,11 +356,11 @@ const MyEvents = () => {
   const handleEnroll = async (eventId) => {
     try {
       setEnrollingEventId(eventId);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
-      
+
       if (!token) {
-        alert('Please login to enroll');
+        alert("Please login to enroll");
         return;
       }
 
@@ -329,9 +370,9 @@ const MyEvents = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+            "Content-Type": "application/json",
+          },
+        },
       );
 
       if (response.data.success) {
@@ -339,48 +380,65 @@ const MyEvents = () => {
           show: true,
           eventId: eventId,
           success: true,
-          message: 'Successfully enrolled in event!'
+          message: "Successfully enrolled in event!",
         });
 
         if (userPrn) {
           fetchUserEnrollments(token, userPrn);
         }
 
-        setEvents(prevEvents => 
-          prevEvents.map(event => 
-            event.eventId === eventId 
+        setEvents((prevEvents) =>
+          prevEvents.map((event) =>
+            event.eventId === eventId
               ? { ...event, currEnrollments: (event.currEnrollments || 0) + 1 }
-              : event
-          )
+              : event,
+          ),
         );
 
         setTimeout(() => {
-          setEnrollmentMessage({ show: false, eventId: null, success: false, message: '' });
+          setEnrollmentMessage({
+            show: false,
+            eventId: null,
+            success: false,
+            message: "",
+          });
         }, 3000);
       } else {
         setEnrollmentMessage({
           show: true,
           eventId: eventId,
           success: false,
-          message: response.data.message || 'Failed to enroll in event'
+          message: response.data.message || "Failed to enroll in event",
         });
-        
+
         setTimeout(() => {
-          setEnrollmentMessage({ show: false, eventId: null, success: false, message: '' });
+          setEnrollmentMessage({
+            show: false,
+            eventId: null,
+            success: false,
+            message: "",
+          });
         }, 3000);
       }
     } catch (err) {
-      console.error('Error enrolling in event:', err);
-      
+      console.error("Error enrolling in event:", err);
+
       setEnrollmentMessage({
         show: true,
         eventId: eventId,
         success: false,
-        message: err.response?.data?.message || 'Error enrolling in event. Please try again.'
+        message:
+          err.response?.data?.message ||
+          "Error enrolling in event. Please try again.",
       });
-      
+
       setTimeout(() => {
-        setEnrollmentMessage({ show: false, eventId: null, success: false, message: '' });
+        setEnrollmentMessage({
+          show: false,
+          eventId: null,
+          success: false,
+          message: "",
+        });
       }, 3000);
     } finally {
       setEnrollingEventId(null);
@@ -408,19 +466,24 @@ const MyEvents = () => {
 
   const fetchUserEnrollments = async (token, prn) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/enrollments/user/${prn}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await axios.get(
+        `http://localhost:8080/api/enrollments/user/${prn}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.data.success) {
-        const enrolledEventIds = response.data.data.map(enrollment => enrollment.eventId);
+        const enrolledEventIds = response.data.data.map(
+          (enrollment) => enrollment.eventId,
+        );
         setEnrolledEvents(enrolledEventIds);
       }
     } catch (err) {
-      console.error('Error fetching user enrollments:', err);
+      console.error("Error fetching user enrollments:", err);
     }
   };
 
@@ -428,10 +491,11 @@ const MyEvents = () => {
     let filtered = [...events];
 
     if (searchTerm) {
-      filtered = filtered.filter(event => 
-        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.organizer?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (event) =>
+          event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.organizer?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -443,15 +507,19 @@ const MyEvents = () => {
       );
     }
 
-    switch(sortBy) {
-      case 'date':
+    switch (sortBy) {
+      case "date":
         filtered.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
         break;
-      case 'popularity':
-        filtered.sort((a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0));
+      case "popularity":
+        filtered.sort(
+          (a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0),
+        );
         break;
-      case 'enrollment':
-        filtered.sort((a, b) => (b.maxEnrollments || 0) - (a.maxEnrollments || 0));
+      case "enrollment":
+        filtered.sort(
+          (a, b) => (b.maxEnrollments || 0) - (a.maxEnrollments || 0),
+        );
         break;
       default:
         break;
@@ -462,45 +530,48 @@ const MyEvents = () => {
 
   const handleFilterChange = async (newFilterType, targetId = null) => {
     setFilterType(newFilterType);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
-    const role = user?.role || 'user';
-    
-    if (newFilterType === 'DEPARTMENT' && deptId) {
-      await fetchEvents(token, role, 'DEPARTMENT', deptId);
-    } else if (newFilterType === 'CLUB') {
+    const role = user?.role || "user";
+
+    if (newFilterType === "DEPARTMENT" && deptId) {
+      await fetchEvents(token, role, "DEPARTMENT", deptId);
+    } else if (newFilterType === "CLUB") {
       if (targetId) {
         setSelectedClubId(targetId);
-        await fetchEvents(token, role, 'CLUB', targetId);
+        await fetchEvents(token, role, "CLUB", targetId);
         setShowClubDropdown(false);
       } else {
-        setSelectedClubId('');
+        setSelectedClubId("");
         if (role === "TEACHER" || role === "TEACHERS") {
-          await fetchEvents(token, role, 'CREATED');
+          await fetchEvents(token, role, "CREATED");
         } else {
           setEvents([]);
         }
         setShowClubDropdown(true);
       }
-    } else if (newFilterType === 'CREATED' && (role === "TEACHER" || role === "TEACHERS")) {
+    } else if (
+      newFilterType === "CREATED" &&
+      (role === "TEACHER" || role === "TEACHERS")
+    ) {
       setShowCreatedEvents(true);
-      await fetchEvents(token, role, 'CREATED');
+      await fetchEvents(token, role, "CREATED");
     } else {
-      setSelectedClubId('');
+      setSelectedClubId("");
       setShowClubDropdown(false);
       setShowCreatedEvents(false);
-      await fetchEvents(token, role, 'GLOBAL');
+      await fetchEvents(token, role, "GLOBAL");
     }
   };
 
   const clearAllFilters = () => {
     setSearchTerm("");
     setSelectedStatus("all");
-    setFilterType('GLOBAL');
-    setSelectedClubId('');
-    const token = localStorage.getItem('token');
+    setFilterType("GLOBAL");
+    setSelectedClubId("");
+    const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
-    fetchEvents(token, user?.role, 'GLOBAL');
+    fetchEvents(token, user?.role, "GLOBAL");
   };
 
   const removeStatusFilter = () => {
@@ -508,15 +579,15 @@ const MyEvents = () => {
   };
 
   const getEnrollmentStatusColor = (status) => {
-    switch(status?.toLowerCase()) {
-      case 'open':
-        return 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 shadow-lg shadow-green-500/30';
-      case 'closed':
-        return 'bg-gradient-to-r from-red-400 to-rose-500 text-white border-0 shadow-lg shadow-red-500/30';
-      case 'pending':
-        return 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 shadow-lg shadow-yellow-500/30';
+    switch (status?.toLowerCase()) {
+      case "open":
+        return "bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 shadow-lg shadow-green-500/30";
+      case "closed":
+        return "bg-gradient-to-r from-red-400 to-rose-500 text-white border-0 shadow-lg shadow-red-500/30";
+      case "pending":
+        return "bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 shadow-lg shadow-yellow-500/30";
       default:
-        return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0 shadow-lg shadow-gray-500/30';
+        return "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0 shadow-lg shadow-gray-500/30";
     }
   };
 
@@ -547,35 +618,42 @@ const MyEvents = () => {
   };
 
   const getEventCategoryIcon = (title) => {
-    const titleLower = title?.toLowerCase() || '';
-    if (titleLower.includes('tech') || titleLower.includes('code')) return <Code className="w-5 h-5" />;
-    if (titleLower.includes('music') || titleLower.includes('concert')) return <Music className="w-5 h-5" />;
-    if (titleLower.includes('photo') || titleLower.includes('camera')) return <Camera className="w-5 h-5" />;
-    if (titleLower.includes('sport') || titleLower.includes('game')) return <Trophy className="w-5 h-5" />;
-    if (titleLower.includes('art') || titleLower.includes('creative')) return <Heart className="w-5 h-5" />;
-    if (titleLower.includes('workshop') || titleLower.includes('learn')) return <BookOpen className="w-5 h-5" />;
-    if (titleLower.includes('social') || titleLower.includes('meet')) return <Coffee className="w-5 h-5" />;
+    const titleLower = title?.toLowerCase() || "";
+    if (titleLower.includes("tech") || titleLower.includes("code"))
+      return <Code className="w-5 h-5" />;
+    if (titleLower.includes("music") || titleLower.includes("concert"))
+      return <Music className="w-5 h-5" />;
+    if (titleLower.includes("photo") || titleLower.includes("camera"))
+      return <Camera className="w-5 h-5" />;
+    if (titleLower.includes("sport") || titleLower.includes("game"))
+      return <Trophy className="w-5 h-5" />;
+    if (titleLower.includes("art") || titleLower.includes("creative"))
+      return <Heart className="w-5 h-5" />;
+    if (titleLower.includes("workshop") || titleLower.includes("learn"))
+      return <BookOpen className="w-5 h-5" />;
+    if (titleLower.includes("social") || titleLower.includes("meet"))
+      return <Coffee className="w-5 h-5" />;
     return <Sparkles className="w-5 h-5" />;
   };
 
   const getCategoryColor = (title) => {
-    const titleLower = title?.toLowerCase() || '';
-    if (titleLower.includes('tech')) return 'from-blue-500 to-cyan-500';
-    if (titleLower.includes('music')) return 'from-purple-500 to-pink-500';
-    if (titleLower.includes('sport')) return 'from-green-500 to-emerald-500';
-    if (titleLower.includes('art')) return 'from-orange-500 to-red-500';
-    if (titleLower.includes('workshop')) return 'from-indigo-500 to-purple-500';
-    return 'from-blue-600 to-indigo-600';
+    const titleLower = title?.toLowerCase() || "";
+    if (titleLower.includes("tech")) return "from-blue-500 to-cyan-500";
+    if (titleLower.includes("music")) return "from-purple-500 to-pink-500";
+    if (titleLower.includes("sport")) return "from-green-500 to-emerald-500";
+    if (titleLower.includes("art")) return "from-orange-500 to-red-500";
+    if (titleLower.includes("workshop")) return "from-indigo-500 to-purple-500";
+    return "from-blue-600 to-indigo-600";
   };
 
   const formatDateTime = (dateTimeStr) => {
-    if (!dateTimeStr) return 'N/A';
+    if (!dateTimeStr) return "N/A";
     const date = new Date(dateTimeStr);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -634,8 +712,12 @@ const MyEvents = () => {
               <Sparkles className="w-8 h-8 text-white animate-pulse" />
             </div>
           </div>
-          <p className="text-white text-xl font-light animate-pulse">Loading amazing events...</p>
-          <p className="text-white/60 text-sm mt-2">Get ready for something special!</p>
+          <p className="text-white text-xl font-light animate-pulse">
+            Loading amazing events...
+          </p>
+          <p className="text-white/60 text-sm mt-2">
+            Get ready for something special!
+          </p>
         </div>
       </div>
     );
@@ -648,9 +730,11 @@ const MyEvents = () => {
           <div className="bg-red-500/20 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-12 h-12 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Oops! Something went wrong
+          </h2>
           <p className="text-white/80 mb-8">{error}</p>
-          <button 
+          <button
             onClick={handleRetry}
             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
@@ -666,7 +750,10 @@ const MyEvents = () => {
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
+          style={{ backgroundColor: "#4CA1AF" }}
+        ></div>
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
@@ -683,14 +770,21 @@ const MyEvents = () => {
           )}
 
           <h1 className="text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               {isTeacher ? "Events Dashboard" : "Upcoming Events"}
             </span>
           </h1>
-          
+
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            {isTeacher 
-              ? "Manage your created events and discover events from your clubs and department" 
+            {isTeacher
+              ? "Manage your created events and discover events from your clubs and department"
               : "Join exciting events, connect with amazing people, and create unforgettable memories"}
           </p>
 
@@ -700,7 +794,9 @@ const MyEvents = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Events</p>
-                  <p className="text-3xl font-bold text-gray-800">{totalEvents}</p>
+                  <p className="text-3xl font-bold text-gray-800">
+                    {totalEvents}
+                  </p>
                 </div>
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <Calendar className="w-6 h-6 text-blue-600" />
@@ -712,7 +808,9 @@ const MyEvents = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Open Events</p>
-                  <p className="text-3xl font-bold text-green-600">{openEvents}</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {openEvents}
+                  </p>
                 </div>
                 <div className="bg-green-100 p-3 rounded-lg">
                   <CheckCircle className="w-6 h-6 text-green-600" />
@@ -726,7 +824,9 @@ const MyEvents = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Enrollments</p>
-                    <p className="text-3xl font-bold text-purple-600">{totalEnrollments}</p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {totalEnrollments}
+                    </p>
                   </div>
                   <div className="bg-purple-100 p-3 rounded-lg">
                     <Users className="w-6 h-6 text-purple-600" />
@@ -739,7 +839,9 @@ const MyEvents = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Role</p>
-                  <p className="text-3xl font-bold text-gray-800 capitalize">{userRole.toLowerCase()}</p>
+                  <p className="text-3xl font-bold text-gray-800 capitalize">
+                    {userRole.toLowerCase()}
+                  </p>
                 </div>
                 <div className="bg-orange-100 p-3 rounded-lg">
                   <User className="w-6 h-6 text-orange-600" />
@@ -755,27 +857,39 @@ const MyEvents = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Globe className="w-5 h-5 text-blue-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">Global</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Global
+                    </span>
                   </div>
-                  <span className="text-xl font-bold text-blue-600">{globalEvents}</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    {globalEvents}
+                  </span>
                 </div>
               </div>
               <div className="bg-purple-50/80 backdrop-blur-sm p-4 rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Users className="w-5 h-5 text-purple-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">Club</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Club
+                    </span>
                   </div>
-                  <span className="text-xl font-bold text-purple-600">{clubEvents}</span>
+                  <span className="text-xl font-bold text-purple-600">
+                    {clubEvents}
+                  </span>
                 </div>
               </div>
               <div className="bg-green-50/80 backdrop-blur-sm p-4 rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Briefcase className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">Department</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Department
+                    </span>
                   </div>
-                  <span className="text-xl font-bold text-green-600">{departmentEvents}</span>
+                  <span className="text-xl font-bold text-green-600">
+                    {departmentEvents}
+                  </span>
                 </div>
               </div>
             </div>
@@ -788,7 +902,9 @@ const MyEvents = () => {
                   <div className="bg-green-100 p-2 rounded-lg">
                     <Users className="w-4 h-4 text-green-600" />
                   </div>
-                  <span className="text-sm font-medium text-gray-600">Department:</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    Department:
+                  </span>
                   <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-semibold">
                     {userDept}
                   </span>
@@ -831,11 +947,18 @@ const MyEvents = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  className="px-4 py-3 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                  }}
                 >
                   <Filter className="w-5 h-5" />
                   <span>Filters</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showFilters ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      showFilters ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
 
                 <select
@@ -851,35 +974,52 @@ const MyEvents = () => {
             </div>
 
             {/* Active Filters Display */}
-            {(filterType !== 'GLOBAL' || selectedStatus !== "all" || selectedClubId) && (
+            {(filterType !== "GLOBAL" ||
+              selectedStatus !== "all" ||
+              selectedClubId) && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-600 mr-2">
                     Active Filters:
                   </span>
 
-                  {filterType === 'DEPARTMENT' && userDept && (
+                  {filterType === "DEPARTMENT" && userDept && (
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
                       Dept: {userDept}
-                      <button onClick={() => handleFilterChange('GLOBAL')} className="ml-2 hover:text-green-900">
+                      <button
+                        onClick={() => handleFilterChange("GLOBAL")}
+                        className="ml-2 hover:text-green-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
 
-                  {filterType === 'CLUB' && selectedClubId && (
+                  {filterType === "CLUB" && selectedClubId && (
                     <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center">
-                      Club: {userClubs.find(c => c.clubId.toString() === selectedClubId.toString())?.clubName}
-                      <button onClick={() => handleFilterChange('GLOBAL')} className="ml-2 hover:text-purple-900">
+                      Club:{" "}
+                      {
+                        userClubs.find(
+                          (c) =>
+                            c.clubId.toString() === selectedClubId.toString(),
+                        )?.clubName
+                      }
+                      <button
+                        onClick={() => handleFilterChange("GLOBAL")}
+                        className="ml-2 hover:text-purple-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
 
-                  {isTeacher && filterType === 'CREATED' && (
+                  {isTeacher && filterType === "CREATED" && (
                     <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center">
                       My Created Events
-                      <button onClick={() => handleFilterChange('GLOBAL')} className="ml-2 hover:text-orange-900">
+                      <button
+                        onClick={() => handleFilterChange("GLOBAL")}
+                        className="ml-2 hover:text-orange-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -888,7 +1028,10 @@ const MyEvents = () => {
                   {selectedStatus !== "all" && (
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
                       Status: {selectedStatus}
-                      <button onClick={removeStatusFilter} className="ml-2 hover:text-blue-900">
+                      <button
+                        onClick={removeStatusFilter}
+                        className="ml-2 hover:text-blue-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -910,61 +1053,65 @@ const MyEvents = () => {
                 <div className="flex flex-col space-y-4">
                   {/* Filter by label and buttons row */}
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-sm font-medium text-gray-600">Filter by:</span>
-                    
+                    <span className="text-sm font-medium text-gray-600">
+                      Filter by:
+                    </span>
+
                     {/* Filter Buttons */}
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Created Events Filter - Only for Teachers */}
                       {isTeacher && (
                         <button
-                          onClick={() => handleFilterChange('CREATED')}
+                          onClick={() => handleFilterChange("CREATED")}
                           className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                            filterType === 'CREATED' 
-                              ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                            filterType === "CREATED"
+                              ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+                              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                           }`}
                         >
                           My Created Events
                         </button>
                       )}
-                      
+
                       {/* Global Events Filter */}
                       <button
-                        onClick={() => handleFilterChange('GLOBAL')}
+                        onClick={() => handleFilterChange("GLOBAL")}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                          filterType === 'GLOBAL' 
-                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
-                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                          filterType === "GLOBAL"
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                         }`}
                       >
                         Global Events
                       </button>
-                      
+
                       {/* Department Filter */}
                       {userDept && (
                         <button
-                          onClick={() => handleFilterChange('DEPARTMENT')}
+                          onClick={() => handleFilterChange("DEPARTMENT")}
                           className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                            filterType === 'DEPARTMENT' 
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                            filterType === "DEPARTMENT"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg"
+                              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                           }`}
                         >
                           {userDept} Events
                         </button>
                       )}
-                      
+
                       {/* Club Events Button */}
                       <button
                         onClick={() => setShowClubDropdown(!showClubDropdown)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-                          filterType === 'CLUB' 
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                          filterType === "CLUB"
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                         }`}
                       >
                         <span>Club Events</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showClubDropdown ? 'rotate-180' : ''}`} />
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-300 ${showClubDropdown ? "rotate-180" : ""}`}
+                        />
                       </button>
 
                       {/* Status Filter */}
@@ -984,30 +1131,38 @@ const MyEvents = () => {
                   {showClubDropdown && (
                     <div className="mt-2 border border-gray-200 rounded-xl bg-white shadow-lg overflow-hidden">
                       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                        <h3 className="font-semibold text-gray-700">SELECT A CLUB</h3>
+                        <h3 className="font-semibold text-gray-700">
+                          SELECT A CLUB
+                        </h3>
                       </div>
-                      
+
                       <div className="divide-y divide-gray-100 max-h-60 overflow-y-auto">
                         {userClubs.length > 0 ? (
                           userClubs.map((club) => (
                             <button
                               key={club.clubId}
                               onClick={() => {
-                                handleFilterChange('CLUB', club.clubId);
+                                handleFilterChange("CLUB", club.clubId);
                                 setShowClubDropdown(false);
                               }}
                               className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                                selectedClubId === club.clubId.toString() ? 'bg-purple-50' : ''
+                                selectedClubId === club.clubId.toString()
+                                  ? "bg-purple-50"
+                                  : ""
                               }`}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="font-semibold text-gray-800">{club.clubName}</span>
+                                <span className="font-semibold text-gray-800">
+                                  {club.clubName}
+                                </span>
                                 <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                                  {club.memberCount || '0'} members
+                                  {club.memberCount || "0"} members
                                 </span>
                               </div>
                               {club.desc && (
-                                <p className="text-sm text-gray-600">{club.desc}</p>
+                                <p className="text-sm text-gray-600">
+                                  {club.desc}
+                                </p>
                               )}
                             </button>
                           ))
@@ -1028,7 +1183,8 @@ const MyEvents = () => {
         {/* Results Summary */}
         <div className="mb-4 flex justify-between items-center">
           <p className="text-sm text-gray-600">
-            Showing <span className="font-semibold">{filteredEvents.length}</span> of{" "}
+            Showing{" "}
+            <span className="font-semibold">{filteredEvents.length}</span> of{" "}
             <span className="font-semibold">{events.length}</span> events
           </p>
           {!isTeacher && (
@@ -1049,23 +1205,27 @@ const MyEvents = () => {
                 </div>
                 <Calendar className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">No Events Found</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                No Events Found
+              </h3>
               <p className="text-gray-600 mb-6">
-                {filterType === 'CLUB' && !selectedClubId
+                {filterType === "CLUB" && !selectedClubId
                   ? "Please select a club from the dropdown to view its events."
-                  : filterType === 'CREATED' && isTeacher
-                  ? "You haven't created any events yet. Create your first event to get started!"
-                  : "There are no open events available at the moment. Check back later for exciting new events!"}
+                  : filterType === "CREATED" && isTeacher
+                    ? "You haven't created any events yet. Create your first event to get started!"
+                    : "There are no open events available at the moment. Check back later for exciting new events!"}
               </p>
-              {(filterType === 'CREATED' || isTeacher) && (
-                <button 
+              {(filterType === "CREATED" || isTeacher) && (
+                <button
                   onClick={() => navigate("/create-event")}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Create New Event
                 </button>
               )}
-              {(filterType !== 'GLOBAL' || searchTerm || selectedStatus !== "all") && (
+              {(filterType !== "GLOBAL" ||
+                searchTerm ||
+                selectedStatus !== "all") && (
                 <button
                   onClick={clearAllFilters}
                   className="mt-4 px-6 py-3 text-purple-600 hover:text-purple-800 font-medium"
@@ -1076,13 +1236,16 @@ const MyEvents = () => {
             </div>
           </div>
         ) : (
-          <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'} gap-4`}>
+          <div
+            className={`grid ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"} gap-4`}
+          >
             {filteredEvents.map((event, index) => {
               const daysUntil = getDaysUntil(event.dateTime);
               const categoryIcon = getEventCategoryIcon(event.title);
               const targetTypeColor = getTargetTypeColor(event.targetType);
               const isCreator = isTeacher && event.creatorPrn === userPrn;
-              const isEnrolled = !isTeacher && enrolledEvents.includes(event.eventId);
+              const isEnrolled =
+                !isTeacher && enrolledEvents.includes(event.eventId);
 
               return (
                 <div
@@ -1096,7 +1259,10 @@ const MyEvents = () => {
                       {/* Event Header with Super Admin Gradient */}
                       <div
                         className="relative h-32 p-3 overflow-hidden"
-                        style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                        }}
                       >
                         {/* Animated Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
@@ -1106,7 +1272,9 @@ const MyEvents = () => {
 
                         {daysUntil > 0 && (
                           <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-                            <span className="text-white text-xs font-semibold">{daysUntil} days to go</span>
+                            <span className="text-white text-xs font-semibold">
+                              {daysUntil} days to go
+                            </span>
                           </div>
                         )}
 
@@ -1114,14 +1282,20 @@ const MyEvents = () => {
                         {!isTeacher && isEnrolled && (
                           <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            <span className="text-xs font-semibold">Enrolled</span>
+                            <span className="text-xs font-semibold">
+                              Enrolled
+                            </span>
                           </div>
                         )}
 
                         {/* Title */}
                         <div className="absolute bottom-2 right-2 text-right">
-                          <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">{event.title}</h3>
-                          <p className="text-[10px] text-white/80 line-clamp-1">{event.description}</p>
+                          <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
+                            {event.title}
+                          </h3>
+                          <p className="text-[10px] text-white/80 line-clamp-1">
+                            {event.description}
+                          </p>
                         </div>
                       </div>
 
@@ -1141,26 +1315,38 @@ const MyEvents = () => {
                         {/* Organizer and Creator Info */}
                         <div className="grid grid-cols-2 gap-1">
                           <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">Organizer</p>
+                            <p className="text-[8px] text-gray-500">
+                              Organizer
+                            </p>
                             <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                               <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
-                              <span className="truncate">{event.organizer}</span>
+                              <span className="truncate">
+                                {event.organizer}
+                              </span>
                             </p>
                           </div>
                           <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">Created By</p>
+                            <p className="text-[8px] text-gray-500">
+                              Created By
+                            </p>
                             <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                               <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
-                              <span className="truncate">{event.creatorName}</span>
+                              <span className="truncate">
+                                {event.creatorName}
+                              </span>
                             </p>
                           </div>
                         </div>
 
                         {/* Target Type Badge and Enrollment Status */}
                         <div className="flex items-center justify-between">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
+                          >
                             {getTargetTypeIcon(event.targetType)}
-                            <span className="ml-1 capitalize text-xs">{event.targetType || "N/A"}</span>
+                            <span className="ml-1 capitalize text-xs">
+                              {event.targetType || "N/A"}
+                            </span>
                           </span>
                           <div className="flex items-center gap-1">
                             {!isTeacher && isEnrolled && (
@@ -1169,13 +1355,16 @@ const MyEvents = () => {
                                 Enrolled
                               </span>
                             )}
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              event.enrollmentStatus?.toLowerCase() === "open"
-                                ? "bg-green-100 text-green-700"
-                                : event.enrollmentStatus?.toLowerCase() === "pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-700"
-                            }`}>
+                            <span
+                              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                event.enrollmentStatus?.toLowerCase() === "open"
+                                  ? "bg-green-100 text-green-700"
+                                  : event.enrollmentStatus?.toLowerCase() ===
+                                      "pending"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
                               {event.enrollmentStatus || "N/A"}
                             </span>
                           </div>
@@ -1186,12 +1375,17 @@ const MyEvents = () => {
                           <div className="space-y-1">
                             <div className="flex justify-between text-[10px]">
                               <span className="text-gray-600">Enrolled</span>
-                              <span className="font-semibold">{event.currEnrollments || 0}/{event.maxEnrollments || 0}</span>
+                              <span className="font-semibold">
+                                {event.currEnrollments || 0}/
+                                {event.maxEnrollments || 0}
+                              </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div 
+                              <div
                                 className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${(event.currEnrollments / event.maxEnrollments) * 100}%` }}
+                                style={{
+                                  width: `${(event.currEnrollments / event.maxEnrollments) * 100}%`,
+                                }}
                               ></div>
                             </div>
                           </div>
@@ -1199,7 +1393,9 @@ const MyEvents = () => {
 
                         {/* Flip Hint */}
                         <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
-                          <span className="animate-pulse mr-1 text-[6px]">●</span>
+                          <span className="animate-pulse mr-1 text-[6px]">
+                            ●
+                          </span>
                           Hover to view all details
                         </div>
                       </div>
@@ -1209,7 +1405,9 @@ const MyEvents = () => {
                     <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3 bg-gradient-to-br from-[#4CA1AF] to-[#2C3E50]">
                       <div className="h-full flex flex-col">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">{event.title}</h3>
+                          <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">
+                            {event.title}
+                          </h3>
                           {!isTeacher && isEnrolled && (
                             <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
                               <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
@@ -1217,117 +1415,201 @@ const MyEvents = () => {
                             </span>
                           )}
                         </div>
-                        
+
                         <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
                           {/* Date & Time */}
                           <div className="grid grid-cols-2 gap-1">
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center mb-0.5">
                                 <Calendar className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">Date</p>
+                                <p className="text-[10px] text-white/80">
+                                  Date
+                                </p>
                               </div>
-                              <p className="text-xs font-medium text-white">{formatDateTime(event.dateTime)}</p>
+                              <p className="text-xs font-medium text-white">
+                                {formatDateTime(event.dateTime)}
+                              </p>
                             </div>
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center mb-0.5">
                                 <Clock className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">Deadline</p>
+                                <p className="text-[10px] text-white/80">
+                                  Enrollment Deadline
+                                </p>
                               </div>
-                              <p className="text-xs font-medium text-white">{new Date(event.enrollmentDeadline).toLocaleDateString()}</p>
+                              <p className="text-xs font-medium text-white">
+                                {new Date(
+                                  event.enrollmentDeadline,
+                                ).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
 
                           {/* Venue */}
-                          <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                          <div
+                            className="p-1.5 rounded-lg"
+                            style={{
+                              backgroundColor: "rgba(255, 255, 255, 0.1)",
+                            }}
+                          >
                             <div className="flex items-center mb-0.5">
                               <MapPin className="w-3 h-3 mr-1 text-white/80" />
                               <p className="text-[10px] text-white/80">Venue</p>
                             </div>
-                            <p className="text-xs font-medium text-white line-clamp-1">{event.venue}</p>
+                            <p className="text-xs font-medium text-white line-clamp-1">
+                              {event.venue}
+                            </p>
                           </div>
 
                           {/* Speaker */}
                           {event.speakerName && (
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center mb-0.5">
                                 <Star className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">Speaker</p>
+                                <p className="text-[10px] text-white/80">
+                                  Speaker
+                                </p>
                               </div>
-                              <p className="text-xs font-medium text-white">{event.speakerName}</p>
+                              <p className="text-xs font-medium text-white">
+                                {event.speakerName}
+                              </p>
                             </div>
                           )}
 
                           {/* Target Info */}
-                          {event.targetType?.toUpperCase() === "DEPARTMENT" && event.targetIds?.length > 0 && (
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
-                              <p className="text-[10px] text-white/80 mb-1 flex items-center">
-                                <Briefcase className="w-2.5 h-2.5 mr-1" />
-                                Target Departments
-                              </p>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {event.targetIds.map((id) => {
-                                  const dept = departments.find((d) => d.departmentId === id);
-                                  return (
-                                    <span 
-                                      key={id} 
-                                      className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-                                      style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                                    >
-                                      {dept?.name || `ID: ${id}`}
-                                    </span>
-                                  );
-                                })}
+                          {event.targetType?.toUpperCase() === "DEPARTMENT" &&
+                            event.targetIds?.length > 0 && (
+                              <div
+                                className="p-1.5 rounded-lg"
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                }}
+                              >
+                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                                  <Briefcase className="w-2.5 h-2.5 mr-1" />
+                                  Target Departments
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {event.targetIds.map((id) => {
+                                    const dept = departments.find(
+                                      (d) => d.departmentId === id,
+                                    );
+                                    return (
+                                      <span
+                                        key={id}
+                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                        style={{
+                                          backgroundColor:
+                                            "rgba(255, 255, 255, 0.2)",
+                                        }}
+                                      >
+                                        {dept?.name || `ID: ${id}`}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {event.targetType?.toUpperCase() === "CLUB" && event.targetIds?.length > 0 && (
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
-                              <p className="text-[10px] text-white/80 mb-1 flex items-center">
-                                <Users className="w-2.5 h-2.5 mr-1" />
-                                Target Clubs
-                              </p>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {event.targetIds.map((id) => {
-                                  const club = userClubs.find((c) => c.clubId === id);
-                                  return (
-                                    <span 
-                                      key={id} 
-                                      className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-                                      style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                                    >
-                                      {club?.clubName || `ID: ${id}`}
-                                    </span>
-                                  );
-                                })}
+                          {event.targetType?.toUpperCase() === "CLUB" &&
+                            event.targetIds?.length > 0 && (
+                              <div
+                                className="p-1.5 rounded-lg"
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                }}
+                              >
+                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                                  <Users className="w-2.5 h-2.5 mr-1" />
+                                  Target Clubs
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {event.targetIds.map((id) => {
+                                    const club = userClubs.find(
+                                      (c) => c.clubId === id,
+                                    );
+                                    return (
+                                      <span
+                                        key={id}
+                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                        style={{
+                                          backgroundColor:
+                                            "rgba(255, 255, 255, 0.2)",
+                                        }}
+                                      >
+                                        {club?.clubName || `ID: ${id}`}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
                           {/* Location Info */}
                           {event.latitude && event.longitude && (
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center">
                                   <Map className="w-3 h-3 mr-1 text-white/80" />
-                                  <span className="text-[10px] text-white/80">Location verified</span>
+                                  <span className="text-[10px] text-white/80">
+                                    Location verified
+                                  </span>
                                 </div>
-                                <span className="text-[8px] text-white/70">{event.radiusInMeters}m radius</span>
+                                <span className="text-[8px] text-white/70">
+                                  {event.radiusInMeters}m radius
+                                </span>
                               </div>
                             </div>
                           )}
 
                           {/* Enrollment Info - Only for Teachers */}
                           {isTeacher && (
-                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}>
+                            <div
+                              className="p-1.5 rounded-lg"
+                              style={{
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              }}
+                            >
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-[10px] text-white/80">Total Enrollments</span>
-                                <span className="text-xs text-white">{event.currEnrollments || 0}/{event.maxEnrollments || 0}</span>
+                                <span className="text-[10px] text-white/80">
+                                  Total Enrollments
+                                </span>
+                                <span className="text-xs text-white">
+                                  {event.currEnrollments || 0}/
+                                  {event.maxEnrollments || 0}
+                                </span>
                               </div>
-                              <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}>
+                              <div
+                                className="w-full h-1.5 rounded-full overflow-hidden"
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                }}
+                              >
                                 <div
                                   className="h-full rounded-full bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]"
-                                  style={{ width: `${(event.currEnrollments / event.maxEnrollments) * 100}%` }}
+                                  style={{
+                                    width: `${(event.currEnrollments / event.maxEnrollments) * 100}%`,
+                                  }}
                                 ></div>
                               </div>
                             </div>
@@ -1344,9 +1626,17 @@ const MyEvents = () => {
                                   navigate(`/edit-event/${event.eventId}`);
                                 }}
                                 className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)"}
+                                style={{
+                                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "rgba(255, 255, 255, 0.3)")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "rgba(255, 255, 255, 0.2)")
+                                }
                               >
                                 <Edit className="w-2.5 h-2.5 mr-0.5" />
                                 Edit
@@ -1357,31 +1647,50 @@ const MyEvents = () => {
                                   handleDeleteEvent(event.eventId);
                                 }}
                                 className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{ backgroundColor: "rgba(239, 68, 68, 0.5)" }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.6)"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.5)"}
+                                style={{
+                                  backgroundColor: "rgba(239, 68, 68, 0.5)",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "rgba(239, 68, 68, 0.6)")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "rgba(239, 68, 68, 0.5)")
+                                }
                               >
                                 <Trash2 className="w-2.5 h-2.5 mr-0.5" />
                                 Delete
                               </button>
                             </div>
                           ) : (
-                            !isTeacher && event.enrollmentStatus === 'OPEN' && !event.completed && (
+                            !isTeacher &&
+                            event.enrollmentStatus === "OPEN" &&
+                            !event.completed && (
                               <div className="relative">
-                                {enrollmentMessage.show && enrollmentMessage.eventId === event.eventId && (
-                                  <div className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
-                                    enrollmentMessage.success ? 'text-green-400' : 'text-red-400'
-                                  }`}>
-                                    {enrollmentMessage.message}
-                                  </div>
-                                )}
-                                <button 
+                                {enrollmentMessage.show &&
+                                  enrollmentMessage.eventId ===
+                                    event.eventId && (
+                                    <div
+                                      className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
+                                        enrollmentMessage.success
+                                          ? "text-green-400"
+                                          : "text-red-400"
+                                      }`}
+                                    >
+                                      {enrollmentMessage.message}
+                                    </div>
+                                  )}
+                                <button
                                   onClick={() => handleEnroll(event.eventId)}
-                                  disabled={enrollingEventId === event.eventId || isEnrolled}
+                                  disabled={
+                                    enrollingEventId === event.eventId ||
+                                    isEnrolled
+                                  }
                                   className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
                                     isEnrolled
-                                      ? 'bg-green-500/50 text-white cursor-default'
-                                      : 'bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]'
+                                      ? "bg-green-500/50 text-white cursor-default"
+                                      : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
                                   }`}
                                 >
                                   {enrollingEventId === event.eventId ? (
@@ -1395,7 +1704,7 @@ const MyEvents = () => {
                                       Enrolled
                                     </>
                                   ) : (
-                                    'Enroll Now'
+                                    "Enroll Now"
                                   )}
                                 </button>
                               </div>
@@ -1423,30 +1732,50 @@ const MyEvents = () => {
 
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
         }
-        
+
         .animate-blob {
           animation: blob 7s infinite;
         }
-        
+
         .animation-delay-2000 {
           animation-delay: 2s;
         }
-        
+
         .animation-delay-4000 {
           animation-delay: 4s;
         }
@@ -1524,8 +1853,7 @@ const MyEvents = () => {
 
 export default MyEvents;
 
-
-// // UPDATED RIYA CODE 
+// // UPDATED RIYA CODE
 // import React, { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
@@ -1577,7 +1905,7 @@ export default MyEvents;
 //   const [userDept, setUserDept] = useState('');
 //   const [deptId, setDeptId] = useState(null);
 //   const [departments, setDepartments] = useState([]);
-//   const [filterType, setFilterType] = useState('GLOBAL'); 
+//   const [filterType, setFilterType] = useState('GLOBAL');
 //   const [userClubs, setUserClubs] = useState([]);
 //   const [selectedClubId, setSelectedClubId] = useState('');
 //   const [searchTerm, setSearchTerm] = useState('');
@@ -1624,13 +1952,13 @@ export default MyEvents;
 
 //     fetchTargetTypes(token);
 //     fetchDepartments(token);
-    
+
 //     // Fetch profile for both teachers and users
 //     fetchUserProfile(token);
-    
+
 //     // Fetch user clubs for both teachers and users
 //     fetchUserClubs(token);
-    
+
 //     // Initial fetch of events
 //     fetchEvents(token, role, 'GLOBAL');
 //   }, []);
@@ -1639,23 +1967,23 @@ export default MyEvents;
 //   try {
 //     const user = JSON.parse(localStorage.getItem("user"));
 //     const prn = user?.prn;
-    
+
 //     if (!prn) return;
-    
+
 //     setUserPrn(prn);
-    
+
 //     const response = await axios.get(`http://localhost:8080/api/profiles/prn/${prn}`, {
 //       headers: {
 //         Authorization: `Bearer ${token}`,
 //         'Content-Type': 'application/json'
 //       }
 //     });
-    
+
 //     if (response.data.success) {
 //       const profile = response.data.data;
 //       setUserDept(profile.department);
 //       fetchDepartmentId(token, profile.department);
-      
+
 //       // Fetch user's enrolled events after getting profile
 //       fetchUserEnrollments(token, prn);
 //     }
@@ -1672,7 +2000,7 @@ export default MyEvents;
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         setDepartments(response.data.data);
 //       }
@@ -1689,7 +2017,7 @@ export default MyEvents;
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         const dept = response.data.data.find(d => d.name === deptName);
 //         if (dept) {
@@ -1710,7 +2038,7 @@ export default MyEvents;
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         setUserClubs(response.data.data);
 //         setTeacherClubs(response.data.data); // For teachers as well
@@ -1758,7 +2086,7 @@ export default MyEvents;
 //               'Content-Type': 'application/json'
 //             }
 //           });
-          
+
 //           if (createdEventsResponse.data.success) {
 //             fetchedEvents = createdEventsResponse.data.data;
 //           }
@@ -1772,11 +2100,11 @@ export default MyEvents;
 //               'Content-Type': 'application/json'
 //             }
 //           });
-          
+
 //           if (deptResponse.data.success) {
 //             // Merge with existing events, removing duplicates
 //             const newEvents = deptResponse.data.data;
-//             fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) => 
+//             fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) =>
 //               index === self.findIndex(e => e.eventId === event.eventId)
 //             );
 //           }
@@ -1787,10 +2115,10 @@ export default MyEvents;
 //               'Content-Type': 'application/json'
 //             }
 //           });
-          
+
 //           if (clubResponse.data.success) {
 //             const newEvents = clubResponse.data.data;
-//             fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) => 
+//             fetchedEvents = [...fetchedEvents, ...newEvents].filter((event, index, self) =>
 //               index === self.findIndex(e => e.eventId === event.eventId)
 //             );
 //           }
@@ -1802,7 +2130,7 @@ export default MyEvents;
 //               'Content-Type': 'application/json'
 //             }
 //           });
-          
+
 //           if (globalResponse.data.success) {
 //             fetchedEvents = globalResponse.data.data;
 //           }
@@ -1831,7 +2159,7 @@ export default MyEvents;
 //             }
 //           });
 //         }
-        
+
 //         if (response && response.data && response.data.success) {
 //           fetchedEvents = response.data.data;
 //         }
@@ -1841,10 +2169,10 @@ export default MyEvents;
 //       const filteredEvents = fetchedEvents.filter(
 //         event => event.enrollmentStatus?.toUpperCase() !== 'CLOSED'
 //       );
-      
+
 //       setEvents(filteredEvents);
 //       setAllEvents(filteredEvents); // Store all events for filtering
-      
+
 //     } catch (err) {
 //       console.error('Error fetching events:', err);
 //       setError(err.message || 'An error occurred while fetching events');
@@ -1858,7 +2186,7 @@ export default MyEvents;
 //     setEnrollingEventId(eventId);
 //     const token = localStorage.getItem('token');
 //     const user = JSON.parse(localStorage.getItem("user"));
-    
+
 //     if (!token) {
 //       alert('Please login to enroll');
 //       return;
@@ -1891,9 +2219,9 @@ export default MyEvents;
 //       }
 
 //       // Update the event's current enrollment count in the UI
-//       setEvents(prevEvents => 
-//         prevEvents.map(event => 
-//           event.eventId === eventId 
+//       setEvents(prevEvents =>
+//         prevEvents.map(event =>
+//           event.eventId === eventId
 //             ? { ...event, currEnrollments: (event.currEnrollments || 0) + 1 }
 //             : event
 //         )
@@ -1911,14 +2239,14 @@ export default MyEvents;
 //         success: false,
 //         message: response.data.message || 'Failed to enroll in event'
 //       });
-      
+
 //       setTimeout(() => {
 //         setEnrollmentMessage({ show: false, eventId: null, success: false, message: '' });
 //       }, 3000);
 //     }
 //   } catch (err) {
 //     console.error('Error enrolling in event:', err);
-    
+
 //     // Show error message
 //     setEnrollmentMessage({
 //       show: true,
@@ -1926,7 +2254,7 @@ export default MyEvents;
 //       success: false,
 //       message: err.response?.data?.message || 'Error enrolling in event. Please try again.'
 //     });
-    
+
 //     setTimeout(() => {
 //       setEnrollmentMessage({ show: false, eventId: null, success: false, message: '' });
 //     }, 3000);
@@ -1943,7 +2271,7 @@ export default MyEvents;
 //         'Content-Type': 'application/json'
 //       }
 //     });
-    
+
 //     if (response.data.success) {
 //       // Extract event IDs from enrollments
 //       const enrolledEventIds = response.data.data.map(enrollment => enrollment.eventId);
@@ -1959,7 +2287,7 @@ export default MyEvents;
 
 //     // Apply search filter
 //     if (searchTerm) {
-//       filtered = filtered.filter(event => 
+//       filtered = filtered.filter(event =>
 //         event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //         event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //         event.organizer?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1989,7 +2317,7 @@ export default MyEvents;
 //     const token = localStorage.getItem('token');
 //     const user = JSON.parse(localStorage.getItem("user"));
 //     const role = user?.role || 'user';
-    
+
 //     if (newFilterType === 'DEPARTMENT' && deptId) {
 //       await fetchEvents(token, role, 'DEPARTMENT', deptId);
 //     } else if (newFilterType === 'CLUB') {
@@ -2022,7 +2350,7 @@ export default MyEvents;
 //     const token = localStorage.getItem('token');
 //     const user = JSON.parse(localStorage.getItem("user"));
 //     const role = user?.role || 'user';
-    
+
 //     setShowCreatedEvents(!showCreatedEvents);
 //     if (!showCreatedEvents) {
 //       fetchEvents(token, role, 'CREATED');
@@ -2144,7 +2472,7 @@ export default MyEvents;
 //           </div>
 //           <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
 //           <p className="text-white/80 mb-8">{error}</p>
-//           <button 
+//           <button
 //             onClick={handleRetry}
 //             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
 //           >
@@ -2172,10 +2500,10 @@ export default MyEvents;
 //               {(userRole === "TEACHER" || userRole === "TEACHERS") ? "Events Dashboard" : "Upcoming Events"}
 //             </span>
 //           </h1>
-          
+
 //           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-//             {(userRole === "TEACHER" || userRole === "TEACHERS") 
-//               ? "Manage your created events and discover events from your clubs and department" 
+//             {(userRole === "TEACHER" || userRole === "TEACHERS")
+//               ? "Manage your created events and discover events from your clubs and department"
 //               : "Join exciting events, connect with amazing people, and create unforgettable memories"}
 //           </p>
 
@@ -2192,7 +2520,7 @@ export default MyEvents;
 //                 </span>
 //               </div>
 //             </div>
-            
+
 //             <div className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
 //               <div className="flex items-center space-x-2">
 //                 <div className="bg-purple-100 p-2 rounded-lg">
@@ -2263,8 +2591,8 @@ export default MyEvents;
 //                   <button
 //                     onClick={() => setViewMode('grid')}
 //                     className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-//                       viewMode === 'grid' 
-//                         ? 'bg-white text-purple-600 shadow-md' 
+//                       viewMode === 'grid'
+//                         ? 'bg-white text-purple-600 shadow-md'
 //                         : 'text-gray-600 hover:text-purple-600'
 //                     }`}
 //                   >
@@ -2273,8 +2601,8 @@ export default MyEvents;
 //                   <button
 //                     onClick={() => setViewMode('list')}
 //                     className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-//                       viewMode === 'list' 
-//                         ? 'bg-white text-purple-600 shadow-md' 
+//                       viewMode === 'list'
+//                         ? 'bg-white text-purple-600 shadow-md'
 //                         : 'text-gray-600 hover:text-purple-600'
 //                     }`}
 //                   >
@@ -2299,14 +2627,14 @@ export default MyEvents;
 //               <div className="mt-4 pt-4 border-t border-gray-200">
 //                 <div className="flex flex-wrap items-center gap-3">
 //                   <span className="text-sm font-medium text-gray-600">Filter by:</span>
-                  
+
 //                   {/* Created Events Filter - Only for Teachers */}
 //                   {(userRole === "TEACHER" || userRole === "TEACHERS") && (
 //                     <button
 //                       onClick={() => handleFilterChange('CREATED')}
 //                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${
-//                         filterType === 'CREATED' 
-//                           ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+//                         filterType === 'CREATED'
+//                           ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
 //                           : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
 //                       }`}
 //                     >
@@ -2314,27 +2642,27 @@ export default MyEvents;
 //                       <span>My Created Events</span>
 //                     </button>
 //                   )}
-                  
+
 //                   {/* Global Events Filter - For everyone */}
 //                   <button
 //                     onClick={() => handleFilterChange('GLOBAL')}
 //                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${
-//                       filterType === 'GLOBAL' 
-//                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
+//                       filterType === 'GLOBAL'
+//                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
 //                         : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
 //                     }`}
 //                   >
 //                     <Globe className="w-4 h-4" />
 //                     <span>Global Events</span>
 //                   </button>
-                  
+
 //                   {/* Department Filter - For everyone with department */}
 //                   {userDept && (
 //                     <button
 //                       onClick={() => handleFilterChange('DEPARTMENT')}
 //                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${
-//                         filterType === 'DEPARTMENT' 
-//                           ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
+//                         filterType === 'DEPARTMENT'
+//                           ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
 //                           : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
 //                       }`}
 //                     >
@@ -2342,7 +2670,7 @@ export default MyEvents;
 //                       <span>{userDept} Events</span>
 //                     </button>
 //                   )}
-                  
+
 //                   {/* Club Filter with Integrated Dropdown - For everyone with clubs */}
 //                   <div className="relative">
 //                     <button
@@ -2354,8 +2682,8 @@ export default MyEvents;
 //                         }
 //                       }}
 //                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${
-//                         filterType === 'CLUB' 
-//                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+//                         filterType === 'CLUB'
+//                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
 //                           : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
 //                       }`}
 //                     >
@@ -2363,7 +2691,7 @@ export default MyEvents;
 //                       <span>Club Events</span>
 //                       <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showClubDropdown ? 'rotate-180' : ''}`} />
 //                     </button>
-                    
+
 //                     {/* Dropdown Menu */}
 //                     {showClubDropdown && filterType === 'CLUB' && (
 //                       <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 overflow-hidden animate-[slideDown_0.3s_ease-out]">
@@ -2416,7 +2744,7 @@ export default MyEvents;
 //                       Showing events for {userDept} Department
 //                     </div>
 //                   )}
-                  
+
 //                   {filterType === 'CLUB' && selectedClubId && (
 //                     <div className="text-sm text-gray-600 bg-purple-50 px-3 py-1 rounded-full">
 //                       Showing events for {userClubs.find(c => c.clubId.toString() === selectedClubId.toString())?.clubName} Club
@@ -2466,7 +2794,7 @@ export default MyEvents;
 //               const categoryColor = getCategoryColor(event.title);
 //               const categoryIcon = getEventCategoryIcon(event.title);
 //               const enrollmentPercentage = (event.currEnrollments / event.maxEnrollments) * 100;
-              
+
 //               return (
 //                 <div
 //                   key={event.eventId}
@@ -2480,26 +2808,26 @@ export default MyEvents;
 //                       <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
 //                       <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
 //                     </div>
-                    
+
 //                     {/* Category Icon */}
 //                     <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm p-3 rounded-xl">
 //                       {categoryIcon}
 //                     </div>
-                    
+
 //                     {/* Status Badge */}
 //                     <div className="absolute top-4 right-4">
 //                       <span className={`px-4 py-2 rounded-full text-xs font-semibold border-0 shadow-lg ${getEnrollmentStatusColor(event.enrollmentStatus)}`}>
 //                         {event.enrollmentStatus || 'N/A'}
 //                       </span>
 //                     </div>
-                    
+
 //                     {/* Days Until Badge */}
 //                     {daysUntil > 0 && (
 //                       <div className="absolute bottom-4 left-4 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
 //                         <span className="text-white font-semibold">{daysUntil} days to go</span>
 //                       </div>
 //                     )}
-                    
+
 //                     {/* Title */}
 //                     <div className="absolute bottom-4 right-4 text-right">
 //                       <h3 className="text-2xl font-bold text-white mb-1 line-clamp-2">{event.title}</h3>
@@ -2563,7 +2891,7 @@ export default MyEvents;
 //                         </span>
 //                       </div>
 //                       <div className="w-full bg-gray-200 rounded-full h-2">
-//                         <div 
+//                         <div
 //                           className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
 //                           style={{ width: `${enrollmentPercentage}%` }}
 //                         ></div>
@@ -2596,14 +2924,14 @@ export default MyEvents;
 //                       <div className="flex items-center justify-between">
 //                         <div className="flex space-x-2">
 //                           <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-//                             event.completed 
-//                               ? 'bg-gray-100 text-gray-600' 
+//                             event.completed
+//                               ? 'bg-gray-100 text-gray-600'
 //                               : 'bg-green-100 text-green-600'
 //                           }`}>
 //                             {event.completed ? 'Completed' : 'Upcoming'}
 //                           </span>
 //                         </div>
-                        
+
 //                       {event.enrollmentStatus === 'OPEN' && !event.completed && (
 //   <div className="relative">
 //     {enrollmentMessage.show && enrollmentMessage.eventId === event.eventId && (
@@ -2613,7 +2941,7 @@ export default MyEvents;
 //         {enrollmentMessage.message}
 //       </div>
 //     )}
-//     <button 
+//     <button
 //       onClick={() => handleEnroll(event.eventId)}
 //       disabled={enrollingEventId === event.eventId || enrolledEvents.includes(event.eventId)}
 //       className={`group relative overflow-hidden bg-gradient-to-r ${
@@ -2670,32 +2998,32 @@ export default MyEvents;
 //           from { opacity: 0; transform: translateY(20px); }
 //           to { opacity: 1; transform: translateY(0); }
 //         }
-        
+
 //         @keyframes slideUp {
 //           from { opacity: 0; transform: translateY(40px); }
 //           to { opacity: 1; transform: translateY(0); }
 //         }
-        
+
 //         @keyframes slideDown {
 //           from { opacity: 0; transform: translateY(-10px); }
 //           to { opacity: 1; transform: translateY(0); }
 //         }
-        
+
 //         @keyframes blob {
 //           0% { transform: translate(0px, 0px) scale(1); }
 //           33% { transform: translate(30px, -50px) scale(1.1); }
 //           66% { transform: translate(-20px, 20px) scale(0.9); }
 //           100% { transform: translate(0px, 0px) scale(1); }
 //         }
-        
+
 //         .animate-blob {
 //           animation: blob 7s infinite;
 //         }
-        
+
 //         .animation-delay-2000 {
 //           animation-delay: 2s;
 //         }
-        
+
 //         .animation-delay-4000 {
 //           animation-delay: 4s;
 //         }
@@ -2705,5 +3033,3 @@ export default MyEvents;
 // };
 
 // export default MyEvents;
-
-

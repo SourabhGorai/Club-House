@@ -376,18 +376,24 @@ const UserRemoveFromClub = () => {
               icon: <Users size={28} />,
               label: "Total Users",
               value: filteredUsers.length,
+              bg: "rgba(59, 130, 246, 0.12)", // blue
+              color: "#3B82F6",
             },
             {
               icon: <Building2 size={28} />,
               label: "Unique Clubs",
               value: teacherClubs.length,
+              bg: "rgba(16, 185, 129, 0.12)", // green
+              color: "#10B981",
             },
             {
               icon: <Layers size={28} />,
               label: "Active Roles",
               value: [...new Set(filteredUsers.map((u) => u.role))].length,
+              bg: "rgba(168, 85, 247, 0.12)", // purple
+              color: "#A855F7",
             },
-          ].map(({ icon, label, value }) => (
+          ].map(({ icon, label, value, bg, color }) => (
             <div
               key={label}
               className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center space-x-5 transition-transform hover:scale-[1.02] cursor-pointer"
@@ -395,8 +401,8 @@ const UserRemoveFromClub = () => {
               <div
                 className="p-4 rounded-2xl"
                 style={{
-                  backgroundColor: "rgba(76, 161, 175, 0.1)",
-                  color: "#4CA1AF",
+                  backgroundColor: bg,
+                  color: color,
                 }}
               >
                 {icon}
@@ -426,12 +432,13 @@ const UserRemoveFromClub = () => {
                 <div
                   className="p-3 rounded-2xl"
                   style={{
-                    backgroundColor: "rgba(76, 161, 175, 0.2)",
-                    color: "#4CA1AF",
+                    backgroundColor: "rgba(190, 166, 108, 0.15)",
+                    color: "#ef9d0f",
                   }}
                 >
                   <ShieldCheck size={24} />
                 </div>
+
                 <div>
                   <h3
                     className="text-xl font-black"

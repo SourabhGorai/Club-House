@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  User, 
-  Clock, 
-  Target, 
-  Globe, 
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  User,
+  Clock,
+  Target,
+  Globe,
   AlertCircle,
   Loader2,
   CalendarClock,
@@ -31,22 +31,22 @@ import {
   Zap,
   Trophy,
   CheckCircle,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 const PreviousEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState('');
-  const [userDept, setUserDept] = useState('');
+  const [userRole, setUserRole] = useState("");
+  const [userDept, setUserDept] = useState("");
   const [deptId, setDeptId] = useState(null);
-  const [filterType, setFilterType] = useState('GLOBAL'); 
+  const [filterType, setFilterType] = useState("GLOBAL");
   const [userClubs, setUserClubs] = useState([]);
-  const [selectedClubId, setSelectedClubId] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClubId, setSelectedClubId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState("date");
   const [showClubDropdown, setShowClubDropdown] = useState(false);
   const [departments, setDepartments] = useState([]);
 
@@ -61,11 +61,11 @@ const PreviousEvents = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
 
-    const role = user?.role || 'user';
+    const role = user?.role || "user";
     setUserRole(role);
 
     if (!token) {
-      setError('No authentication token found. Please login again.');
+      setError("No authentication token found. Please login again.");
       setLoading(false);
       return;
     }
@@ -75,27 +75,27 @@ const PreviousEvents = () => {
       fetchDepartments(token);
       fetchUserProfile(token);
       fetchUserClubs(token);
-      fetchEvents(token, 'GLOBAL');
+      fetchEvents(token, "GLOBAL");
     } else {
-      setError('This page is only accessible to users.');
+      setError("This page is only accessible to users.");
       setLoading(false);
     }
   }, []);
 
   const fetchDepartments = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/department', {
+      const response = await axios.get("http://localhost:8080/api/department", {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.data.success) {
         setDepartments(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching departments:', err);
+      console.error("Error fetching departments:", err);
     }
   };
 
@@ -103,105 +103,120 @@ const PreviousEvents = () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const prn = user?.prn;
-      
+
       if (!prn) return;
-      
-      const response = await axios.get(`http://localhost:8080/api/profiles/prn/${prn}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+
+      const response = await axios.get(
+        `http://localhost:8080/api/profiles/prn/${prn}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.data.success) {
         const profile = response.data.data;
         setUserDept(profile.department);
         fetchDepartmentId(token, profile.department);
       }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      console.error("Error fetching user profile:", err);
     }
   };
 
   const fetchDepartmentId = async (token, deptName) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/department', {
+      const response = await axios.get("http://localhost:8080/api/department", {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.data.success) {
-        const dept = response.data.data.find(d => d.name === deptName);
+        const dept = response.data.data.find((d) => d.name === deptName);
         if (dept) {
           setDeptId(dept.departmentId);
         }
       }
     } catch (err) {
-      console.error('Error fetching department ID:', err);
+      console.error("Error fetching department ID:", err);
     }
   };
 
   const fetchUserClubs = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/user-clubs/getMyClubs', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await axios.get(
+        "http://localhost:8080/api/user-clubs/getMyClubs",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.data.success) {
         setUserClubs(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching user clubs:', err);
+      console.error("Error fetching user clubs:", err);
     }
   };
 
-  const fetchEvents = async (token, filter = 'GLOBAL', targetId = null) => {
+  const fetchEvents = async (token, filter = "GLOBAL", targetId = null) => {
     try {
       setLoading(true);
       console.log("FILTER:", filter, "TARGET ID:", targetId);
 
       let response;
 
-      if (filter === 'DEPARTMENT' && targetId) {
-        response = await axios.get(`http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      } else if (filter === 'CLUB' && targetId) {
-        response = await axios.get(`http://localhost:8080/api/events/targetData/CLUB/${targetId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+      if (filter === "DEPARTMENT" && targetId) {
+        response = await axios.get(
+          `http://localhost:8080/api/events/targetData/DEPARTMENT/${targetId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      } else if (filter === "CLUB" && targetId) {
+        response = await axios.get(
+          `http://localhost:8080/api/events/targetData/CLUB/${targetId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
       } else {
-        response = await axios.get(`http://localhost:8080/api/events/getByTargetType/GLOBAL`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        response = await axios.get(
+          `http://localhost:8080/api/events/getByTargetType/GLOBAL`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
       }
 
       if (response && response.data && response.data.success) {
         // Filter to show only CLOSED events
         const closedEvents = response.data.data.filter(
-          event => event.enrollmentStatus?.toUpperCase() === 'CLOSED'
+          (event) => event.enrollmentStatus?.toUpperCase() === "CLOSED",
         );
         setEvents(closedEvents);
       } else {
-        throw new Error(response?.data?.message || 'Failed to fetch events');
+        throw new Error(response?.data?.message || "Failed to fetch events");
       }
     } catch (err) {
-      console.error('Error fetching events:', err);
-      setError(err.message || 'An error occurred while fetching events');
+      console.error("Error fetching events:", err);
+      setError(err.message || "An error occurred while fetching events");
     } finally {
       setLoading(false);
     }
@@ -212,20 +227,21 @@ const PreviousEvents = () => {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(event => 
-        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.organizer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.creatorName?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (event) =>
+          event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.organizer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.creatorName?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Apply sorting
-    switch(sortBy) {
-      case 'date':
+    switch (sortBy) {
+      case "date":
         filtered.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)); // Most recent first
         break;
-      case 'name':
+      case "name":
         filtered.sort((a, b) => a.title?.localeCompare(b.title));
         break;
       default:
@@ -237,64 +253,76 @@ const PreviousEvents = () => {
 
   const handleFilterChange = async (newFilterType, targetId = null) => {
     setFilterType(newFilterType);
-    const token = localStorage.getItem('token');
-    
-    if (newFilterType === 'DEPARTMENT' && deptId) {
-      await fetchEvents(token, 'DEPARTMENT', deptId);
-    } else if (newFilterType === 'CLUB') {
+    const token = localStorage.getItem("token");
+
+    if (newFilterType === "DEPARTMENT" && deptId) {
+      await fetchEvents(token, "DEPARTMENT", deptId);
+    } else if (newFilterType === "CLUB") {
       if (targetId) {
         setSelectedClubId(targetId);
-        await fetchEvents(token, 'CLUB', targetId);
+        await fetchEvents(token, "CLUB", targetId);
         setShowClubDropdown(false);
       } else {
         setEvents([]);
         setShowClubDropdown(true);
       }
     } else {
-      setSelectedClubId('');
+      setSelectedClubId("");
       setShowClubDropdown(false);
-      await fetchEvents(token, 'GLOBAL');
+      await fetchEvents(token, "GLOBAL");
     }
   };
 
   const clearAllFilters = () => {
     setSearchTerm("");
-    setFilterType('GLOBAL');
-    setSelectedClubId('');
+    setFilterType("GLOBAL");
+    setSelectedClubId("");
     setShowClubDropdown(false);
-    const token = localStorage.getItem('token');
-    fetchEvents(token, 'GLOBAL');
+    const token = localStorage.getItem("token");
+    fetchEvents(token, "GLOBAL");
   };
 
   const getEventCategoryIcon = (title) => {
-    const titleLower = title?.toLowerCase() || '';
-    if (titleLower.includes('tech') || titleLower.includes('code')) return <Code className="w-5 h-5" />;
-    if (titleLower.includes('music') || titleLower.includes('concert')) return <Music className="w-5 h-5" />;
-    if (titleLower.includes('photo') || titleLower.includes('camera')) return <Camera className="w-5 h-5" />;
-    if (titleLower.includes('sport') || titleLower.includes('game')) return <Trophy className="w-5 h-5" />;
-    if (titleLower.includes('art') || titleLower.includes('creative')) return <Heart className="w-5 h-5" />;
-    if (titleLower.includes('workshop') || titleLower.includes('learn')) return <BookOpen className="w-5 h-5" />;
-    if (titleLower.includes('social') || titleLower.includes('meet')) return <Coffee className="w-5 h-5" />;
+    const titleLower = title?.toLowerCase() || "";
+    if (titleLower.includes("tech") || titleLower.includes("code"))
+      return <Code className="w-5 h-5" />;
+    if (titleLower.includes("music") || titleLower.includes("concert"))
+      return <Music className="w-5 h-5" />;
+    if (titleLower.includes("photo") || titleLower.includes("camera"))
+      return <Camera className="w-5 h-5" />;
+    if (titleLower.includes("sport") || titleLower.includes("game"))
+      return <Trophy className="w-5 h-5" />;
+    if (titleLower.includes("art") || titleLower.includes("creative"))
+      return <Heart className="w-5 h-5" />;
+    if (titleLower.includes("workshop") || titleLower.includes("learn"))
+      return <BookOpen className="w-5 h-5" />;
+    if (titleLower.includes("social") || titleLower.includes("meet"))
+      return <Coffee className="w-5 h-5" />;
     return <Sparkles className="w-5 h-5" />;
   };
 
   const formatDateTime = (dateTimeStr) => {
-    if (!dateTimeStr) return 'N/A';
+    if (!dateTimeStr) return "N/A";
     const date = new Date(dateTimeStr);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const handleRetry = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      fetchEvents(token, filterType, 
-        filterType === 'DEPARTMENT' ? deptId : 
-        filterType === 'CLUB' ? selectedClubId : null
+      fetchEvents(
+        token,
+        filterType,
+        filterType === "DEPARTMENT"
+          ? deptId
+          : filterType === "CLUB"
+            ? selectedClubId
+            : null,
       );
     }
   };
@@ -311,7 +339,9 @@ const PreviousEvents = () => {
               <Sparkles className="w-8 h-8 text-white animate-pulse" />
             </div>
           </div>
-          <p className="text-white text-xl font-light animate-pulse">Loading previous events...</p>
+          <p className="text-white text-xl font-light animate-pulse">
+            Loading previous events...
+          </p>
           <p className="text-white/60 text-sm mt-2">Discover what happened!</p>
         </div>
       </div>
@@ -325,9 +355,11 @@ const PreviousEvents = () => {
           <div className="bg-red-500/20 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-12 h-12 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Oops! Something went wrong
+          </h2>
           <p className="text-white/80 mb-8">{error}</p>
-          <button 
+          <button
             onClick={handleRetry}
             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
@@ -351,14 +383,22 @@ const PreviousEvents = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800 bg-clip-text text-transparent">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               Previous Events
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Explore events that have concluded. Relive the memories and see what you missed!
+            Explore events that have concluded. Relive the memories and see what
+            you missed!
           </p>
-          
+
           {/* Stats Card */}
           <div className="inline-block">
             <div className="bg-white/80 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg">
@@ -368,7 +408,9 @@ const PreviousEvents = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-sm text-gray-600">Total Previous Events</p>
-                  <p className="text-3xl font-bold text-gray-800">{events.length}</p>
+                  <p className="text-3xl font-bold text-gray-800">
+                    {events.length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -395,11 +437,18 @@ const PreviousEvents = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-medium hover:from-gray-700 hover:to-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  className="px-4 py-3 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                  }}
                 >
                   <Filter className="w-5 h-5" />
                   <span>Filters</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showFilters ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      showFilters ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
 
                 <select
@@ -414,26 +463,38 @@ const PreviousEvents = () => {
             </div>
 
             {/* Active Filters Display */}
-            {(filterType !== 'GLOBAL' || selectedClubId) && (
+            {(filterType !== "GLOBAL" || selectedClubId) && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-600 mr-2">
                     Active Filters:
                   </span>
 
-                  {filterType === 'DEPARTMENT' && userDept && (
+                  {filterType === "DEPARTMENT" && userDept && (
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
                       Dept: {userDept}
-                      <button onClick={() => handleFilterChange('GLOBAL')} className="ml-2 hover:text-green-900">
+                      <button
+                        onClick={() => handleFilterChange("GLOBAL")}
+                        className="ml-2 hover:text-green-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
 
-                  {filterType === 'CLUB' && selectedClubId && (
+                  {filterType === "CLUB" && selectedClubId && (
                     <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center">
-                      Club: {userClubs.find(c => c.clubId.toString() === selectedClubId.toString())?.clubName}
-                      <button onClick={() => handleFilterChange('GLOBAL')} className="ml-2 hover:text-purple-900">
+                      Club:{" "}
+                      {
+                        userClubs.find(
+                          (c) =>
+                            c.clubId.toString() === selectedClubId.toString(),
+                        )?.clubName
+                      }
+                      <button
+                        onClick={() => handleFilterChange("GLOBAL")}
+                        className="ml-2 hover:text-purple-900"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -454,49 +515,53 @@ const PreviousEvents = () => {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex flex-col space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-sm font-medium text-gray-600">Filter by:</span>
-                    
+                    <span className="text-sm font-medium text-gray-600">
+                      Filter by:
+                    </span>
+
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Global Events Filter */}
                       <button
-                        onClick={() => handleFilterChange('GLOBAL')}
+                        onClick={() => handleFilterChange("GLOBAL")}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                          filterType === 'GLOBAL' 
-                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg' 
-                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                          filterType === "GLOBAL"
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                         }`}
                       >
                         <Globe className="w-4 h-4 inline mr-2" />
                         Global Events
                       </button>
-                      
+
                       {/* Department Filter */}
                       {userDept && (
                         <button
-                          onClick={() => handleFilterChange('DEPARTMENT')}
+                          onClick={() => handleFilterChange("DEPARTMENT")}
                           className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                            filterType === 'DEPARTMENT' 
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                            filterType === "DEPARTMENT"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg"
+                              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                           }`}
                         >
                           <Users className="w-4 h-4 inline mr-2" />
                           {userDept} Events
                         </button>
                       )}
-                      
+
                       {/* Club Events Button */}
                       <button
                         onClick={() => setShowClubDropdown(!showClubDropdown)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-                          filterType === 'CLUB' 
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                          filterType === "CLUB"
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                         }`}
                       >
                         <Target className="w-4 h-4 mr-2" />
                         <span>Club Events</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showClubDropdown ? 'rotate-180' : ''}`} />
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-300 ${showClubDropdown ? "rotate-180" : ""}`}
+                        />
                       </button>
                     </div>
                   </div>
@@ -505,36 +570,46 @@ const PreviousEvents = () => {
                   {showClubDropdown && (
                     <div className="mt-2 border border-gray-200 rounded-xl bg-white shadow-lg overflow-hidden">
                       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                        <h3 className="font-semibold text-gray-700">SELECT A CLUB</h3>
+                        <h3 className="font-semibold text-gray-700">
+                          SELECT A CLUB
+                        </h3>
                       </div>
-                      
+
                       <div className="divide-y divide-gray-100 max-h-60 overflow-y-auto">
                         {userClubs.length > 0 ? (
                           userClubs.map((club) => (
                             <button
                               key={club.clubId}
                               onClick={() => {
-                                handleFilterChange('CLUB', club.clubId);
+                                handleFilterChange("CLUB", club.clubId);
                                 setShowClubDropdown(false);
                               }}
                               className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                                selectedClubId === club.clubId.toString() ? 'bg-purple-50' : ''
+                                selectedClubId === club.clubId.toString()
+                                  ? "bg-purple-50"
+                                  : ""
                               }`}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="font-semibold text-gray-800">{club.clubName}</span>
+                                <span className="font-semibold text-gray-800">
+                                  {club.clubName}
+                                </span>
                                 <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                                  {club.memberCount || '0'} members
+                                  {club.memberCount || "0"} members
                                 </span>
                               </div>
                               {club.desc && (
-                                <p className="text-sm text-gray-600">{club.desc}</p>
+                                <p className="text-sm text-gray-600">
+                                  {club.desc}
+                                </p>
                               )}
                             </button>
                           ))
                         ) : (
                           <div className="p-6 text-center">
-                            <p className="text-gray-500">You are not a member of any clubs yet.</p>
+                            <p className="text-gray-500">
+                              You are not a member of any clubs yet.
+                            </p>
                           </div>
                         )}
                       </div>
@@ -549,8 +624,10 @@ const PreviousEvents = () => {
         {/* Results Summary */}
         <div className="mb-4 flex justify-between items-center">
           <p className="text-sm text-gray-600">
-            Showing <span className="font-semibold">{filteredEvents.length}</span> of{" "}
-            <span className="font-semibold">{events.length}</span> previous events
+            Showing{" "}
+            <span className="font-semibold">{filteredEvents.length}</span> of{" "}
+            <span className="font-semibold">{events.length}</span> previous
+            events
           </p>
         </div>
 
@@ -564,13 +641,15 @@ const PreviousEvents = () => {
                 </div>
                 <XCircle className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">No Previous Events Found</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                No Previous Events Found
+              </h3>
               <p className="text-gray-600 mb-6">
-                {filterType === 'CLUB' && !selectedClubId
+                {filterType === "CLUB" && !selectedClubId
                   ? "Please select a club from the dropdown to view its previous events."
                   : "There are no closed events available at the moment. Check back later!"}
               </p>
-              {(filterType !== 'GLOBAL' || searchTerm) && (
+              {(filterType !== "GLOBAL" || searchTerm) && (
                 <button
                   onClick={clearAllFilters}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
@@ -584,7 +663,7 @@ const PreviousEvents = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event, index) => {
               const categoryIcon = getEventCategoryIcon(event.title);
-              
+
               return (
                 <div
                   key={event.eventId}
@@ -612,8 +691,12 @@ const PreviousEvents = () => {
 
                     {/* Title */}
                     <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">{event.title}</h3>
-                      <p className="text-sm text-white/80 line-clamp-1">{event.description}</p>
+                      <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-white/80 line-clamp-1">
+                        {event.description}
+                      </p>
                     </div>
                   </div>
 
@@ -652,29 +735,41 @@ const PreviousEvents = () => {
                     {/* Creator Info */}
                     <div className="bg-purple-50 p-3 rounded-xl">
                       <p className="text-xs text-gray-500 mb-1">Created By</p>
-                      <p className="text-sm font-semibold text-gray-800">{event.creatorName}</p>
-                      <p className="text-xs text-gray-500">PRN: {event.creatorPrn}</p>
+                      <p className="text-sm font-semibold text-gray-800">
+                        {event.creatorName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PRN: {event.creatorPrn}
+                      </p>
                     </div>
 
                     {/* Target Type */}
                     <div className="flex items-center space-x-2">
                       <Target className="w-4 h-4 text-gray-500" />
                       <span className="text-sm font-medium text-gray-600">
-                        Target: {event.targetType || 'N/A'}
+                        Target: {event.targetType || "N/A"}
                       </span>
                     </div>
 
                     {/* Attendance Window */}
-                    {event.attendanceWindowStart && event.attendanceWindowEnd && (
-                      <div className="bg-gray-50 p-3 rounded-xl">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <CalendarClock className="w-4 h-4 mr-2 text-gray-500" />
-                          <span>
-                            Attendance: {new Date(event.attendanceWindowStart).toLocaleTimeString()} - {new Date(event.attendanceWindowEnd).toLocaleTimeString()}
-                          </span>
+                    {event.attendanceWindowStart &&
+                      event.attendanceWindowEnd && (
+                        <div className="bg-gray-50 p-3 rounded-xl">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <CalendarClock className="w-4 h-4 mr-2 text-gray-500" />
+                            <span>
+                              Attendance:{" "}
+                              {new Date(
+                                event.attendanceWindowStart,
+                              ).toLocaleTimeString()}{" "}
+                              -{" "}
+                              {new Date(
+                                event.attendanceWindowEnd,
+                              ).toLocaleTimeString()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Location Info */}
                     {event.latitude && event.longitude && (
@@ -682,9 +777,13 @@ const PreviousEvents = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Map className="w-4 h-4 text-blue-500 mr-2" />
-                            <span className="text-sm text-blue-700">Location verified</span>
+                            <span className="text-sm text-blue-700">
+                              Location verified
+                            </span>
                           </div>
-                          <span className="text-xs text-blue-600">{event.radiusInMeters}m radius</span>
+                          <span className="text-xs text-blue-600">
+                            {event.radiusInMeters}m radius
+                          </span>
                         </div>
                       </div>
                     )}
@@ -693,7 +792,7 @@ const PreviousEvents = () => {
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center justify-end">
                         <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-600">
-                          {event.completed ? 'Completed' : 'Closed'}
+                          {event.completed ? "Completed" : "Closed"}
                         </span>
                       </div>
                     </div>
@@ -716,30 +815,50 @@ const PreviousEvents = () => {
 
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
         }
-        
+
         .animate-blob {
           animation: blob 7s infinite;
         }
-        
+
         .animation-delay-2000 {
           animation-delay: 2s;
         }
-        
+
         .animation-delay-4000 {
           animation-delay: 4s;
         }
@@ -764,19 +883,16 @@ const PreviousEvents = () => {
 
 export default PreviousEvents;
 
-
-
-
 // import React, { useState, useEffect } from 'react';
 // import axios from 'axios';
-// import { 
-//   Calendar, 
-//   MapPin, 
-//   Users, 
-//   User, 
-//   Clock, 
-//   Target, 
-//   Globe, 
+// import {
+//   Calendar,
+//   MapPin,
+//   Users,
+//   User,
+//   Clock,
+//   Target,
+//   Globe,
 //   AlertCircle,
 //   Loader2,
 //   CalendarClock,
@@ -791,7 +907,7 @@ export default PreviousEvents;
 //   const [userRole, setUserRole] = useState('');
 //   const [userDept, setUserDept] = useState('');
 //   const [deptId, setDeptId] = useState(null);
-//   const [filterType, setFilterType] = useState('GLOBAL'); 
+//   const [filterType, setFilterType] = useState('GLOBAL');
 //   const [userClubs, setUserClubs] = useState([]);
 //   const [selectedClubId, setSelectedClubId] = useState('');
 
@@ -823,16 +939,16 @@ export default PreviousEvents;
 //     try {
 //       const user = JSON.parse(localStorage.getItem("user"));
 //       const prn = user?.prn;
-      
+
 //       if (!prn) return;
-      
+
 //       const response = await axios.get(`http://localhost:8080/api/profiles/prn/${prn}`, {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         const profile = response.data.data;
 //         setUserDept(profile.department);
@@ -851,7 +967,7 @@ export default PreviousEvents;
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         const dept = response.data.data.find(d => d.name === deptName);
 //         if (dept) {
@@ -871,7 +987,7 @@ export default PreviousEvents;
 //           'Content-Type': 'application/json'
 //         }
 //       });
-      
+
 //       if (response.data.success) {
 //         setUserClubs(response.data.data);
 //       }
@@ -930,7 +1046,7 @@ export default PreviousEvents;
 //   const handleFilterChange = async (newFilterType, targetId = null) => {
 //     setFilterType(newFilterType);
 //     const token = localStorage.getItem('token');
-    
+
 //     if (newFilterType === 'DEPARTMENT' && deptId) {
 //       await fetchEvents(token, 'DEPARTMENT', deptId);
 //     } else if (newFilterType === 'CLUB') {
@@ -974,8 +1090,8 @@ export default PreviousEvents;
 //   const handleRetry = () => {
 //     const token = localStorage.getItem('token');
 //     if (token) {
-//       fetchEvents(token, filterType, 
-//         filterType === 'DEPARTMENT' ? deptId : 
+//       fetchEvents(token, filterType,
+//         filterType === 'DEPARTMENT' ? deptId :
 //         filterType === 'CLUB' ? selectedClubId : null
 //       );
 //     }
@@ -1001,7 +1117,7 @@ export default PreviousEvents;
 //           </div>
 //           <h2 className="text-2xl font-bold text-gray-800 mb-2">Oops! Something went wrong</h2>
 //           <p className="text-gray-600 mb-6">{error}</p>
-//           <button 
+//           <button
 //             onClick={handleRetry}
 //             className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
 //           >
@@ -1023,7 +1139,7 @@ export default PreviousEvents;
 //           <div className="flex items-center justify-center space-x-2">
 //             <div className="bg-white px-4 py-2 rounded-full shadow-sm">
 //               <span className="text-sm font-medium text-gray-600">
-//                 Total Previous Events: 
+//                 Total Previous Events:
 //               </span>
 //               <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm font-semibold">
 //                 {events.length}
@@ -1041,21 +1157,21 @@ export default PreviousEvents;
 //                 <button
 //                   onClick={() => handleFilterChange('GLOBAL')}
 //                   className={`px-4 py-2 cursor-pointer rounded-lg font-medium transition-colors ${
-//                     filterType === 'GLOBAL' 
-//                       ? 'bg-gray-600 text-white' 
+//                     filterType === 'GLOBAL'
+//                       ? 'bg-gray-600 text-white'
 //                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
 //                   }`}
 //                 >
 //                   <Globe className="w-4 h-4 inline mr-2" />
 //                   Global Events
 //                 </button>
-                
+
 //                 {userDept && (
 //                   <button
 //                     onClick={() => handleFilterChange('DEPARTMENT')}
 //                     className={`px-4 py-2 cursor-pointer rounded-lg font-medium transition-colors ${
-//                       filterType === 'DEPARTMENT' 
-//                         ? 'bg-gray-600 text-white' 
+//                       filterType === 'DEPARTMENT'
+//                         ? 'bg-gray-600 text-white'
 //                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
 //                     }`}
 //                   >
@@ -1063,7 +1179,7 @@ export default PreviousEvents;
 //                     {userDept} Events
 //                   </button>
 //                 )}
-                
+
 //                 {/* Club Button with Integrated Dropdown */}
 //                 <div className="relative">
 //                   <button
@@ -1073,8 +1189,8 @@ export default PreviousEvents;
 //                       }
 //                     }}
 //                     className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${
-//                       filterType === 'CLUB' 
-//                         ? 'bg-gray-600 text-white' 
+//                       filterType === 'CLUB'
+//                         ? 'bg-gray-600 text-white'
 //                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
 //                     }`}
 //                   >
@@ -1086,7 +1202,7 @@ export default PreviousEvents;
 //                       </svg>
 //                     )}
 //                   </button>
-                  
+
 //                   {/* Dropdown Menu */}
 //                   {filterType === 'CLUB' && (
 //                     <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
@@ -1126,14 +1242,14 @@ export default PreviousEvents;
 //                   )}
 //                 </div>
 //               </div>
-              
+
 //               {/* Show current filter info */}
 //               {filterType === 'DEPARTMENT' && userDept && (
 //                 <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
 //                   Showing previous events for {userDept} Department
 //                 </div>
 //               )}
-              
+
 //               {filterType === 'CLUB' && selectedClubId && (
 //                 <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
 //                   Showing previous events for {userClubs.find(c => c.clubId.toString() === selectedClubId.toString())?.clubName} Club
