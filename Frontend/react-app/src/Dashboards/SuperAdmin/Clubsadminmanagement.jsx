@@ -462,9 +462,9 @@ const ClubAdminsManagement = () => {
   return (
     <div className="min-h-screen font-sans py-12 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
       {/* Animated Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob" style={{zIndex: 0}}></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF", zIndex: 0 }}></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000" style={{zIndex: 0}}></div>
       
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
@@ -484,7 +484,7 @@ const ClubAdminsManagement = () => {
         onApplyFilters={() => handleFilterChange()}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" style={{zIndex: 10}}>
         {/* Header */}
         <div className="mb-8 flex items-center gap-6">
           <button
