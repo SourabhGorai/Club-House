@@ -1045,10 +1045,10 @@ const removeStatusFilter = async () => {
           <div className="flex-1 text-center">
             {isTeacher && (
               <div className="inline-block mb-4">
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
+                {/* <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
                   <Award className="w-4 h-4 mr-2" />
                   TEACHER DASHBOARD
-                </span>
+                </span> */}
               </div>
             )}
 
@@ -1720,7 +1720,7 @@ const removeStatusFilter = async () => {
                   </div>
 
                   {/* Organizer and Creator Info */}
-                  <div className="grid grid-cols-2 gap-1">
+                  {/* <div className="grid grid-cols-2 gap-1">
                     <div className="bg-gray-50 p-1.5 rounded-lg">
                       <p className="text-[8px] text-gray-500">
                         Organizer
@@ -1743,7 +1743,33 @@ const removeStatusFilter = async () => {
                         </span>
                       </p>
                     </div>
-                  </div>
+                  </div> */}
+
+                   {/* Organizer and Speaker Info - Both on Front Side by Side */}
+  <div className="grid grid-cols-2 gap-1">
+    <div className="bg-gray-50 p-1.5 rounded-lg">
+      <p className="text-[8px] text-gray-500">
+        Organizer
+      </p>
+      <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+        <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
+        <span className="truncate">
+          {event.organizer}
+        </span>
+      </p>
+    </div>
+    <div className="bg-gray-50 p-1.5 rounded-lg">
+      <p className="text-[8px] text-gray-500">
+        Speaker
+      </p>
+      <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+        <User className="w-3 h-3 mr-0.5 text-green-500 flex-shrink-0" />
+        <span className="truncate">
+          {event.speaker || event.organizer}
+        </span>
+      </p>
+    </div>
+  </div>
 
                   {/* Target Type Badge and Enrollment Status */}
                   <div className="flex items-center justify-between">
@@ -1879,7 +1905,23 @@ const removeStatusFilter = async () => {
                       </div>
                     </div>
 
-
+              {/* Created By Info - Now on Back */}
+              <div
+                className="p-1.5 rounded-lg"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                  <Star className="w-2.5 h-2.5 mr-1" />
+                  Created By
+                </p>
+                <p className="text-xs font-medium text-white flex items-center">
+                  <span className="truncate">
+                    {event.creatorName}
+                  </span>
+                </p>
+              </div>
 
                     {/* Target Info */}
                     {event.targetType?.toUpperCase() === "DEPARTMENT" &&
