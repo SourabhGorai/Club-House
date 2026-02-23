@@ -43,6 +43,7 @@ import {
   Eye,
   CheckSquare,
   Square,
+  ArrowLeft,
 } from "lucide-react";
 
 const MyEvents = () => {
@@ -1008,176 +1009,208 @@ const removeStatusFilter = async () => {
       </div>
 
       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-
-        {/* Header with Role Badge */}
-        <div className="text-center mb-12">
-          {isTeacher && (
-            <div className="inline-block mb-4">
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
-                <Award className="w-4 h-4 mr-2" />
-                TEACHER DASHBOARD
-              </span>
-            </div>
-          )}
-
-          <h1 className="text-5xl font-bold mb-4">
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
+        {/* Header with Back Button and Role Badge */}
+        <div className="mb-8 flex items-start gap-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer mt-2"
+            style={{
+              background: "rgba(255,255,255,0.7)",
+              backdropFilter: "blur(8px)",
+              color: "#4CA1AF",
+            }}
+          >
+            <div
+              className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
+              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
             >
-              {isTeacher ? "Events Dashboard" : "Upcoming Events"}
-            </span>
-          </h1>
+              <svg
+                className="w-3.5 h-3.5"
+                style={{ color: "#4CA1AF" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+            </div>
+            {/* <span className="text-sm">Back</span> */}
+          </button>
 
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            {isTeacher
-              ? "Manage your created events and discover events from your clubs and department"
-              : "Join exciting events, connect with amazing people, and create unforgettable memories"}
-          </p>
+          <div className="flex-1 text-center">
+            {isTeacher && (
+              <div className="inline-block mb-4">
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
+                  <Award className="w-4 h-4 mr-2" />
+                  TEACHER DASHBOARD
+                </span>
+              </div>
+            )}
 
-          {/* Stats Cards - Show different stats based on role */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 max-w-5xl mx-auto mb-6">
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Events</p>
-                  <p className="text-3xl font-bold text-gray-800">
-                    {totalEvents}
-                  </p>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <Calendar className="w-6 h-6 text-blue-600" />
-                </div>
+            <h1 className="text-5xl font-bold mb-4">
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                {isTeacher ? "Events Dashboard" : "Upcoming Events"}
+              </span>
+            </h1>
+
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              {isTeacher
+                ? "Manage your created events and discover events from your clubs and department"
+                : "Join exciting events, connect with amazing people, and create unforgettable memories"}
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Cards - Show different stats based on role */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 max-w-5xl mx-auto mb-6">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Events</p>
+                <p className="text-3xl font-bold text-gray-800">
+                  {totalEvents}
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Calendar className="w-6 h-6 text-blue-600" />
               </div>
             </div>
+          </div>
 
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Open Events</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {openEvents}
-                  </p>
-                </div>
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Open Events</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {openEvents}
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
+          </div>
 
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-3xl font-bold text-purple-600">
+                  {completedEvents}
+                </p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <CheckSquare className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Not Completed</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {notCompletedEvents}
+                </p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Square className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Only show Total Enrollments for Teachers */}
+          {isTeacher && (
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Completed</p>
+                  <p className="text-sm text-gray-600">Total Enrollments</p>
                   <p className="text-3xl font-bold text-purple-600">
-                    {completedEvents}
+                    {totalEnrollments}
                   </p>
                 </div>
                 <div className="bg-purple-100 p-3 rounded-lg">
-                  <CheckSquare className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Not Completed</p>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {notCompletedEvents}
-                  </p>
-                </div>
-                <div className="bg-orange-100 p-3 rounded-lg">
-                  <Square className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Only show Total Enrollments for Teachers */}
-            {isTeacher && (
-              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Enrollments</p>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {totalEnrollments}
-                    </p>
-                  </div>
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <Users className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Target Type Stats - Only show for Teachers */}
-          {isTeacher && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              <div className="bg-blue-50/80 backdrop-blur-sm p-4 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Globe className="w-5 h-5 text-blue-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">
-                      Global
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-blue-600">
-                    {globalEvents}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-purple-50/80 backdrop-blur-sm p-4 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="w-5 h-5 text-purple-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">
-                      Club
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-purple-600">
-                    {clubEvents}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-green-50/80 backdrop-blur-sm p-4 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Briefcase className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-sm font-medium text-gray-600">
-                      Department
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-green-600">
-                    {departmentEvents}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {userDept && (
-            <div className="mt-4 inline-block">
-              <div className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-md">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-green-100 p-2 rounded-lg">
-                    <Users className="w-4 h-4 text-green-600" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Department:
-                  </span>
-                  <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-semibold">
-                    {userDept}
-                  </span>
+                  <Users className="w-6 h-6 text-purple-600" />
                 </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Target Type Stats - Only show for Teachers */}
+        {isTeacher && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-6">
+            <div className="bg-blue-50/80 backdrop-blur-sm p-4 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                  <span className="text-sm font-medium text-gray-600">
+                    Global
+                  </span>
+                </div>
+                <span className="text-xl font-bold text-blue-600">
+                  {globalEvents}
+                </span>
+              </div>
+            </div>
+            <div className="bg-purple-50/80 backdrop-blur-sm p-4 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Users className="w-5 h-5 text-purple-600 mr-2" />
+                  <span className="text-sm font-medium text-gray-600">
+                    Club
+                  </span>
+                </div>
+                <span className="text-xl font-bold text-purple-600">
+                  {clubEvents}
+                </span>
+              </div>
+            </div>
+            <div className="bg-green-50/80 backdrop-blur-sm p-4 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Briefcase className="w-5 h-5 text-green-600 mr-2" />
+                  <span className="text-sm font-medium text-gray-600">
+                    Department
+                  </span>
+                </div>
+                <span className="text-xl font-bold text-green-600">
+                  {departmentEvents}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {userDept && (
+          <div className="mt-4 mb-8 text-center">
+            <div className="inline-block bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-md">
+              <div className="flex items-center space-x-2">
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <Users className="w-4 h-4 text-green-600" />
+                </div>
+                <span className="text-sm font-medium text-gray-600">
+                  Department:
+                </span>
+                <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-semibold">
+                  {userDept}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons - Only for Teachers */}
         {isTeacher && (
@@ -1545,575 +1578,528 @@ const removeStatusFilter = async () => {
         </div>
 
         {/* Events Grid */}
-        {filteredEvents.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto border border-white/20">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-ping"></div>
-                </div>
-                <Calendar className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                No Events Found
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {filterType === "CLUB" && !selectedClubId
-                  ? "Please select a club from the dropdown to view its events."
-                  : showCreatedEvents && isTeacher
-                    ? "You haven't created any events yet. Create your first event to get started!"
-                      : !isTeacher && showEnrolledEvents
-        ? "You haven't enrolled in any events yet. Browse events and enroll to see them here!"
-                    : completedFilter !== "all"
-                      ? `No ${completedFilter === "completed" ? "completed" : "not completed"} events found.`
-                      : "There are no events available at the moment. Check back later for exciting new events!"}
-              </p>
-              {(showCreatedEvents || isTeacher) && (
-                <button
-                  onClick={() => navigate("/create-event")}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  Create New Event
-                </button>
-              )}
-              {(filterType !== "GLOBAL" ||
-                searchTerm ||
-                selectedStatus !== "all" ||
-                completedFilter !== "all") && (
-                <button
-                  onClick={clearAllFilters}
-                  className="mt-4 px-6 py-3 text-purple-600 hover:text-purple-800 font-medium"
-                >
-                  Clear All Filters
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
+{/* Events Grid */}
+{filteredEvents.length === 0 ? (
+  <div className="text-center py-16">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto border border-white/20">
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-ping"></div>
+        </div>
+        <Calendar className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
+      </div>
+      <h3 className="text-2xl font-bold text-gray-800 mb-2">
+        No Events Found
+      </h3>
+      <p className="text-gray-600 mb-6">
+        {filterType === "CLUB" && !selectedClubId
+          ? "Please select a club from the dropdown to view its events."
+          : showCreatedEvents && isTeacher
+            ? "You haven't created any events yet. Create your first event to get started!"
+              : !isTeacher && showEnrolledEvents
+    ? "You haven't enrolled in any events yet. Browse events and enroll to see them here!"
+            : completedFilter !== "all"
+              ? `No ${completedFilter === "completed" ? "completed" : "not completed"} events found.`
+              : "There are no events available at the moment. Check back later for exciting new events!"}
+      </p>
+      {(showCreatedEvents || isTeacher) && (
+        <button
+          onClick={() => navigate("/create-event")}
+          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+        >
+          Create New Event
+        </button>
+      )}
+      {(filterType !== "GLOBAL" ||
+        searchTerm ||
+        selectedStatus !== "all" ||
+        completedFilter !== "all") && (
+        <button
+          onClick={clearAllFilters}
+          className="mt-4 px-6 py-3 text-purple-600 hover:text-purple-800 font-medium"
+        >
+          Clear All Filters
+        </button>
+      )}
+    </div>
+  </div>
+) : (
+  <div className="flex justify-center">
+    <div 
+      className={`
+        grid gap-4 w-full
+        ${filteredEvents.length === 1 
+          ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-1 max-w-sm mx-auto' 
+          : filteredEvents.length === 2 
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto' 
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        }
+      `}
+    >
+      {filteredEvents.map((event, index) => {
+        const daysUntil = getDaysUntil(event.dateTime);
+        const categoryIcon = getEventCategoryIcon(event.title);
+        const targetTypeColor = getTargetTypeColor(event.targetType);
+        const isCreator = isTeacher && event.creatorPrn === userPrn;
+        const isEnrolled =
+          !isTeacher && enrolledEvents.includes(event.eventId);
+
+        return (
           <div
-            className={`grid ${
-              viewMode === "grid"
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            } gap-4`}
+            key={event.eventId}
+            className={`event-card-container ${animations.fadeIn}`}
+            style={{ animationDelay: `${index * 100}ms` }}
           >
-            {filteredEvents.map((event, index) => {
-              const daysUntil = getDaysUntil(event.dateTime);
-              const categoryIcon = getEventCategoryIcon(event.title);
-              const targetTypeColor = getTargetTypeColor(event.targetType);
-              const isCreator = isTeacher && event.creatorPrn === userPrn;
-              const isEnrolled =
-                !isTeacher && enrolledEvents.includes(event.eventId);
-
-              return (
+            <div className="event-card">
+              {/* Front of Card */}
+              <div className="card-face card-front bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-500 border border-white/20">
+                {/* Event Header with Super Admin Gradient */}
                 <div
-                  key={event.eventId}
-                  className={`event-card-container ${animations.fadeIn}`}
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="relative h-32 p-3 overflow-hidden"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                  }}
                 >
-                  <div className="event-card">
-                    {/* Front of Card */}
-                    <div className="card-face card-front bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-500 border border-white/20">
-                      {/* Event Header with Super Admin Gradient */}
-                      <div
-                        className="relative h-32 p-3 overflow-hidden"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-                        }}
-                      >
-                        {/* Animated Background Pattern */}
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
-                          <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
-                        </div>
+                  {/* Animated Background Pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
+                    <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
+                  </div>
 
-                        {daysUntil > 0 && !event.completed && (
-                          <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-                            <span className="text-white text-xs font-semibold">
-                              {daysUntil} days to go
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Completed Badge */}
-                        {event.completed && (
-                          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
-                            <CheckSquare className="w-3 h-3 mr-1" />
-                            <span className="text-xs font-semibold">
-                              Completed
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Enrolled Badge - Only show for Users */}
-                        {!isTeacher && isEnrolled && (
-                          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            <span className="text-xs font-semibold">
-                              Enrolled
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Title */}
-                        <div className="absolute bottom-2 right-2 text-right">
-                          <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
-                            {event.title}
-                          </h3>
-                          <p className="text-[10px] text-white/80 line-clamp-1">
-                            {event.description}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Quick Info Badges */}
-                      <div className="p-3 space-y-2">
-                        <div className="flex flex-wrap gap-1">
-                          <div className="bg-blue-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-blue-600 flex items-center">
-                            <Calendar className="w-2.5 h-2.5 mr-1" />
-                            {formatDateTime(event.dateTime)}
-                          </div>
-                          <div className="bg-green-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-green-600 flex items-center">
-                            <MapPin className="w-2.5 h-2.5 mr-1" />
-                            {event.venue}
-                          </div>
-                        </div>
-
-                        {/* Organizer and Creator Info */}
-                        <div className="grid grid-cols-2 gap-1">
-                          <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">
-                              Organizer
-                            </p>
-                            <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-                              <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
-                              <span className="truncate">
-                                {event.organizer}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 p-1.5 rounded-lg">
-                            <p className="text-[8px] text-gray-500">
-                              Created By
-                            </p>
-                            <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-                              <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
-                              <span className="truncate">
-                                {event.creatorName}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Target Type Badge and Enrollment Status */}
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
-                          >
-                            {getTargetTypeIcon(event.targetType)}
-                            <span className="ml-1 capitalize text-xs">
-                              {event.targetType || "N/A"}
-                            </span>
-                          </span>
-                          <div className="flex items-center gap-1">
-                            {!isTeacher && isEnrolled && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center">
-                                <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
-                                Enrolled
-                              </span>
-                            )}
-                            {event.completed && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center">
-                                <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
-                                Completed
-                              </span>
-                            )}
-                            <span
-                              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                                event.enrollmentStatus?.toLowerCase() === "open"
-                                  ? "bg-green-100 text-green-700"
-                                  : event.enrollmentStatus?.toLowerCase() ===
-                                    "pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {event.enrollmentStatus || "N/A"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Enrollment Progress - Only for Teachers */}
-                        {isTeacher && (
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[10px]">
-                              <span className="text-gray-600">Enrolled</span>
-                              <span className="font-semibold">
-                                {event.currEnrollments || 0}/
-                                {event.maxEnrollments || 0}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-                                style={{
-                                  width: `${Math.min(
-                                    (event.currEnrollments /
-                                      event.maxEnrollments) *
-                                      100,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Flip Hint */}
-                        <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
-                          <span className="animate-pulse mr-1 text-[6px]">
-                            ●
-                          </span>
-                          Hover to view all details
-                        </div>
-                      </div>
+                  {daysUntil > 0 && !event.completed && (
+                    <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <span className="text-white text-xs font-semibold">
+                        {daysUntil} days to go
+                      </span>
                     </div>
+                  )}
 
-                    {/* Back of Card - All Details with super admin gradient */}
-                    <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3 bg-gradient-to-br from-[#4CA1AF] to-[#2C3E50]">
-                      <div className="h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">
-                            {event.title}
-                          </h3>
-                          {event.completed && (
-                            <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
-                              <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
-                              Completed
-                            </span>
-                          )}
-                          {!isTeacher && isEnrolled && (
-                            <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
-                              <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
-                              Enrolled
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
-                          {/* Date & Time */}
-                          <div className="grid grid-cols-2 gap-1">
-                            <div
-                              className="p-1.5 rounded-lg"
-                              style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              }}
-                            >
-                              <div className="flex items-center mb-0.5">
-                                <Calendar className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">
-                                  Date
-                                </p>
-                              </div>
-                              <p className="text-xs font-medium text-white">
-                                {formatDateTime(event.dateTime)}
-                              </p>
-                            </div>
-                            <div
-                              className="p-1.5 rounded-lg"
-                              style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              }}
-                            >
-                              <div className="flex items-center mb-0.5">
-                                <Clock className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">
-                                  Enrollment Deadline
-                                </p>
-                              </div>
-                              <p className="text-xs font-medium text-white">
-                                {new Date(
-                                  event.enrollmentDeadline
-                                ).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Venue */}
-                          <div
-                            className="p-1.5 rounded-lg"
-                            style={{
-                              backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            }}
-                          >
-                            <div className="flex items-center mb-0.5">
-                              <MapPin className="w-3 h-3 mr-1 text-white/80" />
-                              <p className="text-[10px] text-white/80">Venue</p>
-                            </div>
-                            <p className="text-xs font-medium text-white line-clamp-1">
-                              {event.venue}
-                            </p>
-                          </div>
-
-                          {/* Speaker */}
-                          {event.speakerName && (
-                            <div
-                              className="p-1.5 rounded-lg"
-                              style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              }}
-                            >
-                              <div className="flex items-center mb-0.5">
-                                <Star className="w-3 h-3 mr-1 text-white/80" />
-                                <p className="text-[10px] text-white/80">
-                                  Speaker
-                                </p>
-                              </div>
-                              <p className="text-xs font-medium text-white">
-                                {event.speakerName}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Target Info */}
-                          {event.targetType?.toUpperCase() === "DEPARTMENT" &&
-                            event.targetIds?.length > 0 && (
-                              <div
-                                className="p-1.5 rounded-lg"
-                                style={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                }}
-                              >
-                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
-                                  <Briefcase className="w-2.5 h-2.5 mr-1" />
-                                  Target Departments
-                                </p>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {event.targetIds.map((id) => {
-                                    const dept = departments.find(
-                                      (d) => d.departmentId === id
-                                    );
-                                    return (
-                                      <span
-                                        key={id}
-                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-                                        style={{
-                                          backgroundColor:
-                                            "rgba(255, 255, 255, 0.2)",
-                                        }}
-                                      >
-                                        {dept?.name || `ID: ${id}`}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                          {event.targetType?.toUpperCase() === "CLUB" &&
-                            event.targetIds?.length > 0 && (
-                              <div
-                                className="p-1.5 rounded-lg"
-                                style={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                }}
-                              >
-                                <p className="text-[10px] text-white/80 mb-1 flex items-center">
-                                  <Users className="w-2.5 h-2.5 mr-1" />
-                                  Target Clubs
-                                </p>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {event.targetIds.map((id) => {
-                                    const club = userClubs.find(
-                                      (c) => c.clubId === id
-                                    );
-                                    return (
-                                      <span
-                                        key={id}
-                                        className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-                                        style={{
-                                          backgroundColor:
-                                            "rgba(255, 255, 255, 0.2)",
-                                        }}
-                                      >
-                                        {club?.clubName || `ID: ${id}`}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                          {/* Location Info */}
-                          {event.latitude && event.longitude && (
-                            <div
-                              className="p-1.5 rounded-lg"
-                              style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              }}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <Map className="w-3 h-3 mr-1 text-white/80" />
-                                  <span className="text-[10px] text-white/80">
-                                    Location verified
-                                  </span>
-                                </div>
-                                <span className="text-[8px] text-white/70">
-                                  {event.radiusInMeters}m radius
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Enrollment Info - Only for Teachers */}
-                          {isTeacher && (
-                            <div
-                              className="p-1.5 rounded-lg"
-                              style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                              }}
-                            >
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-[10px] text-white/80">
-                                  Total Enrollments
-                                </span>
-                                <span className="text-xs text-white">
-                                  {event.currEnrollments || 0}/
-                                  {event.maxEnrollments || 0}
-                                </span>
-                              </div>
-                              <div
-                                className="w-full h-1.5 rounded-full overflow-hidden"
-                                style={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                }}
-                              >
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]"
-                                  style={{
-                                    width: `${Math.min(
-                                      (event.currEnrollments /
-                                        event.maxEnrollments) *
-                                        100,
-                                      100
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="mt-2 pt-1 border-t border-white/20">
-                          {isCreator ? (
-                            <div className="flex gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/edit-event/${event.eventId}`);
-                                }}
-                                className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.3)")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.2)")
-                                }
-                              >
-                                <Edit className="w-2.5 h-2.5 mr-0.5" />
-                                Edit
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteEvent(event.eventId);
-                                }}
-                                className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{
-                                  backgroundColor: "rgba(239, 68, 68, 0.5)",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "rgba(239, 68, 68, 0.6)")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "rgba(239, 68, 68, 0.5)")
-                                }
-                              >
-                                <Trash2 className="w-2.5 h-2.5 mr-0.5" />
-                                Delete
-                              </button>
-                            </div>
-                          ) : (
-                            !isTeacher &&
-                            event.enrollmentStatus === "OPEN" &&
-                            !event.completed && (
-                              <div className="relative">
-                                {enrollmentMessage.show &&
-                                  enrollmentMessage.eventId ===
-                                    event.eventId && (
-                                    <div
-                                      className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
-                                        enrollmentMessage.success
-                                          ? "text-green-400"
-                                          : "text-red-400"
-                                      }`}
-                                    >
-                                      {enrollmentMessage.message}
-                                    </div>
-                                  )}
-                                <button
-                                  onClick={() => handleEnroll(event.eventId)}
-                                  disabled={
-                                    enrollingEventId === event.eventId ||
-                                    isEnrolled
-                                  }
-                                  className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
-                                    isEnrolled
-                                      ? "bg-green-500/50 text-white cursor-default"
-                                      : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
-                                  }`}
-                                >
-                                  {enrollingEventId === event.eventId ? (
-                                    <>
-                                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                      Enrolling...
-                                    </>
-                                  ) : isEnrolled ? (
-                                    <>
-                                      <CheckCircle className="w-3 h-3 mr-1" />
-                                      Enrolled
-                                    </>
-                                  ) : (
-                                    "Enroll Now"
-                                  )}
-                                </button>
-                              </div>
-                            )
-                          )}
-                          {event.completed && (
-                            <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
-                              Event Completed
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  {/* Completed Badge */}
+                  {event.completed && (
+                    <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
+                      <CheckSquare className="w-3 h-3 mr-1" />
+                      <span className="text-xs font-semibold">
+                        Completed
+                      </span>
                     </div>
+                  )}
+
+                  {/* Enrolled Badge - Only show for Users */}
+                  {!isTeacher && isEnrolled && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      <span className="text-xs font-semibold">
+                        Enrolled
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Title */}
+                  <div className="absolute bottom-2 right-2 text-right">
+                    <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
+                      {event.title}
+                    </h3>
+                    <p className="text-[10px] text-white/80 line-clamp-1">
+                      {event.description}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Quick Info Badges */}
+                <div className="p-3 space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    <div className="bg-blue-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-blue-600 flex items-center">
+                      <Calendar className="w-2.5 h-2.5 mr-1" />
+                      {formatDateTime(event.dateTime)}
+                    </div>
+                    <div className="bg-green-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-green-600 flex items-center">
+                      <MapPin className="w-2.5 h-2.5 mr-1" />
+                      {event.venue}
+                    </div>
+                  </div>
+
+                  {/* Organizer and Creator Info */}
+                  <div className="grid grid-cols-2 gap-1">
+                    <div className="bg-gray-50 p-1.5 rounded-lg">
+                      <p className="text-[8px] text-gray-500">
+                        Organizer
+                      </p>
+                      <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+                        <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
+                        <span className="truncate">
+                          {event.organizer}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 p-1.5 rounded-lg">
+                      <p className="text-[8px] text-gray-500">
+                        Created By
+                      </p>
+                      <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+                        <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
+                        <span className="truncate">
+                          {event.creatorName}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Target Type Badge and Enrollment Status */}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
+                    >
+                      {getTargetTypeIcon(event.targetType)}
+                      <span className="ml-1 capitalize text-xs">
+                        {event.targetType || "N/A"}
+                      </span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {!isTeacher && isEnrolled && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center">
+                          <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                          Enrolled
+                        </span>
+                      )}
+                      {event.completed && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center">
+                          <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+                          Completed
+                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                          event.enrollmentStatus?.toLowerCase() === "open"
+                            ? "bg-green-100 text-green-700"
+                            : event.enrollmentStatus?.toLowerCase() ===
+                              "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {event.enrollmentStatus || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Enrollment Progress - Only for Teachers */}
+                  {isTeacher && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-600">Enrolled</span>
+                        <span className="font-semibold">
+                          {event.currEnrollments || 0}/
+                          {event.maxEnrollments || 0}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.min(
+                              (event.currEnrollments /
+                                event.maxEnrollments) *
+                                100,
+                              100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Flip Hint */}
+                  <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
+                    <span className="animate-pulse mr-1 text-[6px]">
+                      ●
+                    </span>
+                    Hover to view all details
+                  </div>
+                </div>
+              </div>
+
+              {/* Back of Card - All Details with super admin gradient */}
+              <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3 bg-gradient-to-br from-[#4CA1AF] to-[#2C3E50]">
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">
+                      {event.title}
+                    </h3>
+                    {event.completed && (
+                      <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
+                        <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+                        Completed
+                      </span>
+                    )}
+                    {!isTeacher && isEnrolled && (
+                      <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
+                        <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                        Enrolled
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
+                    {/* Date & Time */}
+                    <div className="grid grid-cols-2 gap-1">
+                      <div
+                        className="p-1.5 rounded-lg"
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        }}
+                      >
+                        <div className="flex items-center mb-0.5">
+                          <Calendar className="w-3 h-3 mr-1 text-white/80" />
+                          <p className="text-[10px] text-white/80">
+                            Date
+                          </p>
+                        </div>
+                        <p className="text-xs font-medium text-white">
+                          {formatDateTime(event.dateTime)}
+                        </p>
+                      </div>
+                      <div
+                        className="p-1.5 rounded-lg"
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        }}
+                      >
+                        <div className="flex items-center mb-0.5">
+                          <Clock className="w-3 h-3 mr-1 text-white/80" />
+                          <p className="text-[10px] text-white/80">
+                            Enrollment Deadline
+                          </p>
+                        </div>
+                        <p className="text-xs font-medium text-white">
+                          {new Date(
+                            event.enrollmentDeadline
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+
+
+                    {/* Target Info */}
+                    {event.targetType?.toUpperCase() === "DEPARTMENT" &&
+                      event.targetIds?.length > 0 && (
+                        <div
+                          className="p-1.5 rounded-lg"
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.1)",
+                          }}
+                        >
+                          <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                            <Briefcase className="w-2.5 h-2.5 mr-1" />
+                            Target Departments
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {event.targetIds.map((id) => {
+                              const dept = departments.find(
+                                (d) => d.departmentId === id
+                              );
+                              return (
+                                <span
+                                  key={id}
+                                  className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                  style={{
+                                    backgroundColor:
+                                      "rgba(255, 255, 255, 0.2)",
+                                  }}
+                                >
+                                  {dept?.name || `ID: ${id}`}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                    {event.targetType?.toUpperCase() === "CLUB" &&
+                      event.targetIds?.length > 0 && (
+                        <div
+                          className="p-1.5 rounded-lg"
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.1)",
+                          }}
+                        >
+                          <p className="text-[10px] text-white/80 mb-1 flex items-center">
+                            <Users className="w-2.5 h-2.5 mr-1" />
+                            Target Clubs
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {event.targetIds.map((id) => {
+                              const club = userClubs.find(
+                                (c) => c.clubId === id
+                              );
+                              return (
+                                <span
+                                  key={id}
+                                  className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+                                  style={{
+                                    backgroundColor:
+                                      "rgba(255, 255, 255, 0.2)",
+                                  }}
+                                >
+                                  {club?.clubName || `ID: ${id}`}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+
+
+                    {/* Enrollment Info - Only for Teachers */}
+                    {isTeacher && (
+                      <div
+                        className="p-1.5 rounded-lg"
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        }}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] text-white/80">
+                            Total Enrollments
+                          </span>
+                          <span className="text-xs text-white">
+                            {event.currEnrollments || 0}/
+                            {event.maxEnrollments || 0}
+                          </span>
+                        </div>
+                        <div
+                          className="w-full h-1.5 rounded-full overflow-hidden"
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.2)",
+                          }}
+                        >
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]"
+                            style={{
+                              width: `${Math.min(
+                                (event.currEnrollments /
+                                  event.maxEnrollments) *
+                                  100,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-2 pt-1 border-t border-white/20">
+                    {isCreator ? (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/edit-event/${event.eventId}`);
+                          }}
+                          className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.2)",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "rgba(255, 255, 255, 0.3)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "rgba(255, 255, 255, 0.2)")
+                          }
+                        >
+                          <Edit className="w-2.5 h-2.5 mr-0.5" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvent(event.eventId);
+                          }}
+                          className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                          style={{
+                            backgroundColor: "rgba(239, 68, 68, 0.5)",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "rgba(239, 68, 68, 0.6)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "rgba(239, 68, 68, 0.5)")
+                          }
+                        >
+                          <Trash2 className="w-2.5 h-2.5 mr-0.5" />
+                          Delete
+                        </button>
+                      </div>
+                    ) : (
+                      !isTeacher &&
+                      event.enrollmentStatus === "OPEN" &&
+                      !event.completed && (
+                        <div className="relative">
+                          {enrollmentMessage.show &&
+                            enrollmentMessage.eventId ===
+                              event.eventId && (
+                              <div
+                                className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
+                                  enrollmentMessage.success
+                                    ? "text-green-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {enrollmentMessage.message}
+                              </div>
+                            )}
+                          <button
+                            onClick={() => handleEnroll(event.eventId)}
+                            disabled={
+                              enrollingEventId === event.eventId ||
+                              isEnrolled
+                            }
+                            className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
+                              isEnrolled
+                                ? "bg-green-500/50 text-white cursor-default"
+                                : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
+                            }`}
+                          >
+                            {enrollingEventId === event.eventId ? (
+                              <>
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                Enrolling...
+                              </>
+                            ) : isEnrolled ? (
+                              <>
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Enrolled
+                              </>
+                            ) : (
+                              "Enroll Now"
+                            )}
+                          </button>
+                        </div>
+                      )
+                    )}
+                    {event.completed && (
+                      <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
+                        Event Completed
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        );
+      })}
+    </div>
+  </div>
+)}
 
         {/* Footer */}
         <div className="mt-12 text-center">
