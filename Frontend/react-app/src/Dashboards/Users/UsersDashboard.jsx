@@ -1,8 +1,10 @@
 // import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Settings, BookOpen, ShieldCheck, Mail, Phone, AtSign, Users, Club } from "lucide-react";
 // import { useState, useEffect } from "react";
 // import axios from "axios";
+// import { useNavigate } from "react-router-dom"; // Add this import
 
 // export default function UsersDashboard() {
+//   const navigate = useNavigate(); // Add this hook
 //   const user = JSON.parse(localStorage.getItem("user"));
 //   const token = localStorage.getItem("token");
 //   const [showProfileForm, setShowProfileForm] = useState(false);
@@ -53,7 +55,7 @@
 //     }
 //   };
 
-//   // NEW FUNCTION: Fetch user's clubs from the API
+//   // Fetch user's clubs from the API
 //   const fetchMyClubs = async () => {
 //     if (!token) {
 //       setClubsError("No authentication token found");
@@ -93,6 +95,15 @@
 //     } finally {
 //       setIsLoadingClubs(false);
 //     }
+//   };
+
+//   // Handler for viewing club details - navigates to club details page
+//   const handleViewClubDetails = (club) => {
+//     const clubName = club.clubName || club.name || "Club";
+//     // Encode the club name to handle special characters
+//     navigate(`/club/${encodeURIComponent(clubName)}/details`, {
+//       state: { userRole: user?.role } // Pass user role to restrict actions
+//     });
 //   };
 
 //   const fetchUserProfile = async () => {
@@ -286,123 +297,133 @@
 //           />
 //         </div>
 
-//         {/* My Clubs Section - Integrated from the API */}
-//         <section className="mb-12">
-//           <div className="flex items-center justify-between mb-6">
-//             <div className="flex items-center gap-4">
-//               <h2 className="text-xl font-bold text-gray-800">My Clubs</h2>
-//               <div className="h-[1px] w-20 bg-gray-100"></div>
+//         {/* Two Column Layout - Control Center (Left) and My Clubs (Right) */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//           {/* LEFT COLUMN - User Control Center */}
+//           <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50 h-fit">
+//             <div className="flex items-center gap-3 mb-8">
+//               <div className="w-1 h-8 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
+//               <h2 className="text-2xl font-bold text-gray-800">User Control Center</h2>
 //             </div>
-//             <button 
-//               onClick={fetchMyClubs}
-//               className="text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
-//               style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
-//               disabled={isLoadingClubs}
-//             >
-//               <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-//               </svg>
-//               {isLoadingClubs ? 'Refreshing...' : 'Refresh'}
-//             </button>
-//           </div>
 
-//           {/* Clubs Grid */}
-//           {isLoadingClubs ? (
-//             <div className="bg-white rounded-[2.5rem] p-12 text-center">
-//               <div className="animate-spin w-10 h-10 border-4 rounded-full mx-auto mb-4" 
-//                    style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
-//               <p className="text-gray-500 font-medium">Loading your clubs...</p>
+//             <div className="grid grid-cols-2 gap-6">
+//               <ActionCard 
+//                 icon={<CalendarDays />} 
+//                 label="Upcoming Events" 
+//                 color="blue" 
+//                 onClick={() => window.location.href = "/events"}
+//               />
+
+//               <ActionCard 
+//                 icon={<CalendarDays />} 
+//                 label="Previous Events" 
+//                 color="blue" 
+//                 onClick={() => window.location.href = "/previous-events"}
+//               />
+
+//               <ActionCard 
+//                 icon={<BookOpen />} 
+//                 label="Resources" 
+//                 color="green" 
+//                 onClick={() => window.location.href = "/resources"}
+//               />
+              
+//               <ActionCard 
+//                 icon={<Settings />} 
+//                 label="Settings" 
+//                 color="purple" 
+//                 onClick={() => window.location.href = "/settings"}
+//               />
 //             </div>
-//           ) : clubsError ? (
-//             <div className="bg-red-50 rounded-[2.5rem] p-8 text-center border border-red-100">
-//               <div className="text-red-500 mb-2">
-//                 <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-//                 </svg>
+//           </section>
+
+//           {/* RIGHT COLUMN - My Clubs Section */}
+//           <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50">
+//             <div className="flex items-center justify-between mb-6">
+//               <div className="flex items-center gap-4">
+//                 <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
+//                 <div className="h-[1px] w-12 bg-gray-100"></div>
 //               </div>
-//               <h3 className="text-lg font-bold text-gray-800 mb-2">Unable to Load Clubs</h3>
-//               <p className="text-red-500/70 mb-4">{clubsError}</p>
 //               <button 
 //                 onClick={fetchMyClubs}
-//                 className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
-//                 style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+//                 className="text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+//                 style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
+//                 disabled={isLoadingClubs}
 //               >
-//                 Try Again
+//                 <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+//                 </svg>
+//                 {isLoadingClubs ? 'Refreshing...' : 'Refresh'}
 //               </button>
 //             </div>
-//           ) : myClubs.length === 0 ? (
-//             <div className="bg-white rounded-[2.5rem] p-12 text-center border-2 border-dashed border-gray-200">
-//               <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-//                 <Users className="text-gray-400 w-10 h-10" />
+
+//             {/* Clubs Content */}
+//             {isLoadingClubs ? (
+//               <div className="py-12 text-center">
+//                 <div className="animate-spin w-10 h-10 border-4 rounded-full mx-auto mb-4" 
+//                      style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
+//                 <p className="text-gray-500 font-medium">Loading your clubs...</p>
 //               </div>
-//               <h3 className="text-lg font-bold text-gray-800 mb-2">No Clubs Joined Yet</h3>
-//               <p className="text-gray-500 mb-6">You haven't joined any clubs. Explore and join clubs to see them here.</p>
-//               <button className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
-//                       style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
-//                 Browse Clubs
-//               </button>
-//             </div>
-//           ) : (
-//             <>
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                 {displayClubs.map((club, index) => (
-//                   <ClubCard key={club.clubId || club.id || index} club={club} />
-//                 ))}
-//               </div>
-              
-//               {/* Show More/Less Button */}
-//               {myClubs.length > 3 && (
-//                 <div className="text-center mt-8">
-//                   <button
-//                     onClick={() => setShowAllClubs(!showAllClubs)}
-//                     className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
-//                     style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
-//                   >
-//                     {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
-//                     <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-//                     </svg>
-//                   </button>
+//             ) : clubsError ? (
+//               <div className="bg-red-50 rounded-[2rem] p-6 text-center border border-red-100">
+//                 <div className="text-red-500 mb-2">
+//                   <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
 //                 </div>
-//               )}
-//             </>
-//           )}
-//         </section>
-
-//         {/* Control Center Section */}
-// <section className="mt-12">
-//   <div className="flex items-center gap-3 mb-6">
-//     <div className="w-1 h-6 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
-//     <h2 className="text-xl font-bold text-gray-800">User Control Center</h2>
-//   </div>
-
-//           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-//             <ActionCard 
-//               icon={<CalendarDays />} 
-//               label="Events" 
-//               color="blue" 
-//               onClick={() => window.location.href = "/events"}
-//             />
-//             <ActionCard 
-//               icon={<Users />} 
-//               label="My Clubs" 
-//               color="orange" 
-//               onClick={() => document.getElementById('my-clubs-section')?.scrollIntoView({ behavior: 'smooth' })}
-//             />
-//             <ActionCard 
-//               icon={<BookOpen />} 
-//               label="Resources" 
-//               color="green" 
-//               onClick={() => window.location.href = "/resources"}
-//             />
-//             <ActionCard 
-//               icon={<Settings />} 
-//               label="Settings" 
-//               color="purple" 
-//               onClick={() => window.location.href = "/settings"}
-//             />
-//           </div>
-//         </section>
+//                 <h3 className="text-lg font-bold text-gray-800 mb-2">Unable to Load Clubs</h3>
+//                 <p className="text-red-500/70 mb-4">{clubsError}</p>
+//                 <button 
+//                   onClick={fetchMyClubs}
+//                   className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
+//                   style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+//                 >
+//                   Try Again
+//                 </button>
+//               </div>
+//             ) : myClubs.length === 0 ? (
+//               <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
+//                 <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+//                   <Users className="text-gray-400 w-10 h-10" />
+//                 </div>
+//                 <h3 className="text-lg font-bold text-gray-800 mb-2">No Clubs Joined Yet</h3>
+//                 <p className="text-gray-500 mb-6">You haven't joined any clubs. Explore and join clubs to see them here.</p>
+//                 <button className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
+//                         style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
+//                   Browse Clubs
+//                 </button>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="space-y-4">
+//                   {displayClubs.map((club, index) => (
+//                     <CompactClubCard 
+//                       key={club.clubId || club.id || index} 
+//                       club={club} 
+//                       onViewDetails={handleViewClubDetails}
+//                     />
+//                   ))}
+//                 </div>
+                
+//                 {/* Show More/Less Button */}
+//                 {myClubs.length > 3 && (
+//                   <div className="text-center mt-6">
+//                     <button
+//                       onClick={() => setShowAllClubs(!showAllClubs)}
+//                       className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+//                       style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+//                     >
+//                       {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
+//                       <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+//                       </svg>
+//                     </button>
+//                   </div>
+//                 )}
+//               </>
+//             )}
+//           </section>
+//         </div>
 //       </main>
 
 //       {/* Profile Form Modal */}
@@ -507,10 +528,9 @@
 //   );
 // }
 
-// // NEW COMPONENT: Club Card for displaying individual club information
-// function ClubCard({ club }) {
+// // Compact Club Card for the right sidebar
+// function CompactClubCard({ club, onViewDetails }) {
 //   // Extract club data with fallbacks for different API response structures
-//   const clubId = club.clubId || club.id || 'N/A';
 //   const clubName = club.clubName || club.name || 'Unnamed Club';
 //   const clubDescription = club.description || club.desc || 'No description available';
 //   const clubCategory = club.category || club.type || 'General';
@@ -530,59 +550,49 @@
 //     red: {bg: 'rgba(239, 68, 68, 0.1)', text: '#EF4444'}
 //   };
 
+//   // Handle click on the entire card
+//   const handleCardClick = () => {
+//     onViewDetails(club);
+//   };
+
 //   return (
-//     <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-xl transition-all group hover:scale-[1.02] cursor-pointer">
-//       <div className="flex items-start gap-4">
+//     <div 
+//       className="bg-gray-50/50 rounded-2xl p-4 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
+//       onClick={handleCardClick}
+//     >
+//       <div className="flex items-center gap-3">
 //         {/* Club Logo/Icon */}
-//         <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
+//         <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
 //              style={{backgroundColor: bgColors[color].bg}}>
 //           {clubLogo ? (
-//             <img src={clubLogo} alt={clubName} className="w-10 h-10 object-contain" />
+//             <img src={clubLogo} alt={clubName} className="w-6 h-6 object-contain" />
 //           ) : (
-//             <Users className="w-8 h-8" style={{color: bgColors[color].text}} />
+//             <Users className="w-5 h-5" style={{color: bgColors[color].text}} />
 //           )}
 //         </div>
         
 //         {/* Club Details */}
 //         <div className="flex-1 min-w-0">
-//           <div className="flex items-start justify-between gap-2">
-//             <h3 className="font-extrabold text-gray-800 text-lg truncate" title={clubName}>
+//           <div className="flex items-center justify-between">
+//             <h3 className="font-extrabold text-gray-800 text-base truncate pr-2" title={clubName}>
 //               {clubName}
 //             </h3>
-//             <span className="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+//             <span className="text-[8px] font-black bg-white px-2 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
 //               {clubCategory}
 //             </span>
 //           </div>
           
-//           <p className="text-sm text-gray-500 mt-2 line-clamp-2" title={clubDescription}>
+//           <p className="text-xs text-gray-500 mt-1 line-clamp-1" title={clubDescription}>
 //             {clubDescription}
 //           </p>
           
-//           <div className="flex items-center gap-4 mt-4">
-//             <div className="flex items-center gap-1.5">
-//               <Users className="w-4 h-4 text-gray-400" />
-//               <span className="text-xs font-bold text-gray-600">{memberCount} Members</span>
+//           <div className="flex items-center gap-2 mt-2">
+//             <div className="flex items-center gap-1">
+//               <Users className="w-3 h-3 text-gray-400" />
+//               <span className="text-[10px] font-bold text-gray-600">{memberCount}</span>
 //             </div>
-//             <span className="text-xs text-gray-300">|</span>
-//             <span className="text-xs font-medium px-3 py-1 rounded-full"
-//                   style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
-//               ID: {clubId}
-//             </span>
 //           </div>
 //         </div>
-//       </div>
-      
-//       {/* Action Buttons */}
-//       <div className="flex gap-2 mt-5 pt-4 border-t border-gray-50">
-//         <button className="flex-1 bg-gray-50 hover:bg-[#4CA1AF] hover:text-white text-gray-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
-//           <CalendarDays size={14} />
-//           Events
-//         </button>
-//         <button className="flex-1 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-//                 style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
-//           <Users size={14} />
-//           View Club
-//         </button>
 //       </div>
 //     </div>
 //   );
@@ -598,14 +608,14 @@
 //   return (
 //     <button 
 //       onClick={onClick}
-//       className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
+//       className="p-6 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-3 group shadow-sm cursor-pointer w-full"
 //       style={{backgroundColor: themes[color].bg}}
 //     >
-//       <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+//       <div className="p-3 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
 //            style={{color: themes[color].icon}}>
 //         {icon}
 //       </div>
-//       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
+//       <span className="font-black text-gray-700 uppercase text-[10px] tracking-widest">{label}</span>
 //     </button>
 //   );
 // }
@@ -623,13 +633,13 @@
 //   );
 // }
 
-import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Settings, BookOpen, ShieldCheck, Mail, Phone, AtSign, Users, Club } from "lucide-react";
+import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Settings, BookOpen, ShieldCheck, Mail, Phone, AtSign, Users, Club, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 
 export default function UsersDashboard() {
-  const navigate = useNavigate(); // Add this hook
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [showProfileForm, setShowProfileForm] = useState(false);
@@ -657,7 +667,7 @@ export default function UsersDashboard() {
   useEffect(() => {
     fetchUserProfile();
     fetchDepartments();
-    fetchMyClubs(); // Fetch clubs on component mount
+    fetchMyClubs();
   }, []);
 
   useEffect(() => {
@@ -680,7 +690,6 @@ export default function UsersDashboard() {
     }
   };
 
-  // Fetch user's clubs from the API
   const fetchMyClubs = async () => {
     if (!token) {
       setClubsError("No authentication token found");
@@ -700,7 +709,6 @@ export default function UsersDashboard() {
       
       console.log("Clubs API Response:", response.data);
       
-      // Handle different response structures
       if (response.data) {
         if (Array.isArray(response.data)) {
           setMyClubs(response.data);
@@ -709,7 +717,6 @@ export default function UsersDashboard() {
         } else if (response.data.clubs && Array.isArray(response.data.clubs)) {
           setMyClubs(response.data.clubs);
         } else {
-          // If it's a single club object or other structure
           setMyClubs([response.data]);
         }
       }
@@ -722,12 +729,10 @@ export default function UsersDashboard() {
     }
   };
 
-  // Handler for viewing club details - navigates to club details page
   const handleViewClubDetails = (club) => {
     const clubName = club.clubName || club.name || "Club";
-    // Encode the club name to handle special characters
     navigate(`/club/${encodeURIComponent(clubName)}/details`, {
-      state: { userRole: user?.role } // Pass user role to restrict actions
+      state: { userRole: user?.role }
     });
   };
 
@@ -823,13 +828,13 @@ export default function UsersDashboard() {
     return dept ? dept.name : "Not set";
   };
 
-  // Get display clubs (limit to 3 if not showing all)
-  const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 3);
+  // Get display clubs (limit to 4 if not showing all for better visibility)
+  const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 4);
   const joinedClubsCount = myClubs.length;
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
-      {/* SIDEBAR - Wide and Detailed */}
+      {/* SIDEBAR */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-xl" style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
@@ -862,11 +867,11 @@ export default function UsersDashboard() {
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">{profileData.fullName || user?.username}</h2>
           <span className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
                 style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
-            {user?.role || "USERS"}
+            {user?.role || "USER"}
           </span>
         </div>
 
-        {/* DETAILED INFO LIST - Scrollable if content overflows */}
+        {/* Info Boxes */}
         <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
           <SidebarInfoBox label="Full Name" value={profileData.fullName} />
           <SidebarInfoBox label="Username" value={user?.username} />
@@ -922,135 +927,133 @@ export default function UsersDashboard() {
           />
         </div>
 
-        {/* My Clubs Section - Integrated from the API */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-gray-800">My Clubs</h2>
-              <div className="h-[1px] w-20 bg-gray-100"></div>
+        {/* Two Column Layout - Expanded boxes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT COLUMN - User Control Center - EXPANDED */}
+          <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
+            <div className="flex items-center gap-3 mb-10">
+              <div className="w-1.5 h-10 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
+              <h2 className="text-2xl font-bold text-gray-800">User Control Center</h2>
             </div>
-            <button 
-              onClick={fetchMyClubs}
-              className="text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
-              style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
-              disabled={isLoadingClubs}
-            >
-              <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              {isLoadingClubs ? 'Refreshing...' : 'Refresh'}
-            </button>
-          </div>
 
-          {/* Clubs Grid */}
-          {isLoadingClubs ? (
-            <div className="bg-white rounded-[2.5rem] p-12 text-center">
-              <div className="animate-spin w-10 h-10 border-4 rounded-full mx-auto mb-4" 
-                   style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
-              <p className="text-gray-500 font-medium">Loading your clubs...</p>
+            <div className="grid grid-cols-2 gap-8">
+              <ActionCard 
+                icon={<CalendarDays size={24} />} 
+                label="Upcoming Events" 
+                color="blue" 
+                onClick={() => window.location.href = "/events"}
+              />
+
+              <ActionCard 
+                icon={<CalendarDays size={24} />} 
+                label="Previous Events" 
+                color="blue" 
+                onClick={() => window.location.href = "/previous-events"}
+              />
+
+              <ActionCard 
+                icon={<BookOpen size={24} />} 
+                label="Resources" 
+                color="green" 
+                onClick={() => window.location.href = "/resources"}
+              />
+              
+              <ActionCard 
+                icon={<Settings size={24} />} 
+                label="Settings" 
+                color="purple" 
+                onClick={() => window.location.href = "/settings"}
+              />
             </div>
-          ) : clubsError ? (
-            <div className="bg-red-50 rounded-[2.5rem] p-8 text-center border border-red-100">
-              <div className="text-red-500 mb-2">
-                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          </section>
+
+          {/* RIGHT COLUMN - My Clubs Section - EXPANDED */}
+          <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
+                <div className="h-[1px] w-16 bg-gray-100"></div>
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Unable to Load Clubs</h3>
-              <p className="text-red-500/70 mb-4">{clubsError}</p>
               <button 
                 onClick={fetchMyClubs}
-                className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
-                style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+                className="text-xs font-bold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+                style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
+                disabled={isLoadingClubs}
               >
-                Try Again
+                <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {isLoadingClubs ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
-          ) : myClubs.length === 0 ? (
-            <div className="bg-white rounded-[2.5rem] p-12 text-center border-2 border-dashed border-gray-200">
-              <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="text-gray-400 w-10 h-10" />
+
+            {/* Clubs Content - Expanded */}
+            {isLoadingClubs ? (
+              <div className="py-16 text-center">
+                <div className="animate-spin w-12 h-12 border-4 rounded-full mx-auto mb-4" 
+                     style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
+                <p className="text-gray-500 font-medium">Loading your clubs...</p>
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">No Clubs Joined Yet</h3>
-              <p className="text-gray-500 mb-6">You haven't joined any clubs. Explore and join clubs to see them here.</p>
-              <button className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
-                      style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
-                Browse Clubs
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {displayClubs.map((club, index) => (
-                  <ClubCard 
-                    key={club.clubId || club.id || index} 
-                    club={club} 
-                    onViewDetails={handleViewClubDetails} // Pass the handler
-                  />
-                ))}
-              </div>
-              
-              {/* Show More/Less Button */}
-              {myClubs.length > 3 && (
-                <div className="text-center mt-8">
-                  <button
-                    onClick={() => setShowAllClubs(!showAllClubs)}
-                    className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
-                    style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
-                  >
-                    {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
-                    <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+            ) : clubsError ? (
+              <div className="bg-red-50 rounded-[2rem] p-8 text-center border border-red-100">
+                <div className="text-red-500 mb-3">
+                  <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-              )}
-            </>
-          )}
-        </section>
-
-        {/* Control Center Section */}
-        <section className="mt-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-6 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
-            <h2 className="text-xl font-bold text-gray-800">User Control Center</h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <ActionCard 
-              icon={<CalendarDays />} 
-              label="Upcoming Events" 
-              color="blue" 
-              onClick={() => window.location.href = "/events"}
-            />
-
-             <ActionCard 
-              icon={<CalendarDays />} 
-              label="Previous Events" 
-              color="blue" 
-              onClick={() => window.location.href = "/previous-events"}
-            />
-
-            <ActionCard 
-              icon={<Users />} 
-              label="My Clubs" 
-              color="orange" 
-              onClick={() => document.getElementById('my-clubs-section')?.scrollIntoView({ behavior: 'smooth' })}
-            />
-            <ActionCard 
-              icon={<BookOpen />} 
-              label="Resources" 
-              color="green" 
-              onClick={() => window.location.href = "/resources"}
-            />
-            <ActionCard 
-              icon={<Settings />} 
-              label="Settings" 
-              color="purple" 
-              onClick={() => window.location.href = "/settings"}
-            />
-          </div>
-        </section>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Unable to Load Clubs</h3>
+                <p className="text-red-500/70 mb-5">{clubsError}</p>
+                <button 
+                  onClick={fetchMyClubs}
+                  className="bg-white px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
+                  style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : myClubs.length === 0 ? (
+              <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
+                <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <Users className="text-gray-400 w-12 h-12" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">No Clubs Joined Yet</h3>
+                <p className="text-gray-500 mb-8">You haven't joined any clubs. Explore and join clubs to see them here.</p>
+                <button className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
+                        style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
+                  Browse Clubs
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-5">
+                  {displayClubs.map((club, index) => (
+                    <CompactClubCard 
+                      key={club.clubId || club.id || index} 
+                      club={club} 
+                      onViewDetails={handleViewClubDetails}
+                    />
+                  ))}
+                </div>
+                
+                {/* Show More/Less Button */}
+                {myClubs.length > 4 && (
+                  <div className="text-center mt-8">
+                    <button
+                      onClick={() => setShowAllClubs(!showAllClubs)}
+                      className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+                      style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
+                    >
+                      {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
+                      <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
       </main>
 
       {/* Profile Form Modal */}
@@ -1127,6 +1130,7 @@ export default function UsersDashboard() {
 }
 
 /* HELPER COMPONENTS */
+
 function SidebarInfoBox({ label, value }) {
   return (
     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
@@ -1155,17 +1159,14 @@ function StatCard({ icon, label, value, color, isStatus }) {
   );
 }
 
-// Updated Club Card component with navigation
-function ClubCard({ club, onViewDetails }) {
-  // Extract club data with fallbacks for different API response structures
-  const clubId = club.clubId || club.id || 'N/A';
+// Expanded Club Card
+function CompactClubCard({ club, onViewDetails }) {
   const clubName = club.clubName || club.name || 'Unnamed Club';
   const clubDescription = club.description || club.desc || 'No description available';
   const clubCategory = club.category || club.type || 'General';
   const memberCount = club.memberCount || club.members || club.memberCount || '0';
   const clubLogo = club.logo || club.image || club.logoUrl || null;
   
-  // Generate a consistent color based on club name
   const colors = ['blue', 'orange', 'purple', 'green', 'red'];
   const colorIndex = (clubName.length % colors.length);
   const color = colors[colorIndex];
@@ -1178,83 +1179,51 @@ function ClubCard({ club, onViewDetails }) {
     red: {bg: 'rgba(239, 68, 68, 0.1)', text: '#EF4444'}
   };
 
-  // Handle click on the entire card
   const handleCardClick = () => {
-    onViewDetails(club);
-  };
-
-  // Handle click on the "View Club" button specifically
-  const handleViewClubClick = (e) => {
-    e.stopPropagation(); // Prevent triggering the card click
     onViewDetails(club);
   };
 
   return (
     <div 
-      className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-xl transition-all group hover:scale-[1.02] cursor-pointer"
+      className="bg-gray-50/50 rounded-2xl p-5 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-4">
-        {/* Club Logo/Icon */}
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
+      <div className="flex items-center gap-4">
+        {/* Club Logo/Icon - Larger */}
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
              style={{backgroundColor: bgColors[color].bg}}>
           {clubLogo ? (
-            <img src={clubLogo} alt={clubName} className="w-10 h-10 object-contain" />
+            <img src={clubLogo} alt={clubName} className="w-7 h-7 object-contain" />
           ) : (
-            <Users className="w-8 h-8" style={{color: bgColors[color].text}} />
+            <Users className="w-6 h-6" style={{color: bgColors[color].text}} />
           )}
         </div>
         
-        {/* Club Details */}
+        {/* Club Details - More spacing */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-extrabold text-gray-800 text-lg truncate" title={clubName}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>
               {clubName}
             </h3>
-            <span className="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+            <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
               {clubCategory}
             </span>
           </div>
           
-          <p className="text-sm text-gray-500 mt-2 line-clamp-2" title={clubDescription}>
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2" title={clubDescription}>
             {clubDescription}
           </p>
           
-          <div className="flex items-center gap-4 mt-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-bold text-gray-600">{memberCount} Members</span>
+              <span className="text-xs font-bold text-gray-600">{memberCount} members</span>
             </div>
-            <span className="text-xs text-gray-300">|</span>
-            {/* <span className="text-xs font-medium px-3 py-1 rounded-full"
-                  style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}>
-              ID: {clubId}
-            </span> */}
           </div>
         </div>
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-5 pt-4 border-t border-gray-50">
-        {/* <button 
-          className="flex-1 bg-gray-50 hover:bg-[#4CA1AF] hover:text-white text-gray-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering card click
-            // Navigate to events page for this club
-            window.location.href = `/club/${encodeURIComponent(clubName)}/events`;
-          }}
-        >
-          <CalendarDays size={14} />
-          Events
-        </button>
-        <button 
-          className="flex-1 font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-          style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}
-          onClick={handleViewClubClick}
-        >
-          <Users size={14} />
-          View Club
-        </button> */}
+        
+        {/* Chevron indicator */}
+        <ChevronRight size={20} className="text-gray-300" />
       </div>
     </div>
   );
@@ -1270,10 +1239,10 @@ function ActionCard({ icon, label, color, onClick }) {
   return (
     <button 
       onClick={onClick}
-      className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
+      className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
       style={{backgroundColor: themes[color].bg}}
     >
-      <div className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+      <div className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
            style={{color: themes[color].icon}}>
         {icon}
       </div>

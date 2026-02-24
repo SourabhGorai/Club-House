@@ -16,6 +16,8 @@
 //   Mail,
 //   GraduationCap,
 //   Building2,
+//   CalendarPlus,
+//   ChevronRight,
 // } from "lucide-react";
 // import { useNavigate } from "react-router-dom";
 // import { useState, useEffect } from "react";
@@ -43,11 +45,14 @@
 //   const [departments, setDepartments] = useState([]);
 //   const [clubs, setClubs] = useState([]);
 //   const [error, setError] = useState(null);
+//   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
+//   const [showAllClubs, setShowAllClubs] = useState(false);
 //   const assignedStudentsCount = useFilteredUsersCount();
 
 //   useEffect(() => {
 //     fetchUserProfile();
 //     fetchDepartments();
+//     fetchUserClubs();
 //   }, []);
 
 //   useEffect(() => {
@@ -201,20 +206,13 @@
 //     return dept ? dept.name : "Not set";
 //   };
 
-//   useEffect(() => {
-//     fetchUserClubs();
-//   }, []);
-
 //   const fetchUserClubs = async () => {
+//     setIsLoadingClubs(true);
 //     try {
-//       // Get token from localStorage
-//       const token = localStorage.getItem("token"); // or 'authToken' depending on your key name
-//       // or if using Bearer format
-//       // const token = localStorage.getItem('accessToken');
+//       const token = localStorage.getItem("token");
 
 //       if (!token) {
 //         setError("No authentication token found");
-
 //         return;
 //       }
 
@@ -222,7 +220,7 @@
 //         "http://localhost:8080/api/user-clubs/getMyClubs",
 //         {
 //           headers: {
-//             Authorization: `Bearer ${token}`, // Adjust based on your token format
+//             Authorization: `Bearer ${token}`,
 //           },
 //         },
 //       );
@@ -237,28 +235,35 @@
 //       console.error("Error fetching clubs:", err);
 //       setError(err.response?.data?.message || "Error fetching clubs");
 //     } finally {
+//       setIsLoadingClubs(false);
 //     }
 //   };
 
+//   const handleViewClubDetails = (club) => {
+//     navigate(`/club/${club.clubName}/details`);
+//   };
+
+//   const displayClubs = showAllClubs ? clubs : clubs.slice(0, 3);
+
 //   return (
 //     <div className="flex min-h-screen bg-[#F8FAFC]">
-//       {/* SIDEBAR - Wide and Professional */}
+//       {/* SIDEBAR - Same as User Dashboard */}
 //       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
-//         <div className="flex items-center gap-3 mb-10">
+//         <div className="flex items-center gap-3 mb-8">
 //           <div
 //             className="p-2 rounded-xl"
 //             style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
 //           >
 //             <GraduationCap className="text-white w-7 h-7" />
 //           </div>
-//           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
-//             TeacherHub
+//           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+//             Teacher<span style={{ color: "#4CA1AF" }}>Hub</span>
 //           </h1>
 //         </div>
 
-//         {/* Profile Section */}
+//         {/* Profile Image Section - Same as User Dashboard */}
 //         <div className="relative group mx-auto mb-6">
-//           <div className="w-44 h-44 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+//           <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
 //             {profileImage ? (
 //               <img
 //                 src={profileImage}
@@ -267,20 +272,20 @@
 //               />
 //             ) : (
 //               <div className="w-full h-full flex items-center justify-center text-gray-400">
-//                 <User size={64} />
+//                 <User size={48} />
 //               </div>
 //             )}
 //           </div>
 //           <button
 //             onClick={() => setShowProfileForm(true)}
-//             className="absolute bottom-2 right-2 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+//             className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
 //             style={{ color: "#4CA1AF" }}
 //           >
 //             <Edit size={18} />
 //           </button>
 //         </div>
 
-//         <div className="text-center mb-8">
+//         <div className="text-center mb-6">
 //           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">
 //             {profileData.fullName || user?.username}
 //           </h2>
@@ -288,29 +293,27 @@
 //             className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
 //             style={{
 //               backgroundColor: "rgba(76, 161, 175, 0.1)",
-//               color: "#26727e",
+//               color: "#4CA1AF",
 //             }}
 //           >
-//             {user?.role || "Professor"}
+//             {user?.role || "PROFESSOR"}
 //           </span>
 //         </div>
 
-//         {/* Info Boxes */}
+//         {/* Info Boxes - Same as User Dashboard */}
 //         <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
 //           <SidebarInfoBox label="Full Name" value={profileData.fullName} />
 //           <SidebarInfoBox label="Username" value={user?.username} />
-//           <SidebarInfoBox label="PRN / Staff ID" value={profileData.prn} />
-//           <SidebarInfoBox label="Email Address" value={user?.email} />
+//           <SidebarInfoBox label="Staff ID" value={profileData.prn} />
+//           <SidebarInfoBox label="Email" value={user?.email} />
 //           <SidebarInfoBox
 //             label="Department"
 //             value={getDepartmentName(profileData.departmentId)}
 //           />
-//           <SidebarInfoBox
-//             label="Phone Number"
-//             value={profileData.phoneNumber}
-//           />
+//           <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
 //         </div>
 
+//         {/* Sign Out Button - Same as User Dashboard */}
 //         <button
 //           onClick={handleLogout}
 //           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
@@ -320,153 +323,241 @@
 //       </aside>
 
 //       {/* MAIN CONTENT AREA */}
-//       <main className="flex-1 p-10">
+//       <main className="flex-1 p-10 overflow-y-auto max-h-screen">
 //         <header className="flex justify-between items-center mb-10">
 //           <div>
 //             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
-//               Dashboard Overview
+//               Dashboard
 //             </h1>
 //             <p className="text-gray-500 mt-1">
-//               Hope, You had a good day{" "}
-//               <span className="font-semibold" style={{ color: "#3191a0" }}>
-//                 Prof. {profileData.fullName}
+//               Welcome back,{" "}
+//               <span className="font-semibold" style={{ color: "#4CA1AF" }}>
+//                 Prof. {profileData.fullName || user?.username}
 //               </span>
 //             </p>
 //           </div>
-//           <div
-//             className="flex items-center gap-3 px-5 py-2.5 rounded-full border"
-//             style={{
-//               backgroundColor: "rgba(76, 161, 175, 0.1)",
-//               color: "#26727e",
-//               borderColor: "rgba(76, 161, 175, 0.2)",
-//             }}
-//           >
-//             <div
-//               className="w-2.5 h-2.5 rounded-full animate-pulse"
-//               style={{ backgroundColor: "#4CA1AF" }}
-//             ></div>
+//           <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
+//             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
 //             <span className="text-xs font-bold uppercase tracking-widest">
-//               Systems Active
+//               All Systems Live
 //             </span>
 //           </div>
 //         </header>
 
-//         {/* Metrics Grid */}
+//         {/* Statistics Grid - Same as User Dashboard */}
 //         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
 //           <StatCard
-//             icon={<Calendar className="w-6 h-6" />}
+//             icon={<Calendar />}
 //             label="Events Managed"
 //             value="0"
 //             color="blue"
 //           />
 //           <StatCard
-//             icon={<Trophy className="w-6 h-6" />}
+//             icon={<Trophy />}
 //             label="My Clubs"
 //             value={clubs.length.toString()}
 //             color="green"
 //           />
 //           <StatCard
-//             icon={<Users className="w-6 h-6" />}
+//             icon={<Users />}
 //             label="Assigned Students"
 //             value={assignedStudentsCount.toString()}
 //             color="orange"
 //           />
 //         </div>
 
-//         {/* Clubs List Section */}
-
-//         {clubs.length > 0 && (
-//           <section className="mt-12">
-//             <div className="flex items-center gap-4 mb-8">
-//               <h2 className="text-xl font-bold text-gray-800">My Clubs</h2>
-//               <div className="h-[1px] flex-1 bg-gray-100"></div>
+//         {/* Two Column Layout - Same as User Dashboard */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//           {/* LEFT COLUMN - Professor Control Center */}
+//           <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50 h-fit">
+//             <div className="flex items-center gap-3 mb-8">
+//               <div
+//                 className="w-1 h-8 rounded-full"
+//                 style={{
+//                   background: "linear-gradient(to bottom, #4CA1AF, #315169)",
+//                 }}
+//               ></div>
+//               <h2 className="text-2xl font-bold text-gray-800">
+//                 Professor Control Center
+//               </h2>
 //             </div>
 
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//               {clubs.map((club) => (
-//                 <div
-//                   key={club.clubId}
-//                   className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-//                   onClick={() => navigate(`/club/${club.clubId}`)} // Add navigation or function here
-//                 >
-//                   <div className="flex items-center gap-3 mb-4">
-//                     <div
-//                       className="p-3 rounded-xl"
-//                       style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
-//                     >
-//                       <Trophy
-//                         className="w-5 h-5"
-//                         style={{ color: "#4CA1AF" }}
-//                       />
-//                     </div>
-//                     <h3 className="text-lg font-bold text-gray-800">
-//                       {club.clubName}
-//                     </h3>
-//                   </div>
-
-//                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-//                     {club.desc}
-//                   </p>
-
-//                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-//                     <div className="flex items-center gap-2 text-sm text-gray-500">
-//                       <Users size={16} />
-//                       <span>
-//                         {club.memberCount}{" "}
-//                         {club.memberCount === 1 ? "Member" : "Members"}
-//                       </span>
-//                     </div>
-//                     <button
-//                       onClick={(e) => {
-//                         e.stopPropagation(); // Prevent triggering the parent click
-//                         navigate(`/club/${club.clubId}/details`); // Different action for button
-//                       }}
-//                       className="text-sm font-semibold hover:underline cursor-pointer"
-//                       style={{ color: "#4CA1AF" }}
-//                     >
-//                       View Details →
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))}
+//             <div className="grid grid-cols-2 gap-6">
+//               <ActionCard
+//                 icon={<CalendarPlus />}
+//                 label="Events"
+//                 color="blue"
+//                 onClick={() => navigate("/events")}
+//               />
+//               <ActionCard
+//                 icon={<Trash2 />}
+//                 label="Delete Event"
+//                 color="red"
+//                 onClick={() => {}}
+//               />
+//               <ActionCard
+//                 icon={<Users />}
+//                 label="Add Student"
+//                 color="teal"
+//                 onClick={() => navigate("/add-users-with-club")}
+//               />
+//               <ActionCard
+//                 icon={<Building2 />}
+//                 label="Club Association"
+//                 color="orange"
+//                 onClick={() => navigate("/remove-users-from-club")}
+//               />
 //             </div>
 //           </section>
-//         )}
 
-//         {/* CONTROL CENTER */}
-//         <section className="mt-12">
-//           <div className="flex items-center gap-3 mb-6">
-//             <div
-//               className="w-1 h-6 rounded-full"
-//               style={{
-//                 background: "linear-gradient(to bottom, #4CA1AF, #315169)",
-//               }}
-//             ></div>
-//             <h2 className="text-xl font-bold text-gray-800">
-//               Professor Control Center
-//             </h2>
-//           </div>
+//           {/* RIGHT COLUMN - My Clubs Section - Same as User Dashboard */}
+//           <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-50">
+//             <div className="flex items-center justify-between mb-6">
+//               <div className="flex items-center gap-4">
+//                 <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
+//                 <div className="h-[1px] w-12 bg-gray-100"></div>
+//               </div>
+//               <button
+//                 onClick={fetchUserClubs}
+//                 className="text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+//                 style={{
+//                   color: "#4CA1AF",
+//                   backgroundColor: "rgba(76, 161, 175, 0.1)",
+//                 }}
+//                 disabled={isLoadingClubs}
+//               >
+//                 <svg
+//                   className={`w-4 h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
+//                   fill="none"
+//                   viewBox="0 0 24 24"
+//                   stroke="currentColor"
+//                 >
+//                   <path
+//                     strokeLinecap="round"
+//                     strokeLinejoin="round"
+//                     strokeWidth={2}
+//                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+//                   />
+//                 </svg>
+//                 {isLoadingClubs ? "Refreshing..." : "Refresh"}
+//               </button>
+//             </div>
 
-//           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-//             <ActionCard icon={<Plus />} label="Create Event" color="blue" />
-//             <ActionCard icon={<Trash2 />} label="Delete Event" color="red" />
-//             <ActionCard
-//               icon={<Users />}
-//               label="Add Student"
-//               color="teal"
-//               onClick={() => navigate("/add-users-with-club")}
-//             />
-//             <ActionCard
-//               icon={<Building2 />}
-//               label="Club Association"
-//               color="orange"
-//               onClick={() => navigate("/remove-users-from-club")}
-//             />
-//           </div>
-//         </section>
+//             {/* Clubs Content - Same as User Dashboard */}
+//             {isLoadingClubs ? (
+//               <div className="py-12 text-center">
+//                 <div
+//                   className="animate-spin w-10 h-10 border-4 rounded-full mx-auto mb-4"
+//                   style={{
+//                     borderColor: "rgba(76, 161, 175, 0.2)",
+//                     borderTopColor: "#4CA1AF",
+//                   }}
+//                 ></div>
+//                 <p className="text-gray-500 font-medium">Loading your clubs...</p>
+//               </div>
+//             ) : error ? (
+//               <div className="bg-red-50 rounded-[2rem] p-6 text-center border border-red-100">
+//                 <div className="text-red-500 mb-2">
+//                   <svg
+//                     className="w-12 h-12 mx-auto"
+//                     fill="none"
+//                     viewBox="0 0 24 24"
+//                     stroke="currentColor"
+//                   >
+//                     <path
+//                       strokeLinecap="round"
+//                       strokeLinejoin="round"
+//                       strokeWidth={2}
+//                       d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                     />
+//                   </svg>
+//                 </div>
+//                 <h3 className="text-lg font-bold text-gray-800 mb-2">
+//                   Unable to Load Clubs
+//                 </h3>
+//                 <p className="text-red-500/70 mb-4">{error}</p>
+//                 <button
+//                   onClick={fetchUserClubs}
+//                   className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
+//                   style={{
+//                     color: "#4CA1AF",
+//                     borderColor: "rgba(76, 161, 175, 0.2)",
+//                   }}
+//                 >
+//                   Try Again
+//                 </button>
+//               </div>
+//             ) : clubs.length === 0 ? (
+//               <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
+//                 <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+//                   <Trophy className="text-gray-400 w-10 h-10" />
+//                 </div>
+//                 <h3 className="text-lg font-bold text-gray-800 mb-2">
+//                   No Clubs Assigned Yet
+//                 </h3>
+//                 <p className="text-gray-500 mb-6">
+//                   You haven't been assigned to any clubs yet.
+//                 </p>
+//                 <button
+//                   className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
+//                   style={{
+//                     background: "linear-gradient(135deg, #4CA1AF, #315169)",
+//                   }}
+//                 >
+//                   Browse Clubs
+//                 </button>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="space-y-4">
+//                   {displayClubs.map((club) => (
+//                     <CompactClubCard
+//                       key={club.clubId}
+//                       club={club}
+//                       onViewDetails={handleViewClubDetails}
+//                     />
+//                   ))}
+//                 </div>
+
+//                 {/* Show More/Less Button */}
+//                 {clubs.length > 3 && (
+//                   <div className="text-center mt-6">
+//                     <button
+//                       onClick={() => setShowAllClubs(!showAllClubs)}
+//                       className="bg-white px-6 py-3 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+//                       style={{
+//                         color: "#4CA1AF",
+//                         borderColor: "rgba(76, 161, 175, 0.2)",
+//                       }}
+//                     >
+//                       {showAllClubs
+//                         ? "Show Less"
+//                         : `Show All (${clubs.length} Clubs)`}
+//                       <svg
+//                         className={`w-4 h-4 transition-transform ${
+//                           showAllClubs ? "rotate-180" : ""
+//                         }`}
+//                         fill="none"
+//                         viewBox="0 0 24 24"
+//                         stroke="currentColor"
+//                       >
+//                         <path
+//                           strokeLinecap="round"
+//                           strokeLinejoin="round"
+//                           strokeWidth={2}
+//                           d="M19 9l-7 7-7-7"
+//                         />
+//                       </svg>
+//                     </button>
+//                   </div>
+//                 )}
+//               </>
+//             )}
+//           </section>
+//         </div>
 //       </main>
 
-//       {/* Profile Form Modal */}
+//       {/* Profile Form Modal - Same as User Dashboard */}
 //       {showProfileForm && (
 //         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
 //           <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
@@ -485,7 +576,7 @@
 //             <form onSubmit={handleSubmitProfile} className="space-y-5">
 //               <div className="grid grid-cols-2 gap-4">
 //                 <FormInput
-//                   label="PRN / Staff ID"
+//                   label="Staff ID (Read Only)"
 //                   value={profileData.prn}
 //                   readOnly
 //                 />
@@ -499,29 +590,52 @@
 //                 />
 //               </div>
 
-//               <div className="space-y-1">
-//                 <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
-//                   Department
-//                 </label>
-//                 <select
-//                   value={profileData.departmentId}
-//                   onChange={(e) =>
-//                     setProfileData({
-//                       ...profileData,
-//                       departmentId: e.target.value,
-//                     })
-//                   }
-//                   className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
-//                   style={{ focus: { ringColor: "#4CA1AF" } }}
-//                   required
-//                 >
-//                   <option value="">Select Department</option>
-//                   {departments.map((dept) => (
-//                     <option key={dept.departmentId} value={dept.departmentId}>
-//                       {dept.name}
-//                     </option>
-//                   ))}
-//                 </select>
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="space-y-1">
+//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+//                     Department
+//                   </label>
+//                   <select
+//                     value={profileData.departmentId}
+//                     onChange={(e) =>
+//                       setProfileData({
+//                         ...profileData,
+//                         departmentId: e.target.value,
+//                       })
+//                     }
+//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+//                     style={{ focus: { ringColor: "#4CA1AF" } }}
+//                     required
+//                   >
+//                     <option value="">Select Dept</option>
+//                     {departments.map((dept) => (
+//                       <option key={dept.departmentId} value={dept.departmentId}>
+//                         {dept.name}
+//                       </option>
+//                     ))}
+//                   </select>
+//                 </div>
+//                 <div className="space-y-1">
+//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+//                     Year
+//                   </label>
+//                   <select
+//                     value={profileData.year}
+//                     onChange={(e) =>
+//                       setProfileData({ ...profileData, year: e.target.value })
+//                     }
+//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+//                     style={{ focus: { ringColor: "#4CA1AF" } }}
+//                     required
+//                   >
+//                     <option value="">Select Year</option>
+//                     {[1, 2, 3, 4].map((y) => (
+//                       <option key={y} value={y}>
+//                         Year {y}
+//                       </option>
+//                     ))}
+//                   </select>
+//                 </div>
 //               </div>
 
 //               <FormInput
@@ -536,7 +650,10 @@
 //                 required
 //               />
 
-//               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-[#4CA1AF] transition-colors cursor-pointer">
+//               <div
+//                 className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer"
+//                 style={{ hover: { borderColor: "#4CA1AF" } }}
+//               >
 //                 <input
 //                   type="file"
 //                   accept="image/*"
@@ -550,7 +667,7 @@
 //                 >
 //                   <Upload size={24} />
 //                   <span className="text-sm font-semibold">
-//                     {selectedImage ? selectedImage.name : "Update Photo"}
+//                     {selectedImage ? selectedImage.name : "Upload Profile Photo"}
 //                   </span>
 //                 </label>
 //               </div>
@@ -561,14 +678,13 @@
 //                 className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
 //                 style={{
 //                   background: "linear-gradient(135deg, #4CA1AF, #315169)",
-//                   boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
 //                 }}
 //               >
 //                 {profileLoading
-//                   ? "Processing..."
+//                   ? "Saving..."
 //                   : userProfile
-//                     ? "Save Profile Changes"
-//                     : "Create Professional Profile"}
+//                   ? "Update Profile"
+//                   : "Complete Profile"}
 //               </button>
 //             </form>
 //           </div>
@@ -578,7 +694,8 @@
 //   );
 // }
 
-// /* HELPER COMPONENTS */
+// /* HELPER COMPONENTS - All styled exactly like User Dashboard */
+
 // function SidebarInfoBox({ label, value }) {
 //   return (
 //     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
@@ -621,6 +738,75 @@
 //   );
 // }
 
+// // Compact Club Card - Exactly like User Dashboard
+// function CompactClubCard({ club, onViewDetails }) {
+//   const clubName = club.clubName || "Unnamed Club";
+//   const clubDescription = club.desc || club.description || "No description available";
+//   const memberCount = club.memberCount || "0";
+//   const clubLogo = club.logo || null;
+
+//   // Generate a consistent color based on club name
+//   const colors = ["blue", "orange", "purple", "green", "red"];
+//   const colorIndex = clubName.length % colors.length;
+//   const color = colors[colorIndex];
+
+//   const bgColors = {
+//     blue: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
+//     orange: { bg: "rgba(249, 115, 22, 0.1)", text: "#F97316" },
+//     purple: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
+//     green: { bg: "rgba(16, 185, 129, 0.1)", text: "#10B981" },
+//     red: { bg: "rgba(239, 68, 68, 0.1)", text: "#EF4444" },
+//   };
+
+//   const handleCardClick = () => {
+//     onViewDetails(club);
+//   };
+
+//   return (
+//     <div
+//       className="bg-gray-50/50 rounded-2xl p-4 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
+//       onClick={handleCardClick}
+//     >
+//       <div className="flex items-center gap-3">
+//         {/* Club Logo/Icon */}
+//         <div
+//           className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+//           style={{ backgroundColor: bgColors[color].bg }}
+//         >
+//           {clubLogo ? (
+//             <img src={clubLogo} alt={clubName} className="w-6 h-6 object-contain" />
+//           ) : (
+//             <Trophy className="w-5 h-5" style={{ color: bgColors[color].text }} />
+//           )}
+//         </div>
+
+//         {/* Club Details */}
+//         <div className="flex-1 min-w-0">
+//           <div className="flex items-center justify-between">
+//             <h3 className="font-extrabold text-gray-800 text-base truncate pr-2" title={clubName}>
+//               {clubName}
+//             </h3>
+//             <span className="text-[8px] font-black bg-white px-2 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+//               CLUB
+//             </span>
+//           </div>
+
+//           <p className="text-xs text-gray-500 mt-1 line-clamp-1" title={clubDescription}>
+//             {clubDescription}
+//           </p>
+
+//           <div className="flex items-center gap-2 mt-2">
+//             <div className="flex items-center gap-1">
+//               <Users className="w-3 h-3 text-gray-400" />
+//               <span className="text-[10px] font-bold text-gray-600">{memberCount}</span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 // function ActionCard({ icon, label, color, onClick }) {
 //   const themes = {
 //     blue: {
@@ -647,19 +833,16 @@
 //   return (
 //     <button
 //       onClick={onClick}
-//       className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
-//       style={{
-//         backgroundColor: themes[color].bg,
-//         hover: { backgroundColor: themes[color].hover },
-//       }}
+//       className="p-6 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-3 group shadow-sm cursor-pointer w-full"
+//       style={{ backgroundColor: themes[color].bg }}
 //     >
 //       <div
-//         className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+//         className="p-3 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
 //         style={{ color: themes[color].icon }}
 //       >
 //         {icon}
 //       </div>
-//       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">
+//       <span className="font-black text-gray-700 uppercase text-[10px] tracking-widest">
 //         {label}
 //       </span>
 //     </button>
@@ -701,6 +884,7 @@ import {
   GraduationCap,
   Building2,
   CalendarPlus,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -728,11 +912,14 @@ export default function TeachersDashboard() {
   const [departments, setDepartments] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoadingClubs, setIsLoadingClubs] = useState(false);
+  const [showAllClubs, setShowAllClubs] = useState(false);
   const assignedStudentsCount = useFilteredUsersCount();
 
   useEffect(() => {
     fetchUserProfile();
     fetchDepartments();
+    fetchUserClubs();
   }, []);
 
   useEffect(() => {
@@ -886,11 +1073,8 @@ export default function TeachersDashboard() {
     return dept ? dept.name : "Not set";
   };
 
-  useEffect(() => {
-    fetchUserClubs();
-  }, []);
-
   const fetchUserClubs = async () => {
+    setIsLoadingClubs(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -917,34 +1101,36 @@ export default function TeachersDashboard() {
     } catch (err) {
       console.error("Error fetching clubs:", err);
       setError(err.response?.data?.message || "Error fetching clubs");
+    } finally {
+      setIsLoadingClubs(false);
     }
   };
 
-  // Handler for viewing club details - navigates to new page
   const handleViewClubDetails = (club) => {
-    // Navigate to club details page with club name as parameter
     navigate(`/club/${club.clubName}/details`);
   };
 
+  const displayClubs = showAllClubs ? clubs : clubs.slice(0, 4); // Show 4 clubs initially for better visibility
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
-      {/* SIDEBAR - Wide and Professional */}
+      {/* SIDEBAR - Same as User Dashboard */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
-        <div className="flex items-center gap-3 mb-10">
+        <div className="flex items-center gap-3 mb-8">
           <div
             className="p-2 rounded-xl"
             style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
           >
             <GraduationCap className="text-white w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
-            TeacherHub
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+            Teacher<span style={{ color: "#4CA1AF" }}>Hub</span>
           </h1>
         </div>
 
-        {/* Profile Section */}
+        {/* Profile Image Section */}
         <div className="relative group mx-auto mb-6">
-          <div className="w-44 h-44 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+          <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
             {profileImage ? (
               <img
                 src={profileImage}
@@ -953,20 +1139,20 @@ export default function TeachersDashboard() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <User size={64} />
+                <User size={48} />
               </div>
             )}
           </div>
           <button
             onClick={() => setShowProfileForm(true)}
-            className="absolute bottom-2 right-2 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+            className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
             style={{ color: "#4CA1AF" }}
           >
             <Edit size={18} />
           </button>
         </div>
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">
             {profileData.fullName || user?.username}
           </h2>
@@ -974,10 +1160,10 @@ export default function TeachersDashboard() {
             className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
             style={{
               backgroundColor: "rgba(76, 161, 175, 0.1)",
-              color: "#26727e",
+              color: "#4CA1AF",
             }}
           >
-            {user?.role || "Professor"}
+            {user?.role || "PROFESSOR"}
           </span>
         </div>
 
@@ -985,18 +1171,16 @@ export default function TeachersDashboard() {
         <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
           <SidebarInfoBox label="Full Name" value={profileData.fullName} />
           <SidebarInfoBox label="Username" value={user?.username} />
-          <SidebarInfoBox label="PRN / Staff ID" value={profileData.prn} />
-          <SidebarInfoBox label="Email Address" value={user?.email} />
+          <SidebarInfoBox label="Staff ID" value={profileData.prn} />
+          <SidebarInfoBox label="Email" value={user?.email} />
           <SidebarInfoBox
             label="Department"
             value={getDepartmentName(profileData.departmentId)}
           />
-          <SidebarInfoBox
-            label="Phone Number"
-            value={profileData.phoneNumber}
-          />
+          <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
         </div>
 
+        {/* Sign Out Button */}
         <button
           onClick={handleLogout}
           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
@@ -1006,149 +1190,238 @@ export default function TeachersDashboard() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 overflow-y-auto max-h-screen">
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
-              Dashboard Overview
+              Dashboard
             </h1>
             <p className="text-gray-500 mt-1">
-              Hope, You had a good day{" "}
-              <span className="font-semibold" style={{ color: "#3191a0" }}>
-                Prof. {profileData.fullName}
+              Welcome back,{" "}
+              <span className="font-semibold" style={{ color: "#4CA1AF" }}>
+                Prof. {profileData.fullName || user?.username}
               </span>
             </p>
           </div>
-          <div
-            className="flex items-center gap-3 px-5 py-2.5 rounded-full border"
-            style={{
-              backgroundColor: "rgba(76, 161, 175, 0.1)",
-              color: "#26727e",
-              borderColor: "rgba(76, 161, 175, 0.2)",
-            }}
-          >
-            <div
-              className="w-2.5 h-2.5 rounded-full animate-pulse"
-              style={{ backgroundColor: "#4CA1AF" }}
-            ></div>
+          <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-xs font-bold uppercase tracking-widest">
-              Systems Active
+              All Systems Live
             </span>
           </div>
         </header>
 
-        {/* Metrics Grid */}
+        {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <StatCard
-            icon={<Calendar className="w-6 h-6" />}
+            icon={<Calendar />}
             label="Events Managed"
             value="0"
             color="blue"
           />
           <StatCard
-            icon={<Trophy className="w-6 h-6" />}
+            icon={<Trophy />}
             label="My Clubs"
             value={clubs.length.toString()}
             color="green"
           />
           <StatCard
-            icon={<Users className="w-6 h-6" />}
+            icon={<Users />}
             label="Assigned Students"
             value={assignedStudentsCount.toString()}
             color="orange"
           />
         </div>
 
-        {/* Clubs List Section */}
-        {clubs.length > 0 && (
-          <section className="mt-12">
-            <div className="flex items-center gap-4 mb-8">
-              <h2 className="text-xl font-bold text-gray-800">My Clubs</h2>
-              <div className="h-[1px] flex-1 bg-gray-100"></div>
+        {/* Two Column Layout - Expanded boxes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT COLUMN - Professor Control Center - EXPANDED */}
+          <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
+            <div className="flex items-center gap-3 mb-10">
+              <div
+                className="w-1.5 h-10 rounded-full"
+                style={{
+                  background: "linear-gradient(to bottom, #4CA1AF, #315169)",
+                }}
+              ></div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Professor Control Center
+              </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-{clubs.map((club) => (
-  <div
-    key={club.clubId}
-    className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-    onClick={() => navigate(`/club/${club.clubName}/details`)} // Changed from `/club/${club.clubId}`
-  >
-    <div className="flex items-center gap-3 mb-4">
-      <div
-        className="p-3 rounded-xl"
-        style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
-      >
-        <Trophy
-          className="w-5 h-5"
-          style={{ color: "#4CA1AF" }}
-        />
-      </div>
-      <h3 className="text-lg font-bold text-gray-800">
-        {club.clubName}
-      </h3>
-    </div>
-
-    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-      {club.desc}
-    </p>
-
-    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Users size={16} />
-        <span>
-          {club.memberCount}{" "}
-          {club.memberCount === 1 ? "Member" : "Members"}
-        </span>
-      </div>
-      {/* <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`/club/${club.clubName}/details`); // Now both do the same thing
-        }}
-        className="text-sm font-semibold hover:underline cursor-pointer"
-        style={{ color: "#4CA1AF" }}
-      >
-        View Details →
-      </button> */}
-    </div>
-  </div>
-))}
+            <div className="grid grid-cols-2 gap-8">
+              <ActionCard
+                icon={<CalendarPlus size={24} />}
+                label="Events"
+                color="blue"
+                onClick={() => navigate("/events")}
+              />
+              <ActionCard
+                icon={<Trash2 size={24} />}
+                label="Delete Event"
+                color="red"
+                onClick={() => {}}
+              />
+              <ActionCard
+                icon={<Users size={24} />}
+                label="Add Student"
+                color="teal"
+                onClick={() => navigate("/add-users-with-club")}
+              />
+              <ActionCard
+                icon={<Building2 size={24} />}
+                label="Club Association"
+                color="orange"
+                onClick={() => navigate("/remove-users-from-club")}
+              />
             </div>
           </section>
-        )}
 
-        {/* CONTROL CENTER */}
-        <section className="mt-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div
-              className="w-1 h-6 rounded-full"
-              style={{
-                background: "linear-gradient(to bottom, #4CA1AF, #315169)",
-              }}
-            ></div>
-            <h2 className="text-xl font-bold text-gray-800">
-              Professor Control Center
-            </h2>
-          </div>
+          {/* RIGHT COLUMN - My Clubs Section - EXPANDED */}
+          <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
+                <div className="h-[1px] w-16 bg-gray-100"></div>
+              </div>
+              <button
+                onClick={fetchUserClubs}
+                className="text-xs font-bold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+                style={{
+                  color: "#4CA1AF",
+                  backgroundColor: "rgba(76, 161, 175, 0.1)",
+                }}
+                disabled={isLoadingClubs}
+              >
+                <svg
+                  className={`w-4 h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                {isLoadingClubs ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <ActionCard icon={<Trash2 />} label="Delete Event" color="red" />
-            <ActionCard icon={<CalendarPlus/>} label="Events" onClick={() => navigate("/events")} color="red" />
-            <ActionCard
-              icon={<Users />}
-              label="Add Student"
-              color="teal"
-              onClick={() => navigate("/add-users-with-club")}
-            />
-            <ActionCard
-              icon={<Building2 />}
-              label="Club Association"
-              color="orange"
-              onClick={() => navigate("/remove-users-from-club")}
-            />
-          </div>
-        </section>
+            {/* Clubs Content - Expanded with more space */}
+            {isLoadingClubs ? (
+              <div className="py-16 text-center">
+                <div
+                  className="animate-spin w-12 h-12 border-4 rounded-full mx-auto mb-4"
+                  style={{
+                    borderColor: "rgba(76, 161, 175, 0.2)",
+                    borderTopColor: "#4CA1AF",
+                  }}
+                ></div>
+                <p className="text-gray-500 font-medium">Loading your clubs...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 rounded-[2rem] p-8 text-center border border-red-100">
+                <div className="text-red-500 mb-3">
+                  <svg
+                    className="w-16 h-16 mx-auto"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  Unable to Load Clubs
+                </h3>
+                <p className="text-red-500/70 mb-5">{error}</p>
+                <button
+                  onClick={fetchUserClubs}
+                  className="bg-white px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
+                  style={{
+                    color: "#4CA1AF",
+                    borderColor: "rgba(76, 161, 175, 0.2)",
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : clubs.length === 0 ? (
+              <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
+                <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <Trophy className="text-gray-400 w-12 h-12" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  No Clubs Assigned Yet
+                </h3>
+                <p className="text-gray-500 mb-8">
+                  You haven't been assigned to any clubs yet.
+                </p>
+                <button
+                  className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                  }}
+                >
+                  Browse Clubs
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-5">
+                  {displayClubs.map((club) => (
+                    <CompactClubCard
+                      key={club.clubId}
+                      club={club}
+                      onViewDetails={handleViewClubDetails}
+                    />
+                  ))}
+                </div>
+
+                {/* Show More/Less Button */}
+                {clubs.length > 4 && (
+                  <div className="text-center mt-8">
+                    <button
+                      onClick={() => setShowAllClubs(!showAllClubs)}
+                      className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+                      style={{
+                        color: "#4CA1AF",
+                        borderColor: "rgba(76, 161, 175, 0.2)",
+                      }}
+                    >
+                      {showAllClubs
+                        ? "Show Less"
+                        : `Show All (${clubs.length} Clubs)`}
+                      <svg
+                        className={`w-4 h-4 transition-transform ${
+                          showAllClubs ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
       </main>
 
       {/* Profile Form Modal */}
@@ -1170,7 +1443,7 @@ export default function TeachersDashboard() {
             <form onSubmit={handleSubmitProfile} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <FormInput
-                  label="PRN / Staff ID"
+                  label="Staff ID (Read Only)"
                   value={profileData.prn}
                   readOnly
                 />
@@ -1184,29 +1457,52 @@ export default function TeachersDashboard() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
-                  Department
-                </label>
-                <select
-                  value={profileData.departmentId}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      departmentId: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
-                  style={{ focus: { ringColor: "#4CA1AF" } }}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((dept) => (
-                    <option key={dept.departmentId} value={dept.departmentId}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+                    Department
+                  </label>
+                  <select
+                    value={profileData.departmentId}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        departmentId: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                    style={{ focus: { ringColor: "#4CA1AF" } }}
+                    required
+                  >
+                    <option value="">Select Dept</option>
+                    {departments.map((dept) => (
+                      <option key={dept.departmentId} value={dept.departmentId}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+                    Year
+                  </label>
+                  <select
+                    value={profileData.year}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, year: e.target.value })
+                    }
+                    className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                    style={{ focus: { ringColor: "#4CA1AF" } }}
+                    required
+                  >
+                    <option value="">Select Year</option>
+                    {[1, 2, 3, 4].map((y) => (
+                      <option key={y} value={y}>
+                        Year {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <FormInput
@@ -1221,7 +1517,10 @@ export default function TeachersDashboard() {
                 required
               />
 
-              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center hover:border-[#4CA1AF] transition-colors cursor-pointer">
+              <div
+                className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer"
+                style={{ hover: { borderColor: "#4CA1AF" } }}
+              >
                 <input
                   type="file"
                   accept="image/*"
@@ -1235,7 +1534,7 @@ export default function TeachersDashboard() {
                 >
                   <Upload size={24} />
                   <span className="text-sm font-semibold">
-                    {selectedImage ? selectedImage.name : "Update Photo"}
+                    {selectedImage ? selectedImage.name : "Upload Profile Photo"}
                   </span>
                 </label>
               </div>
@@ -1246,14 +1545,13 @@ export default function TeachersDashboard() {
                 className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                 style={{
                   background: "linear-gradient(135deg, #4CA1AF, #315169)",
-                  boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
                 }}
               >
                 {profileLoading
-                  ? "Processing..."
+                  ? "Saving..."
                   : userProfile
-                    ? "Save Profile Changes"
-                    : "Create Professional Profile"}
+                  ? "Update Profile"
+                  : "Complete Profile"}
               </button>
             </form>
           </div>
@@ -1264,6 +1562,7 @@ export default function TeachersDashboard() {
 }
 
 /* HELPER COMPONENTS */
+
 function SidebarInfoBox({ label, value }) {
   return (
     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
@@ -1306,6 +1605,78 @@ function StatCard({ icon, label, value, color }) {
   );
 }
 
+// Compact Club Card - Expanded version
+function CompactClubCard({ club, onViewDetails }) {
+  const clubName = club.clubName || "Unnamed Club";
+  const clubDescription = club.desc || club.description || "No description available";
+  const memberCount = club.memberCount || "0";
+  const clubLogo = club.logo || null;
+
+  // Generate a consistent color based on club name
+  const colors = ["blue", "orange", "purple", "green", "red"];
+  const colorIndex = clubName.length % colors.length;
+  const color = colors[colorIndex];
+
+  const bgColors = {
+    blue: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
+    orange: { bg: "rgba(249, 115, 22, 0.1)", text: "#F97316" },
+    purple: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
+    green: { bg: "rgba(16, 185, 129, 0.1)", text: "#10B981" },
+    red: { bg: "rgba(239, 68, 68, 0.1)", text: "#EF4444" },
+  };
+
+  const handleCardClick = () => {
+    onViewDetails(club);
+  };
+
+  return (
+    <div
+      className="bg-gray-50/50 rounded-2xl p-5 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
+      onClick={handleCardClick}
+    >
+      <div className="flex items-center gap-4">
+        {/* Club Logo/Icon - Larger */}
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: bgColors[color].bg }}
+        >
+          {clubLogo ? (
+            <img src={clubLogo} alt={clubName} className="w-7 h-7 object-contain" />
+          ) : (
+            <Trophy className="w-6 h-6" style={{ color: bgColors[color].text }} />
+          )}
+        </div>
+
+        {/* Club Details - More spacing */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>
+              {clubName}
+            </h3>
+            <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+              CLUB
+            </span>
+          </div>
+
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2" title={clubDescription}>
+            {clubDescription}
+          </p>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-gray-400" />
+              <span className="text-xs font-bold text-gray-600">{memberCount} members</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Chevron indicator */}
+        <ChevronRight size={20} className="text-gray-300" />
+      </div>
+    </div>
+  );
+}
+
 function ActionCard({ icon, label, color, onClick }) {
   const themes = {
     blue: {
@@ -1332,14 +1703,11 @@ function ActionCard({ icon, label, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="p-10 rounded-[2.5rem] border border-gray-50/50 transition-all hover:scale-[1.03] flex flex-col items-center justify-center gap-5 group shadow-sm cursor-pointer"
-      style={{
-        backgroundColor: themes[color].bg,
-        hover: { backgroundColor: themes[color].hover },
-      }}
+      className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
+      style={{ backgroundColor: themes[color].bg }}
     >
       <div
-        className="p-5 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+        className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
         style={{ color: themes[color].icon }}
       >
         {icon}

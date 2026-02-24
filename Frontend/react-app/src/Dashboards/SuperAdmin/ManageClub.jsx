@@ -1243,6 +1243,7 @@ const EditIcon = (props) => (<svg {...props} className={`w-5 h-5 transition dura
 const DeleteIcon = (props) => (<svg {...props} className={`w-5 h-5 transition duration-200 ${props.className || ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>);
 const MembersIcon = (props) => (<svg {...props} className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.05-.97.13C16.51 14.15 18 15.35 18 16v3h5v-2.5c0-2.33-4.67-3.5-7-3.5z" /></svg>);
 const EventsIcon = (props) => (<svg {...props} className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5z" /></svg>);
+const ArrowLeftIcon = (props) => (<svg {...props} className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>);
 
 // ----------------------------------------------------------------
 // MAIN COMPONENT
@@ -1304,6 +1305,15 @@ export default function ManageClubs() {
         border: 1px solid #f3f4f6; box-shadow: 0 4px 20px rgba(0,0,0,0.03); cursor: pointer;
     }
     .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(76,161,175,0.1); }
+    @keyframes blob {
+      0% { transform: translate(0px, 0px) scale(1); }
+      33% { transform: translate(30px, -50px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+      100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob { animation: blob 7s infinite; }
+    .animation-delay-2000 { animation-delay: 2s; }
+    .animation-delay-4000 { animation-delay: 4s; }
   `;
 
   // Cleanup blob URLs on unmount
@@ -1537,13 +1547,30 @@ export default function ManageClubs() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Dashboard...</div>;
 
   return (
-    <div className="min-h-screen p-6 sm:p-10 flex items-start justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
-      {/* Animated Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-[#4CA1AF] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+
+      {/* Animated Background Blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-[#4CA1AF] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Sticky Back Button Bar - ClubDetails Style */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <button
+              onClick={handleGoBack}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
+            >
+              <ArrowLeftIcon className="group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Dashboard</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* MODALS */}
       {showAddClubModal && (
@@ -1577,143 +1604,132 @@ export default function ManageClubs() {
       />
 
       {/* DASHBOARD CONTAINER */}
-      <div className="w-full max-w-7xl bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-        <header className="p-8 border-b border-gray-100 rounded-t-3xl shadow-inner" style={{ background: 'linear-gradient(135deg, #4CA1AF, #315169)' }}>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full lg:w-auto">
-              <button
-                onClick={handleGoBack}
-                className="group flex items-center gap-3 backdrop-blur-lg border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-                style={{ background: "rgb(255, 255, 255)", backdropFilter: "blur(8px)", color: '#4CA1AF' }}
-              >
-                <div className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: 'rgba(76, 161, 175, 0.1)' }}>
-                  <svg className="w-3.5 h-3.5" style={{ color: '#4CA1AF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                </div>
-              </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+          <header className="p-8 border-b border-gray-100 rounded-t-3xl shadow-inner" style={{ background: 'linear-gradient(135deg, #4CA1AF, #315169)' }}>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
               <div className="text-left">
                 <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
                   ClubLink Stellar Dashboard
                 </h1>
                 <p className="mt-2 text-base sm:text-lg font-light text-white/90">Manage all college clubs with ease and style.</p>
               </div>
+              <button className="flex-shrink-0 bg-white font-bold rounded-full py-3 px-8 shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer" style={{ color: '#4CA1AF' }} onClick={() => setShowAddClubModal(true)}>
+                + Add New Club
+              </button>
             </div>
-            <button className="flex-shrink-0 bg-white font-bold rounded-full py-3 px-8 shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer" style={{ color: '#4CA1AF' }} onClick={() => setShowAddClubModal(true)}>
-              + Add New Club
-            </button>
-          </div>
-        </header>
+          </header>
 
-        <div className="flex flex-col lg:flex-row min-h-[70vh]">
-          {/* LEFT PANEL */}
-          <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
-            <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
-            <div className="overflow-y-auto max-h-[60vh] lg:max-h-full space-y-2 pr-2">
-              {clubs.map((club) => (
-                <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
-                  <div className="flex flex-col">
-                    <span className={`font-display text-lg font-bold ${selectedClub?.clubId === club.clubId ? "text-[#4CA1AF]" : "text-gray-700 uppercase tracking-wide"}`}>{club.clubName}</span>
-                    <div className="mt-2 flex items-center">
-                      <div className={`px-2 py-0.5 rounded-md flex items-center gap-1.5 ${club.isActive ? "bg-green-50" : "bg-gray-100"}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${club.isActive ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
-                        <span className={`text-[10px] font-bold uppercase ${club.isActive ? "text-green-600" : "text-gray-500"}`}>{club.isActive ? "Active" : "Inactive"}</span>
+          <div className="flex flex-col lg:flex-row min-h-[70vh]">
+            {/* LEFT PANEL */}
+            <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
+              <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
+              <div className="overflow-y-auto max-h-[60vh] lg:max-h-full space-y-2 pr-2">
+                {clubs.map((club) => (
+                  <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
+                    <div className="flex flex-col">
+                      <span className={`font-display text-lg font-bold ${selectedClub?.clubId === club.clubId ? "text-[#4CA1AF]" : "text-gray-700 uppercase tracking-wide"}`}>{club.clubName}</span>
+                      <div className="mt-2 flex items-center">
+                        <div className={`px-2 py-0.5 rounded-md flex items-center gap-1.5 ${club.isActive ? "bg-green-50" : "bg-gray-100"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${club.isActive ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
+                          <span className={`text-[10px] font-bold uppercase ${club.isActive ? "text-green-600" : "text-gray-500"}`}>{club.isActive ? "Active" : "Inactive"}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* RIGHT PANEL */}
-          <div className="lg:w-2/3 p-8 sm:p-12">
-            {selectedClub ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 mb-8 gap-4">
-                  <div>
-                    <h2 className="text-5xl font-black tracking-tight" style={{ color: '#2d8391' }}>{selectedClub.clubName}</h2>
-                    <p className="text-gray-400 mt-2 font-medium">Description: {selectedClub.clubDesc}</p>
-                    <p className="text-gray-400 mt-2 font-medium">Club Added on {formatDate(selectedClub.createdAt)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {selectedClub?.isActive ? (
-                      <button onClick={() => { setClubToDelete(selectedClub); setIsModalOpen(true); }} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors cursor-pointer" disabled={deleteLoading} title="Deactivate Club">
-                        <DeleteIcon />
-                      </button>
-                    ) : (
-                      <button onClick={() => handleActivateClub(selectedClub.clubId)} className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors cursor-pointer" title="Activate Club">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {(() => {
-                  const details = generateRandomDetails(selectedClub);
-                  return (
-                    <div className="space-y-10">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div
-                          className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
-                          onClick={selectedClub?.isActive ? handleMembersClick : null}
-                        >
-                          <MembersIcon className="text-[#5db2be] mb-3 group-hover:scale-110 transition-transform" />
-                          <span className="text-4xl font-black text-[#5db2be] group-hover:text-[#315169]">{adminData?.totalCount || 0}</span>
-                          <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-[#5db2be]">Active Members</p>
-                        </div>
-                        <div className="stat-card p-6 rounded-2xl">
-                          <EventsIcon className="text-[#5db2be] mb-3" />
-                          <span className="text-4xl font-black text-[#5db2be]">{details.upcomingEvents}</span>
-                          <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-6">
-                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                          <span className="w-1 h-6 rounded-full" style={{ backgroundColor: '#4CA1AF' }}></span> Leadership & Contact
-                        </h3>
-                        <div className="grid gap-4">
-                          <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-                            <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
-                            <div className="flex flex-col sm:flex-row items-center gap-3">
-                              <span className="font-bold text-black text-center sm:text-left">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
-                              {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
-                                <button onClick={handleOpenClubAdminModal} className={`text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
-                                  + Assign Admin
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-                            <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Teacher Advisor:</span>
-                            <div className="flex items-center gap-3">
-                              <span className="font-bold text-gray-700">{adminData?.teacherName && adminData.teacherName !== "Not Assigned" ? adminData.teacherName : <span className="text-gray-400 italic">Not Assigned</span>}</span>
-                              {(!adminData?.teacherName || adminData.teacherName === "Not Assigned") && (
-                                <button onClick={handleOpenTeacherModal} className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
-                                  Assign Now
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                            <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Contact Email:</span>
-                            <span className="font-bold text-black">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
-                          </div>
-                        </div>
-                      </div>
+            {/* RIGHT PANEL */}
+            <div className="lg:w-2/3 p-8 sm:p-12">
+              {selectedClub ? (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 mb-8 gap-4">
+                    <div>
+                      <h2 className="text-5xl font-black tracking-tight" style={{ color: '#2d8391' }}>{selectedClub.clubName}</h2>
+                      <p className="text-gray-400 mt-2 font-medium">Description: {selectedClub.clubDesc}</p>
+                      <p className="text-gray-400 mt-2 font-medium">Club Added on {formatDate(selectedClub.createdAt)}</p>
                     </div>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-300">
-                <MembersIcon className="w-12 h-12 mb-4" />
-                <p className="font-bold uppercase tracking-widest text-sm">Select a club to manage</p>
-              </div>
-            )}
+                    <div className="flex items-center gap-2">
+                      {selectedClub?.isActive ? (
+                        <button onClick={() => { setClubToDelete(selectedClub); setIsModalOpen(true); }} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors cursor-pointer" disabled={deleteLoading} title="Deactivate Club">
+                          <DeleteIcon />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleActivateClub(selectedClub.clubId)} className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors cursor-pointer" title="Activate Club">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const details = generateRandomDetails(selectedClub);
+                    return (
+                      <div className="space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div
+                            className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
+                            onClick={selectedClub?.isActive ? handleMembersClick : null}
+                          >
+                            <MembersIcon className="text-[#5db2be] mb-3 group-hover:scale-110 transition-transform" />
+                            <span className="text-4xl font-black text-[#5db2be] group-hover:text-[#315169]">{adminData?.totalCount || 0}</span>
+                            <p className="text-xs font-bold uppercase text-gray-400 group-hover:text-[#5db2be]">Active Members</p>
+                          </div>
+                          <div className="stat-card p-6 rounded-2xl">
+                            <EventsIcon className="text-[#5db2be] mb-3" />
+                            <span className="text-4xl font-black text-[#5db2be]">{details.upcomingEvents}</span>
+                            <p className="text-xs font-bold uppercase text-gray-400">Planned Events</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-6">
+                          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <span className="w-1 h-6 rounded-full" style={{ backgroundColor: '#4CA1AF' }}></span> Leadership & Contact
+                          </h3>
+                          <div className="grid gap-4">
+                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
+                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
+                              <div className="flex flex-col sm:flex-row items-center gap-3">
+                                <span className="font-bold text-black text-center sm:text-left">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
+                                {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
+                                  <button onClick={handleOpenClubAdminModal} className={`text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
+                                    + Assign Admin
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
+                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Teacher Advisor:</span>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-gray-700">{adminData?.teacherName && adminData.teacherName !== "Not Assigned" ? adminData.teacherName : <span className="text-gray-400 italic">Not Assigned</span>}</span>
+                                {(!adminData?.teacherName || adminData.teacherName === "Not Assigned") && (
+                                  <button onClick={handleOpenTeacherModal} className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
+                                    Assign Now
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Contact Email:</span>
+                              <span className="font-bold text-black">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-300">
+                  <MembersIcon className="w-12 h-12 mb-4" />
+                  <p className="font-bold uppercase tracking-widest text-sm">Select a club to manage</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

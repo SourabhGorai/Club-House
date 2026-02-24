@@ -148,30 +148,50 @@ const RemoveUsersFromAnyClub = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased">
       {/* Animated Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-2000" style={{ backgroundColor: "#4CA1AF" }}></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+      </div>
       
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
-        {/* Header with Back Button */}
-        <div className="mb-8 flex items-start gap-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer mt-2"
-            style={{
-              background: "rgba(255,255,255,0.7)",
-              backdropFilter: "blur(8px)",
-              color: "#4CA1AF",
-            }}
-          >
-            <div
-              className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+      <style jsx>{`
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
+
+      {/* Sticky Back Button Bar - ClubDetails Style */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
               <svg
-                className="w-3.5 h-3.5"
+                className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
                 style={{ color: "#4CA1AF" }}
                 fill="none"
                 stroke="currentColor"
@@ -184,30 +204,33 @@ const RemoveUsersFromAnyClub = () => {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-            </div>
-            {/* <span className="text-sm">Back</span> */}
-          </button>
-
-          <div className="flex-1">
-            <div
-              className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
-              style={{
-                backgroundColor: "rgba(76, 161, 175, 0.1)",
-                color: "#37828d",
-              }}
-            >
-              <ShieldCheck size={14} />
-              <span>Membership Management</span>
-            </div>
-            
-            <h1 className="text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-[#4CA1AF] to-[#162F38] bg-clip-text text-transparent">
-              Remove User from Club
-            </h1>
-
-            <p className="text-slate-500 mt-2 text-lg font-medium">
-              Refine your organization by managing club rosters and permissions.
-            </p>
+              <span>Back to Dashboard</span>
+            </button>
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div
+            className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
+            style={{
+              backgroundColor: "rgba(76, 161, 175, 0.1)",
+              color: "#37828d",
+            }}
+          >
+            <ShieldCheck size={14} />
+            <span>Membership Management</span>
+          </div>
+          
+          <h1 className="text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-[#4CA1AF] to-[#162F38] bg-clip-text text-transparent">
+            Remove User from Club
+          </h1>
+
+          <p className="text-slate-500 mt-2 text-lg font-medium">
+            Refine your organization by managing club rosters and permissions.
+          </p>
         </div>
 
         {/* 2. Search & Filter Bar */}
@@ -216,7 +239,7 @@ const RemoveUsersFromAnyClub = () => {
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors"
               size={20}
-              style={{ color: "var(--primary-color-1)" }}
+              style={{ color: "#4CA1AF" }}
             />
             <input
               type="text"
@@ -231,7 +254,7 @@ const RemoveUsersFromAnyClub = () => {
             <Filter
               className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors"
               size={20}
-              style={{ color: "var(--primary-color-1)" }}
+              style={{ color: "#4CA1AF" }}
             />
             <select
               className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"

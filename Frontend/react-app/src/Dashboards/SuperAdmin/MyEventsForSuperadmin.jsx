@@ -45,6 +45,7 @@ import {
   Plus,
   Briefcase,
   X,
+  ArrowLeft,
 } from "lucide-react";
 
 const MyEventsForSuperadmin = () => {
@@ -428,56 +429,39 @@ const MyEventsForSuperadmin = () => {
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header with Back Button - Same as ClubAdminsManagement */}
-        <div className="mb-8 flex items-center gap-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-            style={{
-              background: "rgba(255,255,255,0.7)",
-              backdropFilter: "blur(8px)",
-              color: "#4CA1AF",
-            }}
-          >
-            <div
-              className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+      {/* Sticky Back Button Bar - ClubDetails Style */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                style={{ color: "#4CA1AF" }}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-            </div>
-          </button>
-
-          <div>
-            <h1 className="text-5xl font-bold mb-4">
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Event Management
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl">
-              Monitor, manage, and analyze all events across the platform
-            </p>
+              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Dashboard</span>
+            </button>
           </div>
+        </div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-5xl font-bold mb-4">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Event Management
+            </span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl">
+            Monitor, manage, and analyze all events across the platform
+          </p>
         </div>
 
         {/* Admin Stats Cards */}

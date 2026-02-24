@@ -35,6 +35,7 @@ import {
   X,
   Edit,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 
 const PreviousEvents = () => {
@@ -53,6 +54,7 @@ const PreviousEvents = () => {
   const [showClubDropdown, setShowClubDropdown] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [clubs, setClubs] = useState([]);
+  const [userMap, setUserMap] = useState({}); // Cache for user names
   
   const navigate = useNavigate();
 
@@ -88,6 +90,42 @@ const PreviousEvents = () => {
       setLoading(false);
     }
   }, []);
+
+  // Fetch user name by PRN
+  const fetchUserNameByPrn = async (token, prn) => {
+    // Check cache first
+    if (userMap[prn]) {
+      return userMap[prn];
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/profiles/prn/${prn}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const profile = response.data.data;
+        const name = profile.name || profile.fullName || prn;
+        
+        // Update cache
+        setUserMap(prev => ({
+          ...prev,
+          [prn]: name
+        }));
+        
+        return name;
+      }
+    } catch (err) {
+      console.error(`Error fetching user for PRN ${prn}:`, err);
+    }
+    return prn;
+  };
 
   const fetchDepartments = async (token) => {
     try {
@@ -234,7 +272,26 @@ const PreviousEvents = () => {
         const closedEvents = response.data.data.filter(
           (event) => event.enrollmentStatus?.toUpperCase() === "CLOSED",
         );
-        setEvents(closedEvents);
+        
+        // Fetch creator names for closed events
+        if (closedEvents.length > 0) {
+          const eventsWithCreatorInfo = await Promise.all(
+            closedEvents.map(async (event) => {
+              // If creatorName is missing or looks like a PRN (numeric), fetch the actual name
+              if (!event.creatorName || event.creatorName.match(/^\d+$/)) {
+                const creatorName = await fetchUserNameByPrn(token, event.creatorPrn);
+                return {
+                  ...event,
+                  creatorName: creatorName
+                };
+              }
+              return event;
+            })
+          );
+          setEvents(eventsWithCreatorInfo);
+        } else {
+          setEvents(closedEvents);
+        }
       } else {
         throw new Error(response?.data?.message || "Failed to fetch events");
       }
@@ -447,70 +504,40 @@ const PreviousEvents = () => {
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header with Back Button */}
-        <div className="mb-8 flex items-center gap-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-            style={{
-              background: "rgba(255,255,255,0.7)",
-              backdropFilter: "blur(8px)",
-              color: "#4CA1AF",
-            }}
-          >
-            <div
-              className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+      {/* Sticky Back Button Bar - ClubDetails Style */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                style={{ color: "#4CA1AF" }}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-            </div>
-            {/* <span className="text-sm">Back</span> */}
-          </button>
-
-          <div className="flex-1">
-            <div className="inline-block mb-2">
-              {/* <span
-                className="text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center"
-                style={{
-                  background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-                }}
-              >
-                <Award className="w-4 h-4 mr-2" />
-                COMPLETED EVENTS
-              </span> */}
-            </div>
-
-            <h1 className="text-5xl font-bold mb-2">
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Previous Events
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl">
-              Explore events that have concluded. Relive the memories and see what
-              you missed!
-            </p>
+              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <span>Back to Dashboard</span>
+            </button>
           </div>
+        </div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-5xl font-bold mb-2">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Previous Events
+            </span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl">
+            Explore events that have concluded. Relive the memories and see what
+            you missed!
+          </p>
         </div>
 
         {/* Stats Card */}
@@ -546,7 +573,7 @@ const PreviousEvents = () => {
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search previous events by title, description, or organizer..."
+                  placeholder="Search previous events by title, description, organizer, or creator..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
@@ -903,7 +930,7 @@ const PreviousEvents = () => {
                               <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                                 <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
                                 <span className="truncate">
-                                  {event.speakerName}
+                                  {event.speaker || event.organizer}
                                 </span>
                               </p>
                             </div>
@@ -986,7 +1013,7 @@ const PreviousEvents = () => {
                               </div>
                             </div>
 
-                            {/* Creator Name */}
+                            {/* Creator Name - Fixed to show actual name instead of PRN */}
                             <div
                               className="p-1.5 rounded-lg"
                               style={{
@@ -999,7 +1026,7 @@ const PreviousEvents = () => {
                               </p>
                               <p className="text-xs font-medium text-white flex items-center">
                                 <span className="truncate">
-                                  {event.creatorName || "Unknown"}
+                                  {event.creatorName || event.organizer || "Unknown"}
                                 </span>
                               </p>
                             </div>
