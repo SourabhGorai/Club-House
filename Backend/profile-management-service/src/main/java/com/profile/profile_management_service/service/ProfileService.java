@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service interface for Profile Management operations
@@ -80,6 +81,7 @@ public interface ProfileService {
      */
     byte[] getProfileImage(String prn);
 
+    Map<String, String> getImageUrlsByPrns(List<String> prns);
     /**
      * Delete profile image
      * @param prn PRN of the profile

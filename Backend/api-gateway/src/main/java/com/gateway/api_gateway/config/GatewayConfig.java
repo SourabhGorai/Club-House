@@ -110,7 +110,8 @@ public class GatewayConfig {
                         .path(
                                 "/api/profiles/bulkCreate",
                                 "/api/profiles/batch",
-                                "/api/profiles/bulk"
+                                "/api/profiles/bulk",
+                                "/api/profiles/image-urls"
                         )
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
@@ -266,6 +267,7 @@ public class GatewayConfig {
 
                 .route("user-club-write", r -> r
                         .path("/api/user-clubs/getAll",
+                                "/api/user-clubs/getAll/paged",
                                 "/api/user-clubs/bulk",
                                 "/api/user-clubs/permanentlyDelete/{prn}")
                         .and()
@@ -278,9 +280,13 @@ public class GatewayConfig {
 
                 .route("user-club-teacher", r -> r
                         .path("/api/user-clubs/user/**",
-                                "/api/user-clubs")
+                                "/api/user-clubs",
+                                "/api/user-clubs/user/{prn}/club/{clubName}",
+                                "/api/user-clubs/changeClubRole"
+                        )
+
                         .and()
-                        .method("GET", "POST")
+                        .method("GET", "POST", "DELETE")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
@@ -291,7 +297,8 @@ public class GatewayConfig {
                         .path(
                                 "/api/user-clubs/getAllByRole/{role}",
                                 "/api/user-clubs/club/**",
-                                "/api/user-clubs/getMyClubs"
+                                "/api/user-clubs/getMyClubs",
+                                "/api/user-clubs/getAllClubRoles"
 
                         )
                         .and()
@@ -305,7 +312,10 @@ public class GatewayConfig {
                 // ==================== EVENT-SERVICE ====================
 
                 .route("event-admin", r -> r
-                        .path("/api/events")
+                        .path(
+                                "/api/events",
+                                "/api/events/paged"
+                        )
                         .and()
                         .method("GET")
                         .filters(f -> f
@@ -318,13 +328,14 @@ public class GatewayConfig {
                         .path(
                                 "/api/events/create",
                                 "/api/events/myEvents",
+                                "/api/events/myEvents/paged",
                                 "/api/events/targetTypes",
-                                "/api/events/getByTargetType/{targetType}",
                                 "/api/events/getByEventCreator/{prn}",
+                                "/api/events/getByEventCreator/{prn}/paged",
                                 "/api/events/ratings/{rating}",
-                                "/api/events/endEvent/{eventId}",
-                                "/api/events/deleteEvent/{eventId}",
-                                "/api/events/enrollment/{status}"
+                                "/api/events/ratings/{rating}/paged",
+                                "/api/events/completeEvent/{eventId}",
+                                "/api/events/deleteEvent/{eventId}"
                         )
                         .and()
                         .method("GET", "POST")
@@ -338,8 +349,15 @@ public class GatewayConfig {
                         .path(
                                 "/api/events/getById/{eventId}",
                                 "/api/events/organizer/{organizer}",
+                                "/api/events/organizer/{organizer}/paged",
                                 "/api/events/targetData/{targetType}/{targetId}",
-                                "/api/events/endEvent/{status}"
+                                "/api/events/targetData/{targetType}/{targetId}/paged",
+                                "/api/events/endEvent/{status}",
+                                "/api/events/endEvent/{status}/paged",
+                                "/api/events/getByTargetType/{targetType}",
+                                "/api/events/getByTargetType/{targetType}/paged",
+                                "/api/events/enrollment/{status}/paged",
+                                "/api/events/enrollment/{status}"
                         )
                         .and()
                         .method("GET")
@@ -352,6 +370,37 @@ public class GatewayConfig {
                 .route("enrollment-all", r -> r
                         .path(
                                 "/api/enrollments/**"
+                        )
+                        .and()
+                        .method("GET", "POST", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                // *********** ATTENDANCE ***********
+
+                .route("attendance-teachers", r -> r
+                        .path(
+                                "/api/attendance/start/**",
+                                "/api/attendance/qr-code/**",
+                                "/api/attendance/stop/**",
+                                "/api/attendance/list/**"
+                        )
+                        .and()
+                        .method("GET", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("attendance-all", r -> r
+                        .path(
+                                "/api/attendance/mark/**",
+                                "/api/attendance/my-attendance",
+                                "/api/attendance/status/**"
                         )
                         .and()
                         .method("GET", "POST", "DELETE")

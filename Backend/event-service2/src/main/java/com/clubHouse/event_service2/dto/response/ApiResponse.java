@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -26,6 +26,7 @@ public class ApiResponse<T> {
     private String errorCode;
     private List<String> errors;
 
+    // Success response
     public static <T> ApiResponse<T> success(String message, T data) {
         return ApiResponse.<T>builder()
                 .success(true)
@@ -35,6 +36,7 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // Error response - simple message
     public static <T> ApiResponse<T> error(String message) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -43,6 +45,7 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // Error response - with error code
     public static <T> ApiResponse<T> error(String message, String errorCode) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -52,6 +55,7 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // Error response - with multiple errors
     public static <T> ApiResponse<T> error(String message, List<String> errors) {
         return ApiResponse.<T>builder()
                 .success(false)
@@ -60,4 +64,17 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+
+    // ========== NEW METHOD ==========
+    // Error response - with error code, message, and data
+    public static <T> ApiResponse<T> error(String errorCode, String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .errorCode(errorCode)
+                .message(message)
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    // ================================
 }

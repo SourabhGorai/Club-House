@@ -1,6 +1,5 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.request;
 
-import com.clubHouse.event_service2.model.Events;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

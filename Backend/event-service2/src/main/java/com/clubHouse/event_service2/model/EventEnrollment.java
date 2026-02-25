@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-        name = "event_enrollments",
+        name = "event_enrollments2",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"event_id", "prn"})
         },

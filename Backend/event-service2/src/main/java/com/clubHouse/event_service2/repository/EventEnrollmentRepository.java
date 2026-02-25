@@ -1,6 +1,7 @@
 package com.clubHouse.event_service2.repository;
 
 import com.clubHouse.event_service2.model.EventEnrollment;
+import com.clubHouse.event_service2.model.Events;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -23,4 +24,8 @@ public interface EventEnrollmentRepository extends JpaRepository<EventEnrollment
     int deleteByPrn(String prn);
 
     int deleteByEvent_EventIdIn(List<Long> eventIds);
+
+    Long countByEvent(Events event);
+
+    boolean existsByEventAndPrn(Events event, String prn);
 }

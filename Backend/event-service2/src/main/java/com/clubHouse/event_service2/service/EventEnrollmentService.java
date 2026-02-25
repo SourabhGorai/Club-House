@@ -2,10 +2,10 @@ package com.clubHouse.event_service2.service;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.config.CacheConfig;
-import com.clubHouse.event_service2.dto.CompleteEnrollmentResponse;
-import com.clubHouse.event_service2.dto.EnrollmentResponse;
-import com.clubHouse.event_service2.dto.EventResponse;
-import com.clubHouse.event_service2.dto.ProfileResponse;
+import com.clubHouse.event_service2.dto.response.CompleteEnrollmentResponse;
+import com.clubHouse.event_service2.dto.response.EnrollmentResponse;
+import com.clubHouse.event_service2.dto.response.EventResponse;
+import com.clubHouse.event_service2.dto.response.ProfileResponse;
 import com.clubHouse.event_service2.exception.NotFoundException;
 import com.clubHouse.event_service2.exception.ServiceException;
 import com.clubHouse.event_service2.mapper.EnrollmentMapper;
@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,16 +41,27 @@ public class EventEnrollmentService {
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, key = "#prn"),
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, key = "#prn"),
-            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId"),
+            // ADDED: Evict EVENT_BY_ID cache because currEnrollments changed
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
+            // ADDED: Evict list caches that include enrollment counts
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
     })
+    @Transactional
     public EnrollmentResponse enrollMe(Long eventId, String prn) throws ServiceException {
 
         log.info("Attempting to enroll {} in event with ID {}", prn, eventId);
 
         Optional<EventEnrollment> exists = enrollmentRepository.findByEvent_EventIdAndPrn(eventId, prn);
 
-        if(exists.isPresent()){
-            log.warn("You are already enrolled");
+        if (exists.isPresent()) {
+            log.warn("User {} is already enrolled in event {}", prn, eventId);
             return EnrollmentMapper.toResponse(exists.get(), prn);
         }
 
@@ -57,12 +69,27 @@ public class EventEnrollmentService {
                 () -> new NotFoundException("Events", eventId.toString())
         );
 
+        // Check enrollment capacity
+        if (event.getMaxEnrollments() != null &&
+                event.getCurrEnrollments() >= event.getMaxEnrollments()) {
+            log.info("Event {} is full. Current: {}, Max: {}",
+                    eventId, event.getCurrEnrollments(), event.getMaxEnrollments());
+            throw new ServiceException("Seats are full.");
+        }
+
         EventEnrollment newEnrollment = EventEnrollment.builder()
                 .prn(prn)
                 .event(event)
                 .build();
 
         EventEnrollment saved = enrollmentRepository.save(newEnrollment);
+
+        // Increment enrollment count
+        event.setCurrEnrollments(event.getCurrEnrollments() + 1);
+        eventRepository.save(event);
+
+        log.info("Successfully enrolled {} in event {}. Current enrollments: {}/{}",
+                prn, eventId, event.getCurrEnrollments(), event.getMaxEnrollments());
 
         return EnrollmentMapper.toResponse(saved, prn);
     }
@@ -131,7 +158,7 @@ public class EventEnrollmentService {
                 .collect(Collectors.toMap(
                         ProfileResponse::getPrn,
                         p -> p,
-                        (a,b) -> a
+                        (a, b) -> a
                 ));
 
         return enrollments.stream()
@@ -156,21 +183,66 @@ public class EventEnrollmentService {
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
-            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, allEntries = true)
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
     })
+    @Transactional
     public void revokeMyEnrollment(Long enrollmentId) {
-        log.info("Attempting to delete enrollment");
+
+        log.info("Attempting to delete enrollment with ID: {}", enrollmentId);
+
+        EventEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new NotFoundException("Enrollment", enrollmentId.toString()));
+
+        Events event = enrollment.getEvent();
+
+        // Decrement enrollment count (with safety check)
+        if (event.getCurrEnrollments() > 0) {
+            event.setCurrEnrollments(event.getCurrEnrollments() - 1);
+            eventRepository.save(event);
+            log.info("Decremented enrollment count for event {}. Current: {}",
+                    event.getEventId(), event.getCurrEnrollments());
+        } else {
+            log.warn("Event {} already has 0 enrollments, cannot decrement", event.getEventId());
+        }
+
         enrollmentRepository.deleteById(enrollmentId);
+
     }
 
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
-            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
     })
-    public void revokeEnrollmentsOfEvent(Long eventId){
+    @Transactional
+    public void revokeEnrollmentsOfEvent(Long eventId) {
         log.info("Attempting to delete all the enrollments with event id: {}", eventId);
+
         enrollmentRepository.deleteByEvent_EventId(eventId);
+
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event", eventId.toString()));
+
+        event.setCurrEnrollments(0);
+        eventRepository.save(event);
+
+        log.info("Reset enrollment count to 0 for event {}", eventId);
     }
 
 

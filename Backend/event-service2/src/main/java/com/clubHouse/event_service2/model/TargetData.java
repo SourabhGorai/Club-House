@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "target_data")
 public class TargetData {
 
     @Id

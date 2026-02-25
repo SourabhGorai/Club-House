@@ -1,7 +1,7 @@
 package com.clubHouse.event_service2.client;
 
-import com.clubHouse.event_service2.dto.ApiResponse;
-import com.clubHouse.event_service2.dto.ProfileResponse;
+import com.clubHouse.event_service2.dto.response.ApiResponse;
+import com.clubHouse.event_service2.dto.response.ProfileResponse;
 import com.clubHouse.event_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

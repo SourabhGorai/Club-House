@@ -29,7 +29,7 @@
         </processorPath>
         <module name="event-service2" />
       </profile>
-      <profile name="Annotation profile for profile-management-service" enabled="true">
+      <profile name="Annotation profile for notification-service2" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -37,8 +37,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="club-service2" />
-        <module name="independent-services" />
         <module name="notification-service2" />
+        <module name="independent-services" />
         <module name="profile-management-service" />
         <module name="club-service" />
       </profile>

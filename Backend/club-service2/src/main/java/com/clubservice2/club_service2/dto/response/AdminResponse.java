@@ -20,6 +20,7 @@ public class AdminResponse {
     // Teacher information
     private String teacherPrn;
     private String teacherName;
+    private String teacherDepartment;
 
     // Club Admin information (can be multiple)
     private List<AdminInfo> clubAdmins;
@@ -34,5 +35,7 @@ public class AdminResponse {
     public static class AdminInfo {
         private String prn;
         private String name;
+        private String department;
+        private int year;
     }
 }

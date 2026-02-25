@@ -11,102 +11,161 @@ import UserManagement from "./Dashboards/SuperAdmin/ManageUsers";
 import AddStudent from "./Dashboards/Teachers/AddStudent";
 import UserRemoveFromClub from "./Dashboards/Teachers/UserRemoveFromClub";
 import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyClub";
+import MyEvents from "./components/MyEvents";
+
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
+import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
+import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
+import ClubDetails from "./components/ClubDetails";
+import PreviousEvents from "./Dashboards/Users/PreviousEvents";
+import MyEventsForSuperadmin from "./Dashboards/SuperAdmin/MyEventsForSuperadmin";
 
 export default function App() {
   return (
     <div>
       <Routes>
         <Route path="/" element={<SplashScreen />} />
-        
+
         {/* Auth Routes - Only accessible when NOT logged in */}
-        <Route 
-          path="/mainregister" 
+        <Route
+          path="/mainregister"
           element={
             <AuthRoute>
               <Register />
             </AuthRoute>
-          } 
+          }
         />
-        <Route 
-          path="/otp" 
+        <Route
+          path="/otp"
           element={
             <AuthRoute>
               <OTP />
             </AuthRoute>
-          } 
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <AuthRoute>
               <Login />
             </AuthRoute>
-          } 
+          }
         />
-        <Route 
-          path="/reset-password" 
+        <Route
+          path="/reset-password"
           element={
             <AuthRoute>
               <ForgotPassword />
             </AuthRoute>
-          } 
+          }
         />
 
         {/* Protected Routes - Only accessible when logged in */}
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/manage-clubs" 
+
+        <Route
+          path="/manage-clubs"
           element={
             <ProtectedRoute>
               <ManageClubs />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/manage-users" 
+
+        <Route
+          path="/club-admins"
+          element={
+            <ProtectedRoute>
+              <ClubAdminsManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manage-users"
           element={
             <ProtectedRoute>
               <UserManagement />
             </ProtectedRoute>
-          } 
+          }
         />
 
-         <Route 
-          path="/add-users-with-club" 
+        <Route
+          path="/add-users-with-club"
           element={
             <ProtectedRoute>
               <AddStudent />
             </ProtectedRoute>
-          } 
+          }
         />
 
-          <Route 
-          path="/remove-users-from-club" 
+        <Route
+          path="/remove-users-from-club"
           element={
             <ProtectedRoute>
-              <UserRemoveFromClub/>
+              <UserRemoveFromClub />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/remove-users-from-any-club" 
+        <Route
+          path="/remove-users-from-any-club"
           element={
             <ProtectedRoute>
-              <RemoveUsersFromAnyClub/>
+              <RemoveUsersFromAnyClub />
             </ProtectedRoute>
-          } 
+          }
+        />
+                {/* Add the Create Event route */}
+        <Route
+          path="/create-event"
+          element={
+            <ProtectedRoute>
+              <CreateEvent />
+            </ProtectedRoute>
+          }
+        />
+          <Route path="/club/:clubName/details" element={            <ProtectedRoute>
+              <ClubDetails />
+            </ProtectedRoute> } />
+
+             <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/events-superadmin"
+          element={
+            <ProtectedRoute>
+              <MyEventsForSuperadmin />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/previous-events"
+          element={
+            <ProtectedRoute>
+              <PreviousEvents />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>
+     
+        
+    
     </div>
   );
 }

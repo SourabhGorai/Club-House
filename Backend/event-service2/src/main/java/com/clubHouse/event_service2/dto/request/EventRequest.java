@@ -1,4 +1,4 @@
-package com.clubHouse.event_service2.dto;
+package com.clubHouse.event_service2.dto.request;
 
 import com.clubHouse.event_service2.model.TargetType;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +31,8 @@ public class EventRequest {
 
     private String venue;
 
+    private Integer maxEnrollments;
+
     @NotNull(message = "Target type is required")
     private TargetType target;
 
@@ -38,5 +40,14 @@ public class EventRequest {
 
     @NotNull(message = "Enrollment Deadline is required")
     private LocalDateTime enrollmentDeadline;
+
+    private Double latitude;
+    private Double longitude;
+    private Integer radiusInMeters = 50;
+
+    private LocalDateTime attendanceWindowStart;
+    private LocalDateTime attendanceWindowEnd;
+
+    private int qrRefreshInterval = 120;
 
 }

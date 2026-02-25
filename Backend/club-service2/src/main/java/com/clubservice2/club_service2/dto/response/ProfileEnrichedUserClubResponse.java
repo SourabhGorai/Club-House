@@ -25,4 +25,5 @@ public class ProfileEnrichedUserClubResponse {
     private String department;
     private Integer year;
     private Boolean hasProfileImage;
+    private String imageUrl;
 }

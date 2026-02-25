@@ -27,17 +27,17 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notificationId;
 
-    @NotNull(message = "Event Id is required")
-    private Long eventId;
+    @Enumerated(EnumType.STRING)
+    private NotificationType notificationType;
+
+//    @NotNull(message = "Event Id is required")
+//    private Long eventId;
 
     @NotNull(message = "Title required")
     private String title;
 
     @NotNull(message = "Message required")
     private String message;
-
-    @Enumerated(EnumType.STRING)
-    private NotificationType notificationType;
 
     @Enumerated(EnumType.STRING)
     private SourceType sourceType;
@@ -53,6 +53,6 @@ public class Notification {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private LocalDate validUntil;
+    private LocalDateTime validUntil;
 
 }

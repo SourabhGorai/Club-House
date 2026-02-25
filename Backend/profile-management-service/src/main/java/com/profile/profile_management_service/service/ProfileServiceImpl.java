@@ -356,6 +356,35 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Map<String, String> getImageUrlsByPrns(List<String> prns) {
+        log.debug("Fetching image URLs for {} PRNs", prns.size());
+
+        if (prns == null || prns.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<String> sanitizedPrns = prns.stream()
+                .map(profileMapper::sanitizePrn)
+                .collect(Collectors.toList());
+
+        List<UserProfile> profiles = profileRepository.findByPrnIn(sanitizedPrns);
+
+        Map<String, String> imageUrlMap = new HashMap<>();
+
+        for (UserProfile profile : profiles) {
+            imageUrlMap.put(
+                    profile.getPrn(),
+                    profile.getProfileImage() != null
+                            ? "/api/profiles/" + profile.getPrn() + "/image"
+                            : null   // HashMap allows null values, unlike Collectors.toMap()
+            );
+        }
+
+        return imageUrlMap;
+    }
+
+    @Override
     @Caching(evict = {
             @CacheEvict(value = "profileImage", key = "#prn"),
             @CacheEvict(value = "imageMetadata", key = "#prn"),
