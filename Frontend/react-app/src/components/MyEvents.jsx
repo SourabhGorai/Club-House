@@ -2803,6 +2803,7 @@ const MyEvents = () => {
         }
       );
 
+      console.log("Enrollment API response:", response.data);
       if (response.data.success) {
         // The API returns data with event objects as keys
         const enrollmentData = response.data.data;
@@ -2828,6 +2829,9 @@ const MyEvents = () => {
             
             const organizerMatch = eventStr.match(/organizer=([^,]+)/);
             const organizer = organizerMatch ? organizerMatch[1].trim() : "";
+
+            const speakerNameMatch = eventStr.match(/speakerName=([^,]+)/);
+            const speakerName = speakerNameMatch ? speakerNameMatch[1].trim() : "";
             
             const venueMatch = eventStr.match(/venue=([^,]+)/);
             const venue = venueMatch ? venueMatch[1].trim() : "";
@@ -2864,6 +2868,7 @@ const MyEvents = () => {
               description,
               dateTime,
               organizer,
+              speakerName,
               venue,
               maxEnrollments,
               currEnrollments,
@@ -4076,7 +4081,7 @@ const MyEvents = () => {
                               <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                                 <User className="w-3 h-3 mr-0.5 text-green-500 flex-shrink-0" />
                                 <span className="truncate">
-                                  {event.speaker || event.organizer}
+                                  {event.speakerName || event.organizer}
                                 </span>
                               </p>
                             </div>

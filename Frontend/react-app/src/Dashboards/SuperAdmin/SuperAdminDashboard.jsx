@@ -460,7 +460,7 @@ export default function SuperAdminDashboard() {
         <div className="text-center">
           <div 
             className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait" 
-            style={{ borderColor: PRIMARY_COLOR }}
+            style={{ borderColor: PRIMARY_DARK }}
           ></div>
           <p className="text-gray-600 font-semibold">Loading dashboard...</p>
         </div>

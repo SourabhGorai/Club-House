@@ -798,6 +798,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/CustomSelect";
 import {
   User,
   Mail,
@@ -887,19 +888,16 @@ const FilterModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               User Role
             </label>
-            <select
+            <CustomSelect
+              name="role"
               value={selectedRole}
               onChange={(e) => onRoleChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{ focus: { ringColor: "#4CA1AF" } }}
-            >
-              <option value="">All Roles</option>
-              {roles.map((role) => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
-              ))}
-            </select>
+              placeholder="All Roles"
+              options={[
+                { value: "", label: "All Roles" },
+                ...roles.map((r) => ({ value: r.value, label: r.label })),
+              ]}
+            />
           </div>
 
           {/* Department Filter */}
@@ -907,19 +905,16 @@ const FilterModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Department
             </label>
-            <select
+            <CustomSelect
+              name="department"
               value={selectedDept}
               onChange={(e) => onDeptChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{ focus: { ringColor: "#4CA1AF" } }}
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
+              placeholder="All Departments"
+              options={[
+                { value: "", label: "All Departments" },
+                ...departments.map((dept) => ({ value: dept, label: dept })),
+              ]}
+            />
           </div>
 
           {/* Year Filter */}
@@ -927,19 +922,16 @@ const FilterModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Year
             </label>
-            <select
+            <CustomSelect
+              name="year"
               value={selectedYear}
               onChange={(e) => onYearChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm cursor-pointer"
-              style={{ focus: { ringColor: "#4CA1AF" } }}
-            >
-              <option value="">All Years</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  Year {year}
-                </option>
-              ))}
-            </select>
+              placeholder="All Years"
+              options={[
+                { value: "", label: "All Years" },
+                ...years.map((year) => ({ value: year, label: `Year ${year}` })),
+              ]}
+            />
           </div>
 
           {/* Active Filters Display */}
@@ -1172,7 +1164,8 @@ const UserManagement = () => {
 
       setUserProfiles(profilesMap);
       setProfileImages(imagesMap);
-      extractFiltersData(profilesMap);
+      extractYearsData(profilesMap);
+      fetchDepartments();
     } catch (err) {
       console.error("Error fetching data:", err);
       setError(
@@ -1231,15 +1224,28 @@ const UserManagement = () => {
     );
   };
 
-  const extractFiltersData = (profilesMap) => {
-    const deptSet = new Set();
+  const extractYearsData = (profilesMap) => {
     const yearSet = new Set([1, 2, 3, 4]);
     Object.values(profilesMap).forEach((profile) => {
-      if (profile?.department) deptSet.add(profile.department);
       if (profile?.year) yearSet.add(profile.year);
     });
-    setDepartments(Array.from(deptSet).sort());
     setYears(Array.from(yearSet).sort((a, b) => a - b));
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/api/department",
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const deptNames = (response.data.data || [])
+        .filter((dept) => dept.active)
+        .map((dept) => dept.name)
+        .sort();
+      setDepartments(deptNames);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
   };
 
   const handleFilterChange = (

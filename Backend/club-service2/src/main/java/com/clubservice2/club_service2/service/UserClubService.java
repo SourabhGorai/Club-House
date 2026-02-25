@@ -4,12 +4,14 @@ import com.clubservice2.club_service2.client.ProfileServiceClient;
 import com.clubservice2.club_service2.client.UserServiceClient;
 import com.clubservice2.club_service2.config.CacheConfig;
 import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
+import com.clubservice2.club_service2.dto.request.RoleChangeRequest;
 import com.clubservice2.club_service2.dto.request.UserClubRequest;
 import com.clubservice2.club_service2.dto.response.*;
 import com.clubservice2.club_service2.exception.*;
 import com.clubservice2.club_service2.mapper.ClubMapper;
 import com.clubservice2.club_service2.mapper.UserClubMapper;
 import com.clubservice2.club_service2.model.Club;
+import com.clubservice2.club_service2.model.ClubRoles;
 import com.clubservice2.club_service2.model.UserClub;
 import com.clubservice2.club_service2.repository.ClubRepository;
 import com.clubservice2.club_service2.repository.UserClubRepository;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -608,5 +611,35 @@ public class UserClubService {
                 .totalPages(0)
                 .last(true)
                 .build();
+    }
+
+    public List<String> getAllClubRoles() {
+        return Arrays.stream(ClubRoles.values())
+                .map(Enum::name)
+                .toList();
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.USER_CLUBS, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.USER_CLUB_NAMES, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_PRNS, allEntries = true),
+            @CacheEvict(value = CacheConfig.CLUB_MEMBERS_BY_YEAR, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_USER_CLUBS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ADMIN_RESPONSE, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_CLUBS, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.USERS_BY_ROLE, allEntries = true)
+    })
+    public void changeRole(RoleChangeRequest request) {
+
+        log.debug("Attempting to change role of user with prn");
+
+        UserClub user = userClubRepository.findByPrnAndClub_ClubId(request.getPrn(), request.getClubId());
+        if(user.getRole().equals(request.getNewRole())){
+            log.info("Already a {}", user.getRole());
+        }
+        user.setRole(request.getNewRole());
+        userClubRepository.save(user);
     }
 }

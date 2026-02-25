@@ -281,7 +281,9 @@ public class GatewayConfig {
                 .route("user-club-teacher", r -> r
                         .path("/api/user-clubs/user/**",
                                 "/api/user-clubs",
-                                "/api/user-clubs/user/{prn}/club/{clubName}")
+                                "/api/user-clubs/user/{prn}/club/{clubName}",
+                                "/api/user-clubs/changeClubRole"
+                        )
 
                         .and()
                         .method("GET", "POST", "DELETE")
@@ -295,7 +297,8 @@ public class GatewayConfig {
                         .path(
                                 "/api/user-clubs/getAllByRole/{role}",
                                 "/api/user-clubs/club/**",
-                                "/api/user-clubs/getMyClubs"
+                                "/api/user-clubs/getMyClubs",
+                                "/api/user-clubs/getAllClubRoles"
 
                         )
                         .and()
@@ -331,9 +334,8 @@ public class GatewayConfig {
                                 "/api/events/getByEventCreator/{prn}/paged",
                                 "/api/events/ratings/{rating}",
                                 "/api/events/ratings/{rating}/paged",
-                                "/api/events/endEvent/{eventId}",
-                                "/api/events/deleteEvent/{eventId}",
-                                "/api/events/enrollment/{status}"
+                                "/api/events/completeEvent/{eventId}",
+                                "/api/events/deleteEvent/{eventId}"
                         )
                         .and()
                         .method("GET", "POST")
@@ -354,7 +356,8 @@ public class GatewayConfig {
                                 "/api/events/endEvent/{status}/paged",
                                 "/api/events/getByTargetType/{targetType}",
                                 "/api/events/getByTargetType/{targetType}/paged",
-                                "/api/events/enrollment/{status}/paged"
+                                "/api/events/enrollment/{status}/paged",
+                                "/api/events/enrollment/{status}"
                         )
                         .and()
                         .method("GET")

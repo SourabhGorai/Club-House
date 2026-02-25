@@ -355,7 +355,7 @@ public class EventController {
     // ── Write ─────────────────────────────────────────────────────────────────────
 
     // SUPER_ADMIN, TEACHERS
-    @PostMapping("/endEvent/{eventId}")
+    @PostMapping("/completeEvent/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> markEventComplete(
             @PathVariable Long eventId,
             HttpServletRequest request

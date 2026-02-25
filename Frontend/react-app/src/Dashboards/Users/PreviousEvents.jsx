@@ -930,7 +930,7 @@ const PreviousEvents = () => {
                               <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
                                 <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
                                 <span className="truncate">
-                                  {event.speaker || event.organizer}
+                                  {event.speakerName || event.organizer}
                                 </span>
                               </p>
                             </div>

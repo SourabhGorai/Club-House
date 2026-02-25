@@ -2,6 +2,72 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
+import CustomSelect from "../../components/CustomSelect";
+
+// // ─── Custom Dropdown ─────────────────────────────────────────────────────────
+// function CustomSelect({ name, value, onChange, options, placeholder, disabled, required }) {
+//   const [open, setOpen] = useState(false);
+//   const ref = useRef(null);
+
+//   // Close on outside click
+//   useEffect(() => {
+//     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+//     document.addEventListener("mousedown", handler);
+//     return () => document.removeEventListener("mousedown", handler);
+//   }, []);
+
+//   const selected = options.find((o) => String(o.value) === String(value));
+
+//   const handleSelect = (optValue) => {
+//     onChange({ target: { name, value: optValue } });
+//     setOpen(false);
+//   };
+
+//   return (
+//     <div ref={ref} className="relative w-full">
+//       {/* Trigger */}
+//       <button
+//         type="button"
+//         disabled={disabled}
+//         onClick={() => !disabled && setOpen((p) => !p)}
+//         className={`w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl bg-white/50 text-sm md:text-base transition-all duration-200 cursor-pointer
+//           ${open ? "border-[#4CA1AF] ring-2 ring-[#4CA1AF]/20" : "hover:border-[#4CA1AF]/50"}
+//           ${disabled ? "opacity-60 cursor-not-allowed" : ""}
+//           ${selected ? "text-gray-800 font-medium" : "text-gray-400"}`}
+//       >
+//         <span className="truncate">{selected ? selected.label : placeholder}</span>
+//         <svg
+//           className={`w-4 h-4 flex-shrink-0 ml-2 text-gray-400 transition-transform duration-200 ${open ? "rotate-180 text-[#4CA1AF]" : ""}`}
+//           fill="none" stroke="currentColor" viewBox="0 0 24 24"
+//         >
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+//         </svg>
+//       </button>
+
+//       {/* Dropdown list */}
+//       {open && (
+//         <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden animate-fadeIn">
+//           <div className="max-h-52 overflow-y-auto py-1.5 px-1.5 space-y-0.5">
+//             {options.map((opt) => (
+//               <button
+//                 key={opt.value}
+//                 type="button"
+//                 onClick={() => handleSelect(opt.value)}
+//                 className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition-all duration-150 font-medium cursor-pointer
+//                   ${String(value) === String(opt.value)
+//                     ? "bg-[#4CA1AF]/10 text-[#4CA1AF]"
+//                     : "text-gray-700 hover:bg-gray-50 hover:text-[#4CA1AF]"
+//                   }`}
+//               >
+//                 {opt.label}
+//               </button>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
 
 export default function AddStudent() {
   const navigate = useNavigate();
@@ -14,6 +80,8 @@ export default function AddStudent() {
   const [userRole, setUserRole] = useState("");
   const [teacherClubs, setTeacherClubs] = useState([]);
   const [loadingTeacherClubs, setLoadingTeacherClubs] = useState(false);
+  const [clubRoles, setClubRoles] = useState([]);
+  const [loadingClubRoles, setLoadingClubRoles] = useState(false);
 
   const [form, setForm] = useState({
     prn: "",
@@ -26,6 +94,7 @@ export default function AddStudent() {
     phoneNumber: "",
     clubId: "",
     tenure: "",
+    clubRole: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -44,6 +113,7 @@ export default function AddStudent() {
     } else {
       fetchTeacherClubs(); // Fetch only teacher's clubs
     }
+    fetchClubRoles();
 
     // Create debounced function
     debouncedFetchProfileRef.current = debounce((prn) => {
@@ -87,6 +157,32 @@ export default function AddStudent() {
       setLoadingTeacherClubs(false);
     }
   };
+  const fetchClubRoles = async () => {
+    try {
+      setLoadingClubRoles(true);
+      const response = await axios.get(
+        "http://localhost:8080/api/user-clubs/getAllClubRoles",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      if (Array.isArray(response.data)) {
+        setClubRoles(response.data);
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        setClubRoles(response.data.data);
+      } else {
+        setClubRoles([]);
+      }
+    } catch (error) {
+      console.error("Error fetching club roles:", error);
+      setClubRoles([]);
+    } finally {
+      setLoadingClubRoles(false);
+    }
+  };
+
   const fetchAllClubs = async () => {
     try {
       setLoadingClubs(true);
@@ -242,6 +338,7 @@ export default function AddStudent() {
       year: "",
       phoneNumber: "",
       tenure: "",
+      clubRole: "",
     }));
     setAutoFilled(false);
   };
@@ -272,8 +369,8 @@ export default function AddStudent() {
     e.preventDefault();
 
     // Validation checks
-    if (!form.prn || !form.clubId || !form.tenure) {
-      alert("Please fill all required fields: PRN, Club, and Tenure");
+    if (!form.prn || !form.clubId || !form.tenure || !form.clubRole) {
+      alert("Please fill all required fields: PRN, Club, Tenure, and Role");
       return;
     }
 
@@ -290,7 +387,7 @@ export default function AddStudent() {
       console.log("Sending user-club association data:", {
         prn: form.prn,
         clubId: form.clubId,
-        role: "MEMBER",
+        role: form.clubRole,
         tenure: form.tenure,
       });
 
@@ -300,7 +397,7 @@ export default function AddStudent() {
         {
           prn: form.prn,
           clubId: parseInt(form.clubId),
-          role: "MEMBER",
+          role: form.clubRole,
           tenure: form.tenure,
         },
         {
@@ -328,6 +425,7 @@ export default function AddStudent() {
           phoneNumber: "",
           clubId: "",
           tenure: "",
+          clubRole: "",
         });
         setPrnTouched(false);
         setPrnError("");
@@ -372,6 +470,13 @@ export default function AddStudent() {
         }
         .animation-delay-4000 {
           animation-delay: 4s;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.15s ease-out;
         }
       `}</style>
 
@@ -706,7 +811,7 @@ export default function AddStudent() {
                 )}
               </div>
 
-              {/* Row 5: Club and Tenure Fields */}
+              {/* Row 5: Club, Tenure, and Role Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Club Field */}
                 <div>
@@ -724,32 +829,18 @@ export default function AddStudent() {
                           </span>
                         )}
                   </label>
-                  <select
+                  <CustomSelect
                     name="clubId"
                     value={form.clubId}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-                    style={{ focus: { ringColor: "#4CA1AF" } }}
-                    disabled={
-                      userRole === "SUPER_ADMIN"
-                        ? loadingClubs
-                        : loadingTeacherClubs
-                    }
+                    placeholder={userRole === "SUPER_ADMIN" ? "Select Club" : "Select Your Club"}
+                    disabled={userRole === "SUPER_ADMIN" ? loadingClubs : loadingTeacherClubs}
                     required
-                  >
-                    <option value="">
-                      {userRole === "SUPER_ADMIN"
-                        ? "Select Club"
-                        : "Select Your Club"}
-                    </option>
-                    {(userRole === "SUPER_ADMIN" ? clubs : teacherClubs).map(
-                      (club) => (
-                        <option key={club.clubId} value={club.clubId}>
-                          {club.clubName}
-                        </option>
-                      ),
-                    )}
-                  </select>
+                    options={(userRole === "SUPER_ADMIN" ? clubs : teacherClubs).map((club) => ({
+                      value: club.clubId,
+                      label: club.clubName,
+                    }))}
+                  />
                   {(userRole === "SUPER_ADMIN" ? clubs : teacherClubs).length ===
                     0 &&
                     !(userRole === "SUPER_ADMIN"
@@ -768,21 +859,45 @@ export default function AddStudent() {
                   <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Tenure *
                   </label>
-                  <select
+                  <CustomSelect
                     name="tenure"
                     value={form.tenure}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 bg-white/50 text-sm md:text-base appearance-none cursor-pointer"
-                    style={{ focus: { ringColor: "#4CA1AF" } }}
+                    placeholder="Select Tenure"
                     required
-                  >
-                    <option value="">Select Tenure</option>
-                    <option value="2023-2024">2023-2024</option>
-                    <option value="2024-2025">2024-2025</option>
-                    <option value="2025-2026">2025-2026</option>
-                    <option value="2026-2027">2026-2027</option>
-                  </select>
+                    options={[
+                      { value: "2023-2024", label: "2023-2024" },
+                      { value: "2024-2025", label: "2024-2025" },
+                      { value: "2025-2026", label: "2025-2026" },
+                      { value: "2026-2027", label: "2026-2027" },
+                    ]}
+                  />
                 </div>
+              </div>
+
+              {/* Row 6: Club Role Field */}
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                  Club Role *
+                  {loadingClubRoles && (
+                    <span className="text-xs text-gray-500 ml-2">(Loading roles...)</span>
+                  )}
+                </label>
+                <CustomSelect
+                  name="clubRole"
+                  value={form.clubRole}
+                  onChange={handleChange}
+                  placeholder="Select Role"
+                  disabled={loadingClubRoles}
+                  required
+                  options={clubRoles.map((role) => ({
+                    value: role,
+                    label: role.replace(/_/g, " "),
+                  }))}
+                />
+                {clubRoles.length === 0 && !loadingClubRoles && (
+                  <p className="text-xs text-gray-500 mt-1">No roles available</p>
+                )}
               </div>
 
               {/* Add Student Button */}
@@ -795,6 +910,7 @@ export default function AddStudent() {
                     !form.prn ||
                     !form.clubId ||
                     !form.tenure ||
+                    !form.clubRole ||
                     prnError.includes("role")
                   }
                   className={`w-full text-white py-3 px-5 rounded-full font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wide text-sm cursor-pointer ${
@@ -803,6 +919,7 @@ export default function AddStudent() {
                     !form.prn ||
                     !form.clubId ||
                     !form.tenure ||
+                    !form.clubRole ||
                     prnError.includes("role")
                       ? "opacity-70 cursor-not-allowed"
                       : ""
@@ -812,6 +929,7 @@ export default function AddStudent() {
                       !form.prn ||
                       !form.clubId ||
                       !form.tenure ||
+                      !form.clubRole ||
                       prnError.includes("role")
                         ? "linear-gradient(90deg, #9CA3AF 0%, #D1D5DB 100%)"
                         : "linear-gradient(135deg, #4CA1AF, #315169)",
@@ -849,12 +967,15 @@ export default function AddStudent() {
                           ? "SELECT A CLUB"
                           : !form.tenure
                             ? "SELECT TENURE"
-                            : prnError.includes("role")
-                              ? "INVALID ROLE"
-                              : "ADD STUDENT TO CLUB"}
+                            : !form.clubRole
+                              ? "SELECT A ROLE"
+                              : prnError.includes("role")
+                                ? "INVALID ROLE"
+                                : "ADD STUDENT TO CLUB"}
                       {!form.prn ||
                       !form.clubId ||
                       !form.tenure ||
+                      !form.clubRole ||
                       prnError.includes("role") ? null : (
                         <svg
                           className="w-5 h-5"
@@ -873,7 +994,7 @@ export default function AddStudent() {
                     </>
                   )}
                 </button>
-                {(!form.prn || !form.clubId || !form.tenure) &&
+                {(!form.prn || !form.clubId || !form.tenure || !form.clubRole) &&
                   !loadingProfile &&
                   !prnError.includes("role") && (
                     <p className="mt-2 text-xs text-center text-gray-500">

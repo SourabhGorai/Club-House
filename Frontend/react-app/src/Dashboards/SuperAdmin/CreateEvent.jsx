@@ -521,6 +521,7 @@ export default function CreateEvent() {
     };
 
     try {
+      console.log("Submitting event data:", eventData);
       const response = await axios.post(
         "http://localhost:8080/api/events/create",
         eventData,

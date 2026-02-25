@@ -1,5 +1,8 @@
 package com.clubservice2.club_service2.controller;
 
+import com.clubservice2.club_service2.dto.request.RoleChangeRequest;
+import com.clubservice2.club_service2.model.ClubRoles;
+import com.clubservice2.club_service2.model.UserClub;
 import com.clubservice2.club_service2.service.UserClubService;
 import com.clubservice2.club_service2.dto.ApiResponse;
 import com.clubservice2.club_service2.dto.request.BulkUserClubRequest;
@@ -12,6 +15,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -277,5 +281,28 @@ public class UserClubController {
                         resp
                 )
         );
+    }
+
+    // *******************************************************************************
+
+    @GetMapping("/getAllClubRoles")
+    public ResponseEntity<ApiResponse<List<String>>> getAllClubRoles(){
+        log.debug("Request received to fetch all the club roles");
+        List<String> roles = userClubService.getAllClubRoles();
+        return ResponseEntity.ok(ApiResponse.success(
+                "Fetched successfully",
+                roles
+        ));
+    }
+
+    @PostMapping("/changeClubRole")
+    public ResponseEntity<ApiResponse<Void>> changeRole(
+            @Valid @RequestBody RoleChangeRequest req) {
+
+        log.debug("Request received to change role of user: {} to {}", req.getPrn(), req.getNewRole());
+
+        userClubService.changeRole(req);
+        return ResponseEntity.ok(ApiResponse.success("Role Changed Successfully"));
+
     }
 }

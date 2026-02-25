@@ -695,6 +695,7 @@ const MyEventsForSuperadmin = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Department
                     </label>
+                    
                     <select
                       value={selectedDepartment}
                       onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -748,7 +749,7 @@ const MyEventsForSuperadmin = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Status
+                      Enrollment Status
                     </label>
                     <select
                       value={selectedStatus}
@@ -758,7 +759,6 @@ const MyEventsForSuperadmin = () => {
                       <option value="all">All Status</option>
                       <option value="open">Open</option>
                       <option value="closed">Closed</option>
-                      <option value="pending">Pending</option>
                     </select>
                   </div>
                 </div>
@@ -923,7 +923,7 @@ const MyEventsForSuperadmin = () => {
       <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
         <User className="w-3 h-3 mr-0.5 text-green-500 flex-shrink-0" />
         <span className="truncate">
-          {event.speaker || event.organizer}
+          {event.speakerName || event.organizer}
         </span>
       </p>
     </div>

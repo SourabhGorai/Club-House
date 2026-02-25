@@ -186,6 +186,7 @@ public class ClubService {
 
         String teacherPrn = null;
         String teacherName = "Not Assigned";
+        String teacherDepartment = "No Department";
 
         if (!teachers.isEmpty()) {
             teacherPrn = teachers.get(0).getPrn();
@@ -197,6 +198,7 @@ public class ClubService {
                         && !teacherProfile.getFullName().trim().isEmpty()
                         && !"N/A".equals(teacherProfile.getFullName())) {
                     teacherName = teacherProfile.getFullName();
+                    teacherDepartment = teacherProfile.getDepartment();
                     log.debug("Fetched teacher profile: {} - {}", teacherPrn, teacherName);
                 } else {
                     log.warn("Teacher profile returned null or empty name for PRN: {}", teacherPrn);
@@ -232,6 +234,8 @@ public class ClubService {
                             return AdminResponse.AdminInfo.builder()
                                     .prn(prn)
                                     .name(profile.getFullName())
+                                    .department(profile.getDepartment())
+                                    .year(profile.getYear())
                                     .build();
                         } else {
                             log.error("Failed to fetch admin profile for PRN: {}", prn);
@@ -249,6 +253,7 @@ public class ClubService {
                 .clubDesc(club.getClubDesc())
                 .teacherPrn(teacherPrn)
                 .teacherName(teacherName)
+                .teacherDepartment(teacherDepartment)
                 .clubAdmins(clubAdminsList)
                 .totalCount(totalCount)
                 .build();
