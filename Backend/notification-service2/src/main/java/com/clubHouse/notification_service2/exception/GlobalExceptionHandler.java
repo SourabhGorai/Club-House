@@ -1,7 +1,7 @@
 package com.clubHouse.notification_service2.exception;
 
-import com.clubHouse.event_service2.dto.ApiResponse;
-import com.clubHouse.event_service2.exception.InvalidOperationException;
+import com.clubHouse.notification_service2.dto.ApiResponse;
+import com.clubHouse.notification_service2.exception.InvalidOperationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

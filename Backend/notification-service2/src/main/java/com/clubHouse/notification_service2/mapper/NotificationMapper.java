@@ -3,6 +3,7 @@ package com.clubHouse.notification_service2.mapper;
 import com.clubHouse.notification_service2.dto.request.NotificationRequest;
 import com.clubHouse.notification_service2.dto.response.NotificationResponse;
 import com.clubHouse.notification_service2.model.Notification;
+import com.clubHouse.notification_service2.model.NotificationTargets;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Component
 public class NotificationMapper {
@@ -54,9 +56,35 @@ public class NotificationMapper {
                 .targetIds(targetIds)
                 .build();
 
-        return null;
+        return resp;
     }
 
+    public List<NotificationResponse> toResponseList(
+            List<Notification> notifications,
+            Map<Long, List<NotificationTargets>> targetsMap,
+            Map<Long, String> sourceDetailMap
+    ) {
+        return notifications.stream()
+                .map(notification -> {
+                    List<NotificationTargets> targets =
+                            targetsMap.getOrDefault(notification.getNotificationId(), List.of());
+
+                    // All targets for a notification share the same TargetType
+                    String targetType = targets.isEmpty()
+                            ? null
+                            : targets.get(0).getTargetType().toString();
+
+                    List<Long> targetIds = targets.stream()
+                            .map(NotificationTargets::getTargetId)
+                            .toList();
+
+                    String sourceDetail =
+                            sourceDetailMap.getOrDefault(notification.getNotificationId(), null);
+
+                    return toResponse(notification, targetType, targetIds, sourceDetail);
+                })
+                .toList();
+    }
 
 
     // ── Private helpers ─────────────────────────────────────────────────────────

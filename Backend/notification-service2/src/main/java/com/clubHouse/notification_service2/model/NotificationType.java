@@ -5,7 +5,7 @@ import lombok.Builder;
 public enum NotificationType {
     GLOBAL,
     CLUB_SPECIFIC,
-    DEPARTMENT,
+    DEPARTMENT_SPECIFIC,
     YEAR_SPECIFIC,
     CLUB_AND_YEAR,
     DEPT_AND_YEAR,

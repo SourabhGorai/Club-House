@@ -410,6 +410,35 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
+                // ==================== NOTIFICATION-SERVICE ====================
+
+                .route("notification-teachers", r -> r
+                        .path(
+                                "/api/notification/create",
+                                "/api/notification/getAll/**",
+                                "/api/notification/getBySourceTypes/**",
+                                "/api/notification/getByNotificationType/**"
+                        )
+                        .and()
+                        .method("GET", "POST")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
+                .route("notification-all", r -> r
+                        .path(
+                                "/api/notification/data/**"
+                        )
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
                 .build();
     }
 }
