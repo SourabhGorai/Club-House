@@ -194,14 +194,12 @@ public class EventEnrollmentService {
             @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
     })
     @Transactional
-    public void revokeMyEnrollment(Long enrollmentId) {
+    public void revokeMyEnrollment(Long eventId, String prn) {
 
-        log.info("Attempting to delete enrollment with ID: {}", enrollmentId);
+        log.info("Attempting to delete enrollment with prn: {}, eventId: {}", prn, eventId);
 
-        EventEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new NotFoundException("Enrollment", enrollmentId.toString()));
-
-        Events event = enrollment.getEvent();
+        Events event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Enrollment", eventId.toString()));
 
         // Decrement enrollment count (with safety check)
         if (event.getCurrEnrollments() > 0) {
@@ -213,7 +211,7 @@ public class EventEnrollmentService {
             log.warn("Event {} already has 0 enrollments, cannot decrement", event.getEventId());
         }
 
-        enrollmentRepository.deleteById(enrollmentId);
+        enrollmentRepository.deleteByPrnAndEvent_EventId(prn, eventId);
 
     }
 
