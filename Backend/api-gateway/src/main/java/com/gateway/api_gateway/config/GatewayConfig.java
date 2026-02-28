@@ -335,10 +335,11 @@ public class GatewayConfig {
                                 "/api/events/ratings/{rating}",
                                 "/api/events/ratings/{rating}/paged",
                                 "/api/events/completeEvent/{eventId}",
-                                "/api/events/deleteEvent/{eventId}"
+                                "/api/events/deleteEvent/{eventId}",
+                                "/api/events/updateEvent/{eventId}"
                         )
                         .and()
-                        .method("GET", "POST")
+                        .method("GET", "POST", "DELETE", "PUT")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
