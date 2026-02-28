@@ -335,7 +335,8 @@ public class GatewayConfig {
                                 "/api/events/ratings/{rating}",
                                 "/api/events/ratings/{rating}/paged",
                                 "/api/events/completeEvent/{eventId}",
-                                "/api/events/deleteEvent/{eventId}"
+                                "/api/events/deleteEvent/{eventId}",
+                                "/api/events/updateEvent/{eventId}"
                         )
                         .and()
                         .method("GET", "POST")

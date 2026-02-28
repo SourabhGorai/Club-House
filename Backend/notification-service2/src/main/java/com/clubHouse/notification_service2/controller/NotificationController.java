@@ -124,4 +124,23 @@ public class NotificationController {
 
     }
 
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/getByTargetType/{targetType}")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getByTargetType(
+            @PathVariable NotificationType targetType
+    ) {
+
+        log.debug("Request received to fetch all the notification with TargetType Type {}",
+                targetType);
+
+        List<NotificationResponse> list = notificationService.getByNotificationType(targetType);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d responses", list.size()),
+                list
+        ));
+
+    }
+
 }
