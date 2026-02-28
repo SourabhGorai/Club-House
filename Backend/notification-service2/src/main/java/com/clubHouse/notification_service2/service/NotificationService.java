@@ -231,4 +231,35 @@ public class NotificationService {
 
     }
 
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    public List<NotificationResponse> getByTargetType(TargetType targetType) {
+
+        log.debug("Attempting to fetch notifications with target type: {}", targetType);
+
+        List<NotificationTargets> targets = nTRepository.findByTargetType(targetType);
+
+        List<Notification> responses = targets.stream()
+                .map(NotificationTargets::getNotification)
+                .toList();
+
+        Map<Long, List<NotificationTargets>> targetMap = resolveTargets(responses);
+        Map<Long, String> sourceDetailMap = resolveSourceDetails(responses);
+
+        return notificationMapper.toResponseList(responses, targetMap, sourceDetailMap);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    public List<NotificationResponse> getMyNotifications(String prn) {
+
+        log.debug("Attempting to fetch all the notifications of user with prn: {}", prn);
+
+        List<
+
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+
 }

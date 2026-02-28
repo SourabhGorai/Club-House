@@ -897,6 +897,16 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
+    @Transactional
+    public RawResponseForNotification getRawData(String prn){
+        log.debug("Attempting to fetch data for prn: {}", prn);
+
+        UserProfile profile = profileRepository.findById(prn).orElseThrow(
+                () -> new UserNotFoundException("User not found")
+        );
+
+    }
+
     /**
      * Helper method to convert list of UserProfile to ProfileResponse
      * Fetches all departments in a single batch call to avoid N+1 queries

@@ -82,6 +82,6 @@ public class EventServiceClient {
         }
     }
 
-
+    // will need get events in which i am enrolled right now and isCompleted false
 
 }

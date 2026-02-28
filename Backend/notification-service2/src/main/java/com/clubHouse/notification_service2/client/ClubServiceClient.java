@@ -27,6 +27,10 @@ public class ClubServiceClient {
     @Value("${app.club-service.url:http://CLUB-SERVICE2/api}")
     private String clubServiceUrl;
 
+    /*
+    * Note: will need one endpoint to get all the clubs in which I am right now
+    * */
+
     public ClubResponse getClubById(Long id) {
         String authHeader = request.getHeader("Authorization");
         try {

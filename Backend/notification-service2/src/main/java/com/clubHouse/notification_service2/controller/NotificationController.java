@@ -59,9 +59,9 @@ public class NotificationController {
     }
 
     @GetMapping("/data/notificationTypes")
-    public ResponseEntity<ApiResponse<List<String>>> getAllNotificationTargets(){
+    public ResponseEntity<ApiResponse<List<String>>> getAllNotificationTypes(){
 
-        log.info("Request received to fetch all the notification targets");
+        log.info("Request received to fetch all the notification types");
         List<String> resp = notificationService.fetchNotificationTargets();
         return ResponseEntity.ok(ApiResponse.success(
                 "Fetched successfully",
@@ -90,6 +90,8 @@ public class NotificationController {
                 resp
         ));
     }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
 
     @GetMapping("/getBySourceTypes/{sourceType}")
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> getBySourceType(
@@ -142,5 +144,28 @@ public class NotificationController {
         ));
 
     }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/getMyNotifications")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getMyNotifications(
+            HttpServletRequest request
+    ) {
+
+        // will fetch global, user's (department and club), event (if enrolled) notifications
+        log.debug("Request received to fetch my notifications");
+
+        String prn = jwtService.extractPrnFromHeaders(request);
+
+        List<NotificationResponse> resp = notificationService.getMyNotifications(prn);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d notifications", resp.size()),
+                resp
+        ));
+
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
 
 }

@@ -593,4 +593,23 @@ public class ProfileController {
                 .build());
     }
 
+    // ----------------------------------------------------------------------------
+    // USED IN NOTIFICATION SERVICE
+
+    @GetMapping("/getDataForNotification")
+    public ResponseEntity<ApiResponse<RawResponseForNotification>> getRespNotification(
+            String prn
+    ){
+
+        log.debug("Request received to fetch data for prn: {}", prn);
+
+        RawResponseForNotification resp = profileService.getRawData(prn);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Successfully fetched data",
+                resp
+        ));
+
+    }
+
 }

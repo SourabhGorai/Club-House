@@ -25,6 +25,10 @@ public class ProfileManagementServiceClient {
     private String profileServiceUrl;
     private final HttpServletRequest request;
 
+    /*
+     * Note: will need one endpoint to get user's department by prn
+     * */
+
     public List<String> getExpiredProfiles() {
         String authHeader = request.getHeader("Authorization");
         try {

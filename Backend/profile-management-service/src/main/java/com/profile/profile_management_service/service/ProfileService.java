@@ -237,4 +237,6 @@ public interface ProfileService {
     List<String> getExpiredProfiles();
 
     int markProfilesAsCleanedUp(List<String> prns);
+
+    RawResponseForNotification getRawData(String prn);
 }
