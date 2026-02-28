@@ -339,7 +339,7 @@ public class GatewayConfig {
                                 "/api/events/updateEvent/{eventId}"
                         )
                         .and()
-                        .method("GET", "POST")
+                        .method("GET", "POST", "DELETE", "PUT")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
