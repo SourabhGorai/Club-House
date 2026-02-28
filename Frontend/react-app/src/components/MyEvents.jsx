@@ -78,17 +78,23 @@
 //   });
 //   const [userPrn, setUserPrn] = useState("");
 //   const [selectedStatus, setSelectedStatus] = useState("all");
-//   // New state for completed filter
-//   const [completedFilter, setCompletedFilter] = useState("all"); // "all", "completed", "notCompleted"
-//   const [deadlineFilter, setDeadlineFilter] = useState("all"); // "all", "OPEN", "CLOSED"
+//   const [completedFilter, setCompletedFilter] = useState("all");
+//   const [deadlineFilter, setDeadlineFilter] = useState("all");
 //   const [showEnrolledEvents, setShowEnrolledEvents] = useState(false);
-//     const isTeacher = userRole === "TEACHER" || userRole === "TEACHERS";
+//   const [userMap, setUserMap] = useState({}); // Cache for user names
+//   const isTeacher = userRole === "TEACHER" || userRole === "TEACHERS";
+//   const [completingEventId, setCompletingEventId] = useState(null);
+// const [completionMessage, setCompletionMessage] = useState({
+//   show: false,
+//   eventId: null,
+//   success: false,
+//   message: "",
+// });
 
 //   // Super admin color scheme - only for flip cards
 //   const primaryGradient = "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]";
 //   const primaryColor = "#4CA1AF";
 //   const secondaryColor = "#2C3E50";
-  
 
 //   const animations = {
 //     fadeIn: "animate-[fadeIn_0.5s_ease-in-out]",
@@ -227,13 +233,48 @@
 //     }
 //   };
 
-//   // Updated fetchEvents function with completed filter support
+//   // Fetch user name by PRN
+//   const fetchUserNameByPrn = async (token, prn) => {
+//     // Check cache first
+//     if (userMap[prn]) {
+//       return userMap[prn];
+//     }
+
+//     try {
+//       const response = await axios.get(
+//         `http://localhost:8080/api/profiles/prn/${prn}`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         }
+//       );
+
+//       if (response.data.success) {
+//         const profile = response.data.data;
+//         const name = profile.name || profile.fullName || prn;
+        
+//         // Update cache
+//         setUserMap(prev => ({
+//           ...prev,
+//           [prn]: name
+//         }));
+        
+//         return name;
+//       }
+//     } catch (err) {
+//       console.error(`Error fetching user for PRN ${prn}:`, err);
+//     }
+//     return prn;
+//   };
+
 //   const fetchEvents = async (
 //     token,
 //     role,
 //     filter = "GLOBAL",
 //     targetId = null,
-//     completed = null // New parameter for completed filter
+//     completed = null
 //   ) => {
 //     try {
 //       setLoading(true);
@@ -332,6 +373,25 @@
 //         fetchedEvents = response.data.data || [];
 //         console.log("Raw fetched events:", fetchedEvents);
         
+//         // For each event, fetch the creator's name if we only have PRN
+//         if (fetchedEvents.length > 0) {
+//           const eventsWithCreatorInfo = await Promise.all(
+//             fetchedEvents.map(async (event) => {
+//               // If creatorName is missing or looks like a PRN (numeric), fetch the actual name
+//               if (!event.creatorName || event.creatorName.match(/^\d+$/)) {
+//                 const creatorName = await fetchUserNameByPrn(token, event.creatorPrn);
+//                 return {
+//                   ...event,
+//                   creatorName: creatorName
+//                 };
+//               }
+//               return event;
+//             })
+//           );
+          
+//           fetchedEvents = eventsWithCreatorInfo;
+//         }
+        
 //         // Apply completed filter if specified
 //         if (completed !== null && completed !== "all") {
 //           const completedBool = completed === "completed";
@@ -372,9 +432,28 @@
 //       );
 
 //       if (response.data.success) {
-//         console.log(`Fetched ${completed ? "completed" : "not completed"} events:`, response.data.data);
-//         setEvents(response.data.data);
-//         setAllEvents(response.data.data);
+//         let fetchedEvents = response.data.data || [];
+//         console.log(`Fetched ${completed ? "completed" : "not completed"} events:`, fetchedEvents);
+        
+//         // Fetch creator names for events
+//         if (fetchedEvents.length > 0) {
+//           const eventsWithCreatorInfo = await Promise.all(
+//             fetchedEvents.map(async (event) => {
+//               if (!event.creatorName || event.creatorName.match(/^\d+$/)) {
+//                 const creatorName = await fetchUserNameByPrn(token, event.creatorPrn);
+//                 return {
+//                   ...event,
+//                   creatorName: creatorName
+//                 };
+//               }
+//               return event;
+//             })
+//           );
+//           fetchedEvents = eventsWithCreatorInfo;
+//         }
+        
+//         setEvents(fetchedEvents);
+//         setAllEvents(fetchedEvents);
 //       }
 //     } catch (err) {
 //       console.error(`Error fetching ${completed ? "completed" : "not completed"} events:`, err);
@@ -385,162 +464,195 @@
 //   };
 
 //   // New function to fetch events by deadline status (OPEN/CLOSED)
-// const fetchEventsByDeadline = async (status) => {
-//   try {
-//     setLoading(true);
-//     const token = localStorage.getItem("token");
-    
-//     console.log(`Fetching ${status} events by deadline...`);
-    
-//     const response = await axios.get(
-//       `http://localhost:8080/api/events/enrollment/${status}`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-
-//     if (response.data.success) {
-//       console.log(`Fetched ${status} events by deadline:`, response.data.data);
-//       setEvents(response.data.data);
-//       setAllEvents(response.data.data);
-//     }
-//   } catch (err) {
-//     console.error(`Error fetching ${status} events by deadline:`, err);
-//     setError(err.message || "An error occurred while fetching events");
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
-
-// // New function to fetch user's enrolled events
-// // New function to fetch user's enrolled events
-// const fetchEnrolledEvents = async () => {
-//   try {
-//     setLoading(true);
-//     const token = localStorage.getItem("token");
-    
-//     console.log(`Fetching enrolled events...`);
-    
-//     const response = await axios.get(
-//       `http://localhost:8080/api/enrollments/myEnrollments`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-
-//     if (response.data.success) {
-//       // The API returns data with event objects as keys
-//       const enrollmentData = response.data.data;
-//       console.log("enrolled data", enrollmentData);
+//   const fetchEventsByDeadline = async (status) => {
+//     try {
+//       setLoading(true);
+//       const token = localStorage.getItem("token");
       
-//       // Extract events from the object keys
-//       const enrolledEventsList = Object.keys(enrollmentData).map(key => {
-//         // The key contains the event data in string format like "EventResponse(eventId=6, title=check 3, ...)"
-//         // We need to parse this string to extract event data
-//         const eventStr = key;
-        
-//         // Extract values using regex or string manipulation
-//         // This is a simplified parsing - you may need to adjust based on exact format
-//         try {
-//           // Extract eventId
-//           const eventIdMatch = eventStr.match(/eventId=(\d+)/);
-//           const eventId = eventIdMatch ? parseInt(eventIdMatch[1]) : null;
-          
-//           // Extract title
-//           const titleMatch = eventStr.match(/title=([^,]+)/);
-//           const title = titleMatch ? titleMatch[1].trim() : "";
-          
-//           // Extract description
-//           const descMatch = eventStr.match(/description=([^,]+)/);
-//           const description = descMatch ? descMatch[1].trim() : "";
-          
-//           // Extract dateTime
-//           const dateTimeMatch = eventStr.match(/dateTime=([^,]+)/);
-//           const dateTime = dateTimeMatch ? dateTimeMatch[1].trim() : "";
-          
-//           // Extract organizer
-//           const organizerMatch = eventStr.match(/organizer=([^,]+)/);
-//           const organizer = organizerMatch ? organizerMatch[1].trim() : "";
-          
-//           // Extract venue
-//           const venueMatch = eventStr.match(/venue=([^,]+)/);
-//           const venue = venueMatch ? venueMatch[1].trim() : "";
-          
-//           // Extract maxEnrollments
-//           const maxEnrollmentsMatch = eventStr.match(/maxEnrollments=(\d+)/);
-//           const maxEnrollments = maxEnrollmentsMatch ? parseInt(maxEnrollmentsMatch[1]) : 0;
-          
-//           // Extract currEnrollments
-//           const currEnrollmentsMatch = eventStr.match(/currEnrollments=(\d+)/);
-//           const currEnrollments = currEnrollmentsMatch ? parseInt(currEnrollmentsMatch[1]) : 0;
-          
-//           // Extract enrollmentStatus
-//           const statusMatch = eventStr.match(/enrollmentStatus=([^,]+)/);
-//           const enrollmentStatus = statusMatch ? statusMatch[1].trim() : "";
-          
-//           // Extract targetType
-//           const targetTypeMatch = eventStr.match(/targetType=([^,]+)/);
-//           const targetType = targetTypeMatch ? targetTypeMatch[1].trim() : "";
-          
-//           // Extract isCompleted
-//           const completedMatch = eventStr.match(/isCompleted=([^,]+)/);
-//           const completed = completedMatch ? completedMatch[1].trim() === "true" : false;
-          
-//           // Create event object
-//           return {
-//             eventId,
-//             title,
-//             description,
-//             dateTime,
-//             organizer,
-//             venue,
-//             maxEnrollments,
-//             currEnrollments,
-//             enrollmentStatus,
-//             targetType,
-//             completed
-//           };
-//         } catch (e) {
-//           console.error("Error parsing event:", e);
-//           return null;
+//       console.log(`Fetching ${status} events by deadline...`);
+      
+//       const response = await axios.get(
+//         `http://localhost:8080/api/events/enrollment/${status}`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
 //         }
-//       }).filter(event => event !== null && event.eventId !== null);
-      
-//       console.log("Parsed enrolled events:", enrolledEventsList);
-      
-//       // Set the events directly to the parsed list
-//       setEvents(enrolledEventsList);
-//       setAllEvents(enrolledEventsList);
-      
-//       // Set enrolled events IDs for reference
-//       const eventIds = enrolledEventsList.map(event => event.eventId);
-//       setEnrolledEvents(eventIds);
-      
-//       // Set filter states - IMPORTANT: Reset other filters
-//       setFilterType(""); // Set to empty to indicate no target filter
-//       setShowCreatedEvents(false);
-//       setSelectedClubId("");
-//       setCompletedFilter("all");
-//       setSelectedStatus("all");
-      
-//       // Show enrolled events
-//       setShowEnrolledEvents(true);
-//     }
-//   } catch (err) {
-//     console.error("Error fetching enrolled events:", err);
-//     setError(err.message || "An error occurred while fetching enrolled events");
-//   } finally {
-//     setLoading(false);
-//   }
-// };
+//       );
 
+//       if (response.data.success) {
+//         let fetchedEvents = response.data.data || [];
+//         console.log(`Fetched ${status} events by deadline:`, fetchedEvents);
+        
+//         // Fetch creator names for events
+//         if (fetchedEvents.length > 0) {
+//           const eventsWithCreatorInfo = await Promise.all(
+//             fetchedEvents.map(async (event) => {
+//               if (!event.creatorName || event.creatorName.match(/^\d+$/)) {
+//                 const creatorName = await fetchUserNameByPrn(token, event.creatorPrn);
+//                 return {
+//                   ...event,
+//                   creatorName: creatorName
+//                 };
+//               }
+//               return event;
+//             })
+//           );
+//           fetchedEvents = eventsWithCreatorInfo;
+//         }
+        
+//         setEvents(fetchedEvents);
+//         setAllEvents(fetchedEvents);
+//       }
+//     } catch (err) {
+//       console.error(`Error fetching ${status} events by deadline:`, err);
+//       setError(err.message || "An error occurred while fetching events");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // New function to fetch user's enrolled events
+//   const fetchEnrolledEvents = async () => {
+//     try {
+//       setLoading(true);
+//       const token = localStorage.getItem("token");
+      
+//       console.log(`Fetching enrolled events...`);
+      
+//       const response = await axios.get(
+//         `http://localhost:8080/api/enrollments/myEnrollments`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         }
+//       );
+
+//       console.log("Enrollment API response:", response.data);
+//       if (response.data.success) {
+//         // The API returns data with event objects as keys
+//         const enrollmentData = response.data.data;
+//         console.log("enrolled data", enrollmentData);
+        
+//         // Extract events from the object keys
+//         const enrolledEventsList = Object.keys(enrollmentData).map(key => {
+//           const eventStr = key;
+          
+//           try {
+//             // Extract values using regex
+//             const eventIdMatch = eventStr.match(/eventId=(\d+)/);
+//             const eventId = eventIdMatch ? parseInt(eventIdMatch[1]) : null;
+            
+//             const titleMatch = eventStr.match(/title=([^,]+)/);
+//             const title = titleMatch ? titleMatch[1].trim() : "";
+            
+//             const descMatch = eventStr.match(/description=([^,]+)/);
+//             const description = descMatch ? descMatch[1].trim() : "";
+            
+//             const dateTimeMatch = eventStr.match(/dateTime=([^,]+)/);
+//             const dateTime = dateTimeMatch ? dateTimeMatch[1].trim() : "";
+            
+//             const organizerMatch = eventStr.match(/organizer=([^,]+)/);
+//             const organizer = organizerMatch ? organizerMatch[1].trim() : "";
+
+//             const speakerNameMatch = eventStr.match(/speakerName=([^,]+)/);
+//             const speakerName = speakerNameMatch ? speakerNameMatch[1].trim() : "";
+            
+//             const venueMatch = eventStr.match(/venue=([^,]+)/);
+//             const venue = venueMatch ? venueMatch[1].trim() : "";
+            
+//             const maxEnrollmentsMatch = eventStr.match(/maxEnrollments=(\d+)/);
+//             const maxEnrollments = maxEnrollmentsMatch ? parseInt(maxEnrollmentsMatch[1]) : 0;
+            
+//             const currEnrollmentsMatch = eventStr.match(/currEnrollments=(\d+)/);
+//             const currEnrollments = currEnrollmentsMatch ? parseInt(currEnrollmentsMatch[1]) : 0;
+            
+//             const statusMatch = eventStr.match(/enrollmentStatus=([^,]+)/);
+//             const enrollmentStatus = statusMatch ? statusMatch[1].trim() : "";
+            
+//             const targetTypeMatch = eventStr.match(/targetType=([^,]+)/);
+//             const targetType = targetTypeMatch ? targetTypeMatch[1].trim() : "";
+            
+//             const completedMatch = eventStr.match(/isCompleted=([^,]+)/);
+//             const completed = completedMatch ? completedMatch[1].trim() === "true" : false;
+            
+//             const creatorPrnMatch = eventStr.match(/creatorPrn=([^,\]]+)/);
+//             const creatorPrn = creatorPrnMatch ? creatorPrnMatch[1].trim() : "";
+            
+//             const creatorNameMatch = eventStr.match(/creatorName=([^,\]]+)/);
+//             let creatorName = creatorNameMatch ? creatorNameMatch[1].trim() : "";
+            
+//             // If creatorName is missing or numeric, we'll fetch it later
+//             if (!creatorName || creatorName.match(/^\d+$/)) {
+//               creatorName = creatorPrn; // Temporarily use PRN
+//             }
+            
+//             return {
+//               eventId,
+//               title,
+//               description,
+//               dateTime,
+//               organizer,
+//               speakerName,
+//               venue,
+//               maxEnrollments,
+//               currEnrollments,
+//               enrollmentStatus,
+//               targetType,
+//               completed,
+//               creatorPrn,
+//               creatorName
+//             };
+//           } catch (e) {
+//             console.error("Error parsing event:", e);
+//             return null;
+//           }
+//         }).filter(event => event !== null && event.eventId !== null);
+        
+//         console.log("Parsed enrolled events:", enrolledEventsList);
+        
+//         // Fetch creator names for enrolled events
+//         const token = localStorage.getItem("token");
+//         const eventsWithCreatorInfo = await Promise.all(
+//           enrolledEventsList.map(async (event) => {
+//             if (!event.creatorName || event.creatorName.match(/^\d+$/)) {
+//               const creatorName = await fetchUserNameByPrn(token, event.creatorPrn);
+//               return {
+//                 ...event,
+//                 creatorName: creatorName
+//               };
+//             }
+//             return event;
+//           })
+//         );
+        
+//         setEvents(eventsWithCreatorInfo);
+//         setAllEvents(eventsWithCreatorInfo);
+        
+//         // Set enrolled events IDs for reference
+//         const eventIds = eventsWithCreatorInfo.map(event => event.eventId);
+//         setEnrolledEvents(eventIds);
+        
+//         // Set filter states
+//         setFilterType("");
+//         setShowCreatedEvents(false);
+//         setSelectedClubId("");
+//         setCompletedFilter("all");
+//         setSelectedStatus("all");
+        
+//         // Show enrolled events
+//         setShowEnrolledEvents(true);
+//       }
+//     } catch (err) {
+//       console.error("Error fetching enrolled events:", err);
+//       setError(err.message || "An error occurred while fetching enrolled events");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
 //   // Handle completed filter change
 //   const handleCompletedFilterChange = async (value) => {
@@ -668,6 +780,103 @@
 //     }
 //   };
 
+// const handleCompleteEvent = async (eventId) => {
+//   try {
+//     setCompletingEventId(eventId);
+//     const token = localStorage.getItem("token");
+
+//     // IMPORTANT: Log the token and URL to debug
+//     console.log("Token being sent:", token);
+//     console.log("Complete Event URL:", `http://localhost:8080/api/events/completeEvent/${eventId}`);
+
+//     const response = await axios.post(
+//       `http://localhost:8080/api/events/completeEvent/${eventId}`,
+//       {}, // Empty body
+//       {
+//         headers: {
+//           'Authorization': `Bearer ${token}`, // Make sure this format is correct
+//           'Content-Type': 'application/json',
+//         },
+//       }
+//     );
+
+//     console.log("Complete event response:", response.data);
+
+//     if (response.data.success) {
+//       // Update the event in the local state
+//       setEvents(prevEvents =>
+//         prevEvents.map(event =>
+//           event.eventId === eventId
+//             ? { ...event, completed: true }
+//             : event
+//         )
+//       );
+//       setAllEvents(prevEvents =>
+//         prevEvents.map(event =>
+//           event.eventId === eventId
+//             ? { ...event, completed: true }
+//             : event
+//         )
+//       );
+
+//       setCompletionMessage({
+//         show: true,
+//         eventId: eventId,
+//         success: true,
+//         message: "Event marked as completed successfully!",
+//       });
+
+//       setTimeout(() => {
+//         setCompletionMessage({
+//           show: false,
+//           eventId: null,
+//           success: false,
+//           message: "",
+//         });
+//       }, 3000);
+//     } else {
+//       setCompletionMessage({
+//         show: true,
+//         eventId: eventId,
+//         success: false,
+//         message: response.data.message || "Failed to mark event as completed",
+//       });
+
+//       setTimeout(() => {
+//         setCompletionMessage({
+//           show: false,
+//           eventId: null,
+//           success: false,
+//           message: "",
+//         });
+//       }, 3000);
+//     }
+//   } catch (err) {
+//     console.error("Error completing event:", err);
+//     console.error("Error response:", err.response); // Log the full error response
+//     console.error("Error status:", err.response?.status); // Log the status code
+//     console.error("Error data:", err.response?.data); // Log the response data
+    
+//     setCompletionMessage({
+//       show: true,
+//       eventId: eventId,
+//       success: false,
+//       message: err.response?.data?.message || "Error completing event. Please try again.",
+//     });
+
+//     setTimeout(() => {
+//       setCompletionMessage({
+//         show: false,
+//         eventId: null,
+//         success: false,
+//         message: "",
+//       });
+//     }, 3000);
+//   } finally {
+//     setCompletingEventId(null);
+//   }
+// };
+
 //   const fetchUserEnrollments = async (token, prn) => {
 //     try {
 //       const response = await axios.get(
@@ -691,70 +900,64 @@
 //     }
 //   };
 
-  
-// const handleEnrolledEventsClick = async () => {
-//   if (showEnrolledEvents) {
-//     // If already showing enrolled events, go back to global view
-//     setShowEnrolledEvents(false);
-//     setFilterType("GLOBAL");
-//     const token = localStorage.getItem("token");
-//     const user = JSON.parse(localStorage.getItem("user"));
-//     await fetchEvents(token, user?.role, "GLOBAL");
-//   } else {
-//     // Show enrolled events
-//     await fetchEnrolledEvents();
-//   }
-// };
+//   const handleEnrolledEventsClick = async () => {
+//     if (showEnrolledEvents) {
+//       // If already showing enrolled events, go back to global view
+//       setShowEnrolledEvents(false);
+//       setFilterType("GLOBAL");
+//       const token = localStorage.getItem("token");
+//       const user = JSON.parse(localStorage.getItem("user"));
+//       await fetchEvents(token, user?.role, "GLOBAL");
+//     } else {
+//       // Show enrolled events
+//       await fetchEnrolledEvents();
+//     }
+//   };
 
-// const getFilteredEvents = () => {
-//   let filtered = [...events];
-//   console.log("Filtering events, initial count:", filtered.length);
+//   const getFilteredEvents = () => {
+//     let filtered = [...events];
+//     console.log("Filtering events, initial count:", filtered.length);
 
-//   if (searchTerm) {
-//     filtered = filtered.filter(
-//       (event) =>
-//         event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         event.organizer?.toLowerCase().includes(searchTerm.toLowerCase())
-//     );
-//     console.log("After search filter:", filtered.length);
-//   }
-
-//   // Remove this block - we no longer need client-side filtering for enrolled events
-//   // if (showEnrolledEvents && !isTeacher) {
-//   //   filtered = filtered.filter(event => enrolledEvents.includes(event.eventId));
-//   //   console.log("After enrolled filter:", filtered.length);
-//   // }
-
-//   // Note: completed filter is now applied at the API level
-//   // But we keep this as a safety measure
-//   if (completedFilter !== "all") {
-//     const completedBool = completedFilter === "completed";
-//     filtered = filtered.filter(event => event.completed === completedBool);
-//     console.log("After completed filter:", filtered.length);
-//   }
-
-//   switch (sortBy) {
-//     case "date":
-//       filtered.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
-//       break;
-//     case "popularity":
-//       filtered.sort(
-//         (a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0)
+//     if (searchTerm) {
+//       filtered = filtered.filter(
+//         (event) =>
+//           event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           event.organizer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//           event.creatorName?.toLowerCase().includes(searchTerm.toLowerCase())
 //       );
-//       break;
-//     case "enrollment":
-//       filtered.sort(
-//         (a, b) => (b.maxEnrollments || 0) - (a.maxEnrollments || 0)
-//       );
-//       break;
-//     default:
-//       break;
-//   }
+//       console.log("After search filter:", filtered.length);
+//     }
 
-//   console.log("Final filtered events count:", filtered.length);
-//   return filtered;
-// };
+//     // Note: completed filter is now applied at the API level
+//     // But we keep this as a safety measure
+//     if (completedFilter !== "all") {
+//       const completedBool = completedFilter === "completed";
+//       filtered = filtered.filter(event => event.completed === completedBool);
+//       console.log("After completed filter:", filtered.length);
+//     }
+
+//     switch (sortBy) {
+//       case "date":
+//         filtered.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+//         break;
+//       case "popularity":
+//         filtered.sort(
+//           (a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0)
+//         );
+//         break;
+//       case "enrollment":
+//         filtered.sort(
+//           (a, b) => (b.maxEnrollments || 0) - (a.maxEnrollments || 0)
+//         );
+//         break;
+//       default:
+//         break;
+//     }
+
+//     console.log("Final filtered events count:", filtered.length);
+//     return filtered;
+//   };
 
 //   const handleFilterChange = async (newFilterType, targetId = null) => {
 //     const token = localStorage.getItem("token");
@@ -768,14 +971,14 @@
 //       setShowCreatedEvents(true);
 //       setSelectedClubId("");
 //       setShowClubDropdown(false);
-//       // Reset completed filter when changing to created events
+//       setShowEnrolledEvents(false);
 //       setCompletedFilter("all");
 //     } else if (newFilterType === "CLUB") {
 //       if (targetId) {
 //         setSelectedClubId(targetId);
 //         setShowCreatedEvents(false);
 //         setShowClubDropdown(false);
-//         // Reset completed filter when changing club
+//         setShowEnrolledEvents(false);
 //         setCompletedFilter("all");
 //       } else {
 //         setShowClubDropdown(true);
@@ -785,39 +988,38 @@
 //       setShowCreatedEvents(false);
 //       setSelectedClubId("");
 //       setShowClubDropdown(false);
-//       // Reset completed filter when changing to department
+//       setShowEnrolledEvents(false);
 //       setCompletedFilter("all");
 //     } else {
 //       setShowCreatedEvents(false);
 //       setSelectedClubId("");
 //       setShowClubDropdown(false);
-//       // Reset completed filter when changing to global
+//       setShowEnrolledEvents(false);
 //       setCompletedFilter("all");
 //     }
 
 //     await fetchEvents(token, role, newFilterType, targetId || deptId);
 //   };
 
-// const clearAllFilters = () => {
-//   setSearchTerm("");
-//   setSelectedStatus("all");
-//   setCompletedFilter("all");
-//   setFilterType("GLOBAL");
-//   setSelectedClubId("");
-//   setShowCreatedEvents(false);
-//   setShowEnrolledEvents(false); // Add this line
-//   const token = localStorage.getItem("token");
-//   const user = JSON.parse(localStorage.getItem("user"));
-//   fetchEvents(token, user?.role, "GLOBAL");
-// };
+//   const clearAllFilters = () => {
+//     setSearchTerm("");
+//     setSelectedStatus("all");
+//     setCompletedFilter("all");
+//     setFilterType("GLOBAL");
+//     setSelectedClubId("");
+//     setShowCreatedEvents(false);
+//     setShowEnrolledEvents(false);
+//     const token = localStorage.getItem("token");
+//     const user = JSON.parse(localStorage.getItem("user"));
+//     fetchEvents(token, user?.role, "GLOBAL");
+//   };
 
-// const removeStatusFilter = async () => {
-//   setSelectedStatus("all");
-//   // Refetch based on current filter type
-//   const token = localStorage.getItem("token");
-//   const user = JSON.parse(localStorage.getItem("user"));
-//   await fetchEvents(token, user?.role, filterType, selectedClubId || deptId, completedFilter !== "all" ? completedFilter : null);
-// };
+//   const removeStatusFilter = async () => {
+//     setSelectedStatus("all");
+//     const token = localStorage.getItem("token");
+//     const user = JSON.parse(localStorage.getItem("user"));
+//     await fetchEvents(token, user?.role, filterType, selectedClubId || deptId, completedFilter !== "all" ? completedFilter : null);
+//   };
 
 //   const removeCompletedFilter = () => {
 //     setCompletedFilter("all");
@@ -951,8 +1153,6 @@
 //     (e) => e.targetType?.toUpperCase() === "GLOBAL"
 //   ).length;
 
-  
-
 //   if (loading) {
 //     return (
 //       <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
@@ -1008,69 +1208,42 @@
 //         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
 //       </div>
 
-//       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-//         {/* Header with Back Button and Role Badge */}
-//         <div className="mb-8 flex items-start gap-6">
-//           <button
-//             onClick={() => navigate(-1)}
-//             className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer mt-2"
-//             style={{
-//               background: "rgba(255,255,255,0.7)",
-//               backdropFilter: "blur(8px)",
-//               color: "#4CA1AF",
-//             }}
-//           >
-//             <div
-//               className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-//               style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+//       {/* Sticky Back Button Bar - ClubDetails Style */}
+//       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="flex items-center h-16">
+//             <button
+//               onClick={() => navigate(-1)}
+//               className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
 //             >
-//               <svg
-//                 className="w-3.5 h-3.5"
-//                 style={{ color: "#4CA1AF" }}
-//                 fill="none"
-//                 stroke="currentColor"
-//                 viewBox="0 0 24 24"
-//               >
-//                 <path
-//                   strokeLinecap="round"
-//                   strokeLinejoin="round"
-//                   strokeWidth={2.5}
-//                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
-//                 />
-//               </svg>
-//             </div>
-//             {/* <span className="text-sm">Back</span> */}
-//           </button>
-
-//           <div className="flex-1 text-center">
-//             {isTeacher && (
-//               <div className="inline-block mb-4">
-//                 {/* <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center">
-//                   <Award className="w-4 h-4 mr-2" />
-//                   TEACHER DASHBOARD
-//                 </span> */}
-//               </div>
-//             )}
-
-//             <h1 className="text-5xl font-bold mb-4">
-//               <span
-//                 className="bg-clip-text text-transparent"
-//                 style={{
-//                   background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-//                   WebkitBackgroundClip: "text",
-//                   WebkitTextFillColor: "transparent",
-//                 }}
-//               >
-//                 {isTeacher ? "Events Dashboard" : "Upcoming Events"}
-//               </span>
-//             </h1>
-
-//             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-//               {isTeacher
-//                 ? "Manage your created events and discover events from your clubs and department"
-//                 : "Join exciting events, connect with amazing people, and create unforgettable memories"}
-//             </p>
+//               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+//               <span>Back to Dashboard</span>
+//             </button>
 //           </div>
+//         </div>
+//       </div>
+
+//       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+//         {/* Title Section */}
+//         <div className="text-center">
+//           <h1 className="text-5xl font-bold mb-4">
+//             <span
+//               className="bg-clip-text text-transparent"
+//               style={{
+//                 background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+//                 WebkitBackgroundClip: "text",
+//                 WebkitTextFillColor: "transparent",
+//               }}
+//             >
+//               {isTeacher ? "Events Dashboard" : "Upcoming Events"}
+//             </span>
+//           </h1>
+
+//           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+//             {isTeacher
+//               ? "Manage your created events and discover events from your clubs and department"
+//               : "Join exciting events, connect with amazing people, and create unforgettable memories"}
+//           </p>
 //         </div>
 
 //         {/* Stats Cards - Show different stats based on role */}
@@ -1234,7 +1407,7 @@
 //                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
 //                 <input
 //                   type="text"
-//                   placeholder="Search events by title, description, or organizer..."
+//                   placeholder="Search events by title, description, organizer, or creator..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
 //                   className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
@@ -1277,7 +1450,7 @@
 //               completedFilter !== "all" ||
 //               selectedClubId ||
 //               showCreatedEvents ||
-//   showEnrolledEvents) && (
+//               showEnrolledEvents) && (
 //               <div className="mt-4 pt-4 border-t border-gray-200">
 //                 <div className="flex flex-wrap items-center gap-2">
 //                   <span className="text-sm font-medium text-gray-600 mr-2">
@@ -1325,22 +1498,23 @@
 //                       </button>
 //                     </span>
 //                   )}
-// {!isTeacher && showEnrolledEvents && (
-//         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
-//           My Enrolled Events
-//           <button
-//             onClick={() => {
-//               setShowEnrolledEvents(false);
-//               const token = localStorage.getItem("token");
-//               const user = JSON.parse(localStorage.getItem("user"));
-//               fetchEvents(token, user?.role, filterType, selectedClubId || deptId);
-//             }}
-//             className="ml-2 hover:text-green-900"
-//           >
-//             <X className="w-3 h-3" />
-//           </button>
-//         </span>
-//       )}
+
+//                   {!isTeacher && showEnrolledEvents && (
+//                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
+//                       My Enrolled Events
+//                       <button
+//                         onClick={() => {
+//                           setShowEnrolledEvents(false);
+//                           const token = localStorage.getItem("token");
+//                           const user = JSON.parse(localStorage.getItem("user"));
+//                           fetchEvents(token, user?.role, filterType, selectedClubId || deptId);
+//                         }}
+//                         className="ml-2 hover:text-green-900"
+//                       >
+//                         <X className="w-3 h-3" />
+//                       </button>
+//                     </span>
+//                   )}
 
 //                   {selectedStatus !== "all" && (
 //                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
@@ -1389,53 +1563,50 @@
 //                     {/* Filter Buttons */}
 //                     <div className="flex flex-wrap items-center gap-2">
 //                       {/* Created Events Filter - Only for Teachers */}
-//               {/* Created Events Filter - Only for Teachers */}
-// {isTeacher && (
-//   <button
-//     onClick={() => {
-//       handleFilterChange("CREATED");
-//       setShowEnrolledEvents(false); // Add this line
-//     }}
-//     className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-//       showCreatedEvents
-//         ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-//         : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-//     }`}
-//   >
-//     My Created Events
-//   </button>
-// )}
+//                       {isTeacher && (
+//                         <button
+//                           onClick={() => {
+//                             handleFilterChange("CREATED");
+//                             setShowEnrolledEvents(false);
+//                           }}
+//                           className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+//                             showCreatedEvents
+//                               ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+//                               : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+//                           }`}
+//                         >
+//                           My Created Events
+//                         </button>
+//                       )}
 
-//   {/* My Enrolled Events Filter - Only for Users */}
-//   {!isTeacher && (
-//     <button
-//       onClick={handleEnrolledEventsClick}
-//       className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-//         showEnrolledEvents
-//           ? "bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg"
-//           : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-//       }`}
-//     >
-//       My Enrolled Events
-//     </button>
-//   )}
-
-
+//                       {/* My Enrolled Events Filter - Only for Users */}
+//                       {!isTeacher && (
+//                         <button
+//                           onClick={handleEnrolledEventsClick}
+//                           className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+//                             showEnrolledEvents
+//                               ? "bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg"
+//                               : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+//                           }`}
+//                         >
+//                           My Enrolled Events
+//                         </button>
+//                       )}
 
 //                       {/* Global Events Filter */}
-// <button
-//   onClick={() => {
-//     handleFilterChange("GLOBAL");
-//     setShowEnrolledEvents(false); // Add this line
-//   }}
-//   className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-//     filterType === "GLOBAL" && !showCreatedEvents && !showEnrolledEvents
-//       ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
-//       : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-//   }`}
-// >
-//   Global Events
-// </button>
+//                       <button
+//                         onClick={() => {
+//                           handleFilterChange("GLOBAL");
+//                           setShowEnrolledEvents(false);
+//                         }}
+//                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+//                           filterType === "GLOBAL" && !showCreatedEvents && !showEnrolledEvents
+//                             ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
+//                             : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+//                         }`}
+//                       >
+//                         Global Events
+//                       </button>
 
 //                       {/* Department Filter */}
 //                       {userDept && (
@@ -1452,49 +1623,46 @@
 //                       )}
 
 //                       {/* Club Events Button */}
-//                     {/* Club Events Button */}
-// <button
-//   onClick={() => {
-//     setShowClubDropdown(!showClubDropdown);
-//     setShowEnrolledEvents(false); // Add this line
-//   }}
-//   className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-//     filterType === "CLUB"
-//       ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-//       : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-//   }`}
-// >
-//   <span>Club Events</span>
-//   <ChevronDown
-//     className={`w-4 h-4 transition-transform duration-300 ${
-//       showClubDropdown ? "rotate-180" : ""
-//     }`}
-//   />
-// </button>
+//                       <button
+//                         onClick={() => {
+//                           setShowClubDropdown(!showClubDropdown);
+//                           setShowEnrolledEvents(false);
+//                         }}
+//                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
+//                           filterType === "CLUB"
+//                             ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
+//                             : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+//                         }`}
+//                       >
+//                         <span>Club Events</span>
+//                         <ChevronDown
+//                           className={`w-4 h-4 transition-transform duration-300 ${
+//                             showClubDropdown ? "rotate-180" : ""
+//                           }`}
+//                         />
+//                       </button>
 
 //                       {/* Status Filter */}
-//                      <select
-//   value={selectedStatus}
-//   onChange={async (e) => {
-//     const value = e.target.value;
-//     setSelectedStatus(value);
-    
-//     if (value === "all") {
-//       // Refetch based on current filter type
-//       const token = localStorage.getItem("token");
-//       const user = JSON.parse(localStorage.getItem("user"));
-//       await fetchEvents(token, user?.role, filterType, selectedClubId || deptId, completedFilter !== "all" ? completedFilter : null);
-//     } else {
-//       // Fetch by deadline status
-//       await fetchEventsByDeadline(value.toUpperCase());
-//     }
-//   }}
-//   className="px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 bg-white"
-// >
-//   <option value="all">Enrollment Status</option>
-//   <option value="open">Open</option>
-//   <option value="closed">Closed</option>
-// </select>
+//                       <select
+//                         value={selectedStatus}
+//                         onChange={async (e) => {
+//                           const value = e.target.value;
+//                           setSelectedStatus(value);
+                          
+//                           if (value === "all") {
+//                             const token = localStorage.getItem("token");
+//                             const user = JSON.parse(localStorage.getItem("user"));
+//                             await fetchEvents(token, user?.role, filterType, selectedClubId || deptId, completedFilter !== "all" ? completedFilter : null);
+//                           } else {
+//                             await fetchEventsByDeadline(value.toUpperCase());
+//                           }
+//                         }}
+//                         className="px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 bg-white"
+//                       >
+//                         <option value="all">Enrollment Status</option>
+//                         <option value="open">Open</option>
+//                         <option value="closed">Closed</option>
+//                       </select>
 
 //                       {/* NEW: Completed Status Filter */}
 //                       <select
@@ -1578,570 +1746,586 @@
 //         </div>
 
 //         {/* Events Grid */}
-// {/* Events Grid */}
-// {filteredEvents.length === 0 ? (
-//   <div className="text-center py-16">
-//     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto border border-white/20">
-//       <div className="relative">
-//         <div className="absolute inset-0 flex items-center justify-center">
-//           <div className="w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-ping"></div>
-//         </div>
-//         <Calendar className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
-//       </div>
-//       <h3 className="text-2xl font-bold text-gray-800 mb-2">
-//         No Events Found
-//       </h3>
-//       <p className="text-gray-600 mb-6">
-//         {filterType === "CLUB" && !selectedClubId
-//           ? "Please select a club from the dropdown to view its events."
-//           : showCreatedEvents && isTeacher
-//             ? "You haven't created any events yet. Create your first event to get started!"
-//               : !isTeacher && showEnrolledEvents
-//     ? "You haven't enrolled in any events yet. Browse events and enroll to see them here!"
-//             : completedFilter !== "all"
-//               ? `No ${completedFilter === "completed" ? "completed" : "not completed"} events found.`
-//               : "There are no events available at the moment. Check back later for exciting new events!"}
-//       </p>
-//       {(showCreatedEvents || isTeacher) && (
-//         <button
-//           onClick={() => navigate("/create-event")}
-//           className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-//         >
-//           Create New Event
-//         </button>
-//       )}
-//       {(filterType !== "GLOBAL" ||
-//         searchTerm ||
-//         selectedStatus !== "all" ||
-//         completedFilter !== "all") && (
-//         <button
-//           onClick={clearAllFilters}
-//           className="mt-4 px-6 py-3 text-purple-600 hover:text-purple-800 font-medium"
-//         >
-//           Clear All Filters
-//         </button>
-//       )}
-//     </div>
-//   </div>
-// ) : (
-//   <div className="flex justify-center">
-//     <div 
-//       className={`
-//         grid gap-4 w-full
-//         ${filteredEvents.length === 1 
-//           ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-1 max-w-sm mx-auto' 
-//           : filteredEvents.length === 2 
-//             ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto' 
-//             : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-//         }
-//       `}
-//     >
-//       {filteredEvents.map((event, index) => {
-//         const daysUntil = getDaysUntil(event.dateTime);
-//         const categoryIcon = getEventCategoryIcon(event.title);
-//         const targetTypeColor = getTargetTypeColor(event.targetType);
-//         const isCreator = isTeacher && event.creatorPrn === userPrn;
-//         const isEnrolled =
-//           !isTeacher && enrolledEvents.includes(event.eventId);
-
-//         return (
-//           <div
-//             key={event.eventId}
-//             className={`event-card-container ${animations.fadeIn}`}
-//             style={{ animationDelay: `${index * 100}ms` }}
-//           >
-//             <div className="event-card">
-//               {/* Front of Card */}
-//               <div className="card-face card-front bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-500 border border-white/20">
-//                 {/* Event Header with Super Admin Gradient */}
-//                 <div
-//                   className="relative h-32 p-3 overflow-hidden"
-//                   style={{
-//                     background:
-//                       "linear-gradient(135deg, #4CA1AF, #2C3E50)",
-//                   }}
+//         {filteredEvents.length === 0 ? (
+//           <div className="text-center py-16">
+//             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto border border-white/20">
+//               <div className="relative">
+//                 <div className="absolute inset-0 flex items-center justify-center">
+//                   <div className="w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-ping"></div>
+//                 </div>
+//                 <Calendar className="w-20 h-20 text-gray-400 mx-auto mb-4 relative z-10" />
+//               </div>
+//               <h3 className="text-2xl font-bold text-gray-800 mb-2">
+//                 No Events Found
+//               </h3>
+//               <p className="text-gray-600 mb-6">
+//                 {filterType === "CLUB" && !selectedClubId
+//                   ? "Please select a club from the dropdown to view its events."
+//                   : showCreatedEvents && isTeacher
+//                     ? "You haven't created any events yet. Create your first event to get started!"
+//                       : !isTeacher && showEnrolledEvents
+//               ? "You haven't enrolled in any events yet. Browse events and enroll to see them here!"
+//                     : completedFilter !== "all"
+//                       ? `No ${completedFilter === "completed" ? "completed" : "not completed"} events found.`
+//                       : "There are no events available at the moment. Check back later for exciting new events!"}
+//               </p>
+//               {(showCreatedEvents || isTeacher) && (
+//                 <button
+//                   onClick={() => navigate("/create-event")}
+//                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
 //                 >
-//                   {/* Animated Background Pattern */}
-//                   <div className="absolute inset-0 opacity-10">
-//                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
-//                     <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
-//                   </div>
-
-//                   {daysUntil > 0 && !event.completed && (
-//                     <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-//                       <span className="text-white text-xs font-semibold">
-//                         {daysUntil} days to go
-//                       </span>
-//                     </div>
-//                   )}
-
-//                   {/* Completed Badge */}
-//                   {event.completed && (
-//                     <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
-//                       <CheckSquare className="w-3 h-3 mr-1" />
-//                       <span className="text-xs font-semibold">
-//                         Completed
-//                       </span>
-//                     </div>
-//                   )}
-
-//                   {/* Enrolled Badge - Only show for Users */}
-//                   {!isTeacher && isEnrolled && (
-//                     <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
-//                       <CheckCircle className="w-3 h-3 mr-1" />
-//                       <span className="text-xs font-semibold">
-//                         Enrolled
-//                       </span>
-//                     </div>
-//                   )}
-
-//                   {/* Title */}
-//                   <div className="absolute bottom-2 right-2 text-right">
-//                     <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
-//                       {event.title}
-//                     </h3>
-//                     <p className="text-[10px] text-white/80 line-clamp-1">
-//                       {event.description}
-//                     </p>
-//                   </div>
-//                 </div>
-
-//                 {/* Quick Info Badges */}
-//                 <div className="p-3 space-y-2">
-//                   <div className="flex flex-wrap gap-1">
-//                     <div className="bg-blue-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-blue-600 flex items-center">
-//                       <Calendar className="w-2.5 h-2.5 mr-1" />
-//                       {formatDateTime(event.dateTime)}
-//                     </div>
-//                     <div className="bg-green-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-green-600 flex items-center">
-//                       <MapPin className="w-2.5 h-2.5 mr-1" />
-//                       {event.venue}
-//                     </div>
-//                   </div>
-
-//                   {/* Organizer and Creator Info */}
-//                   {/* <div className="grid grid-cols-2 gap-1">
-//                     <div className="bg-gray-50 p-1.5 rounded-lg">
-//                       <p className="text-[8px] text-gray-500">
-//                         Organizer
-//                       </p>
-//                       <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-//                         <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
-//                         <span className="truncate">
-//                           {event.organizer}
-//                         </span>
-//                       </p>
-//                     </div>
-//                     <div className="bg-gray-50 p-1.5 rounded-lg">
-//                       <p className="text-[8px] text-gray-500">
-//                         Created By
-//                       </p>
-//                       <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-//                         <Star className="w-3 h-3 mr-0.5 text-yellow-500 flex-shrink-0" />
-//                         <span className="truncate">
-//                           {event.creatorName}
-//                         </span>
-//                       </p>
-//                     </div>
-//                   </div> */}
-
-//                    {/* Organizer and Speaker Info - Both on Front Side by Side */}
-//   <div className="grid grid-cols-2 gap-1">
-//     <div className="bg-gray-50 p-1.5 rounded-lg">
-//       <p className="text-[8px] text-gray-500">
-//         Organizer
-//       </p>
-//       <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-//         <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
-//         <span className="truncate">
-//           {event.organizer}
-//         </span>
-//       </p>
-//     </div>
-//     <div className="bg-gray-50 p-1.5 rounded-lg">
-//       <p className="text-[8px] text-gray-500">
-//         Speaker
-//       </p>
-//       <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
-//         <User className="w-3 h-3 mr-0.5 text-green-500 flex-shrink-0" />
-//         <span className="truncate">
-//           {event.speaker || event.organizer}
-//         </span>
-//       </p>
-//     </div>
-//   </div>
-
-//                   {/* Target Type Badge and Enrollment Status */}
-//                   <div className="flex items-center justify-between">
-//                     <span
-//                       className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
-//                     >
-//                       {getTargetTypeIcon(event.targetType)}
-//                       <span className="ml-1 capitalize text-xs">
-//                         {event.targetType || "N/A"}
-//                       </span>
-//                     </span>
-//                     <div className="flex items-center gap-1">
-//                       {!isTeacher && isEnrolled && (
-//                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center">
-//                           <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
-//                           Enrolled
-//                         </span>
-//                       )}
-//                       {event.completed && (
-//                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center">
-//                           <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
-//                           Completed
-//                         </span>
-//                       )}
-//                       <span
-//                         className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-//                           event.enrollmentStatus?.toLowerCase() === "open"
-//                             ? "bg-green-100 text-green-700"
-//                             : event.enrollmentStatus?.toLowerCase() ===
-//                               "pending"
-//                             ? "bg-yellow-100 text-yellow-700"
-//                             : "bg-gray-100 text-gray-700"
-//                         }`}
-//                       >
-//                         {event.enrollmentStatus || "N/A"}
-//                       </span>
-//                     </div>
-//                   </div>
-
-//                   {/* Enrollment Progress - Only for Teachers */}
-//                   {isTeacher && (
-//                     <div className="space-y-1">
-//                       <div className="flex justify-between text-[10px]">
-//                         <span className="text-gray-600">Enrolled</span>
-//                         <span className="font-semibold">
-//                           {event.currEnrollments || 0}/
-//                           {event.maxEnrollments || 0}
-//                         </span>
-//                       </div>
-//                       <div className="w-full bg-gray-200 rounded-full h-1.5">
-//                         <div
-//                           className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-//                           style={{
-//                             width: `${Math.min(
-//                               (event.currEnrollments /
-//                                 event.maxEnrollments) *
-//                                 100,
-//                               100
-//                             )}%`,
-//                           }}
-//                         ></div>
-//                       </div>
-//                     </div>
-//                   )}
-
-//                   {/* Flip Hint */}
-//                   <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
-//                     <span className="animate-pulse mr-1 text-[6px]">
-//                       ●
-//                     </span>
-//                     Hover to view all details
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Back of Card - All Details with super admin gradient */}
-//               <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3 bg-gradient-to-br from-[#4CA1AF] to-[#2C3E50]">
-//                 <div className="h-full flex flex-col">
-//                   <div className="flex items-center justify-between mb-2">
-//                     <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">
-//                       {event.title}
-//                     </h3>
-//                     {event.completed && (
-//                       <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
-//                         <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
-//                         Completed
-//                       </span>
-//                     )}
-//                     {!isTeacher && isEnrolled && (
-//                       <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
-//                         <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
-//                         Enrolled
-//                       </span>
-//                     )}
-//                   </div>
-
-//                   <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
-//                     {/* Date & Time */}
-//                     <div className="grid grid-cols-2 gap-1">
-//                       <div
-//                         className="p-1.5 rounded-lg"
-//                         style={{
-//                           backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                         }}
-//                       >
-//                         <div className="flex items-center mb-0.5">
-//                           <Calendar className="w-3 h-3 mr-1 text-white/80" />
-//                           <p className="text-[10px] text-white/80">
-//                             Date
-//                           </p>
-//                         </div>
-//                         <p className="text-xs font-medium text-white">
-//                           {formatDateTime(event.dateTime)}
-//                         </p>
-//                       </div>
-//                       <div
-//                         className="p-1.5 rounded-lg"
-//                         style={{
-//                           backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                         }}
-//                       >
-//                         <div className="flex items-center mb-0.5">
-//                           <Clock className="w-3 h-3 mr-1 text-white/80" />
-//                           <p className="text-[10px] text-white/80">
-//                             Enrollment Deadline
-//                           </p>
-//                         </div>
-//                         <p className="text-xs font-medium text-white">
-//                           {new Date(
-//                             event.enrollmentDeadline
-//                           ).toLocaleDateString()}
-//                         </p>
-//                       </div>
-//                     </div>
-
-//               {/* Created By Info - Now on Back */}
-//               <div
-//                 className="p-1.5 rounded-lg"
-//                 style={{
-//                   backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                 }}
-//               >
-//                 <p className="text-[10px] text-white/80 mb-1 flex items-center">
-//                   <Star className="w-2.5 h-2.5 mr-1" />
-//                   Created By
-//                 </p>
-//                 <p className="text-xs font-medium text-white flex items-center">
-//                   <span className="truncate">
-//                     {event.creatorName}
-//                   </span>
-//                 </p>
-//               </div>
-
-//                     {/* Target Info */}
-//                     {event.targetType?.toUpperCase() === "DEPARTMENT" &&
-//                       event.targetIds?.length > 0 && (
-//                         <div
-//                           className="p-1.5 rounded-lg"
-//                           style={{
-//                             backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                           }}
-//                         >
-//                           <p className="text-[10px] text-white/80 mb-1 flex items-center">
-//                             <Briefcase className="w-2.5 h-2.5 mr-1" />
-//                             Target Departments
-//                           </p>
-//                           <div className="flex flex-wrap gap-1 mt-1">
-//                             {event.targetIds.map((id) => {
-//                               const dept = departments.find(
-//                                 (d) => d.departmentId === id
-//                               );
-//                               return (
-//                                 <span
-//                                   key={id}
-//                                   className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-//                                   style={{
-//                                     backgroundColor:
-//                                       "rgba(255, 255, 255, 0.2)",
-//                                   }}
-//                                 >
-//                                   {dept?.name || `ID: ${id}`}
-//                                 </span>
-//                               );
-//                             })}
-//                           </div>
-//                         </div>
-//                       )}
-
-//                     {event.targetType?.toUpperCase() === "CLUB" &&
-//                       event.targetIds?.length > 0 && (
-//                         <div
-//                           className="p-1.5 rounded-lg"
-//                           style={{
-//                             backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                           }}
-//                         >
-//                           <p className="text-[10px] text-white/80 mb-1 flex items-center">
-//                             <Users className="w-2.5 h-2.5 mr-1" />
-//                             Target Clubs
-//                           </p>
-//                           <div className="flex flex-wrap gap-1 mt-1">
-//                             {event.targetIds.map((id) => {
-//                               const club = userClubs.find(
-//                                 (c) => c.clubId === id
-//                               );
-//                               return (
-//                                 <span
-//                                   key={id}
-//                                   className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
-//                                   style={{
-//                                     backgroundColor:
-//                                       "rgba(255, 255, 255, 0.2)",
-//                                   }}
-//                                 >
-//                                   {club?.clubName || `ID: ${id}`}
-//                                 </span>
-//                               );
-//                             })}
-//                           </div>
-//                         </div>
-//                       )}
-
-
-
-//                     {/* Enrollment Info - Only for Teachers */}
-//                     {isTeacher && (
-//                       <div
-//                         className="p-1.5 rounded-lg"
-//                         style={{
-//                           backgroundColor: "rgba(255, 255, 255, 0.1)",
-//                         }}
-//                       >
-//                         <div className="flex justify-between items-center mb-1">
-//                           <span className="text-[10px] text-white/80">
-//                             Total Enrollments
-//                           </span>
-//                           <span className="text-xs text-white">
-//                             {event.currEnrollments || 0}/
-//                             {event.maxEnrollments || 0}
-//                           </span>
-//                         </div>
-//                         <div
-//                           className="w-full h-1.5 rounded-full overflow-hidden"
-//                           style={{
-//                             backgroundColor: "rgba(255, 255, 255, 0.2)",
-//                           }}
-//                         >
-//                           <div
-//                             className="h-full rounded-full bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]"
-//                             style={{
-//                               width: `${Math.min(
-//                                 (event.currEnrollments /
-//                                   event.maxEnrollments) *
-//                                   100,
-//                                 100
-//                               )}%`,
-//                             }}
-//                           ></div>
-//                         </div>
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   {/* Action Buttons */}
-//                   <div className="mt-2 pt-1 border-t border-white/20">
-//                     {isCreator ? (
-//                       <div className="flex gap-1">
-//                         <button
-//                           onClick={(e) => {
-//                             e.stopPropagation();
-//                             navigate(`/edit-event/${event.eventId}`);
-//                           }}
-//                           className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-//                           style={{
-//                             backgroundColor: "rgba(255, 255, 255, 0.2)",
-//                           }}
-//                           onMouseEnter={(e) =>
-//                             (e.currentTarget.style.backgroundColor =
-//                               "rgba(255, 255, 255, 0.3)")
-//                           }
-//                           onMouseLeave={(e) =>
-//                             (e.currentTarget.style.backgroundColor =
-//                               "rgba(255, 255, 255, 0.2)")
-//                           }
-//                         >
-//                           <Edit className="w-2.5 h-2.5 mr-0.5" />
-//                           Edit
-//                         </button>
-//                         <button
-//                           onClick={(e) => {
-//                             e.stopPropagation();
-//                             handleDeleteEvent(event.eventId);
-//                           }}
-//                           className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-//                           style={{
-//                             backgroundColor: "rgba(239, 68, 68, 0.5)",
-//                           }}
-//                           onMouseEnter={(e) =>
-//                             (e.currentTarget.style.backgroundColor =
-//                               "rgba(239, 68, 68, 0.6)")
-//                           }
-//                           onMouseLeave={(e) =>
-//                             (e.currentTarget.style.backgroundColor =
-//                               "rgba(239, 68, 68, 0.5)")
-//                           }
-//                         >
-//                           <Trash2 className="w-2.5 h-2.5 mr-0.5" />
-//                           Delete
-//                         </button>
-//                       </div>
-//                     ) : (
-//                       !isTeacher &&
-//                       event.enrollmentStatus === "OPEN" &&
-//                       !event.completed && (
-//                         <div className="relative">
-//                           {enrollmentMessage.show &&
-//                             enrollmentMessage.eventId ===
-//                               event.eventId && (
-//                               <div
-//                                 className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
-//                                   enrollmentMessage.success
-//                                     ? "text-green-400"
-//                                     : "text-red-400"
-//                                 }`}
-//                               >
-//                                 {enrollmentMessage.message}
-//                               </div>
-//                             )}
-//                           <button
-//                             onClick={() => handleEnroll(event.eventId)}
-//                             disabled={
-//                               enrollingEventId === event.eventId ||
-//                               isEnrolled
-//                             }
-//                             className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
-//                               isEnrolled
-//                                 ? "bg-green-500/50 text-white cursor-default"
-//                                 : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
-//                             }`}
-//                           >
-//                             {enrollingEventId === event.eventId ? (
-//                               <>
-//                                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-//                                 Enrolling...
-//                               </>
-//                             ) : isEnrolled ? (
-//                               <>
-//                                 <CheckCircle className="w-3 h-3 mr-1" />
-//                                 Enrolled
-//                               </>
-//                             ) : (
-//                               "Enroll Now"
-//                             )}
-//                           </button>
-//                         </div>
-//                       )
-//                     )}
-//                     {event.completed && (
-//                       <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
-//                         Event Completed
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               </div>
+//                   Create New Event
+//                 </button>
+//               )}
+//               {(filterType !== "GLOBAL" ||
+//                 searchTerm ||
+//                 selectedStatus !== "all" ||
+//                 completedFilter !== "all") && (
+//                 <button
+//                   onClick={clearAllFilters}
+//                   className="mt-4 px-6 py-3 text-purple-600 hover:text-purple-800 font-medium"
+//                 >
+//                   Clear All Filters
+//                 </button>
+//               )}
 //             </div>
 //           </div>
-//         );
-//       })}
+//         ) : (
+//           <div className="flex justify-center">
+//             <div 
+//               className={`
+//                 grid gap-4 w-full
+//                 ${filteredEvents.length === 1 
+//                   ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-1 max-w-sm mx-auto' 
+//                   : filteredEvents.length === 2 
+//                     ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto' 
+//                     : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+//                 }
+//               `}
+//             >
+//               {filteredEvents.map((event, index) => {
+//                 const daysUntil = getDaysUntil(event.dateTime);
+//                 const categoryIcon = getEventCategoryIcon(event.title);
+//                 const targetTypeColor = getTargetTypeColor(event.targetType);
+//                 const isCreator = isTeacher && event.creatorPrn === userPrn;
+//                 const isEnrolled =
+//                   !isTeacher && enrolledEvents.includes(event.eventId);
+
+//                 return (
+//                   <div
+//                     key={event.eventId}
+//                     className={`event-card-container ${animations.fadeIn}`}
+//                     style={{ animationDelay: `${index * 100}ms` }}
+//                   >
+//                     <div className="event-card">
+//                       {/* Front of Card */}
+//                       <div className="card-face card-front bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-500 border border-white/20">
+//                         {/* Event Header with Super Admin Gradient */}
+//                         <div
+//                           className="relative h-32 p-3 overflow-hidden"
+//                           style={{
+//                             background:
+//                               "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+//                           }}
+//                         >
+//                           {/* Animated Background Pattern */}
+//                           <div className="absolute inset-0 opacity-10">
+//                             <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
+//                             <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
+//                           </div>
+
+//                           {daysUntil > 0 && !event.completed && (
+//                             <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+//                               <span className="text-white text-xs font-semibold">
+//                                 {daysUntil} days to go
+//                               </span>
+//                             </div>
+//                           )}
+
+//                           {/* Completed Badge */}
+//                           {event.completed && (
+//                             <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
+//                               <CheckSquare className="w-3 h-3 mr-1" />
+//                               <span className="text-xs font-semibold">
+//                                 Completed
+//                               </span>
+//                             </div>
+//                           )}
+
+//                           {/* Enrolled Badge - Only show for Users */}
+//                           {!isTeacher && isEnrolled && (
+//                             <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg">
+//                               <CheckCircle className="w-3 h-3 mr-1" />
+//                               <span className="text-xs font-semibold">
+//                                 Enrolled
+//                               </span>
+//                             </div>
+//                           )}
+
+//                           {/* Title */}
+//                           <div className="absolute bottom-2 right-2 text-right">
+//                             <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">
+//                               {event.title}
+//                             </h3>
+//                             <p className="text-[10px] text-white/80 line-clamp-1">
+//                               {event.description}
+//                             </p>
+//                           </div>
+//                         </div>
+
+//                         {/* Quick Info Badges */}
+//                         <div className="p-3 space-y-2">
+//                           <div className="flex flex-wrap gap-1">
+//                             <div className="bg-blue-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-blue-600 flex items-center">
+//                               <Calendar className="w-2.5 h-2.5 mr-1" />
+//                               {formatDateTime(event.dateTime)}
+//                             </div>
+//                             <div className="bg-green-50 px-2 py-0.5 rounded-full text-[10px] font-medium text-green-600 flex items-center">
+//                               <MapPin className="w-2.5 h-2.5 mr-1" />
+//                               {event.venue}
+//                             </div>
+//                           </div>
+
+//                           {/* Organizer and Creator Info */}
+//                           <div className="grid grid-cols-2 gap-1">
+//                             <div className="bg-gray-50 p-1.5 rounded-lg">
+//                               <p className="text-[8px] text-gray-500">
+//                                 Organizer
+//                               </p>
+//                               <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+//                                 <User className="w-3 h-3 mr-0.5 text-blue-500 flex-shrink-0" />
+//                                 <span className="truncate">
+//                                   {event.organizer}
+//                                 </span>
+//                               </p>
+//                             </div>
+//                             <div className="bg-gray-50 p-1.5 rounded-lg">
+//                               <p className="text-[8px] text-gray-500">
+//                                 Speaker
+//                               </p>
+//                               <p className="text-xs font-semibold text-gray-800 flex items-center truncate">
+//                                 <User className="w-3 h-3 mr-0.5 text-green-500 flex-shrink-0" />
+//                                 <span className="truncate">
+//                                   {event.speakerName || event.organizer}
+//                                 </span>
+//                               </p>
+//                             </div>
+//                           </div>
+
+//                           {/* Target Type Badge and Enrollment Status */}
+//                           <div className="flex items-center justify-between">
+//                             <span
+//                               className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${targetTypeColor} flex items-center`}
+//                             >
+//                               {getTargetTypeIcon(event.targetType)}
+//                               <span className="ml-1 capitalize text-xs">
+//                                 {event.targetType || "N/A"}
+//                               </span>
+//                             </span>
+//                             <div className="flex items-center gap-1">
+//                               {!isTeacher && isEnrolled && (
+//                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center">
+//                                   <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+//                                   Enrolled
+//                                 </span>
+//                               )}
+//                               {event.completed && (
+//                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center">
+//                                   <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+//                                   Completed
+//                                 </span>
+//                               )}
+//                             </div>
+//                           </div>
+
+//                           {/* Enrollment Progress - Only for Teachers */}
+//                           {isTeacher && (
+//                             <div className="space-y-1">
+//                               <div className="flex justify-between text-[10px]">
+//                                 <span className="text-gray-600">Enrolled</span>
+//                                 <span className="font-semibold">
+//                                   {event.currEnrollments || 0}/
+//                                   {event.maxEnrollments || 0}
+//                                 </span>
+//                               </div>
+//                               <div className="w-full bg-gray-200 rounded-full h-1.5">
+//                                 <div
+//                                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+//                                   style={{
+//                                     width: `${Math.min(
+//                                       (event.currEnrollments /
+//                                         event.maxEnrollments) *
+//                                         100,
+//                                       100
+//                                     )}%`,
+//                                   }}
+//                                 ></div>
+//                               </div>
+//                             </div>
+//                           )}
+
+//                           {/* Flip Hint */}
+//                           <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
+//                             <span className="animate-pulse mr-1 text-[6px]">
+//                               ●
+//                             </span>
+//                             Hover to view all details
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       {/* Back of Card - All Details with super admin gradient */}
+//                       <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3 bg-gradient-to-br from-[#4CA1AF] to-[#2C3E50]">
+//                         <div className="h-full flex flex-col">
+//                           <div className="flex items-center justify-between mb-2">
+//                             <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">
+//                               {event.title}
+//                             </h3>
+//                             {event.completed && (
+//                               <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
+//                                 <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+//                                 Completed
+//                               </span>
+//                             )}
+//                             {!isTeacher && isEnrolled && (
+//                               <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center ml-1">
+//                                 <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+//                                 Enrolled
+//                               </span>
+//                             )}
+//                           </div>
+
+//                           <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
+//                             {/* Date & Time */}
+//                             <div className="grid grid-cols-2 gap-1">
+//                               <div
+//                                 className="p-1.5 rounded-lg"
+//                                 style={{
+//                                   backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                                 }}
+//                               >
+//                                 <div className="flex items-center mb-0.5">
+//                                   <Calendar className="w-3 h-3 mr-1 text-white/80" />
+//                                   <p className="text-[10px] text-white/80">
+//                                     Date
+//                                   </p>
+//                                 </div>
+//                                 <p className="text-xs font-medium text-white">
+//                                   {formatDateTime(event.dateTime)}
+//                                 </p>
+//                               </div>
+//                               <div
+//                                 className="p-1.5 rounded-lg"
+//                                 style={{
+//                                   backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                                 }}
+//                               >
+//                                 <div className="flex items-center mb-0.5">
+//                                   <Clock className="w-3 h-3 mr-1 text-white/80" />
+//                                   <p className="text-[10px] text-white/80">
+//                                     Enrollment Deadline
+//                                   </p>
+//                                 </div>
+//                                 <p className="text-xs font-medium text-white">
+//                                   {new Date(
+//                                     event.enrollmentDeadline
+//                                   ).toLocaleDateString()}
+//                                 </p>
+//                               </div>
+//                             </div>
+
+//                             {/* Created By Info - Now on Back with proper name */}
+//                             <div
+//                               className="p-1.5 rounded-lg"
+//                               style={{
+//                                 backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                               }}
+//                             >
+//                               <p className="text-[10px] text-white/80 mb-1 flex items-center">
+//                                 <Star className="w-2.5 h-2.5 mr-1" />
+//                                 Created By
+//                               </p>
+//                               <p className="text-xs font-medium text-white flex items-center">
+//                                 <span className="truncate">
+//                                   {event.creatorName || event.organizer || "Unknown"}
+//                                 </span>
+//                               </p>
+//                             </div>
+
+//                             {/* Target Info */}
+//                             {event.targetType?.toUpperCase() === "DEPARTMENT" &&
+//                               event.targetIds?.length > 0 && (
+//                                 <div
+//                                   className="p-1.5 rounded-lg"
+//                                   style={{
+//                                     backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                                   }}
+//                                 >
+//                                   <p className="text-[10px] text-white/80 mb-1 flex items-center">
+//                                     <Briefcase className="w-2.5 h-2.5 mr-1" />
+//                                     Target Departments
+//                                   </p>
+//                                   <div className="flex flex-wrap gap-1 mt-1">
+//                                     {event.targetIds.map((id) => {
+//                                       const dept = departments.find(
+//                                         (d) => d.departmentId === id
+//                                       );
+//                                       return (
+//                                         <span
+//                                           key={id}
+//                                           className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+//                                           style={{
+//                                             backgroundColor:
+//                                               "rgba(255, 255, 255, 0.2)",
+//                                           }}
+//                                         >
+//                                           {dept?.name || `ID: ${id}`}
+//                                         </span>
+//                                       );
+//                                     })}
+//                                   </div>
+//                                 </div>
+//                               )}
+
+//                             {event.targetType?.toUpperCase() === "CLUB" &&
+//                               event.targetIds?.length > 0 && (
+//                                 <div
+//                                   className="p-1.5 rounded-lg"
+//                                   style={{
+//                                     backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                                   }}
+//                                 >
+//                                   <p className="text-[10px] text-white/80 mb-1 flex items-center">
+//                                     <Users className="w-2.5 h-2.5 mr-1" />
+//                                     Target Clubs
+//                                   </p>
+//                                   <div className="flex flex-wrap gap-1 mt-1">
+//                                     {event.targetIds.map((id) => {
+//                                       const club = userClubs.find(
+//                                         (c) => c.clubId === id
+//                                       );
+//                                       return (
+//                                         <span
+//                                           key={id}
+//                                           className="px-1.5 py-0.5 rounded text-[8px] font-medium text-white"
+//                                           style={{
+//                                             backgroundColor:
+//                                               "rgba(255, 255, 255, 0.2)",
+//                                           }}
+//                                         >
+//                                           {club?.clubName || `ID: ${id}`}
+//                                         </span>
+//                                       );
+//                                     })}
+//                                   </div>
+//                                 </div>
+//                               )}
+
+//                             {/* Enrollment Info - Only for Teachers */}
+//                             {isTeacher && (
+//                               <div
+//                                 className="p-1.5 rounded-lg"
+//                                 style={{
+//                                   backgroundColor: "rgba(255, 255, 255, 0.1)",
+//                                 }}
+//                               >
+//                                 <div className="flex justify-between items-center mb-1">
+//                                   <span className="text-[10px] text-white/80">
+//                                     Total Enrollments
+//                                   </span>
+//                                   <span className="text-xs text-white">
+//                                     {event.currEnrollments || 0}/
+//                                     {event.maxEnrollments || 0}
+//                                   </span>
+//                                 </div>
+//                                 <div
+//                                   className="w-full h-1.5 rounded-full overflow-hidden"
+//                                   style={{
+//                                     backgroundColor: "rgba(255, 255, 255, 0.2)",
+//                                   }}
+//                                 >
+//                                   <div
+//                                     className="h-full rounded-full bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]"
+//                                     style={{
+//                                       width: `${Math.min(
+//                                         (event.currEnrollments /
+//                                           event.maxEnrollments) *
+//                                           100,
+//                                         100
+//                                       )}%`,
+//                                     }}
+//                                   ></div>
+//                                 </div>
+//                               </div>
+//                             )}
+//                           </div>
+
+//                          {/* Action Buttons */}
+// <div className="mt-2 pt-1 border-t border-white/20">
+//   {isCreator ? (
+//     <div className="flex flex-col gap-1">
+//       {/* Completion Message */}
+//       {completionMessage.show && completionMessage.eventId === event.eventId && (
+//         <div className={`text-center text-[10px] font-medium ${
+//           completionMessage.success ? "text-green-400" : "text-red-400"
+//         }`}>
+//           {completionMessage.message}
+//         </div>
+//       )}
+      
+//       <div className="flex gap-1">
+//         <button
+//           onClick={(e) => {
+//             e.stopPropagation();
+//             navigate(`/edit-event/${event.eventId}`);
+//           }}
+//           className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+//           style={{
+//             backgroundColor: "rgba(255, 255, 255, 0.2)",
+//           }}
+//           onMouseEnter={(e) =>
+//             (e.currentTarget.style.backgroundColor =
+//               "rgba(255, 255, 255, 0.3)")
+//           }
+//           onMouseLeave={(e) =>
+//             (e.currentTarget.style.backgroundColor =
+//               "rgba(255, 255, 255, 0.2)")
+//           }
+//         >
+//           <Edit className="w-2.5 h-2.5 mr-0.5" />
+//           Edit
+//         </button>
+//         <button
+//           onClick={(e) => {
+//             e.stopPropagation();
+//             handleDeleteEvent(event.eventId);
+//           }}
+//           className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+//           style={{
+//             backgroundColor: "rgba(239, 68, 68, 0.5)",
+//           }}
+//           onMouseEnter={(e) =>
+//             (e.currentTarget.style.backgroundColor =
+//               "rgba(239, 68, 68, 0.6)")
+//           }
+//           onMouseLeave={(e) =>
+//             (e.currentTarget.style.backgroundColor =
+//               "rgba(239, 68, 68, 0.5)")
+//           }
+//         >
+//           <Trash2 className="w-2.5 h-2.5 mr-0.5" />
+//           Delete
+//         </button>
+//       </div>
+      
+//       {/* Complete Event Button - Only show if event is not completed */}
+//       {!event.completed && (
+//         <button
+//           onClick={(e) => {
+//             e.stopPropagation();
+//             handleCompleteEvent(event.eventId);
+//           }}
+//           disabled={completingEventId === event.eventId}
+//           className="w-full px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+//           style={{
+//             backgroundColor: completingEventId === event.eventId 
+//               ? "rgba(255, 255, 255, 0.1)" 
+//               : "rgba(34, 197, 94, 0.5)",
+//           }}
+//           onMouseEnter={(e) => {
+//             if (completingEventId !== event.eventId) {
+//               e.currentTarget.style.backgroundColor = "rgba(34, 197, 94, 0.6)";
+//             }
+//           }}
+//           onMouseLeave={(e) => {
+//             if (completingEventId !== event.eventId) {
+//               e.currentTarget.style.backgroundColor = "rgba(34, 197, 94, 0.5)";
+//             }
+//           }}
+//         >
+//           {completingEventId === event.eventId ? (
+//             <>
+//               <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />
+//               Completing...
+//             </>
+//           ) : (
+//             <>
+//               <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+//               Complete Event
+//             </>
+//           )}
+//         </button>
+//       )}
+      
+//       {/* Show Completed badge if event is completed */}
+//       {event.completed && (
+//         <div className="w-full py-1 rounded-lg text-[10px] font-medium text-center bg-green-500/50 text-white flex items-center justify-center">
+//           <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+//           Completed
+//         </div>
+//       )}
 //     </div>
-//   </div>
-// )}
+//   ) : (
+//     !isTeacher &&
+//     event.enrollmentStatus === "OPEN" &&
+//     !event.completed && (
+//       <div className="relative">
+//         {enrollmentMessage.show &&
+//           enrollmentMessage.eventId === event.eventId && (
+//             <div
+//               className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
+//                 enrollmentMessage.success
+//                   ? "text-green-400"
+//                   : "text-red-400"
+//               }`}
+//             >
+//               {enrollmentMessage.message}
+//             </div>
+//           )}
+//         <button
+//           onClick={() => handleEnroll(event.eventId)}
+//           disabled={
+//             enrollingEventId === event.eventId ||
+//             isEnrolled
+//           }
+//           className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
+//             isEnrolled
+//               ? "bg-green-500/50 text-white cursor-default"
+//               : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
+//           }`}
+//         >
+//           {enrollingEventId === event.eventId ? (
+//             <>
+//               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+//               Enrolling...
+//             </>
+//           ) : isEnrolled ? (
+//             <>
+//               <CheckCircle className="w-3 h-3 mr-1" />
+//               Enrolled
+//             </>
+//           ) : (
+//             "Enroll Now"
+//           )}
+//         </button>
+//       </div>
+//     )
+//   )}
+//   {event.completed && !isCreator && (
+//     <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
+//       Event Completed
+//     </div>
+//   )}
+// </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </div>
+//         )}
 
 //         {/* Footer */}
 //         <div className="mt-12 text-center">
@@ -2277,6 +2461,15 @@
 // export default MyEvents;
 
 
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -2362,6 +2555,13 @@ const MyEvents = () => {
   const [showEnrolledEvents, setShowEnrolledEvents] = useState(false);
   const [userMap, setUserMap] = useState({}); // Cache for user names
   const isTeacher = userRole === "TEACHER" || userRole === "TEACHERS";
+  const [completingEventId, setCompletingEventId] = useState(null);
+const [completionMessage, setCompletionMessage] = useState({
+  show: false,
+  eventId: null,
+  success: false,
+  message: "",
+});
 
   // Super admin color scheme - only for flip cards
   const primaryGradient = "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]";
@@ -2972,7 +3172,7 @@ const MyEvents = () => {
         });
 
         if (userPrn) {
-          fetchUserEnrollments(token, userPrn);
+          await fetchUserEnrollments(token, userPrn);
         }
 
         setEvents((prevEvents) =>
@@ -3052,6 +3252,103 @@ const MyEvents = () => {
     }
   };
 
+const handleCompleteEvent = async (eventId) => {
+  try {
+    setCompletingEventId(eventId);
+    const token = localStorage.getItem("token");
+
+    // IMPORTANT: Log the token and URL to debug
+    console.log("Token being sent:", token);
+    console.log("Complete Event URL:", `http://localhost:8080/api/events/completeEvent/${eventId}`);
+
+    const response = await axios.post(
+      `http://localhost:8080/api/events/completeEvent/${eventId}`,
+      {}, // Empty body
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Make sure this format is correct
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log("Complete event response:", response.data);
+
+    if (response.data.success) {
+      // Update the event in the local state
+      setEvents(prevEvents =>
+        prevEvents.map(event =>
+          event.eventId === eventId
+            ? { ...event, completed: true }
+            : event
+        )
+      );
+      setAllEvents(prevEvents =>
+        prevEvents.map(event =>
+          event.eventId === eventId
+            ? { ...event, completed: true }
+            : event
+        )
+      );
+
+      setCompletionMessage({
+        show: true,
+        eventId: eventId,
+        success: true,
+        message: "Event marked as completed successfully!",
+      });
+
+      setTimeout(() => {
+        setCompletionMessage({
+          show: false,
+          eventId: null,
+          success: false,
+          message: "",
+        });
+      }, 3000);
+    } else {
+      setCompletionMessage({
+        show: true,
+        eventId: eventId,
+        success: false,
+        message: response.data.message || "Failed to mark event as completed",
+      });
+
+      setTimeout(() => {
+        setCompletionMessage({
+          show: false,
+          eventId: null,
+          success: false,
+          message: "",
+        });
+      }, 3000);
+    }
+  } catch (err) {
+    console.error("Error completing event:", err);
+    console.error("Error response:", err.response); // Log the full error response
+    console.error("Error status:", err.response?.status); // Log the status code
+    console.error("Error data:", err.response?.data); // Log the response data
+    
+    setCompletionMessage({
+      show: true,
+      eventId: eventId,
+      success: false,
+      message: err.response?.data?.message || "Error completing event. Please try again.",
+    });
+
+    setTimeout(() => {
+      setCompletionMessage({
+        show: false,
+        eventId: null,
+        success: false,
+        message: "",
+      });
+    }, 3000);
+  } finally {
+    setCompletingEventId(null);
+  }
+};
+
   const fetchUserEnrollments = async (token, prn) => {
     try {
       const response = await axios.get(
@@ -3069,6 +3366,7 @@ const MyEvents = () => {
           (enrollment) => enrollment.eventId
         );
         setEnrolledEvents(enrolledEventIds);
+        console.log("Updated enrolled events:", enrolledEventIds);
       }
     } catch (err) {
       console.error("Error fetching user enrollments:", err);
@@ -4110,18 +4408,6 @@ const MyEvents = () => {
                                   Completed
                                 </span>
                               )}
-                              <span
-                                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                                  event.enrollmentStatus?.toLowerCase() === "open"
-                                    ? "bg-green-100 text-green-700"
-                                    : event.enrollmentStatus?.toLowerCase() ===
-                                      "pending"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-gray-100 text-gray-700"
-                                }`}
-                              >
-                                {event.enrollmentStatus || "N/A"}
-                              </span>
                             </div>
                           </div>
 
@@ -4347,106 +4633,163 @@ const MyEvents = () => {
                             )}
                           </div>
 
-                          {/* Action Buttons */}
-                          <div className="mt-2 pt-1 border-t border-white/20">
-                            {isCreator ? (
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/edit-event/${event.eventId}`);
-                                  }}
-                                  className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                  style={{
-                                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.backgroundColor =
-                                      "rgba(255, 255, 255, 0.3)")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.backgroundColor =
-                                      "rgba(255, 255, 255, 0.2)")
-                                  }
-                                >
-                                  <Edit className="w-2.5 h-2.5 mr-0.5" />
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteEvent(event.eventId);
-                                  }}
-                                  className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                  style={{
-                                    backgroundColor: "rgba(239, 68, 68, 0.5)",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.backgroundColor =
-                                      "rgba(239, 68, 68, 0.6)")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.backgroundColor =
-                                      "rgba(239, 68, 68, 0.5)")
-                                  }
-                                >
-                                  <Trash2 className="w-2.5 h-2.5 mr-0.5" />
-                                  Delete
-                                </button>
-                              </div>
-                            ) : (
-                              !isTeacher &&
-                              event.enrollmentStatus === "OPEN" &&
-                              !event.completed && (
-                                <div className="relative">
-                                  {enrollmentMessage.show &&
-                                    enrollmentMessage.eventId ===
-                                      event.eventId && (
-                                      <div
-                                        className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
-                                          enrollmentMessage.success
-                                            ? "text-green-400"
-                                            : "text-red-400"
-                                        }`}
-                                      >
-                                        {enrollmentMessage.message}
-                                      </div>
-                                    )}
-                                  <button
-                                    onClick={() => handleEnroll(event.eventId)}
-                                    disabled={
-                                      enrollingEventId === event.eventId ||
-                                      isEnrolled
-                                    }
-                                    className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
-                                      isEnrolled
-                                        ? "bg-green-500/50 text-white cursor-default"
-                                        : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
-                                    }`}
-                                  >
-                                    {enrollingEventId === event.eventId ? (
-                                      <>
-                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                        Enrolling...
-                                      </>
-                                    ) : isEnrolled ? (
-                                      <>
-                                        <CheckCircle className="w-3 h-3 mr-1" />
-                                        Enrolled
-                                      </>
-                                    ) : (
-                                      "Enroll Now"
-                                    )}
-                                  </button>
-                                </div>
-                              )
-                            )}
-                            {event.completed && (
-                              <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
-                                Event Completed
-                              </div>
-                            )}
-                          </div>
+                         {/* Action Buttons */}
+<div className="mt-2 pt-1 border-t border-white/20">
+  {isCreator ? (
+    <div className="flex flex-col gap-1">
+      {/* Completion Message */}
+      {completionMessage.show && completionMessage.eventId === event.eventId && (
+        <div className={`text-center text-[10px] font-medium ${
+          completionMessage.success ? "text-green-400" : "text-red-400"
+        }`}>
+          {completionMessage.message}
+        </div>
+      )}
+      
+      <div className="flex gap-1">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/edit-event/${event.eventId}`);
+          }}
+          className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "rgba(255, 255, 255, 0.3)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "rgba(255, 255, 255, 0.2)")
+          }
+        >
+          <Edit className="w-2.5 h-2.5 mr-0.5" />
+          Edit
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteEvent(event.eventId);
+          }}
+          className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.5)",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "rgba(239, 68, 68, 0.6)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              "rgba(239, 68, 68, 0.5)")
+          }
+        >
+          <Trash2 className="w-2.5 h-2.5 mr-0.5" />
+          Delete
+        </button>
+      </div>
+      
+      {/* Complete Event Button - Only show if event is not completed */}
+      {!event.completed && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCompleteEvent(event.eventId);
+          }}
+          disabled={completingEventId === event.eventId}
+          className="w-full px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+          style={{
+            backgroundColor: completingEventId === event.eventId 
+              ? "rgba(255, 255, 255, 0.1)" 
+              : "rgba(34, 197, 94, 0.5)",
+          }}
+          onMouseEnter={(e) => {
+            if (completingEventId !== event.eventId) {
+              e.currentTarget.style.backgroundColor = "rgba(34, 197, 94, 0.6)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (completingEventId !== event.eventId) {
+              e.currentTarget.style.backgroundColor = "rgba(34, 197, 94, 0.5)";
+            }
+          }}
+        >
+          {completingEventId === event.eventId ? (
+            <>
+              <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />
+              Completing...
+            </>
+          ) : (
+            <>
+              <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+              Complete Event
+            </>
+          )}
+        </button>
+      )}
+      
+      {/* Show Completed badge if event is completed */}
+      {event.completed && (
+        <div className="w-full py-1 rounded-lg text-[10px] font-medium text-center bg-green-500/50 text-white flex items-center justify-center">
+          <CheckSquare className="w-2.5 h-2.5 mr-0.5" />
+          Completed
+        </div>
+      )}
+    </div>
+  ) : (
+    !isTeacher &&
+    event.enrollmentStatus === "OPEN" &&
+    !event.completed && (
+      <div className="relative">
+        {enrollmentMessage.show &&
+          enrollmentMessage.eventId === event.eventId && (
+            <div
+              className={`absolute bottom-full mb-2 left-0 right-0 text-center text-[10px] font-medium ${
+                enrollmentMessage.success
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {enrollmentMessage.message}
+            </div>
+          )}
+        <button
+          onClick={() => handleEnroll(event.eventId)}
+          disabled={
+            enrollingEventId === event.eventId ||
+            isEnrolled
+          }
+          className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
+            isEnrolled
+              ? "bg-green-500/50 text-white cursor-default"
+              : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
+          }`}
+        >
+          {enrollingEventId === event.eventId ? (
+            <>
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              Enrolling...
+            </>
+          ) : isEnrolled ? (
+            <>
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Enrolled
+            </>
+          ) : (
+            "Enroll Now"
+          )}
+        </button>
+      </div>
+    )
+  )}
+  {event.completed && !isCreator && (
+    <div className="w-full py-1.5 rounded-lg text-xs font-medium text-center bg-gray-500/50 text-white">
+      Event Completed
+    </div>
+  )}
+</div>
                         </div>
                       </div>
                     </div>
