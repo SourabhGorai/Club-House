@@ -1338,12 +1338,14 @@ const UserManagement = () => {
     if (!userToDelete) return;
     try {
       // Change from userToDelete.id to userToDelete.prn in the URL
+      console.log("prn",userToDelete.prn);
       await axios.delete(
         `http://localhost:8080/api/users/${userToDelete.prn}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+      
 
       // Update both users and filteredUsers arrays
       const updatedUsers = users.filter(

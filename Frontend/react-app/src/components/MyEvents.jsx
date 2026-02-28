@@ -91,6 +91,11 @@
 //   message: "",
 // });
 
+// const [showEditModal, setShowEditModal] = useState(false);
+// const [editingEvent, setEditingEvent] = useState(null);
+// const [updateLoading, setUpdateLoading] = useState(false);
+// const [updateError, setUpdateError] = useState(null);
+
 //   // Super admin color scheme - only for flip cards
 //   const primaryGradient = "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]";
 //   const primaryColor = "#4CA1AF";
@@ -124,6 +129,122 @@
 //     // Always fetch global events by default for both users and teachers
 //     fetchEvents(token, role, "GLOBAL");
 //   }, []);
+
+//   // UpdateEventRequest DTO based on your backend
+// const UpdateEventRequest = {
+//   title: '',
+//   description: '',
+//   dateTime: '',
+//   organizer: '',
+//   speakerName: '',
+//   venue: '',
+//   maxEnrollments: 0,
+//   enrollmentDeadline: '',
+//   targetType: '',
+//   targetIds: [],
+//   latitude: null,
+//   longitude: null,
+//   radiusInMeters: null,
+//   attendanceWindowStart: '',
+//   attendanceWindowEnd: '',
+//   qrRefreshInterval: 0
+// };
+
+// const handleEditClick = (event) => {
+//   // Format dates to datetime-local format
+//   const formatDateForInput = (dateStr) => {
+//     if (!dateStr) return '';
+//     const date = new Date(dateStr);
+//     return date.toISOString().slice(0, 16);
+//   };
+
+//   setEditingEvent({
+//     eventId: event.eventId,
+//     title: event.title || '',
+//     description: event.description || '',
+//     dateTime: formatDateForInput(event.dateTime),
+//     organizer: event.organizer || '',
+//     speakerName: event.speakerName || '',
+//     venue: event.venue || '',
+//     maxEnrollments: event.maxEnrollments || 0,
+//     enrollmentDeadline: formatDateForInput(event.enrollmentDeadline),
+//     targetType: event.targetType || 'GLOBAL',
+//     targetIds: event.targetIds || [],
+//     latitude: event.latitude || null,
+//     longitude: event.longitude || null,
+//     radiusInMeters: event.radiusInMeters || null,
+//     attendanceWindowStart: formatDateForInput(event.attendanceWindowStart),
+//     attendanceWindowEnd: formatDateForInput(event.attendanceWindowEnd),
+//     qrRefreshInterval: event.qrRefreshInterval || 0
+//   });
+  
+//   setShowEditModal(true);
+//   setUpdateError(null);
+// };
+
+// const handleEditInputChange = (e) => {
+//   const { name, value, type } = e.target;
+  
+//   // Handle number inputs
+//   if (type === 'number') {
+//     setEditingEvent(prev => ({
+//       ...prev,
+//       [name]: value === '' ? '' : parseInt(value)
+//     }));
+//   } 
+//   // Handle targetIds (comma-separated string to array)
+//   else if (name === 'targetIds') {
+//     const idsArray = value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+//     setEditingEvent(prev => ({
+//       ...prev,
+//       [name]: idsArray
+//     }));
+//   }
+//   else {
+//     setEditingEvent(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   }
+// };
+
+// const handleUpdateEvent = async (e) => {
+//   e.preventDefault();
+  
+//   try {
+//     setUpdateLoading(true);
+//     setUpdateError(null);
+    
+//     const token = localStorage.getItem("token");
+    
+//     const response = await axios.put(
+//       `http://localhost:8080/api/events/updateEvent/${editingEvent.eventId}`,
+//       editingEvent,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     if (response.data.success) {
+//       alert("Event updated successfully!");
+//       setShowEditModal(false);
+//       setEditingEvent(null);
+//       // Refresh the events list
+//       fetchAllEvents(token);
+//     } else {
+//       setUpdateError(response.data.message || "Failed to update event");
+//     }
+//   } catch (err) {
+//     console.error("Error updating event:", err);
+//     setUpdateError(err.response?.data?.message || "An error occurred while updating the event");
+//   } finally {
+//     setUpdateLoading(false);
+//   }
+// };
+
 
 //   const fetchUserProfile = async (token) => {
 //     try {
@@ -700,7 +821,7 @@
 //         });
 
 //         if (userPrn) {
-//           fetchUserEnrollments(token, userPrn);
+//           await fetchUserEnrollments(token, userPrn);
 //         }
 
 //         setEvents((prevEvents) =>
@@ -760,26 +881,30 @@
 //       setEnrollingEventId(null);
 //     }
 //   };
-
-//   const handleDeleteEvent = async (eventId) => {
-//     if (window.confirm("Are you sure you want to delete this event?")) {
-//       try {
-//         const token = localStorage.getItem("token");
-//         await axios.delete(`http://localhost:8080/api/events/${eventId}`, {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             "Content-Type": "application/json",
-//           },
-//         });
-//         const user = JSON.parse(localStorage.getItem("user"));
-//         fetchEvents(token, user?.role, filterType, selectedClubId);
-//       } catch (err) {
-//         console.error("Error deleting event:", err);
-//         alert("Failed to delete event");
-//       }
+  
+// const handleDeleteEvent = async (eventId) => {
+//   if (window.confirm("Are you sure you want to delete this event?")) {
+//     try {
+//       const token = localStorage.getItem("token");
+//       // Change this line - use the correct endpoint
+//       await axios.delete(`http://localhost:8080/api/events/deleteEvent/${eventId}`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+      
+//       // Optionally add a success message
+//       alert("Event deleted successfully!");
+      
+//       // Refresh the events list
+//       fetchAllEvents(token);
+//     } catch (err) {
+//       console.error("Error deleting event:", err);
+//       alert(err.response?.data?.message || "Failed to delete event");
 //     }
-//   };
-
+//   }
+// };
 // const handleCompleteEvent = async (eventId) => {
 //   try {
 //     setCompletingEventId(eventId);
@@ -894,6 +1019,7 @@
 //           (enrollment) => enrollment.eventId
 //         );
 //         setEnrolledEvents(enrolledEventIds);
+//         console.log("Updated enrolled events:", enrolledEventIds);
 //       }
 //     } catch (err) {
 //       console.error("Error fetching user enrollments:", err);
@@ -2174,27 +2300,26 @@
 //       )}
       
 //       <div className="flex gap-1">
-//         <button
-//           onClick={(e) => {
-//             e.stopPropagation();
-//             navigate(`/edit-event/${event.eventId}`);
-//           }}
-//           className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-//           style={{
-//             backgroundColor: "rgba(255, 255, 255, 0.2)",
-//           }}
-//           onMouseEnter={(e) =>
-//             (e.currentTarget.style.backgroundColor =
-//               "rgba(255, 255, 255, 0.3)")
-//           }
-//           onMouseLeave={(e) =>
-//             (e.currentTarget.style.backgroundColor =
-//               "rgba(255, 255, 255, 0.2)")
-//           }
-//         >
-//           <Edit className="w-2.5 h-2.5 mr-0.5" />
-//           Edit
-//         </button>
+//       <button
+//   onClick={(e) => {
+//     e.stopPropagation();
+//     handleEditClick(event);
+//   }}
+//   className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+//   style={{
+//     backgroundColor: "rgba(255, 255, 255, 0.2)",
+//   }}
+//   onMouseEnter={(e) =>
+//     (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)")
+//   }
+//   onMouseLeave={(e) =>
+//     (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)")
+//   }
+// >
+//   <Edit className="w-2.5 h-2.5 mr-0.5" />
+//   Edit
+// </button>
+
 //         <button
 //           onClick={(e) => {
 //             e.stopPropagation();
@@ -2337,6 +2462,340 @@
 //         </div>
 //       </div>
 
+// {/* Edit Event Modal */}
+// {showEditModal && editingEvent && (
+//   <div className="fixed inset-0 z-50 overflow-y-auto">
+//     {/* Backdrop */}
+//     <div 
+//       className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+//       onClick={() => setShowEditModal(false)}
+//     ></div>
+    
+//     {/* Modal Container - Responsive */}
+//     <div className="flex min-h-full items-center justify-center p-4">
+//       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+//         {/* Modal Header */}
+//         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl z-10">
+//           <div className="flex items-center justify-between">
+//             <h2 className="text-2xl font-bold bg-clip-text text-transparent"
+//               style={{
+//                 background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+//                 WebkitBackgroundClip: "text",
+//                 WebkitTextFillColor: "transparent",
+//               }}
+//             >
+//               Edit Event
+//             </h2>
+//             <button
+//               onClick={() => setShowEditModal(false)}
+//               className="text-gray-400 hover:text-gray-600 transition-colors"
+//             >
+//               <X className="w-6 h-6" />
+//             </button>
+//           </div>
+//         </div>
+        
+//         {/* Modal Body - Form */}
+//         <form onSubmit={handleUpdateEvent} className="p-6">
+//           {updateError && (
+//             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+//               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+//               <p className="text-sm text-red-600">{updateError}</p>
+//             </div>
+//           )}
+          
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             {/* Left Column */}
+//             <div className="space-y-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Event Title *
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="title"
+//                   value={editingEvent.title}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="Enter event title"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Description *
+//                 </label>
+//                 <textarea
+//                   name="description"
+//                   value={editingEvent.description}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   rows="3"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="Enter event description"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Date & Time *
+//                 </label>
+//                 <input
+//                   type="datetime-local"
+//                   name="dateTime"
+//                   value={editingEvent.dateTime}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Venue *
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="venue"
+//                   value={editingEvent.venue}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="Enter venue"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Organizer *
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="organizer"
+//                   value={editingEvent.organizer}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="Enter organizer name"
+//                 />
+//               </div>
+//             </div>
+            
+//             {/* Right Column */}
+//             <div className="space-y-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Speaker Name
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="speakerName"
+//                   value={editingEvent.speakerName}
+//                   onChange={handleEditInputChange}
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="Enter speaker name"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Max Enrollments *
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name="maxEnrollments"
+//                   value={editingEvent.maxEnrollments}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   min="1"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Enrollment Deadline *
+//                 </label>
+//                 <input
+//                   type="datetime-local"
+//                   name="enrollmentDeadline"
+//                   value={editingEvent.enrollmentDeadline}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Target Type *
+//                 </label>
+//                 <select
+//                   name="targetType"
+//                   value={editingEvent.targetType}
+//                   onChange={handleEditInputChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 >
+//                   <option value="GLOBAL">Global</option>
+//                   <option value="CLUB">Club</option>
+//                   <option value="DEPARTMENT">Department</option>
+//                 </select>
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Target IDs (comma-separated)
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="targetIds"
+//                   value={editingEvent.targetIds?.join(', ') || ''}
+//                   onChange={handleEditInputChange}
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="e.g., 1, 2, 3"
+//                 />
+//                 <p className="text-xs text-gray-500 mt-1">
+//                   Enter department or club IDs separated by commas
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+          
+//           {/* Geo-location Section */}
+//           <div className="mt-6 pt-6 border-t border-gray-200">
+//             <h3 className="text-lg font-semibold text-gray-800 mb-4">Location Details (Optional)</h3>
+//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Latitude
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name="latitude"
+//                   value={editingEvent.latitude || ''}
+//                   onChange={handleEditInputChange}
+//                   step="any"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="e.g., 18.5204"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Longitude
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name="longitude"
+//                   value={editingEvent.longitude || ''}
+//                   onChange={handleEditInputChange}
+//                   step="any"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="e.g., 73.8567"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Radius (meters)
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name="radiusInMeters"
+//                   value={editingEvent.radiusInMeters || ''}
+//                   onChange={handleEditInputChange}
+//                   min="0"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="e.g., 100"
+//                 />
+//               </div>
+//             </div>
+//           </div>
+          
+//           {/* Attendance Window Section */}
+//           <div className="mt-6 pt-6 border-t border-gray-200">
+//             <h3 className="text-lg font-semibold text-gray-800 mb-4">Attendance Settings (Optional)</h3>
+//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Window Start
+//                 </label>
+//                 <input
+//                   type="datetime-local"
+//                   name="attendanceWindowStart"
+//                   value={editingEvent.attendanceWindowStart || ''}
+//                   onChange={handleEditInputChange}
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   Window End
+//                 </label>
+//                 <input
+//                   type="datetime-local"
+//                   name="attendanceWindowEnd"
+//                   value={editingEvent.attendanceWindowEnd || ''}
+//                   onChange={handleEditInputChange}
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                   QR Refresh Interval (sec)
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name="qrRefreshInterval"
+//                   value={editingEvent.qrRefreshInterval || 0}
+//                   onChange={handleEditInputChange}
+//                   min="0"
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+//                   placeholder="e.g., 30"
+//                 />
+//               </div>
+//             </div>
+//           </div>
+          
+//           {/* Modal Footer */}
+//           <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end gap-3">
+//             <button
+//               type="button"
+//               onClick={() => setShowEditModal(false)}
+//               className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+//             >
+//               Cancel
+//             </button>
+//             <button
+//               type="submit"
+//               disabled={updateLoading}
+//               className="px-6 py-2.5 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+//               style={{
+//                 background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+//               }}
+//             >
+//               {updateLoading ? (
+//                 <>
+//                   <Loader2 className="w-4 h-4 animate-spin" />
+//                   <span>Updating...</span>
+//                 </>
+//               ) : (
+//                 <>
+//                   <Edit className="w-4 h-4" />
+//                   <span>Update Event</span>
+//                 </>
+//               )}
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   </div>
+// )}
 //       <style jsx>{`
 //         @keyframes fadeIn {
 //           from {
@@ -2464,12 +2923,6 @@
 
 
 
-
-
-
-
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -2563,6 +3016,11 @@ const [completionMessage, setCompletionMessage] = useState({
   message: "",
 });
 
+const [showEditModal, setShowEditModal] = useState(false);
+const [editingEvent, setEditingEvent] = useState(null);
+const [updateLoading, setUpdateLoading] = useState(false);
+const [updateError, setUpdateError] = useState(null);
+
   // Super admin color scheme - only for flip cards
   const primaryGradient = "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50]";
   const primaryColor = "#4CA1AF";
@@ -2596,6 +3054,122 @@ const [completionMessage, setCompletionMessage] = useState({
     // Always fetch global events by default for both users and teachers
     fetchEvents(token, role, "GLOBAL");
   }, []);
+
+  // UpdateEventRequest DTO based on your backend
+const UpdateEventRequest = {
+  title: '',
+  description: '',
+  dateTime: '',
+  organizer: '',
+  speakerName: '',
+  venue: '',
+  maxEnrollments: 0,
+  enrollmentDeadline: '',
+  targetType: '',
+  targetIds: [],
+  latitude: null,
+  longitude: null,
+  radiusInMeters: null,
+  attendanceWindowStart: '',
+  attendanceWindowEnd: '',
+  qrRefreshInterval: 0
+};
+
+const handleEditClick = (event) => {
+  // Format dates to datetime-local format
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toISOString().slice(0, 16);
+  };
+
+  setEditingEvent({
+    eventId: event.eventId,
+    title: event.title || '',
+    description: event.description || '',
+    dateTime: formatDateForInput(event.dateTime),
+    organizer: event.organizer || '',
+    speakerName: event.speakerName || '',
+    venue: event.venue || '',
+    maxEnrollments: event.maxEnrollments || 0,
+    enrollmentDeadline: formatDateForInput(event.enrollmentDeadline),
+    targetType: event.targetType || 'GLOBAL',
+    targetIds: event.targetIds || [],
+    latitude: event.latitude || null,
+    longitude: event.longitude || null,
+    radiusInMeters: event.radiusInMeters || null,
+    attendanceWindowStart: formatDateForInput(event.attendanceWindowStart),
+    attendanceWindowEnd: formatDateForInput(event.attendanceWindowEnd),
+    qrRefreshInterval: event.qrRefreshInterval || 0
+  });
+  
+  setShowEditModal(true);
+  setUpdateError(null);
+};
+
+const handleEditInputChange = (e) => {
+  const { name, value, type } = e.target;
+  
+  // Handle number inputs
+  if (type === 'number') {
+    setEditingEvent(prev => ({
+      ...prev,
+      [name]: value === '' ? '' : parseInt(value)
+    }));
+  } 
+  // Handle targetIds (comma-separated string to array)
+  else if (name === 'targetIds') {
+    const idsArray = value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    setEditingEvent(prev => ({
+      ...prev,
+      [name]: idsArray
+    }));
+  }
+  else {
+    setEditingEvent(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+};
+
+const handleUpdateEvent = async (e) => {
+  e.preventDefault();
+  
+  try {
+    setUpdateLoading(true);
+    setUpdateError(null);
+    
+    const token = localStorage.getItem("token");
+    
+    const response = await axios.put(
+      `http://localhost:8080/api/events/updateEvent/${editingEvent.eventId}`,
+      editingEvent,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.success) {
+      alert("Event updated successfully!");
+      setShowEditModal(false);
+      setEditingEvent(null);
+      // Refresh the events list
+      fetchEvents(token);
+    } else {
+      setUpdateError(response.data.message || "Failed to update event");
+    }
+  } catch (err) {
+    console.error("Error updating event:", err);
+    setUpdateError(err.response?.data?.message || "An error occurred while updating the event");
+  } finally {
+    setUpdateLoading(false);
+  }
+};
+
 
   const fetchUserProfile = async (token) => {
     try {
@@ -3232,26 +3806,31 @@ const [completionMessage, setCompletionMessage] = useState({
       setEnrollingEventId(null);
     }
   };
-
-  const handleDeleteEvent = async (eventId) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:8080/api/events/${eventId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        const user = JSON.parse(localStorage.getItem("user"));
-        fetchEvents(token, user?.role, filterType, selectedClubId);
-      } catch (err) {
-        console.error("Error deleting event:", err);
-        alert("Failed to delete event");
-      }
+  
+const handleDeleteEvent = async (eventId) => {
+  if (window.confirm("Are you sure you want to delete this event?")) {
+    try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
+      // Change this line - use the correct endpoint
+      await axios.delete(`http://localhost:8080/api/events/deleteEvent/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      // Optionally add a success message
+      alert("Event deleted successfully!");
+      
+      // Refresh the events list
+      fetchEvents(token, user?.role, "GLOBAL");
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      alert(err.response?.data?.message || "Failed to delete event");
     }
-  };
-
+  }
+};
 const handleCompleteEvent = async (eventId) => {
   try {
     setCompletingEventId(eventId);
@@ -4647,27 +5226,26 @@ const handleCompleteEvent = async (eventId) => {
       )}
       
       <div className="flex gap-1">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/edit-event/${event.eventId}`);
-          }}
-          className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "rgba(255, 255, 255, 0.3)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "rgba(255, 255, 255, 0.2)")
-          }
-        >
-          <Edit className="w-2.5 h-2.5 mr-0.5" />
-          Edit
-        </button>
+      <button
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEditClick(event);
+  }}
+  className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+  style={{
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  }}
+  onMouseEnter={(e) =>
+    (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)")
+  }
+  onMouseLeave={(e) =>
+    (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)")
+  }
+>
+  <Edit className="w-2.5 h-2.5 mr-0.5" />
+  Edit
+</button>
+
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -4741,7 +5319,7 @@ const handleCompleteEvent = async (eventId) => {
   ) : (
     !isTeacher &&
     event.enrollmentStatus === "OPEN" &&
-    !event.completed && (
+    !event.completed &&  !isEnrolled &&(
       <div className="relative">
         {enrollmentMessage.show &&
           enrollmentMessage.eventId === event.eventId && (
@@ -4757,25 +5335,13 @@ const handleCompleteEvent = async (eventId) => {
           )}
         <button
           onClick={() => handleEnroll(event.eventId)}
-          disabled={
-            enrollingEventId === event.eventId ||
-            isEnrolled
-          }
-          className={`w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center ${
-            isEnrolled
-              ? "bg-green-500/50 text-white cursor-default"
-              : "bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
-          }`}
+          disabled={enrollingEventId === event.eventId}
+          className="w-full py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white hover:from-[#3d8a9c] hover:to-[#1f2f3f]"
         >
           {enrollingEventId === event.eventId ? (
             <>
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               Enrolling...
-            </>
-          ) : isEnrolled ? (
-            <>
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Enrolled
             </>
           ) : (
             "Enroll Now"
@@ -4810,6 +5376,340 @@ const handleCompleteEvent = async (eventId) => {
         </div>
       </div>
 
+{/* Edit Event Modal */}
+{showEditModal && editingEvent && (
+  <div className="fixed inset-0 z-50 overflow-y-auto">
+    {/* Backdrop */}
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+      onClick={() => setShowEditModal(false)}
+    ></div>
+    
+    {/* Modal Container - Responsive */}
+    <div className="flex min-h-full items-center justify-center p-4">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl z-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Edit Event
+            </h2>
+            <button
+              onClick={() => setShowEditModal(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Modal Body - Form */}
+        <form onSubmit={handleUpdateEvent} className="p-6">
+          {updateError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-600">{updateError}</p>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={editingEvent.title}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="Enter event title"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  name="description"
+                  value={editingEvent.description}
+                  onChange={handleEditInputChange}
+                  required
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="Enter event description"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date & Time *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="dateTime"
+                  value={editingEvent.dateTime}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Venue *
+                </label>
+                <input
+                  type="text"
+                  name="venue"
+                  value={editingEvent.venue}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="Enter venue"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Organizer *
+                </label>
+                <input
+                  type="text"
+                  name="organizer"
+                  value={editingEvent.organizer}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="Enter organizer name"
+                />
+              </div>
+            </div>
+            
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Speaker Name
+                </label>
+                <input
+                  type="text"
+                  name="speakerName"
+                  value={editingEvent.speakerName}
+                  onChange={handleEditInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="Enter speaker name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Enrollments *
+                </label>
+                <input
+                  type="number"
+                  name="maxEnrollments"
+                  value={editingEvent.maxEnrollments}
+                  onChange={handleEditInputChange}
+                  required
+                  min="1"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Enrollment Deadline *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="enrollmentDeadline"
+                  value={editingEvent.enrollmentDeadline}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Target Type *
+                </label>
+                <select
+                  name="targetType"
+                  value={editingEvent.targetType}
+                  onChange={handleEditInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                >
+                  <option value="GLOBAL">Global</option>
+                  <option value="CLUB">Club</option>
+                  <option value="DEPARTMENT">Department</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Target IDs (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  name="targetIds"
+                  value={editingEvent.targetIds?.join(', ') || ''}
+                  onChange={handleEditInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="e.g., 1, 2, 3"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter department or club IDs separated by commas
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Geo-location Section */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Location Details (Optional)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Latitude
+                </label>
+                <input
+                  type="number"
+                  name="latitude"
+                  value={editingEvent.latitude || ''}
+                  onChange={handleEditInputChange}
+                  step="any"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="e.g., 18.5204"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Longitude
+                </label>
+                <input
+                  type="number"
+                  name="longitude"
+                  value={editingEvent.longitude || ''}
+                  onChange={handleEditInputChange}
+                  step="any"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="e.g., 73.8567"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Radius (meters)
+                </label>
+                <input
+                  type="number"
+                  name="radiusInMeters"
+                  value={editingEvent.radiusInMeters || ''}
+                  onChange={handleEditInputChange}
+                  min="0"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="e.g., 100"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Attendance Window Section */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Attendance Settings (Optional)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Window Start
+                </label>
+                <input
+                  type="datetime-local"
+                  name="attendanceWindowStart"
+                  value={editingEvent.attendanceWindowStart || ''}
+                  onChange={handleEditInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Window End
+                </label>
+                <input
+                  type="datetime-local"
+                  name="attendanceWindowEnd"
+                  value={editingEvent.attendanceWindowEnd || ''}
+                  onChange={handleEditInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  QR Refresh Interval (sec)
+                </label>
+                <input
+                  type="number"
+                  name="qrRefreshInterval"
+                  value={editingEvent.qrRefreshInterval || 0}
+                  onChange={handleEditInputChange}
+                  min="0"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
+                  placeholder="e.g., 30"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Modal Footer */}
+          <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updateLoading}
+              className="px-6 py-2.5 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #2C3E50)",
+              }}
+            >
+              {updateLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4" />
+                  <span>Update Event</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
       <style jsx>{`
         @keyframes fadeIn {
           from {
