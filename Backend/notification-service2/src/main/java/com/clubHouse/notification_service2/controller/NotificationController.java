@@ -5,6 +5,7 @@ import com.clubHouse.notification_service2.dto.request.NotificationRequest;
 import com.clubHouse.notification_service2.dto.response.NotificationResponse;
 import com.clubHouse.notification_service2.model.NotificationType;
 import com.clubHouse.notification_service2.model.SourceType;
+import com.clubHouse.notification_service2.model.TargetType;
 import com.clubHouse.notification_service2.service.JwtService;
 import com.clubHouse.notification_service2.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,6 +117,24 @@ public class NotificationController {
                 nType);
 
         List<NotificationResponse> list = notificationService.getByNotificationType(nType);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d responses", list.size()),
+                list
+        ));
+
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/getByTargetType/{targetType}")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getByTargetType(
+            @PathVariable TargetType targetType
+    ) {
+
+        log.debug("Request received to fetch notifications for Target Type: {}", targetType);
+
+        List<NotificationResponse> list = notificationService.getByTargetType(targetType);
 
         return ResponseEntity.ok(ApiResponse.success(
                 String.format("Fetched %d responses", list.size()),
