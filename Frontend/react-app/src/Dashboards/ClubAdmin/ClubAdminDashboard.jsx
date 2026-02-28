@@ -1,8 +1,12 @@
 import {Users,CalendarRange,Calendar} from 'lucide-react';
+import { useState } from "react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 
 export default function ClubAdminDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -11,6 +15,7 @@ export default function ClubAdminDashboard() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-green-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
@@ -23,7 +28,7 @@ export default function ClubAdminDashboard() {
               CLUB_ADMIN
             </span>
             <button
-              onClick={handleLogout}
+              onClick={() => setConfirmDialog({ isOpen: true, title: "Sign Out", message: "Are you sure you want to sign out?", confirmText: "Sign Out", variant: "danger", onConfirm: () => { closeConfirm(); handleLogout(); } })}
               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300"
             >
               Logout
@@ -128,5 +133,16 @@ export default function ClubAdminDashboard() {
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 }

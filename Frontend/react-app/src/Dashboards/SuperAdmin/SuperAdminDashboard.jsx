@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   User,
   Upload,
@@ -75,6 +76,8 @@ export default function SuperAdminDashboard() {
   const [editingDept, setEditingDept] = useState(null);
   const [deptInput, setDeptInput] = useState("");
   const [deptMessage, setDeptMessage] = useState({ text: "", type: "" });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   useEffect(() => {
     fetchUserCount();
@@ -237,41 +240,39 @@ export default function SuperAdminDashboard() {
 
   // Delete department
   const deleteDepartment = async (departmentId) => {
-    if (window.confirm("Are you sure you want to delete this department?")) {
-      try {
-        const response = await axios.delete(
-          `http://localhost:8080/api/department/${departmentId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+    try {
+      const response = await axios.delete(
+        `http://localhost:8080/api/department/${departmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
 
-        if (response.data.success) {
-          setDeptMessage({
-            text: "Department deleted successfully!",
-            type: "success",
-          });
-          fetchDepartments();
-        } else {
-          setDeptMessage({
-            text: response.data.message || "Failed to delete department",
-            type: "error",
-          });
-        }
-
-        setTimeout(() => {
-          setDeptMessage({ text: "", type: "" });
-        }, 3000);
-      } catch (error) {
-        console.error("Error deleting department:", error);
+      if (response.data.success) {
         setDeptMessage({
-          text: error.response?.data?.message || "Error deleting department",
+          text: "Department deleted successfully!",
+          type: "success",
+        });
+        fetchDepartments();
+      } else {
+        setDeptMessage({
+          text: response.data.message || "Failed to delete department",
           type: "error",
         });
       }
+
+      setTimeout(() => {
+        setDeptMessage({ text: "", type: "" });
+      }, 3000);
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      setDeptMessage({
+        text: error.response?.data?.message || "Error deleting department",
+        type: "error",
+      });
     }
   };
 
@@ -336,11 +337,9 @@ export default function SuperAdminDashboard() {
   };
 
   const handleLogout = () => {
-    if (confirm("Are you sure you want to log out?")) {
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
   };
 
   const handleInputChange = (e) => {
@@ -469,6 +468,7 @@ export default function SuperAdminDashboard() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-[#fcfcfd] flex relative">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
@@ -645,7 +645,7 @@ export default function SuperAdminDashboard() {
         </nav>
 
         <button
-          onClick={handleLogout}
+          onClick={() => setConfirmDialog({ isOpen: true, title: "Sign Out", message: "Are you sure you want to sign out?", confirmText: "Sign Out", variant: "danger", onConfirm: () => { closeConfirm(); handleLogout(); } })}
           className="mt-6 flex items-center justify-center space-x-3 w-full py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 font-bold text-sm border border-transparent hover:border-red-100 hover:shadow-md hover:shadow-red-100/50 cursor-pointer"
         >
           <LogOut size={20} />
@@ -1087,7 +1087,7 @@ export default function SuperAdminDashboard() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteDepartment(dept.departmentId);
+                              setConfirmDialog({ isOpen: true, title: "Delete Department", message: "Are you sure you want to delete this department? This action cannot be undone.", confirmText: "Delete", variant: "danger", onConfirm: () => { closeConfirm(); deleteDepartment(dept.departmentId); } });
                             }}
                             className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
                             title="Delete"
@@ -1128,5 +1128,16 @@ export default function SuperAdminDashboard() {
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 }

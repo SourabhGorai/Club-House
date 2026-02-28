@@ -1487,6 +1487,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import CustomSelect from "../../components/CustomSelect";
 import {
   Calendar,
   MapPin,
@@ -1557,6 +1559,8 @@ const [filterType, setFilterType] = useState("all");
 const [showGlobalEvents, setShowGlobalEvents] = useState(false);
 const [showDepartmentEvents, setShowDepartmentEvents] = useState(false);
 const [showClubEvents, setShowClubEvents] = useState(false);
+const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   // Animation styles
   const animations = {
@@ -1891,26 +1895,19 @@ const getFilteredEvents = () => {
 };
 
 const handleDeleteEvent = async (eventId) => {
-  if (window.confirm("Are you sure you want to delete this event?")) {
-    try {
-      const token = localStorage.getItem("token");
-      // Change this line - use the correct endpoint
-      await axios.delete(`http://localhost:8080/api/events/deleteEvent/${eventId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
-      // Optionally add a success message
-      alert("Event deleted successfully!");
-      
-      // Refresh the events list
-      fetchAllEvents(token);
-    } catch (err) {
-      console.error("Error deleting event:", err);
-      alert(err.response?.data?.message || "Failed to delete event");
-    }
+  try {
+    const token = localStorage.getItem("token");
+    await axios.delete(`http://localhost:8080/api/events/deleteEvent/${eventId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    alert("Event deleted successfully!");
+    fetchAllEvents(token);
+  } catch (err) {
+    console.error("Error deleting event:", err);
+    alert(err.response?.data?.message || "Failed to delete event");
   }
 };
 
@@ -2143,6 +2140,7 @@ const removeCompletedFilter = async () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -2336,15 +2334,15 @@ const removeCompletedFilter = async () => {
                   />
                 </button>
 
-                <select
+                <CustomSelect
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
-                >
-                  <option value="date">Sort by Date</option>
-                  <option value="popularity">Sort by Popularity</option>
-                  <option value="enrollment">Sort by Capacity</option>
-                </select>
+                  options={[
+                    { value: "date", label: "Sort by Date" },
+                    { value: "popularity", label: "Sort by Popularity" },
+                    { value: "enrollment", label: "Sort by Capacity" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -2480,29 +2478,21 @@ const removeCompletedFilter = async () => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Department
           </label>
-          <select
+          <CustomSelect
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
-          >
-            <option value="all">All Departments</option>
-            {departments.map((dept) => {
-              const count = events.filter(
-                (event) =>
-                  event.targetType?.toUpperCase() === "DEPARTMENT" &&
-                  event.targetIds?.includes(dept.departmentId),
-              ).length;
-
-              return (
-                <option
-                  key={dept.departmentId}
-                  value={dept.departmentId}
-                >
-                  {dept.name} ({count} events)
-                </option>
-              );
-            })}
-          </select>
+            options={[
+              { value: "all", label: "All Departments" },
+              ...departments.map((dept) => {
+                const count = events.filter(
+                  (event) =>
+                    event.targetType?.toUpperCase() === "DEPARTMENT" &&
+                    event.targetIds?.includes(dept.departmentId),
+                ).length;
+                return { value: String(dept.departmentId), label: `${dept.name} (${count} events)` };
+              }),
+            ]}
+          />
         </div>
 
         {/* Club dropdown */}
@@ -2510,80 +2500,71 @@ const removeCompletedFilter = async () => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Club
           </label>
-          <select
+          <CustomSelect
             value={selectedClub}
             onChange={(e) => setSelectedClub(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
-          >
-            <option value="all">All Clubs</option>
-            {clubs.map((club) => {
-              const count = events.filter(
-                (event) =>
-                  event.targetType?.toUpperCase() === "CLUB" &&
-                  event.targetIds?.includes(club.clubId),
-              ).length;
-
-              return (
-                <option key={club.clubId} value={club.clubId}>
-                  {club.clubName} ({count} events)
-                </option>
-              );
-            })}
-          </select>
+            options={[
+              { value: "all", label: "All Clubs" },
+              ...clubs.map((club) => {
+                const count = events.filter(
+                  (event) =>
+                    event.targetType?.toUpperCase() === "CLUB" &&
+                    event.targetIds?.includes(club.clubId),
+                ).length;
+                return { value: String(club.clubId), label: `${club.clubName} (${count} events)` };
+              }),
+            ]}
+          />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Enrollment Status
           </label>
-          <select
+          <CustomSelect
             value={selectedStatus}
             onChange={async (e) => {
               const value = e.target.value;
               setSelectedStatus(value);
-              setSelectedCompleted("all"); // Reset completed filter
-              
+              setSelectedCompleted("all");
               const token = localStorage.getItem("token");
-              
               if (value === "all") {
                 await fetchAllEvents(token);
               } else {
                 await fetchEventsByEnrollmentStatus(value.toUpperCase());
               }
             }}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
-          >
-            <option value="all">All Status</option>
-            <option value="open">Open</option>
-            <option value="closed">Closed</option>
-          </select>
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "open", label: "Open" },
+              { value: "closed", label: "Closed" },
+            ]}
+          />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Completion Status
           </label>
-          <select
+          <CustomSelect
             value={selectedCompleted}
             onChange={async (e) => {
               const value = e.target.value;
               setSelectedCompleted(value);
-              setSelectedStatus("all"); // Reset enrollment filter
-              
+              setSelectedStatus("all");
               const token = localStorage.getItem("token");
-              
               if (value === "all") {
                 await fetchAllEvents(token);
               } else {
                 await fetchEventsByCompletedStatus(value === "completed");
               }
             }}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
-          >
-            <option value="all">All Events</option>
-            <option value="completed">Completed</option>
-            <option value="not-completed">Not Completed</option>
-          </select>
+            options={[
+              { value: "all", label: "All Events" },
+              { value: "completed", label: "Completed" },
+              { value: "not-completed", label: "Not Completed" },
+            ]}
+          />
         </div>
       </div>
 
@@ -3007,7 +2988,7 @@ const removeCompletedFilter = async () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteEvent(event.eventId);
+                  setConfirmDialog({ isOpen: true, title: "Delete Event", message: "Are you sure you want to delete this event? This action cannot be undone.", confirmText: "Delete", variant: "danger", onConfirm: () => { closeConfirm(); handleDeleteEvent(event.eventId); } });
                 }}
                 className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
                 style={{
@@ -3216,17 +3197,17 @@ const removeCompletedFilter = async () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Target Type *
                 </label>
-                <select
+                <CustomSelect
                   name="targetType"
                   value={editingEvent.targetType}
                   onChange={handleEditInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4CA1AF] focus:border-transparent transition-all"
-                >
-                  <option value="GLOBAL">Global</option>
-                  <option value="CLUB">Club</option>
-                  <option value="DEPARTMENT">Department</option>
-                </select>
+                  options={[
+                    { value: "GLOBAL", label: "Global" },
+                    { value: "CLUB", label: "Club" },
+                    { value: "DEPARTMENT", label: "Department" },
+                  ]}
+                />
               </div>
               
               <div>
@@ -3512,7 +3493,17 @@ const removeCompletedFilter = async () => {
         }
       `}</style>
     </div>
-    
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 };
 
