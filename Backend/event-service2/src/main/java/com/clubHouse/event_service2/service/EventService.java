@@ -142,7 +142,9 @@ public class EventService {
                 .stream()
                 .map(TargetData::getTargetId)
                 .toList();
-        return EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName(), targetIds);
+        EventResponse response = EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName(), targetIds);
+        log.info("{}", response);
+        return response;
     }
 
     @Cacheable(value = CacheConfig.TARGET_TYPES, key = "'all'")

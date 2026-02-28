@@ -18,6 +18,33 @@ public class EnrollmentStatusScheduler {
 
     private final EventRepository eventRepository;
 
+    @Scheduled(cron = "0 0 */1 * * *")
+    @Transactional
+    public void markEventsComplete() {
+        log.debug("Running scheduled task: Checking for completed events");
+
+        LocalDateTime thresholdTime = LocalDateTime.now().minusHours(3);
+
+        List<Events> completedEvents = eventRepository.findByIsCompletedAndEventDateBefore
+                (false, thresholdTime);
+
+        if(completedEvents.isEmpty()){
+            log.info("No events to mark complete");
+            return;
+        }
+
+        log.info("Found {} events to mark as completed", completedEvents.size());
+
+        for(Events events : completedEvents) {
+            events.setCompleted(true);
+            log.info("Event completed with title: {}", events.getTitle());
+        }
+
+        eventRepository.saveAll(completedEvents);
+
+        log.info("Successfully marked {} events completed", completedEvents.size());
+    }
+
     /**
      * Runs every 5 minutes to check and close enrollments that have passed their deadline
      * Cron: "0 5 * * * *" = At second 0 of every 5th minute

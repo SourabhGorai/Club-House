@@ -1,7 +1,9 @@
 package com.clubHouse.notification_service2.repository;
 
 import com.clubHouse.notification_service2.model.Notification;
+import com.clubHouse.notification_service2.model.NotificationTargets;
 import com.clubHouse.notification_service2.model.NotificationType;
+import com.clubHouse.notification_service2.model.SourceType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -35,4 +37,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByNotificationType(NotificationType notificationType);
 
     List<Notification> findByIsActiveFalse();
+
+    List<Notification> findBySourceType(SourceType sourceType);
+
 }

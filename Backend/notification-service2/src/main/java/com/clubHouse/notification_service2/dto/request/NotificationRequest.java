@@ -41,6 +41,17 @@ public class NotificationRequest {
 
 }
 
+/*
+* {
+*   "sourceType": "EVENT",
+*   "sourceId": 4,
+*   "notificationTitle": "Bhartiyam 2027",
+*   "message": "Everyone is invited to bhartiyam 2027",
+*   "notificationType": "GLOBAL",
+*   "targetType": "GLOBAL"
+* }
+* */
+
 
 // if its a event specific notification, then i need to send the
 // notification according to the targeted type of that

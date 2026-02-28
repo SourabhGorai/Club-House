@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,6 +35,86 @@ public class NotificationService {
     private final ClubServiceClient clubServiceClient;
     private final IndependentServiceClient indServiceClient;
     private final EventServiceClient eventServiceClient;
+
+    // ── Private helper: resolves source name for each notification ───────────────
+
+    private Map<Long, String> resolveSourceDetails(List<Notification> notifications) {
+        return notifications.stream()
+                .collect(Collectors.toMap(
+                        Notification::getNotificationId,
+                        notification -> {
+                            try {
+                                return switch (notification.getSourceType()) {
+                                    case CLUB -> {
+                                        ClubResponse club =
+                                                clubServiceClient.getClubById(notification.getSourceId());
+                                        yield club.getClubName();
+                                    }
+                                    case DEPARTMENT -> {
+                                        DepartmentResponse dept =
+                                                indServiceClient.getDepartmentById(notification.getSourceId());
+                                        yield dept.getName();
+                                    }
+                                    case EVENT -> {
+                                        EventResponse event =
+                                                eventServiceClient.getEventById(notification.getSourceId());
+                                        yield event.getTitle();
+                                    }
+                                    case SYSTEM -> "System";
+                                };
+                            } catch (Exception e) {
+                                log.warn("Could not resolve source detail for notificationId={}, sourceType={}, sourceId={}",
+                                        notification.getNotificationId(),
+                                        notification.getSourceType(),
+                                        notification.getSourceId(), e);
+                                return null;
+                            }
+                        },
+                        (existing, duplicate) -> existing   // safe merge in case of duplicates
+                ));
+    }
+
+    // ── Private helper: builds notificationId -> targets map ────────────────────
+
+    private Map<Long, List<NotificationTargets>> resolveTargets(List<Notification> notifications) {
+        List<Long> ids = notifications.stream()
+                .map(Notification::getNotificationId)
+                .toList();
+
+        List<NotificationTargets> targets = nTRepository.findByNotification_NotificationIdIn(ids);
+
+        return targets.stream()
+                .collect(Collectors.groupingBy(
+                        (NotificationTargets nt) -> nt.getNotification().getNotificationId()
+                ));
+    }
+
+
+    public List<String> fetchNotificationTargets() {
+
+        log.info("Attempting to fetch all Notification Targets");
+
+        return List.of(Arrays.toString(NotificationType.values()));
+
+    }
+
+    public List<String> fetchSourceTypes() {
+
+        log.info("Attempting to fetch all Source Types");
+
+        return List.of(Arrays.toString(SourceType.values()));
+
+    }
+
+    public List<String> fetchTargetTypes() {
+
+        log.info("Attempting to fetch all Target Types");
+
+        return List.of(Arrays.toString(TargetType.values()));
+
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
 
     @Transactional
     public NotificationResponse createNotification(
@@ -81,13 +162,13 @@ public class NotificationService {
 
         String sourceDetail = null;
 
-        if(saved.getSourceType() == SourceType.CLUB){
-            ClubResponse club =clubServiceClient.getClubById(saved.getSourceId());
+        if (saved.getSourceType() == SourceType.CLUB) {
+            ClubResponse club = clubServiceClient.getClubById(saved.getSourceId());
             sourceDetail = club.getClubName();
-        }else if(saved.getSourceType() == SourceType.DEPARTMENT){
+        } else if (saved.getSourceType() == SourceType.DEPARTMENT) {
             DepartmentResponse dept = indServiceClient.getDepartmentById(saved.getSourceId());
             sourceDetail = dept.getName();
-        }else if(saved.getSourceType() == SourceType.EVENT){
+        } else if (saved.getSourceType() == SourceType.EVENT) {
             EventResponse event = eventServiceClient.getEventById(saved.getSourceId());
             sourceDetail = event.getTitle();
         }
@@ -100,44 +181,54 @@ public class NotificationService {
         );
     }
 
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
     @Transactional
     public List<NotificationResponse> getAll(boolean flag) {
 
-        log.info("Attempting to fetch all notifications");
+        log.info("Fetching all {} notifications", flag ? "active" : "inactive");
 
-        if(flag){
-            List<Notification> notifications = notificationRepository.findByIsActiveTrue();
-        }else{
-            List<Notification> notifications = notificationRepository.findByIsActiveFalse();
-        }
+        List<Notification> notifications = flag
+                ? notificationRepository.findByIsActiveTrue()
+                : notificationRepository.findByIsActiveFalse();
 
-//        Map<Notification, List<Long>>
+        if (notifications.isEmpty()) return List.of();
 
-        return null;
+        Map<Long, List<NotificationTargets>> targetsMap = resolveTargets(notifications);
+        Map<Long, String> sourceDetailMap = resolveSourceDetails(notifications);
+
+        return notificationMapper.toResponseList(notifications, targetsMap, sourceDetailMap);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    public List<NotificationResponse> getBySourceType(SourceType sourceType) {
+
+        log.debug("Attempting to fetch all notifications for source type: {}", sourceType);
+
+        List<Notification> notifications = notificationRepository.findBySourceType(sourceType);
+
+        if (notifications.isEmpty()) return List.of();
+
+        Map<Long, List<NotificationTargets>> targetsMap = resolveTargets(notifications);
+        Map<Long, String> sourceDetailMap = resolveSourceDetails(notifications);
+
+        return notificationMapper.toResponseList(notifications, targetsMap, sourceDetailMap);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    public List<NotificationResponse> getByNotificationType(NotificationType nType) {
+
+        log.debug("Attempting to fetch notifications with type: {}", nType);
+
+        List<Notification> notifications = notificationRepository.findByNotificationType(nType);
+
+        Map<Long,List<NotificationTargets>> targetsMap = resolveTargets(notifications);
+        Map<Long, String> sourceDetailMap = resolveSourceDetails(notifications);
+
+        return notificationMapper.toResponseList(notifications, targetsMap, sourceDetailMap);
 
     }
 
-    public List<String> fetchNotificationTargets() {
-
-        log.info("Attempting to fetch all Notification Targets");
-
-        return List.of(Arrays.toString(NotificationType.values()));
-
-    }
-
-    public List<String> fetchSourceTypes() {
-
-        log.info("Attempting to fetch all Source Types");
-
-        return List.of(Arrays.toString(SourceType.values()));
-
-    }
-
-    public List<String> fetchTargetTypes() {
-
-        log.info("Attempting to fetch all Target Types");
-
-        return List.of(Arrays.toString(TargetType.values()));
-
-    }
 }

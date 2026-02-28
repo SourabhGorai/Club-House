@@ -3,6 +3,8 @@ package com.clubHouse.notification_service2.controller;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.request.NotificationRequest;
 import com.clubHouse.notification_service2.dto.response.NotificationResponse;
+import com.clubHouse.notification_service2.model.NotificationType;
+import com.clubHouse.notification_service2.model.SourceType;
 import com.clubHouse.notification_service2.service.JwtService;
 import com.clubHouse.notification_service2.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,7 +57,7 @@ public class NotificationController {
 
     }
 
-    @GetMapping("/notificationTypes")
+    @GetMapping("/data/notificationTypes")
     public ResponseEntity<ApiResponse<List<String>>> getAllNotificationTargets(){
 
         log.info("Request received to fetch all the notification targets");
@@ -66,7 +68,7 @@ public class NotificationController {
         ));
     }
 
-    @GetMapping("/sourceTypes")
+    @GetMapping("/data/sourceTypes")
     public ResponseEntity<ApiResponse<List<String>>> getSourceTypes(){
 
         log.info("Request received to fetch all the Source Types");
@@ -77,7 +79,7 @@ public class NotificationController {
         ));
     }
 
-    @GetMapping("/TargetTypes")
+    @GetMapping("/data/targetTypes")
     public ResponseEntity<ApiResponse<List<String>>> getTargetTypes(){
 
         log.info("Request received to fetch all the Target Types");
@@ -86,6 +88,40 @@ public class NotificationController {
                 "Fetched successfully",
                 resp
         ));
+    }
+
+    @GetMapping("/getBySourceTypes/{sourceType}")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getBySourceType(
+            @PathVariable SourceType sourceType
+    ) {
+
+        log.debug("Request received to fetch all the notification for source type: {}", sourceType);
+        List<NotificationResponse> resp = notificationService.getBySourceType(sourceType);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d notifications", resp.size()),
+                resp
+        ));
+
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/getByNotificationType/{nType}")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getByNotificationType(
+            @PathVariable NotificationType nType
+    ) {
+
+        log.debug("Request received to fetch all the notification with Notification Type {}",
+                nType);
+
+        List<NotificationResponse> list = notificationService.getByNotificationType(nType);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d responses", list.size()),
+                list
+        ));
+
     }
 
 }

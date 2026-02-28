@@ -24,7 +24,7 @@ public class ClubServiceClient {
     private final WebClient.Builder webClientBuilder;
     private final HttpServletRequest request;
 
-    @Value("${services.club-service.url:http://CLUB-SERVICE2/api}")
+    @Value("${app.club-service.url:http://CLUB-SERVICE2/api}")
     private String clubServiceUrl;
 
     public ClubResponse getClubById(Long id) {
@@ -34,7 +34,7 @@ public class ClubServiceClient {
 
             ApiResponse<ClubResponse> response = webClientBuilder.build()
                     .get()
-                    .uri(clubServiceUrl + "/clubs/getById/{id}")
+                    .uri(clubServiceUrl + "/clubs/getById/{id}", id)
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference

@@ -40,13 +40,13 @@ public class EventResponse {
 
     private int currEnrollments;
 
-    private boolean isCompleted;
+    private boolean completed;
 
     private LocalDateTime enrollmentDeadline;
 
     private String enrollmentStatus;
 
-    private String targetType;
+    private String targetType = "GLOBAL";
 
     private List<Long> targetIds;
 
