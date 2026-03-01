@@ -40,4 +40,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findBySourceType(SourceType sourceType);
 
+    @Query("""
+        SELECT n FROM notification_table n
+        WHERE n.sourceType = 'EVENT'
+        AND n.sourceId IN :eventIds
+        AND n.isActive = true
+        AND (n.validUntil IS NULL OR n.validUntil >= CURRENT_TIMESTAMP)
+    """)
+    List<Notification> findEventNotifications(List<Long> eventIds);
+
 }

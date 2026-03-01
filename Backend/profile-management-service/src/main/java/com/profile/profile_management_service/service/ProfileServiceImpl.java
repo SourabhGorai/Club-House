@@ -905,6 +905,12 @@ public class ProfileServiceImpl implements ProfileService {
                 () -> new UserNotFoundException("User not found")
         );
 
+        return RawResponseForNotification.builder()
+                .prn(prn)
+                .name(profile.getFullName())
+                .deptId(profile.getDepartmentId())
+                .year(profile.getYear())
+                .build();
     }
 
     /**

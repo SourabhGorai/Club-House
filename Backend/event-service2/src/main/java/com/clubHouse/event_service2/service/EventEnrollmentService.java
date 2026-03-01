@@ -245,5 +245,4 @@ public class EventEnrollmentService {
         log.info("Reset enrollment count to 0 for event {}", eventId);
     }
 
-
 }

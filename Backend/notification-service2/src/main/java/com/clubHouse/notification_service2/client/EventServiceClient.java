@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -26,33 +27,33 @@ public class EventServiceClient {
     private String eventServiceUrl;
     private final HttpServletRequest request;
 
-//    public List<String> getExpiredProfiles() {
-//        String authHeader = request.getHeader("Authorization");
-//        try {
-//            log.info("Attempting to fetch expired profiles");
-//
-//            ApiResponse<List<String>> response = webClientBuilder.build()
-//                    .get()
-//                    .uri(profileServiceUrl + "/profiles/expiredProfiles")
-//                    .header("Authorization", authHeader)
-//                    .retrieve()
-//                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<String>>>() {})
-//                    .timeout(Duration.ofSeconds(5))
-//                    .block();
-//
-//            if (response != null && response.getSuccess() && response.getData() != null) {
-//                return response.getData();
-//            }
-//
-//            log.warn("Invalid or empty response");
-//            return null;
-//
-//        } catch (Exception e) {
-//            log.error("Failed to get expired profiles", e);
-//            throw new ExternalServiceException("Unable to get expired profiles. " +
-//                    "Please try again later", e);
-//        }
-//    }
+    public Map<EventResponse, String> getMyEnrolledEvents() {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Attempting to fetch my enrolled events");
+
+            ApiResponse<Map<EventResponse, String>> response = webClientBuilder.build()
+                    .get()
+                    .uri(eventServiceUrl + "/enrollments/myEnrollments")
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference
+                            <ApiResponse<Map<EventResponse, String>>>() {})
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess() && response.getData() != null) {
+                return response.getData();
+            }
+
+            log.warn("Invalid or empty response");
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to get my enrolled events", e);
+            throw new ExternalServiceException("Unable to get event. Please try again later", e);
+        }
+    }
 
     public EventResponse getEventById(Long id) {
         String authHeader = request.getHeader("Authorization");

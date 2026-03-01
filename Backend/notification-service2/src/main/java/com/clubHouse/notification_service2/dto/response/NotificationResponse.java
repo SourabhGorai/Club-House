@@ -42,4 +42,6 @@ public class NotificationResponse {
 
     private List<Long> targetIds;
 
+    private Boolean isRead;
+
 }

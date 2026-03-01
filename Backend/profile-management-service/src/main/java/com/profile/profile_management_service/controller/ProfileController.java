@@ -596,9 +596,9 @@ public class ProfileController {
     // ----------------------------------------------------------------------------
     // USED IN NOTIFICATION SERVICE
 
-    @GetMapping("/getDataForNotification")
+    @GetMapping("/getDataForNotification/{prn}")
     public ResponseEntity<ApiResponse<RawResponseForNotification>> getRespNotification(
-            String prn
+            @PathVariable String prn
     ){
 
         log.debug("Request received to fetch data for prn: {}", prn);

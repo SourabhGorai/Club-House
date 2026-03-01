@@ -3,25 +3,22 @@ package com.clubHouse.notification_service2.service;
 import com.clubHouse.notification_service2.client.ClubServiceClient;
 import com.clubHouse.notification_service2.client.EventServiceClient;
 import com.clubHouse.notification_service2.client.IndependentServiceClient;
+import com.clubHouse.notification_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.notification_service2.dto.request.NotificationRequest;
-import com.clubHouse.notification_service2.dto.response.ClubResponse;
-import com.clubHouse.notification_service2.dto.response.DepartmentResponse;
-import com.clubHouse.notification_service2.dto.response.EventResponse;
-import com.clubHouse.notification_service2.dto.response.NotificationResponse;
+import com.clubHouse.notification_service2.dto.response.*;
 import com.clubHouse.notification_service2.exception.ServiceException;
 import com.clubHouse.notification_service2.mapper.NotificationMapper;
 import com.clubHouse.notification_service2.model.*;
 import com.clubHouse.notification_service2.repository.NotificationRepository;
 import com.clubHouse.notification_service2.repository.NotificationTargetsRepository;
+import com.clubHouse.notification_service2.repository.UserSeenNotificationRepository;
 import com.netflix.discovery.provider.Serializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,6 +32,8 @@ public class NotificationService {
     private final ClubServiceClient clubServiceClient;
     private final IndependentServiceClient indServiceClient;
     private final EventServiceClient eventServiceClient;
+    private final ProfileManagementServiceClient pmServiceClient;
+    private final UserSeenNotificationRepository userSeenNotificationRepository;
 
     // ── Private helper: resolves source name for each notification ───────────────
 
@@ -251,12 +250,85 @@ public class NotificationService {
 
     // ──────────────────────────────────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotifications(String prn) {
 
-        log.debug("Attempting to fetch all the notifications of user with prn: {}", prn);
+        log.debug("Fetching notifications for prn: {}", prn);
 
-        List<
+        List<GeneralClubResponse> clubResp = clubServiceClient.getMyClubs();
+        RawResponseForNotification departResp = pmServiceClient.getDepartmentIdFromPrn(prn);
+        Map<EventResponse, String> eventResp = eventServiceClient.getMyEnrolledEvents();
 
+        List<Long> clubIds = clubResp.stream()
+                .map(GeneralClubResponse::getClubId)
+                .toList();
+
+        Long deptId = departResp.getDeptId();
+
+        List<Long> eventIds = eventResp.keySet()
+                .stream()
+                .map(EventResponse::getEventId)
+                .toList();
+
+        // 1️⃣ Target based notifications (GLOBAL / DEPT / CLUB)
+        List<Notification> targetedNotifications =
+                nTRepository.findTargetedNotifications(deptId, clubIds);
+
+        // 2️⃣ Event based notifications (sourceType = EVENT)
+        List<Notification> eventNotifications = eventIds.isEmpty()
+                ? List.of()
+                : notificationRepository.findEventNotifications(eventIds);
+
+        // 3️⃣ Merge + remove duplicates
+        Set<Notification> merged = new HashSet<>();
+        merged.addAll(targetedNotifications);
+        merged.addAll(eventNotifications);
+
+        if (merged.isEmpty()) return List.of();
+
+        // 4️⃣ Filter active + valid
+        List<Notification> validNotifications = merged.stream()
+                .filter(n -> Boolean.TRUE.equals(n.getIsActive()))
+                .filter(n -> n.getValidUntil() == null
+                        || n.getValidUntil().isAfter(java.time.LocalDateTime.now()))
+                .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
+                .toList();
+
+        if (validNotifications.isEmpty()) return List.of();
+
+        // 5️⃣ Resolve targets & source details (like your other methods)
+        Map<Long, List<NotificationTargets>> targetsMap =
+                resolveTargets(validNotifications);
+
+        Map<Long, String> sourceDetailMap =
+                resolveSourceDetails(validNotifications);
+
+        // 6️⃣ Fetch seen notifications
+        List<Long> ids = validNotifications.stream()
+                .map(Notification::getNotificationId)
+                .toList();
+
+        List<UserSeenNotification> seenList =
+                userSeenNotificationRepository
+                        .findByPrnAndNotificationIdIn(prn, ids);
+
+        Map<Long, Boolean> seenMap = seenList.stream()
+                .collect(Collectors.toMap(
+                        UserSeenNotification::getNotificationId,
+                        UserSeenNotification::getIsRead
+                ));
+
+        // 7️⃣ Build final response using existing mapper
+        List<NotificationResponse> responses =
+                notificationMapper.toResponseList(validNotifications, targetsMap, sourceDetailMap);
+
+        // 8️⃣ Attach read/unread flag
+        responses.forEach(res -> {
+            Boolean isRead = seenMap.get(res.getNotificationId());
+            res.setIsRead(isRead != null && isRead);
+        });
+
+        return responses;
     }
 
     // ──────────────────────────────────────────────────────────────────────────────────────

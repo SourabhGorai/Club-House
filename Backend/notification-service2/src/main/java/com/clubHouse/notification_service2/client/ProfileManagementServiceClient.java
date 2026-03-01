@@ -2,6 +2,7 @@ package com.clubHouse.notification_service2.client;
 
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.response.ProfileResponse;
+import com.clubHouse.notification_service2.dto.response.RawResponseForNotification;
 import com.clubHouse.notification_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,35 @@ public class ProfileManagementServiceClient {
     /*
      * Note: will need one endpoint to get user's department by prn
      * */
+
+    public RawResponseForNotification getDepartmentIdFromPrn(String prn) {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Attempting to departmentId for user: {}", prn);
+
+            ApiResponse<RawResponseForNotification> response = webClientBuilder.build()
+                    .get()
+                    .uri(profileServiceUrl + "/profiles/getDataForNotification/{prn}", prn)
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference
+                            <ApiResponse<RawResponseForNotification>>() {})
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess() && response.getData() != null) {
+                return response.getData();
+            }
+
+            log.warn("Invalid or empty response");
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to get departmentId", e);
+            throw new ExternalServiceException("Unable to get Department Id. " +
+                    "Please try again later", e);
+        }
+    }
 
     public List<String> getExpiredProfiles() {
         String authHeader = request.getHeader("Authorization");

@@ -3,6 +3,7 @@ package com.clubHouse.notification_service2.client;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.response.ClubResponse;
 import com.clubHouse.notification_service2.dto.response.DepartmentResponse;
+import com.clubHouse.notification_service2.dto.response.GeneralClubResponse;
 import com.clubHouse.notification_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,34 @@ public class ClubServiceClient {
     @Value("${app.club-service.url:http://CLUB-SERVICE2/api}")
     private String clubServiceUrl;
 
-    /*
-    * Note: will need one endpoint to get all the clubs in which I am right now
-    * */
+    public List<GeneralClubResponse> getMyClubs() {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Get my clubs from CLUB-SERVICE");
+
+            ApiResponse<List<GeneralClubResponse>> response = webClientBuilder.build()
+                    .get()
+                    .uri(clubServiceUrl + "/user-clubs/getMyClubs")
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference
+                            <ApiResponse<List<GeneralClubResponse>>>() {
+                    })
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess() && response.getData() != null) {
+                return response.getData();
+            }
+
+            log.warn("Invalid or empty response");
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to get clubs of the user", e);
+            throw new ExternalServiceException("Unable to get clubs Please try again later", e);
+        }
+    }
 
     public ClubResponse getClubById(Long id) {
         String authHeader = request.getHeader("Authorization");

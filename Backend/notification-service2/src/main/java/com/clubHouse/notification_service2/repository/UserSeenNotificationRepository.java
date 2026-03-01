@@ -16,4 +16,10 @@ public interface UserSeenNotificationRepository extends JpaRepository<UserSeenNo
 
     // Fetch all seen notifications for a user
     List<UserSeenNotification> findByPrn(String prn);
+
+    List<UserSeenNotification> findByPrnAndNotificationIdIn(
+            String prn,
+            List<Long> notificationIds
+    );
+
 }
