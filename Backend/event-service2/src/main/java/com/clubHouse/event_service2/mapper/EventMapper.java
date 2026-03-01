@@ -77,6 +77,7 @@ public class EventMapper {
                 .attendanceWindowStart(event.getAttendanceWindowStart())
                 .attendanceWindowEnd(event.getAttendanceWindowEnd())
                 .qrRefreshInterval(event.getQrRefreshIntervalSeconds())
+                .attendanceActive(event.isAttendanceActive())
                 .build();
     }
 

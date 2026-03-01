@@ -18,9 +18,6 @@ public class ProfileResponse {
 
     private String prn;
 
-//    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-//    private Long userId;
-
     private String fullName;
     private String department;
     private Integer year;

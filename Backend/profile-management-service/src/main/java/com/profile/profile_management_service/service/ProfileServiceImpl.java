@@ -897,6 +897,48 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<ProfileResponse> getProfilesByYearPaged(Integer year, Pageable pageable) {
+        log.debug("Fetching profiles for year: {} with pagination (cache miss)", year);
+
+        if (year == null || year < 1 || year > 4) {
+            log.error("Invalid year: {}", year);
+            throw new IllegalArgumentException("Year must be between 1 and 4");
+        }
+
+        Page<UserProfile> profilePage = profileRepository.findByYearAndIsActiveTrue(year, pageable);
+        log.debug("Found {} total profiles for year: {}, returning page {}",
+                profilePage.getTotalElements(), year, profilePage.getNumber());
+
+        return createPagedResponse(profilePage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<ProfileResponse> getProfilesByDepartmentAndYearPaged(
+            Long departmentId, Integer year, Pageable pageable) {
+        log.debug("Fetching profiles for departmentId: {} and year: {} with pagination",
+                departmentId, year);
+
+        if (departmentId == null || departmentId <= 0) {
+            log.error("Invalid departmentId: {}", departmentId);
+            throw new IllegalArgumentException("Department ID must be positive");
+        }
+
+        if (year == null || year < 1 || year > 4) {
+            log.error("Invalid year: {}", year);
+            throw new IllegalArgumentException("Year must be between 1 and 4");
+        }
+
+        Page<UserProfile> profilePage = profileRepository
+                .findByDepartmentIdAndYear(departmentId, year, pageable);
+        log.debug("Found {} total profiles for departmentId: {} and year: {}",
+                profilePage.getTotalElements(), departmentId, year);
+
+        return createPagedResponse(profilePage);
+    }
+
     /**
      * Helper method to convert list of UserProfile to ProfileResponse
      * Fetches all departments in a single batch call to avoid N+1 queries

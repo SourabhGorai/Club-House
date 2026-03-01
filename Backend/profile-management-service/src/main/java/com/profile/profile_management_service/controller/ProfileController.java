@@ -310,6 +310,59 @@ public class ProfileController {
     // ========== Paginated Endpoints ==========
 
     /**
+     * Get profiles by year with pagination
+     * GET /api/profiles/year/{year}/paged
+     */
+    @GetMapping("/year/{year}/paged")
+    public ResponseEntity<ApiResponse<PagedResponse<ProfileResponse>>> getProfilesByYearPaged(
+            @PathVariable @Min(1) @Max(4) Integer year,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer size,
+            @RequestParam(defaultValue = "fullName") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDirection) {
+
+        log.info("Received request to get paged profiles by year: {}, page={}, size={}",
+                year, page, size);
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("DESC") ?
+                Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        PagedResponse<ProfileResponse> response = profileService.getProfilesByYearPaged(year, pageable);
+        log.info("Retrieved page {} with {} profiles for year: {}",
+                page, response.getContent().size(), year);
+
+        return ResponseEntity.ok(ApiResponse.success("Profiles retrieved successfully", response));
+    }
+
+    /**
+     * Get profiles by department and year with pagination
+     * GET /api/profiles/filter/paged
+     */
+    @GetMapping("/filter/paged")
+    public ResponseEntity<ApiResponse<PagedResponse<ProfileResponse>>> getProfilesByDepartmentAndYearPaged(
+            @RequestParam Long departmentId,
+            @RequestParam @Min(1) @Max(4) Integer year,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer size,
+            @RequestParam(defaultValue = "fullName") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDirection) {
+
+        log.info("Received request to get paged profiles by departmentId: {} and year: {}, page={}, size={}",
+                departmentId, year, page, size);
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("DESC") ?
+                Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        PagedResponse<ProfileResponse> response = profileService
+                .getProfilesByDepartmentAndYearPaged(departmentId, year, pageable);
+        log.info("Retrieved page {} with {} profiles", page, response.getContent().size());
+
+        return ResponseEntity.ok(ApiResponse.success("Profiles retrieved successfully", response));
+    }
+
+    /**
      * Get all profiles with pagination
      * GET /api/profiles/paged
      */

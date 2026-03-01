@@ -16,6 +16,8 @@ import {
   Pencil,
   X,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export const useFilteredUsersCount = () => {
@@ -181,11 +183,15 @@ const UserRemoveFromClub = () => {
   const [loadingClubs, setLoadingClubs] = useState(false);
 
   // Edit role state
-  const [editingUser, setEditingUser] = useState(null); // user object being edited
+  const [editingUser, setEditingUser] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
   const [savingRole, setSavingRole] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
   const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+  // Pagination state
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(0);
 
   // prn -> blob URL
   const [profileImages, setProfileImages] = useState({});
@@ -361,6 +367,11 @@ const UserRemoveFromClub = () => {
       );
     }
     setFilteredUsers(filtered);
+  }, [searchTerm, selectedClub, userClubs, teacherStudents]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setCurrentPage(0);
   }, [searchTerm, selectedClub, userClubs, teacherStudents]);
 
   const handleRemoveUser = async (user) => {
@@ -617,7 +628,7 @@ const UserRemoveFromClub = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.map((user) => {
+                  {filteredUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((user) => {
                     const blobUrl = profileImages[user.prn];
                     return (
                       <tr key={user.userClubId} className="group hover:bg-[#4CA1AF]/5 transition-all duration-300">
@@ -701,6 +712,61 @@ const UserRemoveFromClub = () => {
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {filteredUsers.length > PAGE_SIZE && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+            <p className="text-sm font-bold text-slate-500">
+              Showing{" "}
+              <span className="text-slate-800">{currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, filteredUsers.length)}</span>
+              {" "}of{" "}
+              <span className="text-slate-800">{filteredUsers.length}</span> members
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-white hover:bg-[#4CA1AF] hover:border-[#4CA1AF] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              {Array.from({ length: Math.ceil(filteredUsers.length / PAGE_SIZE) }, (_, i) => i)
+                .filter((i) => i === 0 || i === Math.ceil(filteredUsers.length / PAGE_SIZE) - 1 || Math.abs(i - currentPage) <= 1)
+                .reduce((acc, i, idx, arr) => {
+                  if (idx > 0 && i - arr[idx - 1] > 1) acc.push("...");
+                  acc.push(i);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-400 font-bold text-sm">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setCurrentPage(item)}
+                      className={`w-10 h-10 rounded-xl text-sm font-black transition-all shadow-sm ${
+                        item === currentPage
+                          ? "text-white border-transparent"
+                          : "bg-white border border-slate-200 text-slate-600 hover:border-[#4CA1AF] hover:text-[#4CA1AF]"
+                      }`}
+                      style={item === currentPage ? { background: "linear-gradient(135deg, #4CA1AF, #315169)" } : {}}
+                    >
+                      {item + 1}
+                    </button>
+                  ),
+                )}
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(Math.ceil(filteredUsers.length / PAGE_SIZE) - 1, p + 1))}
+                disabled={currentPage >= Math.ceil(filteredUsers.length / PAGE_SIZE) - 1}
+                className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-white hover:bg-[#4CA1AF] hover:border-[#4CA1AF] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 opacity-60">
