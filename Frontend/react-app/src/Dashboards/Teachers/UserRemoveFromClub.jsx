@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   Users,
   Search,
@@ -183,6 +184,8 @@ const UserRemoveFromClub = () => {
   const [editingUser, setEditingUser] = useState(null); // user object being edited
   const [availableRoles, setAvailableRoles] = useState([]);
   const [savingRole, setSavingRole] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   // prn -> blob URL
   const [profileImages, setProfileImages] = useState({});
@@ -362,8 +365,6 @@ const UserRemoveFromClub = () => {
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
-    if (!window.confirm(`Are you sure you want to remove ${name} from ${clubName}?`)) return;
-
     try {
       const response = await axios.delete(
         `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
@@ -430,6 +431,7 @@ const UserRemoveFromClub = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-slate-900 font-sans antialiased relative overflow-hidden">
       <style jsx>{`
         @keyframes blob {
@@ -683,7 +685,7 @@ const UserRemoveFromClub = () => {
 
                             {/* Remove button */}
                             <button
-                              onClick={() => handleRemoveUser(user)}
+                              onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
                               className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-red-500 transition-all shadow-sm active:scale-90 cursor-pointer"
                               title="Remove from club"
                             >
@@ -716,6 +718,17 @@ const UserRemoveFromClub = () => {
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 };
 

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import CustomSelect from "../../components/CustomSelect";
 import {
   Calendar,
   Clock,
@@ -69,7 +70,7 @@ export default function CreateEvent() {
     description: "",
     speakerName: "",
     eventDate: "",
-    organizer: user?.username || "CLICKZY",
+    organizer: "",
     eventCreator: user?.username || "",
     venue: "",
     maxEnrollments: "",
@@ -430,6 +431,7 @@ export default function CreateEvent() {
     const errors = {};
 
     if (!formData.title.trim()) errors.title = "Title is required";
+    if (!formData.organizer) errors.organizer = "Organizer is required";
 
     if (!formData.eventDate) {
       errors.eventDate = "Event Date is required";
@@ -884,6 +886,34 @@ export default function CreateEvent() {
                 <p className="mt-1 text-xs text-red-600">
                   {formErrors.contactEmail}
                 </p>
+              )}
+            </div>
+
+            {/* Row 5b: Organizer */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Organizer <span className="text-red-500">*</span>
+              </label>
+              <CustomSelect
+                name="organizer"
+                value={formData.organizer}
+                onChange={handleInputChange}
+                placeholder="Select organizer..."
+                required
+                options={[
+                  { value: "Global", label: "Global" },
+                  ...departments.map((dept) => ({
+                    value: dept.name,
+                    label: `Department: ${dept.name}`,
+                  })),
+                  ...clubs.map((club) => ({
+                    value: club.clubName || club.name,
+                    label: `Club: ${club.clubName || club.name}`,
+                  })),
+                ]}
+              />
+              {formErrors.organizer && (
+                <p className="mt-1 text-xs text-red-600">{formErrors.organizer}</p>
               )}
             </div>
 

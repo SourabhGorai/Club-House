@@ -35,11 +35,11 @@ export default function Login() {
 
       console.log("Response:", response.data);
 
-      if (response.data && response.data.user.username === form.username) {
+      if (response.data && response.data.token && response.data.user) {
         console.log("Login successful ✔");
         localStorage.setItem("user", JSON.stringify(response.data.user));
         localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       } else {
         alert("Invalid username or password!");
       }

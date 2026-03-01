@@ -98,13 +98,15 @@ public class EventEnrollmentController {
     }
 
     // ALL
-    @DeleteMapping("/revokeEnrollment/{enrollmentId}")
+    @DeleteMapping("/revokeEnrollment/{eventId}")
     public ResponseEntity<ApiResponse<String>> revokeMyEnrollment(
-            @PathVariable Long enrollmentId
+            @PathVariable Long eventId,
+            HttpServletRequest request
     ) {
 
-        log.info("Request received to revoke enrollment from eventId: {}", enrollmentId);
-        enrollmentService.revokeMyEnrollment(enrollmentId);
+        log.info("Request received to revoke enrollment from eventId: {}", eventId);
+        String prn = jwtService.extractPrnFromHeaders(request);
+        enrollmentService.revokeMyEnrollment(eventId, prn);
 
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully removed enrollment",
@@ -112,5 +114,4 @@ public class EventEnrollmentController {
         ));
 
     }
-
 }

@@ -637,6 +637,7 @@ import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Set
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 export default function UsersDashboard() {
   const navigate = useNavigate();
@@ -663,6 +664,8 @@ export default function UsersDashboard() {
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [clubsError, setClubsError] = useState("");
   const [showAllClubs, setShowAllClubs] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   useEffect(() => {
     fetchUserProfile();
@@ -833,6 +836,7 @@ export default function UsersDashboard() {
   const joinedClubsCount = myClubs.length;
 
   return (
+    <>
     <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* SIDEBAR */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
@@ -884,7 +888,7 @@ export default function UsersDashboard() {
 
         {/* Sign Out Button */}
         <button 
-          onClick={handleLogout}
+          onClick={() => setConfirmDialog({ isOpen: true, title: "Sign Out", message: "Are you sure you want to sign out?", confirmText: "Sign Out", variant: "danger", onConfirm: () => { closeConfirm(); handleLogout(); } })}
           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
         >
           <LogOut size={20} /> Sign Out
@@ -944,12 +948,12 @@ export default function UsersDashboard() {
                 onClick={() => window.location.href = "/events"}
               />
 
-              <ActionCard 
+              {/* <ActionCard 
                 icon={<CalendarDays size={24} />} 
                 label="Previous Events" 
                 color="blue" 
                 onClick={() => window.location.href = "/previous-events"}
-              />
+              /> */}
 
               <ActionCard 
                 icon={<BookOpen size={24} />} 
@@ -1126,6 +1130,17 @@ export default function UsersDashboard() {
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 }
 

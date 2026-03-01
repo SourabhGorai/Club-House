@@ -17,6 +17,7 @@ import {
   Check,
 } from "lucide-react";
 import CustomSelect from "../../components/CustomSelect"; // ← adjust path as needed
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 // ─── Edit Role Modal ───────────────────────────────────────────────────────────
 const EditRoleModal = ({ user, availableRoles, onClose, onSave, saving }) => {
@@ -120,6 +121,8 @@ const RemoveUsersFromAnyClub = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
   const [savingRole, setSavingRole] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   const token = localStorage.getItem("token");
 
@@ -132,7 +135,7 @@ const RemoveUsersFromAnyClub = () => {
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.data?.success) {
-          setAvailableRoles(res.data.data || []);
+          setAvailableRoles((res.data.data || []).filter((r) => !r.toUpperCase().includes("TEACHER")));
         }
       } catch (err) {
         console.error("Error fetching roles:", err);
@@ -204,8 +207,6 @@ const RemoveUsersFromAnyClub = () => {
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
-    if (!window.confirm(`Are you sure you want to remove ${name} from ${clubName}?`)) return;
-
     try {
       const response = await axios.delete(
         `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
@@ -275,6 +276,7 @@ const RemoveUsersFromAnyClub = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased">
       <style jsx>{`
         @keyframes blob {
@@ -498,6 +500,7 @@ const RemoveUsersFromAnyClub = () => {
                       {/* Actions */}
                       <td className="px-10 py-6">
                         <div className="flex items-center justify-end gap-2">
+                          {!user.role.toUpperCase().includes("TEACHER") && (
                           <button
                             onClick={() => setEditingUser(user)}
                             className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-90 cursor-pointer"
@@ -505,8 +508,9 @@ const RemoveUsersFromAnyClub = () => {
                           >
                             <Pencil size={18} />
                           </button>
+                          )}
                           <button
-                            onClick={() => handleRemoveUser(user)}
+                            onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
                             className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-red-500 transition-all shadow-sm active:scale-90 cursor-pointer"
                             title="Remove from club"
                           >
@@ -538,6 +542,17 @@ const RemoveUsersFromAnyClub = () => {
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 };
 
