@@ -237,4 +237,8 @@ public interface ProfileService {
     List<String> getExpiredProfiles();
 
     int markProfilesAsCleanedUp(List<String> prns);
+
+    PagedResponse<ProfileResponse> getProfilesByYearPaged(Integer year, Pageable pageable);
+
+    PagedResponse<ProfileResponse> getProfilesByDepartmentAndYearPaged(Long departmentId, Integer year, Pageable pageable);
 }

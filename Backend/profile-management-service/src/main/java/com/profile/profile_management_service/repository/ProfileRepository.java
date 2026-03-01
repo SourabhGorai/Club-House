@@ -249,4 +249,5 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
             "WHERE u.prn IN :prns")
     int markProfilesAsCleanedUp(@Param("prns") List<String> prns);
 
+
 }
