@@ -249,5 +249,13 @@ public interface ProfileRepository extends JpaRepository<UserProfile, String>,
             "WHERE u.prn IN :prns")
     int markProfilesAsCleanedUp(@Param("prns") List<String> prns);
 
+    @Modifying
+    @Query("""
+       UPDATE UserProfile u
+       SET u.year = u.year + 1
+       WHERE u.year < 4
+       AND u.isActive = true
+       """)
+    int promoteStudents();
 
 }
