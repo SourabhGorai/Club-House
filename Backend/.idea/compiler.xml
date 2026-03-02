@@ -61,6 +61,7 @@
       <module name="notification-service2" options="-parameters" />
       <module name="profile-management-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
+      <module name="user-service (1)" options="-parameters" />
     </option>
   </component>
 </project>
