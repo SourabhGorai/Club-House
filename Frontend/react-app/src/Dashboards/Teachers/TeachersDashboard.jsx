@@ -889,6 +889,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 export default function TeachersDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -914,6 +915,8 @@ export default function TeachersDashboard() {
   const [error, setError] = useState(null);
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
   const assignedStudentsCount = useFilteredUsersCount();
 
   useEffect(() => {
@@ -1113,8 +1116,8 @@ export default function TeachersDashboard() {
   const displayClubs = showAllClubs ? clubs : clubs.slice(0, 4); // Show 4 clubs initially for better visibility
 
   return (
+    <>
     <div className="flex min-h-screen bg-[#F8FAFC]">
-      {/* SIDEBAR - Same as User Dashboard */}
       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
         <div className="flex items-center gap-3 mb-8">
           <div
@@ -1182,7 +1185,7 @@ export default function TeachersDashboard() {
 
         {/* Sign Out Button */}
         <button
-          onClick={handleLogout}
+          onClick={() => setConfirmDialog({ isOpen: true, title: "Sign Out", message: "Are you sure you want to sign out?", confirmText: "Sign Out", variant: "danger", onConfirm: () => { closeConfirm(); handleLogout(); } })}
           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
         >
           <LogOut size={20} /> Sign Out
@@ -1558,6 +1561,17 @@ export default function TeachersDashboard() {
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 }
 

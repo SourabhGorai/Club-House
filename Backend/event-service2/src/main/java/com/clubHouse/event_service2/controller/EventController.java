@@ -397,4 +397,6 @@ public class EventController {
                 resp
         ));
     }
+
+    // need an endpoint to fetch total events for me (global, dept, club)
 }

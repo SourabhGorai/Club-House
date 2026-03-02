@@ -15,8 +15,11 @@ import {
   Pencil,
   X,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import CustomSelect from "../../components/CustomSelect"; // ← adjust path as needed
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 // ─── Edit Role Modal ───────────────────────────────────────────────────────────
 const EditRoleModal = ({ user, availableRoles, onClose, onSave, saving }) => {
@@ -116,10 +119,18 @@ const RemoveUsersFromAnyClub = () => {
   const [clubs, setClubs] = useState([]);
   const [totalClubs, setTotalClubs] = useState(0);
 
+  // Pagination state
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
   // Edit role state
   const [editingUser, setEditingUser] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
   const [savingRole, setSavingRole] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   const token = localStorage.getItem("token");
 
@@ -132,7 +143,7 @@ const RemoveUsersFromAnyClub = () => {
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.data?.success) {
-          setAvailableRoles(res.data.data || []);
+          setAvailableRoles((res.data.data || []).filter((r) => !r.toUpperCase().includes("TEACHER")));
         }
       } catch (err) {
         console.error("Error fetching roles:", err);
@@ -160,16 +171,27 @@ const RemoveUsersFromAnyClub = () => {
     fetchClubs();
   }, []);
 
-  const fetchUserClubs = async () => {
+  const fetchPagedData = async (page = 0) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getAll",
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      let url;
+      if (selectedClub) {
+        const club = clubs.find((c) => String(c.clubId) === String(selectedClub));
+        if (club) {
+          url = `http://localhost:8080/api/user-clubs/club/${encodeURIComponent(club.clubName)}/paged?page=${page}&size=${PAGE_SIZE}`;
+        } else {
+          url = `http://localhost:8080/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
+        }
+      } else {
+        url = `http://localhost:8080/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
+      }
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.success) {
-        setUserClubs(response.data.data);
-        setFilteredUsers(response.data.data);
+        const pageData = response.data.data;
+        setUserClubs(pageData.content);
+        setCurrentPage(pageData.pageNumber);
+        setTotalPages(pageData.totalPages);
+        setTotalElements(pageData.totalElements);
       }
     } catch (err) {
       setError("Failed to fetch user data. Please try again.");
@@ -179,33 +201,31 @@ const RemoveUsersFromAnyClub = () => {
   };
 
   useEffect(() => {
-    fetchUserClubs();
-  }, []);
+    // Wait until clubs list is loaded when a club filter is active
+    if (selectedClub && clubs.length === 0) return;
+    fetchPagedData(0);
+  }, [selectedClub, clubs]);
 
+  // Search filters current page client-side; club filter is handled server-side
   useEffect(() => {
-    let filtered = userClubs;
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
+    if (!searchTerm) {
+      setFilteredUsers(userClubs);
+      return;
+    }
+    const term = searchTerm.toLowerCase();
+    setFilteredUsers(
+      userClubs.filter(
         (user) =>
           user.name.toLowerCase().includes(term) ||
           user.prn.toLowerCase().includes(term) ||
           user.department.toLowerCase().includes(term) ||
           user.role.toLowerCase().includes(term),
-      );
-    }
-    if (selectedClub) {
-      filtered = filtered.filter(
-        (user) => String(user.clubId) === String(selectedClub),
-      );
-    }
-    setFilteredUsers(filtered);
-  }, [searchTerm, selectedClub, userClubs]);
+      ),
+    );
+  }, [searchTerm, userClubs]);
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
-    if (!window.confirm(`Are you sure you want to remove ${name} from ${clubName}?`)) return;
-
     try {
       const response = await axios.delete(
         `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
@@ -216,7 +236,7 @@ const RemoveUsersFromAnyClub = () => {
       );
       if (response.data.success) {
         setSuccessMessage(`Successfully removed ${name} from ${clubName}`);
-        fetchUserClubs();
+        fetchPagedData(currentPage);
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
@@ -275,6 +295,7 @@ const RemoveUsersFromAnyClub = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased">
       <style jsx>{`
         @keyframes blob {
@@ -498,6 +519,7 @@ const RemoveUsersFromAnyClub = () => {
                       {/* Actions */}
                       <td className="px-10 py-6">
                         <div className="flex items-center justify-end gap-2">
+                          {!user.role.toUpperCase().includes("TEACHER") && (
                           <button
                             onClick={() => setEditingUser(user)}
                             className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-90 cursor-pointer"
@@ -505,8 +527,9 @@ const RemoveUsersFromAnyClub = () => {
                           >
                             <Pencil size={18} />
                           </button>
+                          )}
                           <button
-                            onClick={() => handleRemoveUser(user)}
+                            onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
                             className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-red-500 transition-all shadow-sm active:scale-90 cursor-pointer"
                             title="Remove from club"
                           >
@@ -521,6 +544,61 @@ const RemoveUsersFromAnyClub = () => {
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+            <p className="text-sm font-bold text-slate-500">
+              Showing{" "}
+              <span className="text-slate-800">{currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, totalElements)}</span>
+              {" "}of{" "}
+              <span className="text-slate-800">{totalElements}</span> members
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fetchPagedData(currentPage - 1)}
+                disabled={currentPage === 0}
+                className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-white hover:bg-[#4CA1AF] hover:border-[#4CA1AF] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i)
+                .filter((i) => i === 0 || i === totalPages - 1 || Math.abs(i - currentPage) <= 1)
+                .reduce((acc, i, idx, arr) => {
+                  if (idx > 0 && i - arr[idx - 1] > 1) acc.push("...");
+                  acc.push(i);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-400 font-bold text-sm">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => fetchPagedData(item)}
+                      className={`w-10 h-10 rounded-xl text-sm font-black transition-all shadow-sm ${
+                        item === currentPage
+                          ? "text-white border-transparent"
+                          : "bg-white border border-slate-200 text-slate-600 hover:border-[#4CA1AF] hover:text-[#4CA1AF]"
+                      }`}
+                      style={item === currentPage ? { background: "linear-gradient(135deg, #4CA1AF, #315169)" } : {}}
+                    >
+                      {item + 1}
+                    </button>
+                  ),
+                )}
+
+              <button
+                onClick={() => fetchPagedData(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+                className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-white hover:bg-[#4CA1AF] hover:border-[#4CA1AF] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 opacity-60">
@@ -538,6 +616,17 @@ const RemoveUsersFromAnyClub = () => {
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      isOpen={confirmDialog.isOpen}
+      title={confirmDialog.title}
+      message={confirmDialog.message}
+      confirmText={confirmDialog.confirmText}
+      variant={confirmDialog.variant}
+      onConfirm={confirmDialog.onConfirm}
+      onCancel={closeConfirm}
+    />
+    </>
   );
 };
 

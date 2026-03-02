@@ -60,4 +60,6 @@ public class EventResponse {
 
     private int qrRefreshInterval;
 
+    private boolean attendanceActive;
+
 }

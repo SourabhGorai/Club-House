@@ -239,4 +239,8 @@ public interface ProfileService {
     int markProfilesAsCleanedUp(List<String> prns);
 
     RawResponseForNotification getRawData(String prn);
+
+    PagedResponse<ProfileResponse> getProfilesByYearPaged(Integer year, Pageable pageable);
+
+    PagedResponse<ProfileResponse> getProfilesByDepartmentAndYearPaged(Long departmentId, Integer year, Pageable pageable);
 }

@@ -20,6 +20,17 @@ public class ProfileDeactivationScheduler {
 
     private final ProfileRepository userProfileRepository;
 
+    @Scheduled(cron = "0 5 0 1 6 *") // June 1st 12:05 AM
+    @Transactional
+    public void promoteStudentsYear() {
+
+        log.info("Starting yearly promotion job...");
+
+        int updatedCount = userProfileRepository.promoteStudents();
+
+        log.info("Promoted {} students to next year", updatedCount);
+    }
+
     /**
      * Runs annually on January 1st at 2:00 AM
      * Deactivates profiles that are 4 years or older
