@@ -4,7 +4,9 @@ import com.clubHouse.notification_service2.model.Notification;
 import com.clubHouse.notification_service2.model.NotificationTargets;
 import com.clubHouse.notification_service2.model.TargetType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,5 +42,28 @@ public interface NotificationTargetsRepository extends JpaRepository<Notificatio
     List<Notification> findTargetedNotifications(
             Long deptId,
             List<Long> clubIds
+    );
+
+    @Modifying
+    @Query("DELETE FROM NotificationTargets nt WHERE nt.notification.notificationId = :notificationId")
+    void deleteByNotification_NotificationId(@Param("notificationId") Long notificationId);
+
+    @Modifying
+    @Query("DELETE FROM NotificationTargets nt WHERE nt.notification.notificationId IN :notificationIds")
+    void deleteByNotificationIds(@Param("notificationIds") List<Long> notificationIds);
+
+    @Query("""
+            SELECT DISTINCT n FROM notification_table n
+            LEFT JOIN NotificationTargets nt ON nt.notification.notificationId = n.notificationId
+            WHERE
+                n.notificationType = 'GLOBAL'
+                OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
+                OR (nt.targetType = 'CLUB'       AND nt.targetId IN :clubIds)
+                OR (nt.targetType = 'YEAR'        AND nt.targetId = :year)
+            """)
+    List<com.clubHouse.notification_service2.model.Notification> findTargetedNotifications(
+            @Param("deptId") Long deptId,
+            @Param("clubIds") List<Long> clubIds,
+            @Param("year") Integer year
     );
 }

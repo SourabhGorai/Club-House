@@ -49,6 +49,7 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerified(false);
+        user.setProfileCompleted(false);
         User saved = userRepository.save(user);
 
         // generate OTP and send email (registration verification)

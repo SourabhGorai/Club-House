@@ -7,8 +7,6 @@ public enum NotificationType {
     CLUB_SPECIFIC,
     DEPARTMENT_SPECIFIC,
     YEAR_SPECIFIC,
-    CLUB_AND_YEAR,
-    DEPT_AND_YEAR,
     REMINDER,
     EVENT_SPECIFIC
 }

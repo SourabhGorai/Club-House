@@ -19,27 +19,20 @@ public class NotificationResponse {
     private Long notificationId;
 
     private String title;
-
     private String message;
 
     private String notificationType;
 
     private String sourceType;
-
     private Long sourceId;
-
     private String sourceDetail;
 
     private String createdByPrn;
-
     private Boolean isActive;
-
     private String createdAt;
-
     private String validUntil;
 
     private String targetType;
-
     private List<Long> targetIds;
 
     private Boolean isRead;

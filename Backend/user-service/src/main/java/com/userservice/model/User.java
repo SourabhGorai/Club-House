@@ -44,4 +44,6 @@ public class User {
 
     @Column(name = "otp_expiry")
     private LocalDateTime otpExpiry;
+
+    private boolean profileCompleted = false;
 }

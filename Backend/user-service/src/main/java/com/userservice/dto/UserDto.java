@@ -16,4 +16,5 @@ public class UserDto {
     private String email;
     private Role role;
     private boolean verified;
+    private boolean profileCompleted;
 }

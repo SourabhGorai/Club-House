@@ -4,5 +4,6 @@ public enum TargetType {
 //    USER,
     DEPARTMENT,
     GLOBAL,
-    CLUB
+    CLUB,
+    YEAR
 }
