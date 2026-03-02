@@ -625,9 +625,9 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
             <div className="flex flex-col group cursor-pointer">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+              {/* <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
                 Department
-              </span>
+              </span> */}
               <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
                 {profileData.department || "Not set"}
               </span>
@@ -884,7 +884,7 @@ export default function SuperAdminDashboard() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Department <span className="text-red-500">*</span>
                 </label>
@@ -908,7 +908,7 @@ export default function SuperAdminDashboard() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">

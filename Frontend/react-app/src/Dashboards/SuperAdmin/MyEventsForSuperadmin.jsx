@@ -1198,73 +1198,101 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
   const windowTimeRemaining = getWindowTimeRemaining();
 
   return (
-    <div className="text-center">
-      {/* Header with timers */}
-      <div className="mb-4 space-y-2">
-        <div className="p-4 bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Clock className="w-5 h-5 mr-2" />
-              <span className="text-sm font-medium">Next QR refresh in:</span>
+  <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+
+    {/* ONE MAIN BOX */}
+    <div className="bg-white rounded-xl shadow-lg p-6 w-[1100px] max-w-none">
+
+      {/* Header */}
+      <div className="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 className="text-lg font-semibold text-teal-700">
+          Attendance QR Code
+        </h2>
+
+        <button onClick={onClose} className="text-gray-500 text-xl">
+          ×
+        </button>
+      </div>
+
+
+      {/* CONTENT → EVERYTHING INSIDE */}
+      <div className="grid grid-cols-5 gap-6">
+
+        {/* LEFT → QR */}
+        <div className="col-span-3 text-center">
+
+          <div className="p-4 bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white rounded-lg mb-4">
+            <div className="flex justify-between">
+              <span>Next QR refresh in:</span>
+              <span className="text-xl font-bold">{timeLeft}s</span>
             </div>
-            <span className="text-2xl font-bold">{timeLeft}s</span>
           </div>
+
+
+          {qrData?.qrToken && (
+            <>
+              <div className="bg-white p-4 rounded-lg shadow inline-block">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrData.qrToken}`}
+                  className="w-56 h-56"
+                  alt="QR"
+                />
+              </div>
+
+              <p className="text-xs text-gray-500 mt-2">
+                Expires:
+                {" "}
+                {new Date(qrData.expiresAt).toLocaleTimeString()}
+              </p>
+            </>
+          )}
+
         </div>
-        
-        {windowTimeRemaining && (
-          <div className="p-3 bg-blue-50 text-blue-700 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Window ends in:</span>
-              <span className="text-lg font-bold">{windowTimeRemaining}</span>
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* QR Code Display */}
-      {qrData?.qrToken && (
-        <div className="mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-lg inline-block">
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData.qrToken}`}
-              alt="Attendance QR Code"
-              className="w-48 h-48 mx-auto"
-            />
+
+        {/* RIGHT → Token + Instructions */}
+        <div className="col-span-2 flex flex-col gap-4">
+
+          <div className="p-4 bg-gray-100 rounded-lg">
+            <p className="text-sm font-medium mb-2">
+              Manual Entry Token:
+            </p>
+
+            <code className="bg-gray-800 text-green-400 p-2 rounded block break-all">
+              {qrData?.qrToken}
+            </code>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Expires: {new Date(qrData.expiresAt).toLocaleTimeString()}
-          </p>
+
+
+          <div className="p-4 bg-blue-50 rounded-lg text-sm">
+            <p className="font-semibold text-blue-700 mb-2">
+              Instructions:
+            </p>
+
+            <ul className="list-disc list-inside space-y-1">
+            <li>Students can scan this QR code to mark attendance</li>
+            <li>QR code automatically refreshes every {refreshInterval} seconds</li>
+            <li>Students must be within the specified geofence radius</li>
+            <li>Attendance can only be marked during the active window</li>
+            </ul>
+          </div>
+
+
+          <button
+            onClick={onClose}
+            className="self-end px-6 py-2 border rounded-lg hover:bg-teal-50"
+          >
+            Close
+          </button>
+
         </div>
-      )}
 
-      {/* Token display for manual entry */}
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm font-medium text-gray-700 mb-2">Manual Entry Token:</p>
-        <code className="text-sm bg-gray-800 text-green-400 p-2 rounded block overflow-x-auto">
-          {qrData?.qrToken}
-        </code>
       </div>
 
-      {/* Instructions */}
-      <div className="mt-6 text-left text-sm text-gray-600 bg-blue-50 p-4 rounded-lg">
-        <p className="font-medium text-blue-800 mb-2">Instructions:</p>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Students can scan this QR code to mark attendance</li>
-          <li>QR code automatically refreshes every {refreshInterval} seconds</li>
-          <li>Students must be within the specified geofence radius</li>
-          <li>Attendance can only be marked during the active window</li>
-        </ul>
-      </div>
-
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="mt-6 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-      >
-        Close
-      </button>
     </div>
-  );
+
+  </div>
+);
 };
 export default MyEventsForSuperadmin;
 

@@ -258,9 +258,9 @@ export default function Register() {
                       >
                         <option value="" disabled>Select your role</option>
                         <option value="USERS">USERS</option>
-                        <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                        {/* <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                         <option value="TEACHERS">TEACHERS</option>
-                        <option value="CLUB_ADMIN">CLUB_ADMIN</option>
+                        <option value="CLUB_ADMIN">CLUB_ADMIN</option> */}
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -309,11 +309,11 @@ export default function Register() {
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
                     </div>
-                    <div className="relative flex justify-center">
+                    {/* <div className="relative flex justify-center">
                       <span className="px-4 bg-white text-sm text-gray-500">
                         or
                       </span>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Sign In Link */}
