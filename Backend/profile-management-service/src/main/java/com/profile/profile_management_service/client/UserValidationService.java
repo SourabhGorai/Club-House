@@ -51,4 +51,34 @@ public class UserValidationService {
                     "Unable to validate user. Please try again later", e);
         }
     }
+
+    public Boolean markProfileCompleted(String prn) {
+        String authHeader = request.getHeader("Authorization");
+
+        try {
+            log.info("Attempting mark profileCompleted: {} from user-service", prn);
+
+            Boolean response = webClientBuilder.build()
+                    .patch()
+                    .uri(userServiceUrl + "/users/markProfileCompletedTrue/{prn}", prn)
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(Boolean.class)
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null) {
+                log.info("mark profile completed result: {}: {}", prn, response);
+                return response;
+            }
+
+            log.warn("Invalid or empty response from user-service for PRN: {}", prn);
+            return false;
+
+        } catch (Exception e) {
+            log.error("Failed to validate user with PRN: {}", prn, e);
+            throw new ExternalServiceException(
+                    "Unable to validate user. Please try again later", e);
+        }
+    }
 }

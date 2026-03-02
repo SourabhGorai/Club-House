@@ -2,16 +2,40 @@ package com.userservice.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users2")
+@Table(
+        name = "users2",
+        indexes = {
+
+                // Primary lookup (though PK is auto-indexed)
+                @Index(name = "idx_users2_prn", columnList = "prn"),
+
+                // Login lookups
+                @Index(name = "idx_users2_username", columnList = "username"),
+
+                // Email verification lookups
+                @Index(name = "idx_users2_email", columnList = "email"),
+
+                // Role-based filtering
+                @Index(name = "idx_users2_role", columnList = "role"),
+
+                // Profile completion queries
+                @Index(name = "idx_users2_profile_completed", columnList = "profileCompleted"),
+
+                // Verification status
+                @Index(name = "idx_users2_is_verified", columnList = "is_verified")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,5 +69,10 @@ public class User {
     @Column(name = "otp_expiry")
     private LocalDateTime otpExpiry;
 
+    @NotNull
     private boolean profileCompleted = false;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

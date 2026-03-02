@@ -82,6 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
                     .getDepartmentById(savedProfile.getDepartmentId());
 
             log.info("Profile created successfully for PRN: {}", savedProfile.getPrn());
+            userValidationService.markProfileCompleted(request.getPrn());
             return profileMapper.toProfileResponse(savedProfile, deptName.getName());
 
         } catch (DataIntegrityViolationException ex) {
