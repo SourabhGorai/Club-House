@@ -83,4 +83,14 @@ public class UserController {
         UserDto resp = userService.changeRole(prn, role);
         return ResponseEntity.ok(resp);
     }
+
+    @PutMapping("/changeEmail/{prn}/{email}")
+    public ResponseEntity<UserDto> changeEmail(
+            @PathVariable String prn,
+            @PathVariable String email
+    ) {
+        log.info("Request received to change email for prn: {}", prn);
+        UserDto resp = userService.changeEmail(prn, email);
+        return ResponseEntity.ok(resp);
+    }
 }
