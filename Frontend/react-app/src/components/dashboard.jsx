@@ -10,6 +10,8 @@ export default function Dashboard() {
     return null;
   }
 
+  console.log("User Role:", user);
+
   const renderDashboard = () => {
     switch (user.role) {
       case 'SUPER_ADMIN':
