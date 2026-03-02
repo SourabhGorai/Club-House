@@ -200,4 +200,49 @@ public class UserService {
                 .map(mapper::toDto)
                 .orElse(null);
     }
+
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#prn"),
+            @CacheEvict(value = "userByUsername", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userValidation", key = "#prn")
+    })
+    @Transactional
+    public UserDto changeEmail(String prn, String email) {
+
+        log.info("Attempting to change email for PRN: {}", prn);
+
+        User user = userRepository.findByPrn(prn)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // If same email, do nothing
+        if (user.getEmail().equalsIgnoreCase(email)) {
+            log.info("Same email provided. No change required.");
+            return mapper.toDto(user);
+        }
+
+        // Check if email already exists
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        // Update email
+        user.setEmail(email);
+
+        // Mark as unverified
+        user.setVerified(false);
+
+        // Clear old OTP (optional safety)
+        user.setOtp(null);
+        user.setOtpExpiry(null);
+
+        User savedUser = userRepository.save(user);
+
+        // Generate and send new OTP for email verification
+        otpService.generateAndSendOtpForUser(savedUser);
+
+        log.info("Email updated and verification OTP sent for PRN: {}", prn);
+
+        return mapper.toDto(savedUser);
+    }
 }
