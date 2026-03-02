@@ -180,4 +180,24 @@ public class UserService {
         log.debug("Validating user existence for PRN: {} (cache miss)", prn);
         return userRepository.existsByPrn(prn);
     }
+
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#prn"),
+            @CacheEvict(value = "userByUsername", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userValidation", key = "#prn")
+    })
+    public UserDto changeRole(String prn, Role role) {
+
+        log.debug("Attempting to change role of prn: {}", prn);
+
+        User user = userRepository.findByPrn(prn).orElseThrow();
+
+        user.setRole(role);
+        userRepository.save(user);
+
+        return userRepository.findByPrn(prn)
+                .map(mapper::toDto)
+                .orElse(null);
+    }
 }

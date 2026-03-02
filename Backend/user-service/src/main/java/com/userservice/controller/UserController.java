@@ -3,6 +3,8 @@ package com.userservice.controller;
 
 import com.userservice.dto.UserDto;
 import com.userservice.dto.UserUpdateDto;
+import com.userservice.model.Role;
+import com.userservice.model.User;
 import com.userservice.service.UserService;
 import jakarta.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -70,5 +72,15 @@ public class UserController {
             log.info("User with PRN {} does not exist", prn);
             return false;
         }
+    }
+
+    @PutMapping("/changeRole/{prn}/{role}")
+    public ResponseEntity<UserDto> changeRole(
+            @PathVariable String prn,
+            @PathVariable Role role
+    ) {
+        log.debug("Request received to change role of prn {}", prn);
+        UserDto resp = userService.changeRole(prn, role);
+        return ResponseEntity.ok(resp);
     }
 }

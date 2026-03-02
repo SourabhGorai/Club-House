@@ -68,7 +68,9 @@ public class GatewayConfig {
 
                 // Get all users - SUPER_ADMIN only
                 .route("user-get-all", r -> r
-                        .path("/api/users/")
+                        .path(
+                                "/api/users/",
+                                "/api/users/changeRole/{prn}/{role}")
                         .and()
                         .method("GET")
                         .filters(f -> f
