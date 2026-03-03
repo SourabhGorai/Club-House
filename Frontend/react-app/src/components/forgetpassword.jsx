@@ -372,9 +372,9 @@ export default function ForgotPassword() {
                     <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="px-4 bg-white text-sm text-gray-500">
+                    {/* <span className="px-4 bg-white text-sm text-gray-500">
                       or
-                    </span>
+                    </span> */}
                   </div>
                 </div>
 

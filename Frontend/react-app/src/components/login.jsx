@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
+  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   const [form, setForm] = useState({
     username: "",
@@ -28,10 +29,7 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        form,
-      );
+      const response = await axios.post(`${API_BASE}/api/auth/login`, form);
 
       console.log("Response:", response.data);
 
