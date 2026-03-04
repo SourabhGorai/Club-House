@@ -1026,7 +1026,7 @@ const ClubAdminCard = ({ adminData, profileImages }) => {
           <AvatarPanel
             name={admin.name}
             blobUrl={blobUrl}
-            badgeLabel="Admin"
+            badgeLabel="CLub Admin"
             count={admins.length}
             activeIdx={activeIdx}
           />

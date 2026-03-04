@@ -33,6 +33,38 @@ public class GatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
+                // ==================== SPRINGDOC API-DOCS PROXY ROUTES ====================
+
+                .route("user-service-api-docs", r -> r
+                        .path("/user-service/v3/api-docs")
+                        .filters(f -> f.rewritePath("/user-service/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://USER-SERVICE"))
+
+                .route("profile-service-api-docs", r -> r
+                        .path("/profile-management-service/v3/api-docs")
+                        .filters(f -> f.rewritePath("/profile-management-service/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
+
+                .route("independent-service-api-docs", r -> r
+                        .path("/independent-service/v3/api-docs")
+                        .filters(f -> f.rewritePath("/independent-service/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://INDEPENDENT-SERVICES"))
+
+                .route("club-service2-api-docs", r -> r
+                        .path("/club-service2/v3/api-docs")
+                        .filters(f -> f.rewritePath("/club-service2/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://CLUB-SERVICE2"))
+
+                .route("event-service2-api-docs", r -> r
+                        .path("/event-service2/v3/api-docs")
+                        .filters(f -> f.rewritePath("/event-service2/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://EVENT-SERVICE2"))
+
+                .route("notification-service2-api-docs", r -> r
+                        .path("/notification-service2/v3/api-docs")
+                        .filters(f -> f.rewritePath("/notification-service2/v3/api-docs", "/v3/api-docs"))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
                 // ==================== USER SERVICE ====================
 
                 // Public auth endpoints (no authentication required)
@@ -441,6 +473,7 @@ public class GatewayConfig {
                                 .filter(authorizationFilter.apply(
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
+
 
                 .build();
     }

@@ -54,7 +54,25 @@ logging:
     com.gateway: DEBUG
     com.gateway.api_gateway.filter: DEBUG
 
-
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: User Service
+        url: /user-service/v3/api-docs
+      - name: Profile Management Service
+        url: /profile-management-service/v3/api-docs
+      - name: Independent Service
+        url: /independent-service/v3/api-docs
+      - name: Club Service
+        url: /club-service2/v3/api-docs
+      - name: Event Service
+        url: /event-service2/v3/api-docs
+      - name: Notification Service
+        url: /notification-service2/v3/api-docs
+  api-docs:
+    enabled: true
 
 #spring:
 #  application:

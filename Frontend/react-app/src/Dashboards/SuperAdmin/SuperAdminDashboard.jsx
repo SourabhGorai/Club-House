@@ -2589,12 +2589,10 @@ import {
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
 
-  // Define the primary color as a constant for consistency
   const PRIMARY_COLOR = "#4CA1AF";
   const PRIMARY_DARK = "#2d8391";
   const PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
 
-  // Get user data from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
@@ -2613,11 +2611,7 @@ export default function SuperAdminDashboard() {
   const [emailMessage, setEmailMessage] = useState({ text: "", type: "" });
 
   // Verification state
-  const [verificationStatus, setVerificationStatus] = useState(
-    currentUser.verified,
-  );
-
-  console.log(user);
+  const [verificationStatus, setVerificationStatus] = useState(currentUser.verified);
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
@@ -2683,18 +2677,14 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Fetch all users and calculate stats
   const fetchAllData = async () => {
     try {
-      const usersResponse = await axios.get(
-        "http://localhost:8080/api/users/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      const usersResponse = await axios.get("http://localhost:8080/api/users/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       setUsers(usersResponse.data);
 
@@ -2722,8 +2712,6 @@ export default function SuperAdminDashboard() {
         },
       });
 
-      console.log("Departments fetched:", response.data.data);
-
       if (response.data.success && response.data.data) {
         setDepartments(response.data.data);
       } else {
@@ -2742,7 +2730,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Handle department form submission (Create/Update)
   const handleDeptSubmit = async (e) => {
     e.preventDefault();
     if (!deptInput.trim()) {
@@ -2754,10 +2741,7 @@ export default function SuperAdminDashboard() {
       if (editingDept) {
         const response = await axios.put(
           `http://localhost:8080/api/department/${editingDept.departmentId}`,
-          {
-            name: deptInput,
-            active: true,
-          },
+          { name: deptInput, active: true },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -2767,10 +2751,7 @@ export default function SuperAdminDashboard() {
         );
 
         if (response.data.success) {
-          setDeptMessage({
-            text: "Department updated successfully!",
-            type: "success",
-          });
+          setDeptMessage({ text: "Department updated successfully!", type: "success" });
         } else {
           setDeptMessage({
             text: response.data.message || "Failed to update department",
@@ -2791,10 +2772,7 @@ export default function SuperAdminDashboard() {
         );
 
         if (response.data.success) {
-          setDeptMessage({
-            text: "Department added successfully!",
-            type: "success",
-          });
+          setDeptMessage({ text: "Department added successfully!", type: "success" });
         } else {
           setDeptMessage({
             text: response.data.message || "Failed to add department",
@@ -2806,9 +2784,7 @@ export default function SuperAdminDashboard() {
 
       setDeptInput("");
       setEditingDept(null);
-      setTimeout(() => {
-        setDeptMessage({ text: "", type: "" });
-      }, 3000);
+      setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
       fetchDepartments();
     } catch (error) {
       console.error("Error saving department:", error);
@@ -2819,7 +2795,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Delete department
   const deleteDepartment = async (departmentId) => {
     try {
       const response = await axios.delete(
@@ -2833,10 +2808,7 @@ export default function SuperAdminDashboard() {
       );
 
       if (response.data.success) {
-        setDeptMessage({
-          text: "Department deleted successfully!",
-          type: "success",
-        });
+        setDeptMessage({ text: "Department deleted successfully!", type: "success" });
         fetchDepartments();
       } else {
         setDeptMessage({
@@ -2845,9 +2817,7 @@ export default function SuperAdminDashboard() {
         });
       }
 
-      setTimeout(() => {
-        setDeptMessage({ text: "", type: "" });
-      }, 3000);
+      setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
     } catch (error) {
       console.error("Error deleting department:", error);
       setDeptMessage({
@@ -2857,17 +2827,12 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Fetch user profile data
   const fetchUserProfile = async () => {
     try {
       setIsLoadingProfile(true);
       const response = await axios.get(
         `http://localhost:8080/api/profiles/prn/${user?.prn}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.data) {
@@ -2880,16 +2845,12 @@ export default function SuperAdminDashboard() {
           phoneNumber: response.data.data.phoneNumber || "",
           departmentId: response.data.data.departmentId || "",
         });
-
         fetchProfileImage();
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
       setUserProfile(null);
-      setProfileData((prev) => ({
-        ...prev,
-        prn: user?.prn || "",
-      }));
+      setProfileData((prev) => ({ ...prev, prn: user?.prn || "" }));
     } finally {
       setIsLoadingProfile(false);
     }
@@ -2900,16 +2861,12 @@ export default function SuperAdminDashboard() {
       const response = await axios.get(
         `http://localhost:8080/api/profiles/${user?.prn}/image`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
         },
       );
-
       if (response.data) {
-        const imageUrl = URL.createObjectURL(response.data);
-        setImagePreview(imageUrl);
+        setImagePreview(URL.createObjectURL(response.data));
       }
     } catch (error) {
       console.error("Error fetching profile image:", error);
@@ -2917,13 +2874,9 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Handle verification redirect
   const handleVerificationRedirect = () => {
-    // Store the current user email in localStorage to pass to OTP page
     localStorage.setItem("verificationEmail", currentUser.email);
     localStorage.setItem("verificationPRN", currentUser.prn);
-
-    // Navigate to OTP page
     navigate("/otp");
   };
 
@@ -2934,10 +2887,7 @@ export default function SuperAdminDashboard() {
   };
 
   const handleInputChange = (e) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value,
-    });
+    setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
   const handleImageChange = (e) => {
@@ -2945,9 +2895,7 @@ export default function SuperAdminDashboard() {
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -3010,16 +2958,13 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Email update handler
-  const handleEmailUpdate = async (e) => {
-    e.preventDefault();
-    
+  // Clean single API call for email change
+  const handleEmailUpdate = async () => {
     if (!newEmail.trim()) {
       setEmailMessage({ text: "Please enter a valid email", type: "error" });
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
       setEmailMessage({ text: "Please enter a valid email address", type: "error" });
@@ -3030,14 +2975,9 @@ export default function SuperAdminDashboard() {
     setEmailMessage({ text: "", type: "" });
 
     try {
-      // Try updating via users endpoint with PUT
       const response = await axios.put(
-        `http://localhost:8080/api/users/${currentUser.prn}`,
-        { 
-          email: newEmail,
-          username: currentUser.username,
-          role: currentUser.role 
-        },
+        `http://localhost:8080/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -3047,99 +2987,32 @@ export default function SuperAdminDashboard() {
       );
 
       if (response.data) {
-        // Update local storage and state
-        const updatedUser = { ...currentUser, email: newEmail };
+        const updatedUser = { ...currentUser, email: newEmail, verified: false };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setCurrentUser(updatedUser);
-        
-        setEmailMessage({
-          text: "Email updated successfully!",
-          type: "success",
-        });
-        
+        setVerificationStatus(false);
+
+        setEmailMessage({ text: "Email updated! OTP sent to your new email...", type: "success" });
+
+        localStorage.setItem("verificationEmail", newEmail);
+        localStorage.setItem("verificationOldEmail", currentUser.email);
+        localStorage.setItem("verificationPRN", currentUser.prn);
+        localStorage.setItem("verificationMode", "email_change");
+        localStorage.setItem("verificationReturnUrl", "/dashboard");
+
         setTimeout(() => {
           setShowEmailEditModal(false);
           setEmailMessage({ text: "", type: "" });
           setNewEmail("");
+          navigate("/otp");
         }, 1500);
       }
     } catch (error) {
-      console.error("Error with PUT /api/users/{prn}:", error);
-      
-      // Try PATCH method as fallback
-      try {
-        const patchResponse = await axios.patch(
-          `http://localhost:8080/api/users/${currentUser.prn}`,
-          { email: newEmail },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (patchResponse.data) {
-          const updatedUser = { ...currentUser, email: newEmail };
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          setCurrentUser(updatedUser);
-          
-          setEmailMessage({
-            text: "Email updated successfully!",
-            type: "success",
-          });
-          
-          setTimeout(() => {
-            setShowEmailEditModal(false);
-            setEmailMessage({ text: "", type: "" });
-            setNewEmail("");
-          }, 1500);
-        }
-      } catch (patchError) {
-        console.error("Error with PATCH /api/users/{prn}:", patchError);
-        
-        // Try updating via auth/update endpoint
-        try {
-          const authResponse = await axios.post(
-            "http://localhost:8080/api/auth/update",
-            {
-              prn: currentUser.prn,
-              email: newEmail,
-              username: currentUser.username
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (authResponse.data) {
-            const updatedUser = { ...currentUser, email: newEmail };
-            localStorage.setItem("user", JSON.stringify(updatedUser));
-            setCurrentUser(updatedUser);
-            
-            setEmailMessage({
-              text: "Email updated successfully!",
-              type: "success",
-            });
-            
-            setTimeout(() => {
-              setShowEmailEditModal(false);
-              setEmailMessage({ text: "", type: "" });
-              setNewEmail("");
-            }, 1500);
-          }
-        } catch (authError) {
-          console.error("Error with POST /api/auth/update:", authError);
-          
-          setEmailMessage({
-            text: "Unable to update email. Please check if you have permission or contact support.",
-            type: "error",
-          });
-        }
-      }
+      console.error("Error changing email:", error);
+      setEmailMessage({
+        text: error.response?.data?.message || "Failed to update email. Please try again.",
+        type: "error",
+      });
     } finally {
       setEmailLoading(false);
     }
@@ -3149,10 +3022,7 @@ export default function SuperAdminDashboard() {
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group">
       <div
         className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-        style={{
-          backgroundColor: bgColor || PRIMARY_LIGHT,
-          color: iconColor || PRIMARY_COLOR,
-        }}
+        style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
       >
         <Icon className="w-7 h-7" />
       </div>
@@ -3165,23 +3035,14 @@ export default function SuperAdminDashboard() {
     </div>
   );
 
-  const BigActionButton = ({
-    label,
-    icon: Icon,
-    onClick,
-    bgColor,
-    iconColor,
-  }) => (
+  const BigActionButton = ({ label, icon: Icon, onClick, bgColor, iconColor }) => (
     <button
       onClick={onClick}
       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer"
     >
       <div
         className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
-        style={{
-          backgroundColor: bgColor || PRIMARY_LIGHT,
-          color: iconColor || PRIMARY_COLOR,
-        }}
+        style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
       >
         <Icon className="w-8 h-8" />
       </div>
@@ -3219,9 +3080,7 @@ export default function SuperAdminDashboard() {
           <div className="flex items-center space-x-2">
             <div
               className="p-2 rounded-lg transition-transform hover:scale-105 cursor-pointer"
-              style={{
-                background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-              }}
+              style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
             >
               <LayoutDashboard className="text-white w-5 h-5" />
             </div>
@@ -3255,13 +3114,13 @@ export default function SuperAdminDashboard() {
         {/* Sidebar */}
         <aside
           className={`
-          fixed lg:sticky top-0 left-0 h-screen
-          w-80 sm:w-96 bg-white border-r border-gray-100 
-          flex flex-col p-8 shadow-lg lg:shadow-sm
-          transition-transform duration-300 ease-in-out z-50
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          overflow-y-auto
-        `}
+            fixed lg:sticky top-0 left-0 h-screen
+            w-80 sm:w-96 bg-white border-r border-gray-100 
+            flex flex-col p-8 shadow-lg lg:shadow-sm
+            transition-transform duration-300 ease-in-out z-50
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+            overflow-y-auto
+          `}
         >
           <button
             onClick={() => setSidebarOpen(false)}
@@ -3349,7 +3208,6 @@ export default function SuperAdminDashboard() {
                     {currentUser.email}
                   </span>
                   <div className="flex gap-1">
-                    {/* Edit button */}
                     <button
                       onClick={() => {
                         setNewEmail(currentUser.email);
@@ -3361,8 +3219,6 @@ export default function SuperAdminDashboard() {
                     >
                       <Edit size={14} />
                     </button>
-
-                    {/* Verify button */}
                     <button
                       onClick={handleVerificationRedirect}
                       className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer flex items-center gap-1 ${
@@ -3370,9 +3226,7 @@ export default function SuperAdminDashboard() {
                           ? "bg-green-50 text-green-600 hover:bg-green-100"
                           : "bg-amber-50 text-amber-600 hover:bg-amber-100"
                       }`}
-                      title={
-                        verificationStatus ? "Verified" : "Click to verify"
-                      }
+                      title={verificationStatus ? "Verified" : "Click to verify"}
                     >
                       {verificationStatus ? (
                         <CheckCircle size={14} />
@@ -3589,9 +3443,7 @@ export default function SuperAdminDashboard() {
             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full my-8 overflow-hidden border border-white">
               <div
                 className="p-8 text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-                }}
+                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
               >
                 <div className="flex justify-between items-center">
                   <h3 className="text-2xl font-bold">
@@ -3634,9 +3486,7 @@ export default function SuperAdminDashboard() {
                       />
                     </label>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Click camera to upload photo
-                  </p>
+                  <p className="text-sm text-gray-500 mt-2">Click camera to upload photo</p>
                 </div>
 
                 <div>
@@ -3648,14 +3498,8 @@ export default function SuperAdminDashboard() {
                     name="prn"
                     value={profileData.prn}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all ${userProfile ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                    style={{
-                      outline: "none",
-                      "--tw-ring-color": PRIMARY_COLOR,
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)
-                    }
+                    className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all ${userProfile ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
                     onBlur={(e) => (e.target.style.boxShadow = "")}
                     readOnly={!!userProfile}
                     required
@@ -3671,14 +3515,8 @@ export default function SuperAdminDashboard() {
                     name="fullName"
                     value={profileData.fullName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-                    style={{
-                      outline: "none",
-                      "--tw-ring-color": PRIMARY_COLOR,
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)
-                    }
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
                     onBlur={(e) => (e.target.style.boxShadow = "")}
                     placeholder="Enter your full name"
                     required
@@ -3694,14 +3532,8 @@ export default function SuperAdminDashboard() {
                     name="phoneNumber"
                     value={profileData.phoneNumber}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-                    style={{
-                      outline: "none",
-                      "--tw-ring-color": PRIMARY_COLOR,
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)
-                    }
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
                     onBlur={(e) => (e.target.style.boxShadow = "")}
                     placeholder="10-digit phone number"
                     required
@@ -3728,15 +3560,9 @@ export default function SuperAdminDashboard() {
                     type="submit"
                     disabled={profileLoading}
                     className="flex-1 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    style={{
-                      background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-                    }}
+                    style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
                   >
-                    {profileLoading
-                      ? "Saving..."
-                      : userProfile
-                        ? "Update Profile"
-                        : "Create Profile"}
+                    {profileLoading ? "Saving..." : userProfile ? "Update Profile" : "Create Profile"}
                   </button>
                 </div>
               </form>
@@ -3750,17 +3576,11 @@ export default function SuperAdminDashboard() {
             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-white flex flex-col">
               <div
                 className="p-8 text-white flex justify-between items-center"
-                style={{
-                  background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-                }}
+                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
               >
                 <div>
-                  <h3 className="text-2xl font-bold tracking-tight">
-                    Department Management
-                  </h3>
-                  <p className="text-white/80 text-sm">
-                    Add or remove academic departments
-                  </p>
+                  <h3 className="text-2xl font-bold tracking-tight">Department Management</h3>
+                  <p className="text-white/80 text-sm">Add or remove academic departments</p>
                 </div>
                 <button
                   onClick={() => {
@@ -3776,32 +3596,23 @@ export default function SuperAdminDashboard() {
               </div>
 
               <div className="p-8 flex-1 overflow-y-auto">
-                {/* Status message */}
                 {deptMessage.text && (
                   <div
                     className={`mb-6 p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
                   >
                     <p className="text-sm font-semibold flex items-center gap-2">
-                      {deptMessage.type === "success" ? "✓" : "⚠"}{" "}
-                      {deptMessage.text}
+                      {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
                     </p>
                   </div>
                 )}
 
-                {/* Form to add/edit department */}
                 <form onSubmit={handleDeptSubmit} className="mb-8">
                   <div className="flex gap-3">
                     <input
                       type="text"
                       placeholder="Enter department name..."
-                      className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-                      style={{
-                        outline: "none",
-                        "--tw-ring-color": PRIMARY_COLOR,
-                      }}
-                      onFocus={(e) =>
-                        (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)
-                      }
+                      className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all"
+                      onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
                       onBlur={(e) => (e.target.style.boxShadow = "")}
                       value={deptInput}
                       onChange={(e) => setDeptInput(e.target.value)}
@@ -3822,8 +3633,7 @@ export default function SuperAdminDashboard() {
                   {editingDept && (
                     <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
                       <span>
-                        Editing:{" "}
-                        <span className="font-bold">{editingDept.name}</span>
+                        Editing: <span className="font-bold">{editingDept.name}</span>
                       </span>
                       <button
                         type="button"
@@ -3839,7 +3649,6 @@ export default function SuperAdminDashboard() {
                   )}
                 </form>
 
-                {/* List of departments */}
                 {deptLoading ? (
                   <div className="py-10 text-center text-gray-500 italic">
                     <div
@@ -3857,9 +3666,7 @@ export default function SuperAdminDashboard() {
                           className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="font-bold text-gray-700">
-                              {dept.name}
-                            </span>
+                            <span className="font-bold text-gray-700">{dept.name}</span>
                             <span
                               className={`text-xs font-bold px-2 py-1 rounded-full ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
                             >
@@ -3894,12 +3701,8 @@ export default function SuperAdminDashboard() {
                     ) : (
                       <div className="text-center py-10">
                         <Database className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                        <p className="text-gray-400 font-medium">
-                          No departments found in system.
-                        </p>
-                        <p className="text-sm text-gray-300 mt-1">
-                          Add a department using the form above
-                        </p>
+                        <p className="text-gray-400 font-medium">No departments found in system.</p>
+                        <p className="text-sm text-gray-300 mt-1">Add a department using the form above</p>
                       </div>
                     )}
                   </div>
@@ -3908,8 +3711,7 @@ export default function SuperAdminDashboard() {
 
               <div className="px-8 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
                 <div className="text-sm text-gray-500">
-                  {departments.length} department
-                  {departments.length !== 1 ? "s" : ""}
+                  {departments.length} department{departments.length !== 1 ? "s" : ""}
                 </div>
                 <button
                   onClick={() => setShowDeptModal(false)}
@@ -3922,309 +3724,96 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* Email Edit Modal - UPDATED with handleEmailUpdate */}
-       {/* Email Edit Modal - with Verify Email and Update Email buttons */}
-{/* Email Edit Modal - with Update Email button that auto-sends OTP */}
-{showEmailEditModal && (
-  <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
-    <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
-      <div
-        className="p-6 text-white"
-        style={{
-          background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-        }}
-      >
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Mail size={20} />
-              Update Email Address
-            </h3>
-            <p className="text-white/80 text-sm mt-1">
-              Enter your new email address
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setShowEmailEditModal(false);
-              setEmailMessage({ text: "", type: "" });
-              setNewEmail("");
-            }}
-            className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
-          >
-            <X size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-6 space-y-5">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Current Email
-          </label>
-          <input
-            type="email"
-            value={currentUser.email}
-            className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
-            disabled
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            New Email <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{
-              outline: "none",
-              "--tw-ring-color": PRIMARY_COLOR,
-            }}
-            onFocus={(e) =>
-              (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)
-            }
-            onBlur={(e) => (e.target.style.boxShadow = "")}
-            placeholder="Enter new email address"
-            required
-          />
-        </div>
-
-        {emailMessage.text && (
-          <div
-            className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
-          >
-            <p className="text-sm font-semibold flex items-center gap-2">
-              {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
-            </p>
-          </div>
-        )}
-
-        <div className="flex space-x-4 pt-4">
-          {/* Update Email Button - Update then Auto-send OTP and Verify */}
-          <button
-            type="button"
-            onClick={async () => {
-              if (!newEmail.trim()) {
-                setEmailMessage({ text: "Please enter a valid email", type: "error" });
-                return;
-              }
-
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(newEmail)) {
-                setEmailMessage({ text: "Please enter a valid email address", type: "error" });
-                return;
-              }
-
-              setEmailLoading(true);
-              setEmailMessage({ text: "", type: "" });
-
-              try {
-                // Try updating via users endpoint with PUT
-                const response = await axios.put(
-                  `http://localhost:8080/api/users/${currentUser.prn}`,
-                  { 
-                    email: newEmail,
-                    username: currentUser.username,
-                    role: currentUser.role 
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                      "Content-Type": "application/json",
-                    },
-                  }
-                );
-
-                if (response.data) {
-                  // Update local storage and state with new email
-                  const updatedUser = { ...currentUser, email: newEmail, verified: false };
-                  localStorage.setItem("user", JSON.stringify(updatedUser));
-                  setCurrentUser(updatedUser);
-                  
-                  // Show updating message
-                  setEmailMessage({
-                    text: "Email updated! Sending OTP to new email...",
-                    type: "success",
-                  });
-
-                  // Automatically send OTP to the new email
-                  try {
-                    await axios.post(
-                      "http://localhost:8080/api/auth/forgot-password",
-                      { email: newEmail }
-                    );
-                    
-                    // Store OTP verification data
-                    localStorage.setItem("verificationEmail", newEmail);
-                    localStorage.setItem("verificationOldEmail", currentUser.email);
-                    localStorage.setItem("verificationPRN", currentUser.prn);
-                    localStorage.setItem("verificationMode", "email_change");
-                    localStorage.setItem("verificationReturnUrl", "/super-admin-dashboard");
-                    
-                    // Close modal and navigate to OTP page
-                    setTimeout(() => {
+        {/* Email Edit Modal */}
+        {showEmailEditModal && (
+          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
+            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
+              <div
+                className="p-6 text-white"
+                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                      <Mail size={20} />
+                      Update Email Address
+                    </h3>
+                    <p className="text-white/80 text-sm mt-1">Enter your new email address</p>
+                  </div>
+                  <button
+                    onClick={() => {
                       setShowEmailEditModal(false);
                       setEmailMessage({ text: "", type: "" });
                       setNewEmail("");
-                      navigate("/otp");
-                    }, 1500);
-                  } catch (otpError) {
-                    console.error("Error sending OTP:", otpError);
-                    setEmailMessage({
-                      text: "Email updated but failed to send OTP. Please try resending.",
-                      type: "error",
-                    });
-                    setEmailLoading(false);
-                  }
-                }
-              } catch (error) {
-                console.error("Error with PUT /api/users/{prn}:", error);
-                
-                // Try PATCH method as fallback
-                try {
-                  const patchResponse = await axios.patch(
-                    `http://localhost:8080/api/users/${currentUser.prn}`,
-                    { email: newEmail },
-                    {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                      },
-                    }
-                  );
-
-                  if (patchResponse.data) {
-                    const updatedUser = { ...currentUser, email: newEmail, verified: false };
-                    localStorage.setItem("user", JSON.stringify(updatedUser));
-                    setCurrentUser(updatedUser);
-                    
-                    setEmailMessage({
-                      text: "Email updated! Sending OTP to new email...",
-                      type: "success",
-                    });
-
-                    // Automatically send OTP to the new email
-                    try {
-                      await axios.post(
-                        "http://localhost:8080/api/auth/forgot-password",
-                        { email: newEmail }
-                      );
-                      
-                      localStorage.setItem("verificationEmail", newEmail);
-                      localStorage.setItem("verificationOldEmail", currentUser.email);
-                      localStorage.setItem("verificationPRN", currentUser.prn);
-                      localStorage.setItem("verificationMode", "email_change");
-                      localStorage.setItem("verificationReturnUrl", "/super-admin-dashboard");
-                      
-                      setTimeout(() => {
-                        setShowEmailEditModal(false);
-                        setEmailMessage({ text: "", type: "" });
-                        setNewEmail("");
-                        navigate("/otp");
-                      }, 1500);
-                    } catch (otpError) {
-                      console.error("Error sending OTP:", otpError);
-                      setEmailMessage({
-                        text: "Email updated but failed to send OTP. Please try resending.",
-                        type: "error",
-                      });
-                      setEmailLoading(false);
-                    }
-                  }
-                } catch (patchError) {
-                  console.error("Error with PATCH /api/users/{prn}:", patchError);
-                  
-                  // Try updating via auth/update endpoint
-                  try {
-                    const authResponse = await axios.post(
-                      "http://localhost:8080/api/auth/update",
-                      {
-                        prn: currentUser.prn,
-                        email: newEmail,
-                        username: currentUser.username
-                      },
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                          "Content-Type": "application/json",
-                        },
-                      }
-                    );
-
-                    if (authResponse.data) {
-                      const updatedUser = { ...currentUser, email: newEmail, verified: false };
-                      localStorage.setItem("user", JSON.stringify(updatedUser));
-                      setCurrentUser(updatedUser);
-                      
-                      setEmailMessage({
-                        text: "Email updated! Sending OTP to new email...",
-                        type: "success",
-                      });
-
-                      // Automatically send OTP to the new email
-                      try {
-                        await axios.post(
-                          "http://localhost:8080/api/auth/forgot-password",
-                          { email: newEmail }
-                        );
-                        
-                        localStorage.setItem("verificationEmail", newEmail);
-                        localStorage.setItem("verificationOldEmail", currentUser.email);
-                        localStorage.setItem("verificationPRN", currentUser.prn);
-                        localStorage.setItem("verificationMode", "email_change");
-                        localStorage.setItem("verificationReturnUrl", "/super-admin-dashboard");
-                        
-                        setTimeout(() => {
-                          setShowEmailEditModal(false);
-                          setEmailMessage({ text: "", type: "" });
-                          setNewEmail("");
-                          navigate("/otp");
-                        }, 1500);
-                      } catch (otpError) {
-                        console.error("Error sending OTP:", otpError);
-                        setEmailMessage({
-                          text: "Email updated but failed to send OTP. Please try resending.",
-                          type: "error",
-                        });
-                        setEmailLoading(false);
-                      }
-                    }
-                  } catch (authError) {
-                    console.error("Error with POST /api/auth/update:", authError);
-                    
-                    setEmailMessage({
-                      text: "Unable to update email. Please check if you have permission or contact support.",
-                      type: "error",
-                    });
-                  }
-                }
-              } finally {
-                setEmailLoading(false);
-              }
-            }}
-            disabled={emailLoading || !newEmail || newEmail === currentUser.email}
-            className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            style={{
-              background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-            }}
-          >
-            {emailLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Updating & Sending OTP...
+                    }}
+                    className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
-            ) : (
-              "Update Email"
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+
+              <div className="p-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Current Email
+                  </label>
+                  <input
+                    type="email"
+                    value={currentUser.email}
+                    className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                    disabled
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    New Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
+                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
+                    onBlur={(e) => (e.target.style.boxShadow = "")}
+                    placeholder="Enter new email address"
+                    required
+                  />
+                </div>
+
+                {emailMessage.text && (
+                  <div
+                    className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+                  >
+                    <p className="text-sm font-semibold flex items-center gap-2">
+                      {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <button
+                    type="button"
+                    onClick={handleEmailUpdate}
+                    disabled={emailLoading || !newEmail || newEmail === currentUser.email}
+                    className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                    style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                  >
+                    {emailLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Updating...
+                      </div>
+                    ) : (
+                      "Update Email"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog
@@ -4239,7 +3828,3 @@ export default function SuperAdminDashboard() {
     </>
   );
 }
-
-
-
-
