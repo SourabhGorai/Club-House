@@ -19,6 +19,7 @@ import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 import ClubDetails from "./components/ClubDetails";
 import PreviousEvents from "./Dashboards/Users/PreviousEvents";
 import MyEventsForSuperadmin from "./Dashboards/SuperAdmin/MyEventsForSuperadmin";
+import SuperAdminDashboard from "./Dashboards/SuperAdmin/SuperAdminDashboard"; // Add this import
 
 export default function App() {
   return (
@@ -35,14 +36,10 @@ export default function App() {
             </AuthRoute>
           }
         />
-        <Route
-          path="/otp"
-          element={
-            <AuthRoute>
-              <OTP />
-            </AuthRoute>
-          }
-        />
+        
+        {/* MODIFIED: Remove AuthRoute from OTP so logged-in users can access it */}
+        <Route path="/otp" element={<OTP />} />
+        
         <Route
           path="/login"
           element={
@@ -66,6 +63,16 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Add Super Admin Dashboard route */}
+        <Route
+          path="/super-admin-dashboard"
+          element={
+            <ProtectedRoute>
+              <SuperAdminDashboard />
             </ProtectedRoute>
           }
         />
@@ -123,7 +130,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-                {/* Add the Create Event route */}
+        
+        {/* Add the Create Event route */}
         <Route
           path="/create-event"
           element={
@@ -132,11 +140,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-          <Route path="/club/:clubName/details" element={            <ProtectedRoute>
-              <ClubDetails />
-            </ProtectedRoute> } />
+        
+        <Route path="/club/:clubName/details" element={
+          <ProtectedRoute>
+            <ClubDetails />
+          </ProtectedRoute>
+        } />
 
-             <Route
+        <Route
           path="/events"
           element={
             <ProtectedRoute>
@@ -144,7 +155,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-          <Route
+        
+        <Route
           path="/events-superadmin"
           element={
             <ProtectedRoute>
@@ -161,11 +173,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
       </Routes>
-     
-        
-    
     </div>
   );
 }
