@@ -30,10 +30,9 @@ const fetchPagedEvents = async (serverFilter, page, token) => {
     url = `${BASE_URL}/api/events/endEvent/${val}/paged?page=${page}&size=${PAGE_SIZE}`;
   }
   const res = await axios.get(url, { headers: authHeaders(token) });
-  return res.data?.data; // PageResponse<EventResponse>
+  return res.data?.data;
 };
 
-// Fetch all events once for stats cards only — not paginated
 const fetchAllForStats = async (token) => {
   const res = await axios.get(`${BASE_URL}/api/events`, { headers: authHeaders(token) });
   return res.data?.data || [];
@@ -61,13 +60,13 @@ const getTargetTypeColor = (t) => ({ global: "bg-blue-100 text-blue-700", club: 
 
 const getEventCategoryIcon = (title) => {
   const t = title?.toLowerCase() || "";
-  if (t.includes("tech") || t.includes("code"))     return <Code className="w-5 h-5" />;
-  if (t.includes("music") || t.includes("concert")) return <Music className="w-5 h-5" />;
-  if (t.includes("photo") || t.includes("camera"))  return <Camera className="w-5 h-5" />;
-  if (t.includes("sport") || t.includes("game"))    return <Trophy className="w-5 h-5" />;
+  if (t.includes("tech") || t.includes("code"))      return <Code className="w-5 h-5" />;
+  if (t.includes("music") || t.includes("concert"))  return <Music className="w-5 h-5" />;
+  if (t.includes("photo") || t.includes("camera"))   return <Camera className="w-5 h-5" />;
+  if (t.includes("sport") || t.includes("game"))     return <Trophy className="w-5 h-5" />;
   if (t.includes("art")   || t.includes("creative")) return <Heart className="w-5 h-5" />;
   if (t.includes("workshop") || t.includes("learn")) return <BookOpen className="w-5 h-5" />;
-  if (t.includes("social") || t.includes("meet"))   return <Coffee className="w-5 h-5" />;
+  if (t.includes("social") || t.includes("meet"))    return <Coffee className="w-5 h-5" />;
   return <Sparkles className="w-5 h-5" />;
 };
 
@@ -89,39 +88,56 @@ const MyEventsForSuperadmin = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy]           = useState("date");
 
-  // ── Server-side filter (determines which endpoint is called) ───────────────
-  const [serverFilter, setServerFilter]         = useState("all");
-  const [currentPage, setCurrentPage]           = useState(0);
+  // ── Server-side filter ─────────────────────────────────────────────────────
+  const [serverFilter, setServerFilter]             = useState("all");
+  const [currentPage, setCurrentPage]               = useState(0);
 
-  // ── Client-side filters (applied to current page content) ─────────────────
-  const [filterType, setFilterType]             = useState("all"); // ALL | GLOBAL | DEPARTMENT | CLUB
+  // ── Client-side filters ────────────────────────────────────────────────────
+  const [filterType, setFilterType]                 = useState("all");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
-  const [selectedClub, setSelectedClub]         = useState("all");
-  const [searchTerm, setSearchTerm]             = useState("");
-
-  // UI label state for chips
-  const [selectedStatus, setSelectedStatus]     = useState("all");
-  const [selectedCompleted, setSelectedCompleted] = useState("all");
+  const [selectedClub, setSelectedClub]             = useState("all");
+  const [searchTerm, setSearchTerm]                 = useState("");
+  const [selectedStatus, setSelectedStatus]         = useState("all");
+  const [selectedCompleted, setSelectedCompleted]   = useState("all");
 
   // ── Modals ─────────────────────────────────────────────────────────────────
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEvent, setEditingEvent]   = useState(null);
-const [showAttendancePopup, setShowAttendancePopup] = useState(false);
-const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
-  const [updateLoading, setUpdateLoading] = useState(false);
-  const [updateError, setUpdateError]     = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
+  const [showEditModal, setShowEditModal]   = useState(false);
+  const [editingEvent, setEditingEvent]     = useState(null);
+  const [updateLoading, setUpdateLoading]   = useState(false);
+  const [updateError, setUpdateError]       = useState(null);
+
+  const [showAttendancePopup, setShowAttendancePopup]             = useState(false);
+  const [selectedEventForAttendance, setSelectedEventForAttendance] = useState(null);
+
+  // ── QR Modal ───────────────────────────────────────────────────────────────
+  const [showQRCodeModal, setShowQRCodeModal]   = useState(false);
+  const [qrCodeEventId, setQrCodeEventId]       = useState(null);
+  // FIX: Store the initial QR data returned by the start-attendance API
+  // so QRCodeDisplay can use it directly without needing to re-fetch,
+  // avoiding the "session ended" flash from a stale attendanceActive=false check.
+  const [initialQRData, setInitialQRData]       = useState(null);
+
+  const [activeAttendanceEvents, setActiveAttendanceEvents]   = useState({});
+  const [loadingAttendanceStatus, setLoadingAttendanceStatus] = useState(false);
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {}
+  });
   const closeConfirm = () => setConfirmDialog((p) => ({ ...p, isOpen: false }));
-const [showQRCodeModal, setShowQRCodeModal] = useState(false);
-const [qrCodeEventId, setQrCodeEventId] = useState(null);
-const [activeAttendanceEvents, setActiveAttendanceEvents] = useState({}); // Object to store active status by eventId
-const [loadingAttendanceStatus, setLoadingAttendanceStatus] = useState(false);
 
   // ── Init ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user?.role !== "SUPER_ADMIN") { setError("Access denied. This page is only for Super Admins."); setLoading(false); return; }
-    if (!token) { setError("No authentication token found. Please login again."); setLoading(false); return; }
+    if (user?.role !== "SUPER_ADMIN") {
+      setError("Access denied. This page is only for Super Admins.");
+      setLoading(false);
+      return;
+    }
+    if (!token) {
+      setError("No authentication token found. Please login again.");
+      setLoading(false);
+      return;
+    }
     initLoad();
   }, []);
 
@@ -159,53 +175,50 @@ const [loadingAttendanceStatus, setLoadingAttendanceStatus] = useState(false);
     }
   }, [token]);
 
+  // ── Attendance status helpers ───────────────────────────────────────────────
+  const checkAttendanceActive = async (eventId) => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/events/getById/${eventId}`,
+        { headers: authHeaders(token) }
+      );
+      return res.data?.data?.attendanceActive || false;
+    } catch (err) {
+      console.error(`Error checking attendance for event ${eventId}:`, err);
+      return false;
+    }
+  };
+
+  const checkAllEventsAttendance = useCallback(async () => {
+    if (!pageData.content || pageData.content.length === 0) return;
+    setLoadingAttendanceStatus(true);
+    const statusMap = {};
+    await Promise.all(
+      pageData.content.map(async (event) => {
+        statusMap[event.eventId] = await checkAttendanceActive(event.eventId);
+      })
+    );
+    setActiveAttendanceEvents(statusMap);
+    setLoadingAttendanceStatus(false);
+  }, [pageData.content, token]);
+
+  useEffect(() => {
+    if (pageData.content && pageData.content.length > 0) {
+      checkAllEventsAttendance();
+    }
+  }, [pageData.content, checkAllEventsAttendance]);
+
   // ── Filter handlers ─────────────────────────────────────────────────────────
-  const applyServerFilter = (newFilter) => { setServerFilter(newFilter); loadPage(newFilter, 0); };
+  const applyServerFilter = (newFilter) => {
+    setServerFilter(newFilter);
+    loadPage(newFilter, 0);
+  };
 
   const handleEnrollmentStatusChange = (value) => {
     setSelectedStatus(value);
     setSelectedCompleted("all");
     applyServerFilter(value === "all" ? "all" : `enrollment:${value}`);
   };
-
-  // Function to check if attendance is active for an event
-const checkAttendanceActive = async (eventId) => {
-  try {
-    const res = await axios.get(
-      `${BASE_URL}/api/events/getById/${eventId}`,
-      { headers: authHeaders(token) }
-    );
-    return res.data?.data?.attendanceActive || false;
-  } catch (err) {
-    console.error(`Error checking attendance for event ${eventId}:`, err);
-    return false;
-  }
-};
-
-// Function to check attendance for all events in current page
-const checkAllEventsAttendance = useCallback(async () => {
-  if (!pageData.content || pageData.content.length === 0) return;
-  
-  setLoadingAttendanceStatus(true);
-  const statusMap = {};
-  
-  await Promise.all(
-    pageData.content.map(async (event) => {
-      statusMap[event.eventId] = await checkAttendanceActive(event.eventId);
-    })
-  );
-  
-  setActiveAttendanceEvents(statusMap);
-  setLoadingAttendanceStatus(false);
-}, [pageData.content, token]);
-
-// Check attendance status whenever page content changes
-useEffect(() => {
-  if (pageData.content && pageData.content.length > 0) {
-    checkAllEventsAttendance();
-  }
-}, [pageData.content, checkAllEventsAttendance]);
-
 
   const handleCompletedStatusChange = (value) => {
     setSelectedCompleted(value);
@@ -218,25 +231,52 @@ useEffect(() => {
     setSelectedDepartment("all");
     setSelectedClub("all");
     setCurrentPage(0);
-    // client-side only — no re-fetch needed
   };
-const handleAttendanceStartSuccess = (response) => {
-  // Show success message
-  alert("Attendance started successfully!");
-  checkAllEventsAttendance();
-  // Open QR code display modal
-  if (selectedEventForAttendance) {
-    setQrCodeEventId(selectedEventForAttendance.eventId);
-    setShowQRCodeModal(true);
-  }
-  
-  // Refresh the current page to reflect any changes
-  loadPage(serverFilter, currentPage);
-};
+
   const clearAllFilters = async () => {
     setSearchTerm(""); setSelectedDepartment("all"); setSelectedClub("all");
     setSelectedStatus("all"); setSelectedCompleted("all"); setFilterType("all"); setServerFilter("all");
     await loadPage("all", 0);
+  };
+
+  // ── Stop attendance directly from card back ───────────────────────────────
+  const handleStopAttendanceForEvent = async (eventId) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/attendance/stop/${eventId}`,
+        {},
+        { headers: authHeaders(token) }
+      );
+      if (res.data?.success) {
+        checkAllEventsAttendance();
+        loadPage(serverFilter, currentPage);
+      } else {
+        alert(res.data?.message || "Failed to stop attendance");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Error stopping attendance");
+    }
+  };
+
+  // ── FIX: Attendance start success handler ──────────────────────────────────
+  // The critical fix is here: we capture the QR data returned by the
+  // start-attendance API and pass it straight to QRCodeDisplay.
+  // This way the component never needs to re-fetch on mount (which was
+  // racing with the backend's attendanceActive update and returning false,
+  // causing the instant "session ended" flash).
+  const handleAttendanceStartSuccess = (apiResponse) => {
+    // apiResponse is the full Axios response body: { success, message, data: QRCodeResponse }
+    const qrData = apiResponse?.data ?? null;
+
+    if (selectedEventForAttendance) {
+      setQrCodeEventId(selectedEventForAttendance.eventId);
+      setInitialQRData(qrData);   // ← pass QR data so QRCodeDisplay skips its initial fetch
+      setShowQRCodeModal(true);
+    }
+
+    // Update attendance badge on card and refresh page list in background
+    checkAllEventsAttendance();
+    loadPage(serverFilter, currentPage);
   };
 
   // ── Client-side filter on current page ─────────────────────────────────────
@@ -245,10 +285,17 @@ const handleAttendanceStartSuccess = (response) => {
     if (filterType !== "all") list = list.filter((e) => e.targetType?.toUpperCase() === filterType);
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      list = list.filter((e) => e.title?.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q) || e.organizer?.toLowerCase().includes(q) || e.creatorName?.toLowerCase().includes(q));
+      list = list.filter((e) =>
+        e.title?.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
+        e.organizer?.toLowerCase().includes(q) ||
+        e.creatorName?.toLowerCase().includes(q)
+      );
     }
-    if (selectedDepartment !== "all") list = list.filter((e) => e.targetType?.toUpperCase() === "DEPARTMENT" && e.targetIds?.includes(parseInt(selectedDepartment)));
-    if (selectedClub !== "all")       list = list.filter((e) => e.targetType?.toUpperCase() === "CLUB"       && e.targetIds?.includes(parseInt(selectedClub)));
+    if (selectedDepartment !== "all")
+      list = list.filter((e) => e.targetType?.toUpperCase() === "DEPARTMENT" && e.targetIds?.includes(parseInt(selectedDepartment)));
+    if (selectedClub !== "all")
+      list = list.filter((e) => e.targetType?.toUpperCase() === "CLUB" && e.targetIds?.includes(parseInt(selectedClub)));
 
     switch (sortBy) {
       case "date":       list.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)); break;
@@ -261,8 +308,15 @@ const handleAttendanceStartSuccess = (response) => {
   // ── Edit / Delete ───────────────────────────────────────────────────────────
   const handleEditClick = (event) => {
     const fmt = (d) => d ? new Date(d).toISOString().slice(0, 16) : "";
-    setEditingEvent({ ...event, dateTime: fmt(event.dateTime), enrollmentDeadline: fmt(event.enrollmentDeadline), attendanceWindowStart: fmt(event.attendanceWindowStart), attendanceWindowEnd: fmt(event.attendanceWindowEnd) });
-    setShowEditModal(true); setUpdateError(null);
+    setEditingEvent({
+      ...event,
+      dateTime: fmt(event.dateTime),
+      enrollmentDeadline: fmt(event.enrollmentDeadline),
+      attendanceWindowStart: fmt(event.attendanceWindowStart),
+      attendanceWindowEnd: fmt(event.attendanceWindowEnd),
+    });
+    setShowEditModal(true);
+    setUpdateError(null);
   };
 
   const handleEditInputChange = (e) => {
@@ -270,21 +324,37 @@ const handleAttendanceStartSuccess = (response) => {
     if (type === "number") {
       setEditingEvent((p) => ({ ...p, [name]: value === "" ? "" : parseInt(value) }));
     } else if (name === "targetIds") {
-      setEditingEvent((p) => ({ ...p, [name]: value.split(",").map((id) => parseInt(id.trim())).filter((id) => !isNaN(id)) }));
+      setEditingEvent((p) => ({
+        ...p,
+        [name]: value.split(",").map((id) => parseInt(id.trim())).filter((id) => !isNaN(id)),
+      }));
     } else {
       setEditingEvent((p) => ({ ...p, [name]: value }));
     }
   };
 
   const handleUpdateEvent = async (e) => {
-    e.preventDefault(); setUpdateLoading(true); setUpdateError(null);
+    e.preventDefault();
+    setUpdateLoading(true);
+    setUpdateError(null);
     try {
-      const res = await axios.put(`${BASE_URL}/api/events/updateEvent/${editingEvent.eventId}`, editingEvent, { headers: authHeaders(token) });
-      if (res.data.success) { setShowEditModal(false); setEditingEvent(null); await loadPage(serverFilter, currentPage); }
-      else setUpdateError(res.data.message || "Failed to update event");
+      const res = await axios.put(
+        `${BASE_URL}/api/events/updateEvent/${editingEvent.eventId}`,
+        editingEvent,
+        { headers: authHeaders(token) }
+      );
+      if (res.data.success) {
+        setShowEditModal(false);
+        setEditingEvent(null);
+        await loadPage(serverFilter, currentPage);
+      } else {
+        setUpdateError(res.data.message || "Failed to update event");
+      }
     } catch (err) {
       setUpdateError(err.response?.data?.message || "An error occurred while updating the event");
-    } finally { setUpdateLoading(false); }
+    } finally {
+      setUpdateLoading(false);
+    }
   };
 
   const handleDeleteEvent = async (eventId) => {
@@ -292,18 +362,20 @@ const handleAttendanceStartSuccess = (response) => {
       await axios.delete(`${BASE_URL}/api/events/deleteEvent/${eventId}`, { headers: authHeaders(token) });
       const targetPage = pageData.content.length === 1 && currentPage > 0 ? currentPage - 1 : currentPage;
       await Promise.all([loadPage(serverFilter, targetPage), fetchAllForStats(token).then(setStatsEvents)]);
-    } catch (err) { alert(err.response?.data?.message || "Failed to delete event"); }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete event");
+    }
   };
 
-  // ── Stats (from full list, not affected by pagination) ─────────────────────
+  // ── Stats ───────────────────────────────────────────────────────────────────
   const stats = {
-    total:      statsEvents.length,
-    open:       statsEvents.filter((e) => e.enrollmentStatus?.toLowerCase() === "open").length,
-    closed:     statsEvents.filter((e) => e.enrollmentStatus?.toLowerCase() === "closed").length,
+    total:       statsEvents.length,
+    open:        statsEvents.filter((e) => e.enrollmentStatus?.toLowerCase() === "open").length,
+    closed:      statsEvents.filter((e) => e.enrollmentStatus?.toLowerCase() === "closed").length,
     enrollments: statsEvents.reduce((s, e) => s + (e.currEnrollments || 0), 0),
-    global:     statsEvents.filter((e) => e.targetType?.toUpperCase() === "GLOBAL").length,
-    club:       statsEvents.filter((e) => e.targetType?.toUpperCase() === "CLUB").length,
-    dept:       statsEvents.filter((e) => e.targetType?.toUpperCase() === "DEPARTMENT").length,
+    global:      statsEvents.filter((e) => e.targetType?.toUpperCase() === "GLOBAL").length,
+    club:        statsEvents.filter((e) => e.targetType?.toUpperCase() === "CLUB").length,
+    dept:        statsEvents.filter((e) => e.targetType?.toUpperCase() === "DEPARTMENT").length,
   };
 
   const hasAnyFilter = serverFilter !== "all" || filterType !== "all" || selectedDepartment !== "all" || selectedClub !== "all" || searchTerm;
@@ -403,7 +475,11 @@ const handleAttendanceStartSuccess = (response) => {
 
           {/* Create button */}
           <div className="mb-6 flex justify-end">
-            <button className="px-4 py-2 text-white rounded-lg shadow-md hover:shadow-lg transition-all flex items-center space-x-2" style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }} onClick={() => navigate("/create-event")}>
+            <button
+              className="px-4 py-2 text-white rounded-lg shadow-md hover:shadow-lg transition-all flex items-center space-x-2"
+              style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}
+              onClick={() => navigate("/create-event")}
+            >
               <Plus className="w-4 h-4" /><span>Create Event</span>
             </button>
           </div>
@@ -414,16 +490,32 @@ const handleAttendanceStartSuccess = (response) => {
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 w-5 h-5" />
-                  <input type="text" placeholder="Search events by title, description, organizer..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all bg-white/50" />
+                  <input
+                    type="text"
+                    placeholder="Search events by title, description, organizer..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all bg-white/50"
+                  />
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setShowFilters(!showFilters)} className="px-4 py-3 text-white rounded-xl font-medium transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg" style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="px-4 py-3 text-white rounded-xl font-medium transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+                    style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}
+                  >
                     <Filter className="w-5 h-5" /><span>Filters</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
                   </button>
-                  <CustomSelect value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                    options={[{ value: "date", label: "Sort by Date" }, { value: "popularity", label: "Sort by Popularity" }, { value: "enrollment", label: "Sort by Capacity" }]} />
+                  <CustomSelect
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    options={[
+                      { value: "date",       label: "Sort by Date" },
+                      { value: "popularity", label: "Sort by Popularity" },
+                      { value: "enrollment", label: "Sort by Capacity" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -451,7 +543,8 @@ const handleAttendanceStartSuccess = (response) => {
                     )}
                     {selectedStatus !== "all" && (
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
-                        Enrollment: {selectedStatus}<button onClick={() => handleEnrollmentStatusChange("all")} className="ml-2"><X className="w-3 h-3" /></button>
+                        Enrollment: {selectedStatus}
+                        <button onClick={() => handleEnrollmentStatusChange("all")} className="ml-2"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     {selectedCompleted !== "all" && (
@@ -473,52 +566,71 @@ const handleAttendanceStartSuccess = (response) => {
               {/* Filter panel */}
               {showFilters && (
                 <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
-                  {/* Target type buttons */}
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-sm font-medium text-gray-600">View by:</span>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { key: "all",        label: "All Events",        grad: "linear-gradient(135deg,#6B7280,#374151)" },
-                        { key: "GLOBAL",     label: "Global Events",     grad: "linear-gradient(135deg,#3B82F6,#06B6D4)" },
-                        { key: "DEPARTMENT", label: "Department Events",  grad: "linear-gradient(135deg,#10B981,#059669)" },
-                        { key: "CLUB",       label: "Club Events",        grad: "linear-gradient(135deg,#8B5CF6,#EC4899)" },
+                        { key: "all",        label: "All Events",       grad: "linear-gradient(135deg,#6B7280,#374151)" },
+                        { key: "GLOBAL",     label: "Global Events",    grad: "linear-gradient(135deg,#3B82F6,#06B6D4)" },
+                        { key: "DEPARTMENT", label: "Department Events", grad: "linear-gradient(135deg,#10B981,#059669)" },
+                        { key: "CLUB",       label: "Club Events",      grad: "linear-gradient(135deg,#8B5CF6,#EC4899)" },
                       ].map(({ key, label, grad }) => (
-                        <button key={key} onClick={() => handleFilterTypeChange(key)}
+                        <button
+                          key={key}
+                          onClick={() => handleFilterTypeChange(key)}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${filterType === key ? "text-white shadow-lg" : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"}`}
-                          style={filterType === key ? { background: grad } : {}}>
+                          style={filterType === key ? { background: grad } : {}}
+                        >
                           {label}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Dropdowns */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                      <CustomSelect value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}
-                        options={[{ value: "all", label: "All Departments" }, ...departments.map((d) => {
-                          const cnt = (pageData.content || []).filter((ev) => ev.targetType?.toUpperCase() === "DEPARTMENT" && ev.targetIds?.includes(d.departmentId)).length;
-                          return { value: String(d.departmentId), label: `${d.name} (${cnt})` };
-                        })]} />
+                      <CustomSelect
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        options={[
+                          { value: "all", label: "All Departments" },
+                          ...departments.map((d) => {
+                            const cnt = (pageData.content || []).filter((ev) => ev.targetType?.toUpperCase() === "DEPARTMENT" && ev.targetIds?.includes(d.departmentId)).length;
+                            return { value: String(d.departmentId), label: `${d.name} (${cnt})` };
+                          }),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Club</label>
-                      <CustomSelect value={selectedClub} onChange={(e) => setSelectedClub(e.target.value)}
-                        options={[{ value: "all", label: "All Clubs" }, ...clubs.map((c) => {
-                          const cnt = (pageData.content || []).filter((ev) => ev.targetType?.toUpperCase() === "CLUB" && ev.targetIds?.includes(c.clubId)).length;
-                          return { value: String(c.clubId), label: `${c.clubName} (${cnt})` };
-                        })]} />
+                      <CustomSelect
+                        value={selectedClub}
+                        onChange={(e) => setSelectedClub(e.target.value)}
+                        options={[
+                          { value: "all", label: "All Clubs" },
+                          ...clubs.map((c) => {
+                            const cnt = (pageData.content || []).filter((ev) => ev.targetType?.toUpperCase() === "CLUB" && ev.targetIds?.includes(c.clubId)).length;
+                            return { value: String(c.clubId), label: `${c.clubName} (${cnt})` };
+                          }),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Enrollment Status</label>
-                      <CustomSelect value={selectedStatus} onChange={(e) => handleEnrollmentStatusChange(e.target.value)}
-                        options={[{ value: "all", label: "All Status" }, { value: "open", label: "Open" }, { value: "closed", label: "Closed" }]} />
+                      <CustomSelect
+                        value={selectedStatus}
+                        onChange={(e) => handleEnrollmentStatusChange(e.target.value)}
+                        options={[{ value: "all", label: "All Status" }, { value: "open", label: "Open" }, { value: "closed", label: "Closed" }]}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Completion Status</label>
-                      <CustomSelect value={selectedCompleted} onChange={(e) => handleCompletedStatusChange(e.target.value)}
-                        options={[{ value: "all", label: "All Events" }, { value: "completed", label: "Completed" }, { value: "not-completed", label: "Not Completed" }]} />
+                      <CustomSelect
+                        value={selectedCompleted}
+                        onChange={(e) => handleCompletedStatusChange(e.target.value)}
+                        options={[{ value: "all", label: "All Events" }, { value: "completed", label: "Completed" }, { value: "not-completed", label: "Not Completed" }]}
+                      />
                     </div>
                   </div>
 
@@ -562,9 +674,9 @@ const handleAttendanceStartSuccess = (response) => {
             <>
               <div className={`grid gap-4 w-full ${filteredEvents.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : filteredEvents.length === 2 ? "grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}>
                 {filteredEvents.map((event, index) => {
-                  const daysUntil      = getDaysUntil(event.dateTime);
+                  const daysUntil       = getDaysUntil(event.dateTime);
                   const targetTypeColor = getTargetTypeColor(event.targetType);
-                  const enrollmentPct  = (event.currEnrollments / event.maxEnrollments) * 100;
+                  const enrollmentPct   = (event.currEnrollments / event.maxEnrollments) * 100;
 
                   return (
                     <div key={event.eventId} className="event-card-container" style={{ animationDelay: `${index * 80}ms` }}>
@@ -698,61 +810,107 @@ const handleAttendanceStartSuccess = (response) => {
                             </div>
 
                             <div className="mt-1.5 flex gap-1">
+                              {event.completed ? (
+                                /* ── Completed event: no actions available ── */
+                                <div className="flex-1 px-2 py-1.5 rounded-lg flex items-center justify-center gap-1"
+                                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+                                  <CheckCircle className="w-3 h-3 text-gray-300" />
+                                  <span className="text-[10px] text-gray-300 font-medium">Event Completed</span>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Attendance button — only for non-completed events */}
+                                  {loadingAttendanceStatus ? (
+                                    <div className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium flex items-center justify-center text-white bg-gray-400">
+                                      <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />Loading...
+                                    </div>
+                                  ) : activeAttendanceEvents[event.eventId] ? (
+                                    /* Attendance is active → Stop + Show QR on back */
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setConfirmDialog({
+                                            isOpen: true,
+                                            title: "Stop Attendance",
+                                            message: "Are you sure you want to stop attendance for this event? Students will no longer be able to mark attendance.",
+                                            confirmText: "Stop",
+                                            variant: "danger",
+                                            onConfirm: () => { closeConfirm(); handleStopAttendanceForEvent(event.eventId); },
+                                          });
+                                        }}
+                                        className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                                        style={{ backgroundColor: "rgba(239,68,68,0.6)" }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.8)")}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.6)")}
+                                      >
+                                        <XCircle className="w-2.5 h-2.5 mr-0.5" />Stop
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setInitialQRData(null);
+                                          setQrCodeEventId(event.eventId);
+                                          setShowQRCodeModal(true);
+                                        }}
+                                        className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                                        style={{ backgroundColor: "rgba(156,39,176,0.6)" }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(156,39,176,0.8)")}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(156,39,176,0.6)")}
+                                      >
+                                        <svg className="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                        </svg>
+                                        QR
+                                      </button>
+                                    </>
+                                  ) : (
+                                    /* Attendance not active → Start button */
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedEventForAttendance(event);
+                                        setShowAttendancePopup(true);
+                                      }}
+                                      className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                                      style={{ backgroundColor: "rgba(76, 175, 80, 0.5)" }}
+                                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(76, 175, 80, 0.6)")}
+                                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(76, 175, 80, 0.5)")}
+                                    >
+                                      <MapPin className="w-2.5 h-2.5 mr-0.5" />Start
+                                    </button>
+                                  )}
 
-{/* Conditional button based on attendance status */}
-{loadingAttendanceStatus ? (
-  <div className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium flex items-center justify-center text-white bg-gray-400">
-    <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />Loading...
-  </div>
-) : activeAttendanceEvents[event.eventId] ? (
-  <button
-    onClick={(e) => { 
-      e.stopPropagation(); 
-      setQrCodeEventId(event.eventId);
-      setShowQRCodeModal(true);
-    }}
-    className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-    style={{ backgroundColor: "rgba(156, 39, 176, 0.7)" }}
-    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(156, 39, 176, 0.8)")}
-    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(156, 39, 176, 0.7)")}
-  >
-    <svg className="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-    </svg>
-    Show QR
-  </button>
-) : (
-  <button
-    onClick={(e) => { 
-      e.stopPropagation(); 
-      setSelectedEventForAttendance(event);
-      setShowAttendancePopup(true);
-    }}
-    className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-    style={{ backgroundColor: "rgba(76, 175, 80, 0.5)" }}
-    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(76, 175, 80, 0.6)")}
-    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(76, 175, 80, 0.5)")}
-  >
-    <MapPin className="w-2.5 h-2.5 mr-0.5" />Start
-  </button>
-)}
-
-
-                              <button onClick={(e) => { e.stopPropagation(); handleEditClick(event); }}
-                                className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)")}
-                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)")}>
-                                <Edit className="w-2.5 h-2.5 mr-0.5" />Edit
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setConfirmDialog({ isOpen: true, title: "Delete Event", message: "Are you sure you want to delete this event? This action cannot be undone.", confirmText: "Delete", variant: "danger", onConfirm: () => { closeConfirm(); handleDeleteEvent(event.eventId); } }); }}
-                                className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
-                                style={{ backgroundColor: "rgba(239,68,68,0.5)" }}
-                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.6)")}
-                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.5)")}>
-                                <Trash2 className="w-2.5 h-2.5 mr-0.5" />Delete
-                              </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleEditClick(event); }}
+                                    className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                                    style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)")}
+                                  >
+                                    <Edit className="w-2.5 h-2.5 mr-0.5" />Edit
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setConfirmDialog({
+                                        isOpen: true,
+                                        title: "Delete Event",
+                                        message: "Are you sure you want to delete this event? This action cannot be undone.",
+                                        confirmText: "Delete",
+                                        variant: "danger",
+                                        onConfirm: () => { closeConfirm(); handleDeleteEvent(event.eventId); },
+                                      });
+                                    }}
+                                    className="flex-1 px-1.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center justify-center text-white"
+                                    style={{ backgroundColor: "rgba(239,68,68,0.5)" }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.6)")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.5)")}
+                                  >
+                                    <Trash2 className="w-2.5 h-2.5 mr-0.5" />Delete
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -766,26 +924,42 @@ const handleAttendanceStartSuccess = (response) => {
               {totalPages > 1 && (
                 <div className="mt-10 flex flex-col items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => loadPage(serverFilter, currentPage - 1)} disabled={currentPage === 0 || pageLoading}
-                      className="p-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <button
+                      onClick={() => loadPage(serverFilter, currentPage - 1)}
+                      disabled={currentPage === 0 || pageLoading}
+                      className="p-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
 
                     {Array.from({ length: totalPages }, (_, i) => i)
                       .filter((i) => i === 0 || i === totalPages - 1 || Math.abs(i - currentPage) <= 1)
-                      .reduce((acc, i, idx, arr) => { if (idx > 0 && i - arr[idx - 1] > 1) acc.push(`e-${i}`); acc.push(i); return acc; }, [])
-                      .map((item) => typeof item === "string" ? (
-                        <span key={item} className="px-2 text-gray-400">…</span>
-                      ) : (
-                        <button key={item} onClick={() => loadPage(serverFilter, item)} disabled={pageLoading}
-                          className={`w-9 h-9 rounded-full text-sm font-medium transition border disabled:cursor-not-allowed ${currentPage === item ? "text-white border-transparent" : "text-gray-600 border-gray-200 hover:bg-gray-50"}`}
-                          style={currentPage === item ? { background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" } : {}}>
-                          {item + 1}
-                        </button>
-                      ))}
+                      .reduce((acc, i, idx, arr) => {
+                        if (idx > 0 && i - arr[idx - 1] > 1) acc.push(`e-${i}`);
+                        acc.push(i);
+                        return acc;
+                      }, [])
+                      .map((item) =>
+                        typeof item === "string" ? (
+                          <span key={item} className="px-2 text-gray-400">…</span>
+                        ) : (
+                          <button
+                            key={item}
+                            onClick={() => loadPage(serverFilter, item)}
+                            disabled={pageLoading}
+                            className={`w-9 h-9 rounded-full text-sm font-medium transition border disabled:cursor-not-allowed ${currentPage === item ? "text-white border-transparent" : "text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                            style={currentPage === item ? { background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" } : {}}
+                          >
+                            {item + 1}
+                          </button>
+                        )
+                      )}
 
-                    <button onClick={() => loadPage(serverFilter, currentPage + 1)} disabled={pageData.last || pageLoading}
-                      className="p-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <button
+                      onClick={() => loadPage(serverFilter, currentPage + 1)}
+                      disabled={pageData.last || pageLoading}
+                      className="p-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
@@ -828,10 +1002,10 @@ const handleAttendanceStartSuccess = (response) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       {[
-                        { label: "Event Title *",  name: "title",    type: "text",           required: true,  placeholder: "Enter event title" },
-                        { label: "Venue *",        name: "venue",    type: "text",           required: true,  placeholder: "Enter venue" },
-                        { label: "Organizer *",    name: "organizer",type: "text",           required: true,  placeholder: "Enter organizer name" },
-                        { label: "Date & Time *",  name: "dateTime", type: "datetime-local", required: true },
+                        { label: "Event Title *",  name: "title",     type: "text",           required: true, placeholder: "Enter event title" },
+                        { label: "Venue *",        name: "venue",     type: "text",           required: true, placeholder: "Enter venue" },
+                        { label: "Organizer *",    name: "organizer", type: "text",           required: true, placeholder: "Enter organizer name" },
+                        { label: "Date & Time *",  name: "dateTime",  type: "datetime-local", required: true },
                       ].map(({ label, name, type, required, placeholder }) => (
                         <div key={name}>
                           <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -848,9 +1022,9 @@ const handleAttendanceStartSuccess = (response) => {
 
                     <div className="space-y-4">
                       {[
-                        { label: "Speaker Name",          name: "speakerName",       type: "text",           placeholder: "Enter speaker name" },
-                        { label: "Max Enrollments *",     name: "maxEnrollments",    type: "number",         required: true, min: 1 },
-                        { label: "Enrollment Deadline *", name: "enrollmentDeadline",type: "datetime-local", required: true },
+                        { label: "Speaker Name",          name: "speakerName",        type: "text",           placeholder: "Enter speaker name" },
+                        { label: "Max Enrollments *",     name: "maxEnrollments",     type: "number",         required: true, min: 1 },
+                        { label: "Enrollment Deadline *", name: "enrollmentDeadline", type: "datetime-local", required: true },
                       ].map(({ label, name, type, required, placeholder, min }) => (
                         <div key={name}>
                           <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -936,128 +1110,158 @@ const handleAttendanceStartSuccess = (response) => {
         `}</style>
       </div>
 
-      <ConfirmDialog isOpen={confirmDialog.isOpen} title={confirmDialog.title} message={confirmDialog.message} confirmText={confirmDialog.confirmText} variant={confirmDialog.variant} onConfirm={confirmDialog.onConfirm} onCancel={closeConfirm} />
-      {/* Add this after the Edit Modal and before the ConfirmDialog */}
-<StartAttendancePopup
-  isOpen={showAttendancePopup}
-  onClose={() => {
-    setShowAttendancePopup(false);
-    setSelectedEventForAttendance(null);
-  }}
-  event={selectedEventForAttendance}
-  onSuccess={handleAttendanceStartSuccess}
-  token={token}
-/>
-{/* QR Code Display Modal */}
-{/* QR Code Display Modal */}
-{showQRCodeModal && (
-  <div className="fixed inset-0 z-50 overflow-y-auto">
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowQRCodeModal(false)} />
-    <div className="flex min-h-full items-center justify-center p-4">
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold" style={{ 
-              background: "linear-gradient(135deg, #4CA1AF, #2C3E50)", 
-              WebkitBackgroundClip: "text", 
-              WebkitTextFillColor: "transparent" 
-            }}>
-              Attendance QR Code
-            </h2>
-            <button onClick={() => setShowQRCodeModal(false)} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        variant={confirmDialog.variant}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={closeConfirm}
+      />
+
+      <StartAttendancePopup
+        isOpen={showAttendancePopup}
+        onClose={() => {
+          setShowAttendancePopup(false);
+          setSelectedEventForAttendance(null);
+        }}
+        event={selectedEventForAttendance}
+        onSuccess={handleAttendanceStartSuccess}
+        token={token}
+      />
+
+      {/* QR Code Modal — single overlay here, QRCodeDisplay renders content only */}
+      {showQRCodeModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowQRCodeModal(false)} />
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl">
+              <QRCodeDisplay
+                eventId={qrCodeEventId}
+                token={token}
+                initialQRData={initialQRData}
+                onClose={() => {
+                  setShowQRCodeModal(false);
+                  setInitialQRData(null);
+                  checkAllEventsAttendance();
+                }}
+                onAttendanceEnd={() => {
+                  setShowQRCodeModal(false);
+                  setInitialQRData(null);
+                  checkAllEventsAttendance();
+                }}
+              />
+            </div>
           </div>
         </div>
-        <div className="p-6">
-          <QRCodeDisplay 
-            eventId={qrCodeEventId} 
-            token={token} 
-            onClose={() => {
-              setShowQRCodeModal(false);
-              // Refresh attendance status for all events when modal closes
-              checkAllEventsAttendance();
-            }}
-            onAttendanceEnd={() => {
-              // This will be called when attendance becomes inactive
-              setShowQRCodeModal(false);
-              checkAllEventsAttendance();
-              alert("Attendance session has ended.");
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </>
   );
 };
 
-// Updated QRCodeDisplay component
-// Updated QRCodeDisplay component with proper QR refresh
-const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
-  const [qrData, setQrData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [attendanceActive, setAttendanceActive] = useState(true);
-  const [eventDetails, setEventDetails] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(120); // Default 120 seconds
-  const qrTimerRef = useRef(null);
-  const statusCheckRef = useRef(null);
-  const countdownRef = useRef(null);
+// ─── QRCodeDisplay ─────────────────────────────────────────────────────────────
+// Accepts `initialQRData` (the QRCodeResponse from the start-attendance call).
+// When provided it skips the initial active-check and uses the data directly,
+// avoiding the race condition that caused the instant "session ended" flash.
+const QRCodeDisplay = ({ eventId, token, initialQRData, onClose, onAttendanceEnd }) => {
+  const [qrData, setQrData]               = useState(initialQRData ?? null);
+  const [loading, setLoading]             = useState(!initialQRData);   // skip loading if we already have data
+  const [error, setError]                 = useState(null);
+  const [timeLeft, setTimeLeft]           = useState(initialQRData?.refreshInSeconds ?? 0);
+  const [attendanceActive, setAttendanceActive] = useState(true);       // assume active on mount
+  const [eventDetails, setEventDetails]   = useState(null);
+  const [refreshInterval, setRefreshInterval] = useState(initialQRData?.refreshInSeconds ?? 120);
+  const [stopLoading, setStopLoading]     = useState(false);
+  const [stopError, setStopError]         = useState(null);
 
-  // Function to fetch event details and check attendance status
-  const fetchEventDetails = async () => {
+  const qrTimerRef       = useRef(null);
+  const statusCheckRef   = useRef(null);
+  const countdownRef     = useRef(null);
+  // Fires exactly when attendanceWindowEnd is reached so the modal closes
+  // without waiting for the next 10-second status poll.
+  const windowEndTimerRef = useRef(null);
+  const isFirstCheckRef  = useRef(true);
+
+  // ── Stop attendance ──────────────────────────────────────────────────────
+  const handleStopAttendance = async () => {
+    setStopLoading(true);
+    setStopError(null);
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/api/attendance/stop/${eventId}`,
+        {},
+        { headers: authHeaders(token) }
+      );
+      if (res.data?.success) {
+        if (qrTimerRef.current)        clearTimeout(qrTimerRef.current);
+        if (statusCheckRef.current)    clearInterval(statusCheckRef.current);
+        if (countdownRef.current)      clearInterval(countdownRef.current);
+        if (windowEndTimerRef.current) clearTimeout(windowEndTimerRef.current);
+        setAttendanceActive(false);
+        if (onAttendanceEnd) onAttendanceEnd();
+      } else {
+        setStopError(res.data?.message || "Failed to stop attendance");
+      }
+    } catch (err) {
+      setStopError(err.response?.data?.message || "Error stopping attendance");
+    } finally {
+      setStopLoading(false);
+    }
+  };
+
+  // ── Fetch helpers ─────────────────────────────────────────────────────────
+  // Schedule a one-shot timer that fires exactly when the attendance window
+  // closes. This means the QR modal disappears the moment the window ends
+  // rather than waiting up to 10 s for the next status poll.
+  const scheduleWindowEndTimer = useCallback((windowEnd) => {
+    if (windowEndTimerRef.current) clearTimeout(windowEndTimerRef.current);
+    if (!windowEnd) return;
+    const msUntilEnd = new Date(windowEnd) - Date.now();
+    if (msUntilEnd <= 0) return; // already past — status poll will handle it
+    windowEndTimerRef.current = setTimeout(() => {
+      setAttendanceActive(false);
+      if (qrTimerRef.current)     clearTimeout(qrTimerRef.current);
+      if (statusCheckRef.current) clearInterval(statusCheckRef.current);
+      if (countdownRef.current)   clearInterval(countdownRef.current);
+      if (onAttendanceEnd) onAttendanceEnd();
+    }, msUntilEnd);
+  }, [onAttendanceEnd]);
+
+  const fetchEventDetails = useCallback(async () => {
     try {
       const res = await axios.get(
         `${BASE_URL}/api/events/getById/${eventId}`,
         { headers: authHeaders(token) }
       );
-      const eventData = res.data?.data;
-      setEventDetails(eventData);
-      const isActive = eventData?.attendanceActive || false;
-      setAttendanceActive(isActive);
-      
-      if (!isActive && onAttendanceEnd) {
-        onAttendanceEnd();
-      }
-      
-      return isActive;
+      const data = res.data?.data;
+      setEventDetails(data);
+      // Re-arm the window-end timer every time we get fresh event details
+      // (covers the case where the window was updated while modal is open).
+      scheduleWindowEndTimer(data?.attendanceWindowEnd);
+      return data?.attendanceActive ?? false;
     } catch (err) {
       console.error("Error fetching event details:", err);
-      return false;
+      return true; // be optimistic on error — don't kill the session
     }
-  };
+  }, [eventId, token, scheduleWindowEndTimer]);
 
-  // Function to fetch new QR code
-  const fetchQRCode = async () => {
+  const fetchQRCode = useCallback(async () => {
     try {
       setError(null);
       const res = await axios.get(
         `${BASE_URL}/api/attendance/qr-code/${eventId}`,
         { headers: authHeaders(token) }
       );
-      
       if (res.data?.success) {
-        const newQrData = res.data.data;
-        setQrData(newQrData);
-        const refreshSecs = newQrData.refreshInSeconds || 120;
-        setRefreshInterval(refreshSecs);
-        setTimeLeft(refreshSecs);
-        
-        // Clear existing QR timer and set new one
-        if (qrTimerRef.current) {
-          clearTimeout(qrTimerRef.current);
-        }
-        
-        // Set timer for next QR refresh
-        qrTimerRef.current = setTimeout(() => {
-          fetchQRCode();
-        }, refreshSecs * 1000);
-        
-        return newQrData;
+        const newQr = res.data.data;
+        setQrData(newQr);
+        const secs = newQr.refreshInSeconds || 120;
+        setRefreshInterval(secs);
+        setTimeLeft(secs);
+
+        if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
+        qrTimerRef.current = setTimeout(fetchQRCode, secs * 1000);
       } else {
         setError("Failed to fetch QR code");
       }
@@ -1066,33 +1270,50 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId, token]);
 
-  // Initial fetch and setup
+  // ── Init ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    let isMounted = true;
+    let mounted = true;
 
     const initialize = async () => {
-      // First check if attendance is active
-      const isActive = await fetchEventDetails();
-      if (!isActive) {
-        setAttendanceActive(false);
-        setLoading(false);
-        return;
+      if (initialQRData) {
+        // We already have fresh QR data from the start response —
+        // schedule the first auto-refresh and skip the active check entirely.
+        const secs = initialQRData.refreshInSeconds || 120;
+        setRefreshInterval(secs);
+        setTimeLeft(secs);
+        if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
+        qrTimerRef.current = setTimeout(fetchQRCode, secs * 1000);
+        // Fetch event details once in background to get attendanceWindowEnd
+        // so we can arm the window-end timer, but don't block on the result.
+        fetchEventDetails();
+      } else {
+        // Opened from "Show QR" on an already-active session.
+        // Check active status first, THEN fetch QR.
+        const isActive = await fetchEventDetails();
+        isFirstCheckRef.current = false;
+        if (!isActive) {
+          if (mounted) {
+            setAttendanceActive(false);
+            setLoading(false);
+          }
+          return;
+        }
+        if (mounted) await fetchQRCode();
       }
 
-      // Fetch first QR code
-      await fetchQRCode();
-
-      // Set up interval to check attendance status (every 10 seconds)
+      // Poll attendance status every 10 seconds.
+      // Skip the very first result if we came from initialQRData
+      // (give the backend 10 s before we trust a "false").
       statusCheckRef.current = setInterval(async () => {
         const isActive = await fetchEventDetails();
-        if (!isActive && isMounted) {
+        if (!mounted) return;
+        if (!isActive) {
           setAttendanceActive(false);
-          // Clean up all timers
-          if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
+          if (qrTimerRef.current)     clearTimeout(qrTimerRef.current);
           if (statusCheckRef.current) clearInterval(statusCheckRef.current);
-          if (countdownRef.current) clearInterval(countdownRef.current);
+          if (countdownRef.current)   clearInterval(countdownRef.current);
           if (onAttendanceEnd) onAttendanceEnd();
         }
       }, 10000);
@@ -1101,33 +1322,27 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
     initialize();
 
     return () => {
-      isMounted = false;
-      if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
-      if (statusCheckRef.current) clearInterval(statusCheckRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
+      mounted = false;
+      if (qrTimerRef.current)      clearTimeout(qrTimerRef.current);
+      if (statusCheckRef.current)  clearInterval(statusCheckRef.current);
+      if (countdownRef.current)    clearInterval(countdownRef.current);
+      if (windowEndTimerRef.current) clearTimeout(windowEndTimerRef.current);
     };
-  }, [eventId, token]);
+  }, [eventId]); // intentionally omit helpers from deps to avoid re-running
 
-  // Set up countdown timer
+  // ── Countdown ───────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
     if (timeLeft <= 0) return;
 
     countdownRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          // Reset to refresh interval when it reaches 0
-          return refreshInterval;
-        }
-        return prev - 1;
-      });
+      setTimeLeft((prev) => (prev <= 1 ? refreshInterval : prev - 1));
     }, 1000);
 
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, [refreshInterval]); // Only re-run when refreshInterval changes
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [refreshInterval]);
 
-  // Reset countdown when QR data changes
+  // Sync countdown when new QR data arrives
   useEffect(() => {
     if (qrData?.refreshInSeconds) {
       setRefreshInterval(qrData.refreshInSeconds);
@@ -1135,34 +1350,25 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
     }
   }, [qrData]);
 
-  // Calculate time remaining in attendance window
+  // ── Window time remaining ───────────────────────────────────────────────────
   const getWindowTimeRemaining = () => {
     if (!eventDetails?.attendanceWindowEnd) return null;
-    
-    const endTime = new Date(eventDetails.attendanceWindowEnd).getTime();
-    const now = new Date().getTime();
-    const remaining = endTime - now;
-    
+    const remaining = new Date(eventDetails.attendanceWindowEnd) - new Date();
     if (remaining <= 0) return null;
-    
-    const minutes = Math.floor(remaining / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    return `${minutes}m ${seconds}s`;
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    return `${m}m ${s}s`;
   };
 
+  // ── Render ───────────────────────────────────────────────────────────────────
   if (!attendanceActive) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 p-6">
         <div className="bg-yellow-50 rounded-lg p-6">
           <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Attendance Session Ended</h3>
           <p className="text-gray-600 mb-4">The attendance session for this event is no longer active.</p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            Close
-          </button>
+          <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
         </div>
       </div>
     );
@@ -1170,7 +1376,7 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
 
   if (loading) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-12 p-6">
         <Loader2 className="w-12 h-12 animate-spin text-[#4CA1AF] mx-auto" />
         <p className="text-gray-600 mt-4">Loading QR code...</p>
       </div>
@@ -1179,18 +1385,10 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
 
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 p-6">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-        <p className="text-red-600">{error}</p>
-        <button
-          onClick={() => {
-            setLoading(true);
-            fetchQRCode();
-          }}
-          className="mt-4 px-4 py-2 bg-[#4CA1AF] text-white rounded-lg hover:bg-[#3d8a9c]"
-        >
-          Retry
-        </button>
+        <p className="text-red-600 mb-4">{error}</p>
+        <button onClick={() => { setLoading(true); fetchQRCode(); }} className="px-4 py-2 bg-[#4CA1AF] text-white rounded-lg hover:bg-[#3d8a9c]">Retry</button>
       </div>
     );
   }
@@ -1198,102 +1396,72 @@ const QRCodeDisplay = ({ eventId, token, onClose, onAttendanceEnd }) => {
   const windowTimeRemaining = getWindowTimeRemaining();
 
   return (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-
-    {/* ONE MAIN BOX */}
-    <div className="bg-white rounded-xl shadow-lg p-6 w-[1100px] max-w-none">
-
+    <div className="p-6">
       {/* Header */}
-      <div className="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 className="text-lg font-semibold text-teal-700">
+      <div className="flex justify-between items-center border-b pb-3 mb-6">
+        <h2 className="text-lg font-semibold" style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           Attendance QR Code
         </h2>
-
-        <button onClick={onClose} className="text-gray-500 text-xl">
-          ×
-        </button>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
       </div>
 
-
-      {/* CONTENT → EVERYTHING INSIDE */}
-      <div className="grid grid-cols-5 gap-6">
-
-        {/* LEFT → QR */}
-        <div className="col-span-3 text-center">
-
-          <div className="p-4 bg-gradient-to-r from-[#4CA1AF] to-[#2C3E50] text-white rounded-lg mb-4">
-            <div className="flex justify-between">
-              <span>Next QR refresh in:</span>
-              <span className="text-xl font-bold">{timeLeft}s</span>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        {/* Left — QR image */}
+        <div className="md:col-span-3 text-center">
+          <div className="p-4 rounded-lg mb-4 text-white flex justify-between items-center" style={{ background: "linear-gradient(135deg, #4CA1AF, #2C3E50)" }}>
+            <span className="text-sm">Next QR refresh in:</span>
+            <span className="text-2xl font-bold tabular-nums">{timeLeft}s</span>
           </div>
 
+          {windowTimeRemaining && (
+            <div className="mb-3 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4" />
+              Window closes in: <span className="font-semibold">{windowTimeRemaining}</span>
+            </div>
+          )}
 
           {qrData?.qrToken && (
             <>
-              <div className="bg-white p-4 rounded-lg shadow inline-block">
+              <div className="bg-white p-4 rounded-xl shadow-md inline-block border border-gray-100">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrData.qrToken}`}
-                  className="w-56 h-56"
-                  alt="QR"
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrData.qrToken)}`}
+                  className="w-60 h-60"
+                  alt="Attendance QR Code"
                 />
               </div>
-
               <p className="text-xs text-gray-500 mt-2">
-                Expires:
-                {" "}
-                {new Date(qrData.expiresAt).toLocaleTimeString()}
+                Expires: {new Date(qrData.expiresAt).toLocaleTimeString()}
               </p>
             </>
           )}
-
         </div>
 
-
-        {/* RIGHT → Token + Instructions */}
-        <div className="col-span-2 flex flex-col gap-4">
-
-          <div className="p-4 bg-gray-100 rounded-lg">
-            <p className="text-sm font-medium mb-2">
-              Manual Entry Token:
-            </p>
-
-            <code className="bg-gray-800 text-green-400 p-2 rounded block break-all">
+        {/* Right — Token + Instructions */}
+        <div className="md:col-span-2 flex flex-col gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm font-medium text-gray-700 mb-2">Manual Entry Token:</p>
+            <code className="bg-gray-800 text-green-400 p-3 rounded-lg block break-all text-xs leading-relaxed">
               {qrData?.qrToken}
             </code>
           </div>
 
-
-          <div className="p-4 bg-blue-50 rounded-lg text-sm">
-            <p className="font-semibold text-blue-700 mb-2">
-              Instructions:
-            </p>
-
-            <ul className="list-disc list-inside space-y-1">
-            <li>Students can scan this QR code to mark attendance</li>
-            <li>QR code automatically refreshes every {refreshInterval} seconds</li>
-            <li>Students must be within the specified geofence radius</li>
-            <li>Attendance can only be marked during the active window</li>
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm">
+            <p className="font-semibold text-blue-700 mb-2">Instructions</p>
+            <ul className="space-y-1.5 text-blue-800 text-xs list-disc list-inside">
+              <li>Students scan this QR code to mark attendance</li>
+              <li>QR auto-refreshes every {refreshInterval}s for security</li>
+              <li>Students must be within the geofence radius</li>
+              <li>Attendance can only be marked during the active window</li>
             </ul>
           </div>
 
-
-          <button
-            onClick={onClose}
-            className="self-end px-6 py-2 border rounded-lg hover:bg-teal-50"
-          >
+          <button onClick={onClose} className="mt-auto px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors self-end">
             Close
           </button>
-
         </div>
-
       </div>
-
     </div>
-
-  </div>
-);
+  );
 };
+
 export default MyEventsForSuperadmin;
-
-
