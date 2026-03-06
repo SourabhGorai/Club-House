@@ -38,5 +38,10 @@ public interface EventRepository extends JpaRepository<Events, Long> {
     // used by getByRatingsPaged and getByTargetDataPaged
     Page<Events> findAllByEventIdIn(List<Long> ids, Pageable pageable);
 
+    List<Events> findByAttendanceActiveAndAttendanceWindowEndBefore(
+            boolean attendanceActive,
+            LocalDateTime now
+    );
+
     List<Events> findByIsCompletedAndEventDateBefore(boolean b, LocalDateTime now);
 }

@@ -1,12 +1,15 @@
 package com.clubHouse.event_service2.scheduler;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
+import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.repository.EventRepository;
 import com.clubHouse.event_service2.repository.EventEnrollmentRepository;
 import com.clubHouse.event_service2.repository.RatingsRepository;
 import com.clubHouse.event_service2.repository.TargetDataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,17 +33,31 @@ public class EventCleanupScheduler {
     private final TargetDataRepository targetDataRepository;
     private final ProfileManagementServiceClient profileManagementServiceClient;
 
-    /**
-     * Runs annually on January 15th at 3:00 AM
-     * Deletes all event-related data for deactivated/expired user profiles
-     */
+    // ── Cleanup events of expired profiles ────────────────────────────────────
+    // Deletes: events, enrollments, ratings, target data
+    // Stale caches: everything — wipe all caches since arbitrary rows are gone.
     @Scheduled(cron = "0 0 3 15 1 *")
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID,                 allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS,                  allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS,                   allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS,            allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE,       allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR,           allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER,         allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_RATING,            allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA,       allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS,              allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS,          allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT,       allEntries = true),
+            @CacheEvict(value = CacheConfig.TARGET_TYPES,                allEntries = true),
+    })
     public void cleanupEventsOfExpiredProfiles() {
         log.info("Starting scheduled job: Cleanup events for expired/deactivated profiles");
 
         try {
-            // Fetch ONLY newly expired profiles (not yet cleaned up)
             List<String> expiredPrns = profileManagementServiceClient.getExpiredProfiles();
 
             if (expiredPrns == null || expiredPrns.isEmpty()) {
@@ -54,24 +71,21 @@ public class EventCleanupScheduler {
             int totalEnrollmentsDeleted = 0;
 
             for (String prn : expiredPrns) {
-                // Get all event IDs created by this user
                 List<Long> eventIds = eventRepository.findEventIdsByEventCreator(prn);
 
                 if (!eventIds.isEmpty()) {
-                    // Delete all related data for these events (child tables first)
-                    int enrollmentsDeleted = eventEnrollmentRepository.deleteByEvent_EventIdIn(eventIds);
-                    int targetDataDeleted = targetDataRepository.deleteByEvents_EventIdIn(eventIds);
-                    int ratingsDeleted = ratingsRepository.deleteByEventIdIn(eventIds);
-                    int eventsDeleted = eventRepository.deleteByEventIdIn(eventIds);
+                    int enrollmentsDeleted  = eventEnrollmentRepository.deleteByEvent_EventIdIn(eventIds);
+                    int targetDataDeleted   = targetDataRepository.deleteByEvents_EventIdIn(eventIds);
+                    int ratingsDeleted      = ratingsRepository.deleteByEventIdIn(eventIds);
+                    int eventsDeleted       = eventRepository.deleteByEventIdIn(eventIds);
 
-                    totalEventsDeleted += eventsDeleted;
+                    totalEventsDeleted      += eventsDeleted;
                     totalEnrollmentsDeleted += enrollmentsDeleted;
 
                     log.info("Deleted data for PRN {}: {} events, {} enrollments, {} target data, {} ratings",
                             prn, eventsDeleted, enrollmentsDeleted, targetDataDeleted, ratingsDeleted);
                 }
 
-                // Also delete enrollments where this user was enrolled (not creator)
                 int userEnrollmentsDeleted = eventEnrollmentRepository.deleteByPrn(prn);
                 totalEnrollmentsDeleted += userEnrollmentsDeleted;
 
@@ -80,11 +94,9 @@ public class EventCleanupScheduler {
                 }
             }
 
-            // IMPORTANT: Mark these profiles as cleaned up in Profile Service
             profileManagementServiceClient.markProfilesAsCleanedUp(expiredPrns);
 
-            log.info("Successfully completed cleanup for expired profiles. " +
-                            "Total events deleted: {}, Total enrollments deleted: {}",
+            log.info("Completed cleanup for expired profiles. Events deleted: {}, Enrollments deleted: {}",
                     totalEventsDeleted, totalEnrollmentsDeleted);
 
         } catch (Exception e) {
@@ -93,19 +105,33 @@ public class EventCleanupScheduler {
         }
     }
 
-    /**
-     * Runs annually on February 1st at 2:00 AM
-     * Deletes events (and related data) older than 3 years
-     */
-    @Scheduled(cron = "0 0 2 1 2 *") // 2:00 AM on Feb 1st every year
+    // ── Cleanup old events (> 3 years) ────────────────────────────────────────
+    // Deletes: events, enrollments, ratings, target data
+    // Stale caches: everything — same reasoning as above.
+    @Scheduled(cron = "0 0 2 1 2 *")
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID,                 allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS,                  allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS,                   allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS,            allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE,       allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR,           allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER,         allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_RATING,            allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA,       allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS,              allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS,          allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT,       allEntries = true),
+            @CacheEvict(value = CacheConfig.TARGET_TYPES,                allEntries = true),
+    })
     public void cleanupOldEvents() {
         log.info("Starting scheduled job: Cleanup events older than 3 years");
 
         try {
             LocalDateTime threeYearsAgo = LocalDateTime.now().minusYears(3);
 
-            // Find all event IDs older than 3 years
             List<Long> oldEventIds = eventRepository.findEventIdsCreatedBefore(threeYearsAgo);
 
             if (oldEventIds.isEmpty()) {
@@ -115,14 +141,12 @@ public class EventCleanupScheduler {
 
             log.info("Found {} events older than 3 years. Starting deletion...", oldEventIds.size());
 
-            // Delete all related data in correct order (child tables first)
             int enrollmentsDeleted = eventEnrollmentRepository.deleteByEvent_EventIdIn(oldEventIds);
-            int targetDataDeleted = targetDataRepository.deleteByEvents_EventIdIn(oldEventIds);
-            int ratingsDeleted = ratingsRepository.deleteByEventIdIn(oldEventIds);
-            int eventsDeleted = eventRepository.deleteByEventIdIn(oldEventIds);
+            int targetDataDeleted  = targetDataRepository.deleteByEvents_EventIdIn(oldEventIds);
+            int ratingsDeleted     = ratingsRepository.deleteByEventIdIn(oldEventIds);
+            int eventsDeleted      = eventRepository.deleteByEventIdIn(oldEventIds);
 
-            log.info("Successfully deleted old events. Events: {}, Enrollments: {}, " +
-                            "Target Data: {}, Ratings: {}",
+            log.info("Deleted old events. Events: {}, Enrollments: {}, Target Data: {}, Ratings: {}",
                     eventsDeleted, enrollmentsDeleted, targetDataDeleted, ratingsDeleted);
 
         } catch (Exception e) {
@@ -131,17 +155,11 @@ public class EventCleanupScheduler {
         }
     }
 
-    /**
-     * Optional: Manual trigger for testing or administrative purposes
-     */
     public void manualCleanupExpiredProfiles() {
         log.info("Manual trigger: Cleanup events for expired profiles");
         cleanupEventsOfExpiredProfiles();
     }
 
-    /**
-     * Optional: Manual trigger for testing or administrative purposes
-     */
     public void manualCleanupOldEvents() {
         log.info("Manual trigger: Cleanup events older than 3 years");
         cleanupOldEvents();
