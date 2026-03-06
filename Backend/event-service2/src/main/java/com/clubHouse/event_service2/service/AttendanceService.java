@@ -86,6 +86,8 @@ public class AttendanceService {
             );
         }
 
+        log.info("Entered start Attendance: {}, {}", now, windowStartDate);
+
         event.setLatitude(request.getLatitude());
         event.setLongitude(request.getLongitude());
         event.setRadiusInMeters(request.getRadiusInMeters());
@@ -160,6 +162,7 @@ public class AttendanceService {
                 .attendanceWindowEnd(event.getAttendanceWindowEnd())
                 .build();
 
+        log.info("req: {}", req);
         // NOTE: because Spring AOP uses a proxy, calling this.startAttendance()
         // would bypass the @CacheEvict on that method. We replicate the eviction
         // annotations above and call the internal logic directly to avoid that trap.
