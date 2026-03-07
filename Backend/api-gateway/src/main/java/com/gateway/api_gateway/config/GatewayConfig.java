@@ -165,7 +165,8 @@ public class GatewayConfig {
                                 "/api/profiles/filter",
                                 "/api/profiles/paged",
                                 "/api/profiles/search",
-                                "/api/profiles/exists/**"
+                                "/api/profiles/exists/**",
+                                "/api/profiles/getDataForNotification/{prn}"
                         )
                         .and()
                         .method("GET", "POST")

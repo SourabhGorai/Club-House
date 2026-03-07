@@ -93,4 +93,11 @@ public class UserController {
         UserDto resp = userService.changeEmail(prn, email);
         return ResponseEntity.ok(resp);
     }
+
+    @PatchMapping("/markProfileCompletedTrue/{prn}")
+    public ResponseEntity<Boolean> markCompleteProfile(@PathVariable String prn){
+        log.debug("Request received to mark profileCompleted status true for prn: {}", prn);
+        Boolean resp = userService.markProfileComplete(prn);
+        return ResponseEntity.ok(resp);
+    }
 }

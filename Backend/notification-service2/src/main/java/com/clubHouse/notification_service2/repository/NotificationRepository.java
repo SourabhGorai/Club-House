@@ -1,43 +1,78 @@
 package com.clubHouse.notification_service2.repository;
 
 import com.clubHouse.notification_service2.model.Notification;
-import com.clubHouse.notification_service2.model.NotificationTargets;
 import com.clubHouse.notification_service2.model.NotificationType;
 import com.clubHouse.notification_service2.model.SourceType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // Fetch all active notifications
+    // ── Active / Inactive ─────────────────────────────────────────────────────
+
     List<Notification> findByIsActiveTrue();
-
-    // Fetch active notifications that should be visible now
-    @Query("""
-        SELECT n FROM notification_table n
-        WHERE n.isActive = true
-        AND (n.triggerAt IS NULL OR n.triggerAt <= :now)
-        AND (n.validUntil IS NULL OR n.validUntil >= :now)
-    """)
-    List<Notification> findVisibleNotifications(LocalDateTime now);
-
-    // Fetch scheduled reminders that are due
-    @Query("""
-        SELECT n FROM notification_table n
-        WHERE n.isActive = true
-        AND n.triggerAt IS NOT NULL
-        AND n.triggerAt <= :now
-    """)
-    List<Notification> findDueReminders(LocalDateTime now);
-
-    // Fetch notifications by type
-    List<Notification> findByNotificationType(NotificationType notificationType);
-
     List<Notification> findByIsActiveFalse();
 
-    List<Notification> findBySourceType(SourceType sourceType);
+    Page<Notification> findByIsActiveTrue(Pageable pageable);
+    Page<Notification> findByIsActiveFalse(Pageable pageable);
 
+    // ── By Source Type ────────────────────────────────────────────────────────
+
+    List<Notification> findBySourceType(SourceType sourceType);
+    Page<Notification> findBySourceType(SourceType sourceType, Pageable pageable);
+
+    // ── By Notification Type ──────────────────────────────────────────────────
+
+    List<Notification> findByNotificationType(NotificationType notificationType);
+    Page<Notification> findByNotificationType(NotificationType notificationType, Pageable pageable);
+
+    // ── Cleanup ───────────────────────────────────────────────────────────────
+
+    /**
+     * Finds notifications eligible for permanent deletion:
+     *
+     * Condition A — Expired notifications older than 1 year:
+     *   validUntil is set, has passed, AND createdAt is over a year ago
+     *
+     * Condition B — Deactivated notifications older than 1 year:
+     *   manually deactivated (isActive = false) AND createdAt is over a year ago
+     *
+     * Permanent notifications (validUntil = null) that are still active
+     * are intentionally excluded.
+     */
+    @Query("""
+            SELECT n FROM notification_table n
+            WHERE n.createdAt < :cutoff
+            AND (
+                (n.validUntil IS NOT NULL AND n.validUntil < :now)
+                OR (n.isActive = false)
+            )
+            """)
+    List<Notification> findEligibleForCleanup(
+            @Param("now") LocalDateTime now,
+            @Param("cutoff") LocalDateTime cutoff
+    );
+
+    @Modifying
+    @Query("""
+            DELETE FROM notification_table n
+            WHERE n.notificationId IN :ids
+            """)
+    void deleteByIds(@Param("ids") List<Long> ids);
+
+    @Query("""
+            SELECT n FROM notification_table n
+            WHERE n.sourceType = 'EVENT'
+            AND n.sourceId IN :eventIds
+            """)
+    List<Notification> findEventNotifications(@Param("eventIds") List<Long> eventIds);
 }

@@ -82,6 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
                     .getDepartmentById(savedProfile.getDepartmentId());
 
             log.info("Profile created successfully for PRN: {}", savedProfile.getPrn());
+            userValidationService.markProfileCompleted(request.getPrn());
             return profileMapper.toProfileResponse(savedProfile, deptName.getName());
 
         } catch (DataIntegrityViolationException ex) {
@@ -895,6 +896,22 @@ public class ProfileServiceImpl implements ProfileService {
                     .errorCode("OPERATION_FAILED")
                     .build();
         }
+    }
+
+    @Transactional
+    public RawResponseForNotification getRawData(String prn){
+        log.debug("Attempting to fetch data for prn: {}", prn);
+
+        UserProfile profile = profileRepository.findById(prn).orElseThrow(
+                () -> new UserNotFoundException("User not found")
+        );
+
+        return RawResponseForNotification.builder()
+                .prn(prn)
+                .name(profile.getFullName())
+                .deptId(profile.getDepartmentId())
+                .year(profile.getYear())
+                .build();
     }
 
     @Override

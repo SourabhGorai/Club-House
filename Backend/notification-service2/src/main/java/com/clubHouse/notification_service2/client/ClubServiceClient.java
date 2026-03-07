@@ -1,13 +1,16 @@
 package com.clubHouse.notification_service2.client;
 
+import com.clubHouse.notification_service2.config.CacheConfig;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.response.ClubResponse;
-import com.clubHouse.notification_service2.dto.response.DepartmentResponse;
+import com.clubHouse.notification_service2.dto.response.GeneralClubResponse;
 import com.clubHouse.notification_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,19 +30,19 @@ public class ClubServiceClient {
     @Value("${app.club-service.url:http://CLUB-SERVICE2/api}")
     private String clubServiceUrl;
 
-    public ClubResponse getClubById(Long id) {
+    // ── Not cached: user-specific, changes with membership ───────────────────
+
+    public List<GeneralClubResponse> getMyClubs() {
         String authHeader = request.getHeader("Authorization");
         try {
-            log.info("Attempting to fetch clubs, from notification-service");
+            log.info("Fetching my clubs from CLUB-SERVICE");
 
-            ApiResponse<ClubResponse> response = webClientBuilder.build()
+            ApiResponse<List<GeneralClubResponse>> response = webClientBuilder.build()
                     .get()
-                    .uri(clubServiceUrl + "/clubs/getById/{id}", id)
+                    .uri(clubServiceUrl + "/user-clubs/getMyClubs")
                     .header("Authorization", authHeader)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference
-                            <ApiResponse<ClubResponse>>() {
-                    })
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<GeneralClubResponse>>>() {})
                     .timeout(Duration.ofSeconds(5))
                     .block();
 
@@ -47,22 +50,59 @@ public class ClubServiceClient {
                 return response.getData();
             }
 
-            log.warn("Invalid or empty response");
-            return null;
+            log.warn("Invalid or empty response from getMyClubs");
+            return List.of();
 
         } catch (Exception e) {
-            log.error("Failed to get departments", e);
-            throw new ExternalServiceException("Unable to validate role. Please try again later", e);
+            log.error("Failed to get clubs of the user", e);
+            throw new ExternalServiceException("Unable to get clubs. Please try again later", e);
         }
     }
 
+    // ── Cached: club metadata rarely changes ─────────────────────────────────
+
     /**
-     * Permanently delete user from club service (remove from all clubs in one call)
+     * Cached by clubId. The cache entry lives for 30 min (configured in CacheConfig).
+     * Call {@link #evictClubCache(Long)} if a club is renamed or deleted.
      */
+    @Cacheable(value = CacheConfig.CLUB_CACHE, key = "#id", unless = "#result == null")
+    public ClubResponse getClubById(Long id) {
+        String authHeader = request.getHeader("Authorization");
+        try {
+            log.info("Fetching club id={} from CLUB-SERVICE (cache miss)", id);
+
+            ApiResponse<ClubResponse> response = webClientBuilder.build()
+                    .get()
+                    .uri(clubServiceUrl + "/clubs/getById/{id}", id)
+                    .header("Authorization", authHeader)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<ClubResponse>>() {})
+                    .timeout(Duration.ofSeconds(5))
+                    .block();
+
+            if (response != null && response.getSuccess() && response.getData() != null) {
+                return response.getData();
+            }
+
+            log.warn("Invalid or empty response for clubId={}", id);
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to get club id={}", id, e);
+            throw new ExternalServiceException("Unable to validate club. Please try again later", e);
+        }
+    }
+
+    @CacheEvict(value = CacheConfig.CLUB_CACHE, key = "#id")
+    public void evictClubCache(Long id) {
+        log.info("Evicted club cache for id={}", id);
+    }
+
+    // ── Not cached: these are write/delete operations ─────────────────────────
+
     public void permanentlyDeleteUserFromClubService(String prn) {
         String authHeader = request.getHeader("Authorization");
-        log.info("Calling club service to permanently delete user {} from all clubs", prn);
-
+        log.info("Permanently deleting user {} from all clubs", prn);
         try {
             webClientBuilder.build()
                     .delete()
@@ -71,34 +111,21 @@ public class ClubServiceClient {
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
-
             log.info("Successfully permanently deleted user {} from club service", prn);
-
         } catch (WebClientResponseException.NotFound e) {
-            // User not in any club - this is fine, not an error
-            log.info("User {} is not associated with any clubs - skipping club deletion", prn);
-
+            log.info("User {} not associated with any clubs — skipping", prn);
         } catch (WebClientResponseException e) {
-            log.error("Error permanently deleting user {} from club service: {} - {}",
-                    prn, e.getStatusCode(), e.getMessage());
-            // Re-throw to trigger transaction rollback
+            log.error("Error permanently deleting user {}: {} - {}", prn, e.getStatusCode(), e.getMessage());
             throw new RuntimeException("Failed to delete user from clubs for PRN: " + prn, e);
-
         } catch (Exception e) {
-            log.error("Unexpected error permanently deleting user {} from club service: {}",
-                    prn, e.getMessage());
-            // Re-throw to trigger transaction rollback
+            log.error("Unexpected error permanently deleting user {}: {}", prn, e.getMessage());
             throw new RuntimeException("Failed to delete user from clubs for PRN: " + prn, e);
         }
     }
 
-    /**
-     * Remove a user from a specific club
-     */
     public void removeUserFromClub(String prn, String clubName) {
         String authHeader = request.getHeader("Authorization");
-        log.info("Calling club service to remove user {} from club {}", prn, clubName);
-
+        log.info("Removing user {} from club {}", prn, clubName);
         try {
             webClientBuilder.build()
                     .delete()
@@ -107,26 +134,19 @@ public class ClubServiceClient {
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
-
             log.info("Successfully removed user {} from club {}", prn, clubName);
         } catch (WebClientResponseException e) {
-            log.error("Error removing user {} from club {}: {} - {}",
-                    prn, clubName, e.getStatusCode(), e.getMessage());
+            log.error("Error removing user {} from club {}: {} - {}", prn, clubName, e.getStatusCode(), e.getMessage());
             throw new RuntimeException("Failed to remove user from club: " + clubName, e);
         } catch (Exception e) {
-            log.error("Unexpected error removing user {} from club {}: {}",
-                    prn, clubName, e.getMessage());
+            log.error("Unexpected error removing user {} from club {}: {}", prn, clubName, e.getMessage());
             throw new RuntimeException("Failed to remove user from club: " + clubName, e);
         }
     }
 
-    /**
-     * Get all club names a user belongs to (lightweight)
-     */
     public List<String> getUserClubNames(String prn) {
         String authHeader = request.getHeader("Authorization");
         log.debug("Fetching club names for user: {}", prn);
-
         try {
             List<String> clubNames = webClientBuilder.build()
                     .get()
@@ -134,9 +154,8 @@ public class ClubServiceClient {
                     .header("Authorization", authHeader)
                     .retrieve()
                     .bodyToMono(ApiResponseWrapper.class)
-                    .map(response -> (List<String>) response.getData())
+                    .map(resp -> (List<String>) resp.getData())
                     .block();
-
             return clubNames != null ? clubNames : List.of();
         } catch (Exception e) {
             log.error("Error fetching club names for user {}: {}", prn, e.getMessage());
@@ -144,11 +163,6 @@ public class ClubServiceClient {
         }
     }
 
-
-
-    /**
-     * Helper class to deserialize API response
-     */
     @lombok.Data
     private static class ApiResponseWrapper {
         private boolean success;

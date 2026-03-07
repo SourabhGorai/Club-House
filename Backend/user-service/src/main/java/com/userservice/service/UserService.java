@@ -245,4 +245,14 @@ public class UserService {
 
         return mapper.toDto(savedUser);
     }
+
+    public Boolean markProfileComplete(String prn) {
+        log.debug("Attempting to mark profile complete true");
+        User user = userRepository.findByPrn(prn).orElseThrow();
+
+        user.setProfileCompleted(true);
+        User saved = userRepository.save(user);
+
+        return saved.isProfileCompleted();
+    }
 }
