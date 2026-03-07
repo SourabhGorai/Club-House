@@ -31,7 +31,17 @@ const BASE_URL = "http://localhost:8080";
  */
 export default function EditEvent({ event, token, onClose, onSuccess }) {
   // ── Helpers ────────────────────────────────────────────────────────────────
-  const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 16) : "");
+  // Preserve the local time from the backend string instead of converting to UTC.
+  const fmt = (d) => {
+    if (!d) return "";
+    // If already an ISO-like string (e.g. "2026-03-07T15:00:00"), slice directly
+    if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(d)) return d.slice(0, 16);
+    // Fallback: format using local time components
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  };
   const authHeaders = () => ({
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
@@ -62,7 +72,7 @@ export default function EditEvent({ event, token, onClose, onSuccess }) {
     radiusInMeters:           event.radiusInMeters        ?? 50,
     attendanceWindowStart:    fmt(event.attendanceWindowStart),
     attendanceWindowEnd:      fmt(event.attendanceWindowEnd),
-    qrRefreshIntervalSeconds: event.qrRefreshIntervalSeconds ?? 120,
+    qrRefreshIntervalSeconds: event.qrRefreshIntervalSeconds ?? event.qrRefreshInterval ?? 120,
   });
 
   // ── UI state ───────────────────────────────────────────────────────────────
