@@ -4,6 +4,8 @@ import com.userservice.model.User;
 import com.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,22 @@ import java.util.List;
 public class IncompleteRegistrationCleanupScheduler {
 
     private final UserRepository userRepository;
+    private final CacheManager cacheManager; // add to constructor (Lombok handles it)
+
+    // Add this helper method
+    private void evictCachesForUsers(List<User> users) {
+        Cache userByPrn      = cacheManager.getCache("userByPrn");
+        Cache userByUsername = cacheManager.getCache("userByUsername");
+        Cache userValidation = cacheManager.getCache("userValidation");
+        Cache usersCache     = cacheManager.getCache("users");
+
+        for (User user : users) {
+            if (userByPrn != null)      userByPrn.evict(user.getPrn());
+            if (userByUsername != null) userByUsername.evict(user.getUsername());
+            if (userValidation != null) userValidation.evict(user.getPrn());
+        }
+        if (usersCache != null) usersCache.clear();
+    }
 
     /**
      * Runs every 7 days at 3:00 AM.
@@ -58,6 +76,7 @@ public class IncompleteRegistrationCleanupScheduler {
             try {
                 int deleted = userRepository.deleteByPrns(batchPrns);
                 totalDeleted += deleted;
+                evictCachesForUsers(batch);
                 log.debug("Deleted batch of {} users (prns: {})", deleted, batchPrns);
 
             } catch (Exception e) {

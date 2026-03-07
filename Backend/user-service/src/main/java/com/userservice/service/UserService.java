@@ -246,6 +246,10 @@ public class UserService {
         return mapper.toDto(savedUser);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userByPrn", key = "#prn"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public Boolean markProfileComplete(String prn) {
         log.debug("Attempting to mark profile complete true");
         User user = userRepository.findByPrn(prn).orElseThrow();
