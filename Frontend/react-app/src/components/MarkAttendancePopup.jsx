@@ -106,18 +106,48 @@ const MarkAttendancePopup = ({ isOpen, onClose, event, token, onSuccess }) => {
     }
   };
 
+  const getGeolocation = () =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported by this browser."));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        (err) => reject(new Error("Unable to retrieve your location. Please allow location access and try again.")),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+
   const validateQRCode = async (scannedData) => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Parse the scanned data (assuming it contains the QR token)
+
       const scannedToken = scannedData.trim();
-      
+
+      // Get current location — required by backend
+      let coords;
+      try {
+        coords = await getGeolocation();
+      } catch (geoErr) {
+        setError(geoErr.message);
+        setTimeout(() => startCamera(), 2000);
+        return;
+      }
+
+      const requestBody = {
+        qrToken: scannedToken,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        timestamp: new Date().toISOString().slice(0, 19), // LocalDateTime format
+        deviceInfo: navigator.userAgent,
+      };
+
       // Validate with the server
       const response = await axios.post(
         `${BASE_URL}/api/attendance/mark/${event.eventId}`,
-        { qrToken: scannedToken },
+        requestBody,
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
       

@@ -363,7 +363,7 @@ public class GatewayConfig {
                                 "/api/events/create",
                                 "/api/events/myEvents",
                                 "/api/events/myEvents/paged",
-                                "/api/events/targetTypes",
+
                                 "/api/events/getByEventCreator/{prn}",
                                 "/api/events/getByEventCreator/{prn}/paged",
                                 "/api/events/ratings/{rating}",
@@ -388,6 +388,7 @@ public class GatewayConfig {
                                 "/api/events/targetData/{targetType}/{targetId}",
                                 "/api/events/targetData/{targetType}/{targetId}/paged",
                                 "/api/events/endEvent/{status}",
+                                "/api/events/targetTypes",
                                 "/api/events/endEvent/{status}/paged",
                                 "/api/events/getByTargetType/{targetType}",
                                 "/api/events/getByTargetType/{targetType}/paged",
