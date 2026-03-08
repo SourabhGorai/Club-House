@@ -181,10 +181,10 @@ jobs:
             EOF
 
             # Pull new images (fail fast if any image is missing)
-            docker compose pull
+            docker-compose pull
 
             # Restart services with zero-downtime rolling update
-            docker compose up -d --remove-orphans
+            docker-compose up -d --remove-orphans
 
             # Remove dangling images to free disk space
             docker image prune -f
