@@ -26,6 +26,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function UsersDashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -111,7 +113,7 @@ export default function UsersDashboard() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/department", {
+      const response = await axios.get(`${BASE_URL}/api/department`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -135,7 +137,7 @@ export default function UsersDashboard() {
 
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getMyClubs",
+        `${BASE_URL}/api/user-clubs/getMyClubs`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -178,7 +180,7 @@ export default function UsersDashboard() {
     try {
       setIsLoadingProfile(true);
       const response = await axios.get(
-        `http://localhost:8080/api/profiles/prn/${user?.prn}`,
+        `${BASE_URL}/api/profiles/prn/${user?.prn}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -213,7 +215,7 @@ export default function UsersDashboard() {
   const fetchProfileImage = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/profiles/${user?.prn}/image`,
+        `${BASE_URL}/api/profiles/${user?.prn}/image`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
@@ -250,7 +252,7 @@ export default function UsersDashboard() {
 
       if (userProfile) {
         await axios.put(
-          `http://localhost:8080/api/profiles/${profileData.prn}`,
+          `${BASE_URL}/api/profiles/${profileData.prn}`,
           requestData,
           {
             headers: {
@@ -261,7 +263,7 @@ export default function UsersDashboard() {
         );
       } else {
         await axios.post(
-          "http://localhost:8080/api/profiles",
+          `${BASE_URL}/api/profiles`,
           { ...requestData, prn: profileData.prn },
           {
             headers: {
@@ -276,7 +278,7 @@ export default function UsersDashboard() {
         const formData = new FormData();
         formData.append("image", selectedImage);
         await axios.post(
-          `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+          `${BASE_URL}/api/profiles/${profileData.prn}/image`,
           formData,
           {
             headers: {
@@ -313,7 +315,7 @@ export default function UsersDashboard() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
+        `${BASE_URL}/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
         {},
         {
           headers: {

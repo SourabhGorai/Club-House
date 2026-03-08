@@ -23,7 +23,7 @@ import {
   Square, XCircle,
 } from "lucide-react";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
 // ─── QRCodeDisplay ─────────────────────────────────────────────────────────────
 const QRCodeDisplay = ({ eventId, token, initialQRData, onClose, onAttendanceEnd }) => {

@@ -1,4 +1,4 @@
-// import { useState, useEffect } from "react";
+﻿// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 
@@ -424,7 +424,7 @@
 //     try {
 //       const token = localStorage.getItem("token");
 //       const response = await axios.get(
-//         `http://localhost:8080/api/user-clubs/club/${clubName}`,
+//         `${BASE_URL}/api/user-clubs/club/${clubName}`,
 //         {
 //           headers: { 
 //             Authorization: `Bearer ${token}`,
@@ -458,7 +458,7 @@
 //     setLoading(true);
 //     try {
 //       const token = localStorage.getItem("token");
-//       const response = await axios.get("http://localhost:8080/api/clubs", {
+//       const response = await axios.get(`${BASE_URL}/api/clubs`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 //       console.log(response)
@@ -484,7 +484,7 @@
 //   const fetchAdminData = async (clubId) => {
 //     try {
 //       const token = localStorage.getItem("token");
-//       const response = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, {
+//       const response = await axios.get(`${BASE_URL}/api/clubs/${clubId}/admin`, {
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 //       console.log(response)
@@ -504,7 +504,7 @@
 //   const fetchAdminEmail = async (prn) => {
 //     try {
 //       const token = localStorage.getItem("token");
-//       const response = await axios.get(`http://localhost:8080/api/users/${prn}`, {
+//       const response = await axios.get(`${BASE_URL}/api/users/${prn}`, {
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 //       return response?.data?.email || null;
@@ -525,7 +525,7 @@
 //   setTeacherSearchLoading(true);
 //   try {
 //     const token = localStorage.getItem("token");
-//     const response = await axios.get(`http://localhost:8080/api/users/${teacherPrn}`, {
+//     const response = await axios.get(`${BASE_URL}/api/users/${teacherPrn}`, {
 //       headers: { Authorization: `Bearer ${token}` }
 //     });
     
@@ -569,7 +569,7 @@
 //         tenure: tenure
 //       };
 
-//       const response = await axios.post("http://localhost:8080/api/user-clubs", payload, {
+//       const response = await axios.post(`${BASE_URL}/api/user-clubs`, payload, {
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 
@@ -600,7 +600,7 @@
 //   setAdminSearchLoading(true);
 //   try {
 //     const token = localStorage.getItem("token");
-//     const response = await axios.get(`http://localhost:8080/api/users/${adminPrn}`, {
+//     const response = await axios.get(`${BASE_URL}/api/users/${adminPrn}`, {
 //       headers: { Authorization: `Bearer ${token}` }
 //     });
     
@@ -649,7 +649,7 @@
 //         tenure: tenure
 //       };
 
-//       const response = await axios.post("http://localhost:8080/api/user-clubs", payload, {
+//       const response = await axios.post(`${BASE_URL}/api/user-clubs`, payload, {
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 
@@ -673,7 +673,7 @@
 //     setAddClubLoading(true);
 //     try {
 //       const token = localStorage.getItem("token");
-//       const response = await axios.post("http://localhost:8080/api/clubs", newClub, {
+//       const response = await axios.post(`${BASE_URL}/api/clubs`, newClub, {
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 //       if (response.data.success) {
@@ -704,7 +704,7 @@
 //     setDeleteLoading(true);
 //     try {
 //       const token = localStorage.getItem("token");
-//       const response = await axios.delete("http://localhost:8080/api/clubs", {
+//       const response = await axios.delete(`${BASE_URL}/api/clubs`, {
 //         headers: { 
 //           Authorization: `Bearer ${token}`,
 //           'Content-Type': 'application/json'
@@ -1248,6 +1248,7 @@ const ArrowLeftIcon = (props) => (<svg {...props} className="w-3.5 h-3.5" fill="
 // ----------------------------------------------------------------
 // MAIN COMPONENT
 // ----------------------------------------------------------------
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 export default function ManageClubs() {
   const navigate = useNavigate();
 
@@ -1334,7 +1335,7 @@ export default function ManageClubs() {
       withImages.map(async (member) => {
         try {
           const res = await axios.get(
-            `http://localhost:8080${member.imageUrl}`,
+            `${BASE_URL}${member.imageUrl}`,
             { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" }
           );
           if (res.data && res.data.size > 0) {
@@ -1366,7 +1367,7 @@ export default function ManageClubs() {
     });
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/user-clubs/club/${clubName}`,
+        `${BASE_URL}/api/user-clubs/club/${clubName}`,
         { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
       );
       if (response?.data?.success) {
@@ -1395,12 +1396,12 @@ export default function ManageClubs() {
   // ── Active/inactive ──
   const handleActivateClub = async (clubId) => {
     try {
-      const response = await axios.patch(`http://localhost:8080/api/clubs/${clubId}/activate`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.patch(`${BASE_URL}/api/clubs/${clubId}/activate`, {}, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) { alert("Club activated successfully!"); await fetchClubs(); }
     } catch (err) {
       try {
         const clubToActivate = clubs.find(c => c.clubId === clubId);
-        const response = await axios.put(`http://localhost:8080/api/clubs/${clubId}`, { ...clubToActivate, isActive: true }, { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axios.put(`${BASE_URL}/api/clubs/${clubId}`, { ...clubToActivate, isActive: true }, { headers: { Authorization: `Bearer ${token}` } });
         if (response?.data?.success) { alert("Club activated successfully!"); await fetchClubs(); }
       } catch (err2) { alert("Failed to activate club."); }
     }
@@ -1410,7 +1411,7 @@ export default function ManageClubs() {
   const fetchClubs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8080/api/clubs", { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${BASE_URL}/api/clubs`, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) {
         const fetchedClubs = response.data.data || [];
         setClubs(fetchedClubs);
@@ -1426,7 +1427,7 @@ export default function ManageClubs() {
 
   const fetchAdminData = async (clubId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${BASE_URL}/api/clubs/${clubId}/admin`, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) {
         const clubData = response.data.data || {};
         const adminsWithEmail = await Promise.all(
@@ -1442,7 +1443,7 @@ export default function ManageClubs() {
 
   const fetchAdminEmail = async (prn) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/${prn}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${BASE_URL}/api/users/${prn}`, { headers: { Authorization: `Bearer ${token}` } });
       return response?.data?.email || null;
     } catch { return null; }
   };
@@ -1456,7 +1457,7 @@ export default function ManageClubs() {
     if (!teacherPrn.trim()) return;
     setTeacherSearchLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/${teacherPrn}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${BASE_URL}/api/users/${teacherPrn}`, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data && response.data.prn) { setTeacherSearchResult(response.data); }
       else { setTeacherSearchResult({ notFound: true, message: "No such teacher found" }); }
     } catch (err) {
@@ -1469,7 +1470,7 @@ export default function ManageClubs() {
     setAssignTeacherLoading(true);
     try {
       const currentYear = new Date().getFullYear();
-      const response = await axios.post("http://localhost:8080/api/user-clubs", { prn: teacherPrn, clubId: selectedClub.clubId, role: "TEACHERS", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${BASE_URL}/api/user-clubs`, { prn: teacherPrn, clubId: selectedClub.clubId, role: "TEACHERS", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) { alert("Teacher assigned successfully!"); fetchAdminData(selectedClub.clubId); setShowTeacherModal(false); }
       else { alert("Failed to assign teacher."); }
     } catch (err) { alert("Error during assignment."); }
@@ -1483,7 +1484,7 @@ export default function ManageClubs() {
     if (!adminPrn.trim()) return;
     setAdminSearchLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/${adminPrn}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${BASE_URL}/api/users/${adminPrn}`, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data && response.data.prn) { setAdminSearchResult(response.data); }
       else { setAdminSearchResult({ notFound: true, message: "No such user found" }); }
     } catch (err) {
@@ -1498,7 +1499,7 @@ export default function ManageClubs() {
     setAssignAdminLoading(true);
     try {
       const currentYear = new Date().getFullYear();
-      const response = await axios.post("http://localhost:8080/api/user-clubs", { prn: adminPrn, clubId: selectedClub.clubId, role: "CLUB_ADMIN", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${BASE_URL}/api/user-clubs`, { prn: adminPrn, clubId: selectedClub.clubId, role: "CLUB_ADMIN", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) { alert("Club admin assigned successfully!"); fetchAdminData(selectedClub.clubId); setShowClubAdminModal(false); }
       else { alert("Failed to assign club admin."); }
     } catch (err) { alert("Error during assignment."); }
@@ -1509,7 +1510,7 @@ export default function ManageClubs() {
   const handleAddClub = async () => {
     setAddClubLoading(true);
     try {
-      const response = await axios.post("http://localhost:8080/api/clubs", newClub, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${BASE_URL}/api/clubs`, newClub, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.success) { alert("Club created!"); setShowAddClubModal(false); setNewClub({ name: "", clubDesc: "" }); await fetchClubs(); }
     } catch (err) { alert("Error creating club"); }
     finally { setAddClubLoading(false); }
@@ -1522,11 +1523,11 @@ export default function ManageClubs() {
     if (!clubToDelete) return;
     setDeleteLoading(true);
     try {
-      const response = await axios.patch(`http://localhost:8080/api/clubs/${clubToDelete.clubId}/deactivate`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.patch(`${BASE_URL}/api/clubs/${clubToDelete.clubId}/deactivate`, {}, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) { alert("Club deactivated successfully!"); await fetchClubs(); setIsModalOpen(false); setClubToDelete(null); }
     } catch (err) {
       try {
-        const response = await axios.put(`http://localhost:8080/api/clubs/${clubToDelete.clubId}`, { ...clubToDelete, isActive: false }, { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axios.put(`${BASE_URL}/api/clubs/${clubToDelete.clubId}`, { ...clubToDelete, isActive: false }, { headers: { Authorization: `Bearer ${token}` } });
         if (response?.data?.success) { alert("Club deactivated successfully!"); await fetchClubs(); setIsModalOpen(false); setClubToDelete(null); }
       } catch (err2) { alert("Failed to deactivate club."); }
     } finally { setDeleteLoading(false); }

@@ -38,6 +38,8 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 const PreviousEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ const PreviousEvents = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/profiles/prn/${prn}`,
+        `${BASE_URL}/api/profiles/prn/${prn}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -129,7 +131,7 @@ const PreviousEvents = () => {
 
   const fetchDepartments = async (token) => {
     try {
-      const response = await axios.get("http://localhost:8080/api/department", {
+      const response = await axios.get(`${BASE_URL}/api/department`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -146,7 +148,7 @@ const PreviousEvents = () => {
 
   const fetchAllClubs = async (token) => {
     try {
-      const response = await axios.get("http://localhost:8080/api/clubs", {
+      const response = await axios.get(`${BASE_URL}/api/clubs`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -169,7 +171,7 @@ const PreviousEvents = () => {
       if (!prn) return;
 
       const response = await axios.get(
-        `http://localhost:8080/api/profiles/prn/${prn}`,
+        `${BASE_URL}/api/profiles/prn/${prn}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -190,7 +192,7 @@ const PreviousEvents = () => {
 
   const fetchDepartmentId = async (token, deptName) => {
     try {
-      const response = await axios.get("http://localhost:8080/api/department", {
+      const response = await axios.get(`${BASE_URL}/api/department`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -211,7 +213,7 @@ const PreviousEvents = () => {
   const fetchUserClubs = async (token) => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getMyClubs",
+        `${BASE_URL}/api/user-clubs/getMyClubs`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -237,7 +239,7 @@ const PreviousEvents = () => {
 
     // Use the new endpoint for completed events
     response = await axios.get(
-      `http://localhost:8080/api/events/endEvent/true`,
+      `${BASE_URL}/api/events/endEvent/true`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

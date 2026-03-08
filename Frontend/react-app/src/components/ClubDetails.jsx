@@ -1,4 +1,4 @@
-// import { useState, useEffect } from "react";
+﻿// import { useState, useEffect } from "react";
 // import { useParams, useNavigate, useLocation } from "react-router-dom";
 // import axios from "axios";
 // import {
@@ -394,7 +394,7 @@
 //     const results = await Promise.all(
 //       withImages.map(async (member) => {
 //         try {
-//           const res = await axios.get(`http://localhost:8080${member.imageUrl}`, {
+//           const res = await axios.get(`${BASE_URL}${member.imageUrl}`, {
 //             headers: { Authorization: `Bearer ${token}` },
 //             responseType: "blob",
 //           });
@@ -414,7 +414,7 @@
 //   const fetchUpcomingEvents = async (clubId) => {
 //     try {
 //       const r = await axios.get(
-//         `http://localhost:8080/api/events/club/${clubId}/upcoming`,
+//         `${BASE_URL}/api/events/club/${clubId}/upcoming`,
 //         { headers: { Authorization: `Bearer ${token}` }, params: { page: 0, size: 5, sort: "startDate,asc" } }
 //       );
 //       if (r?.data?.success) setUpcomingEvents(r.data.data.content || []);
@@ -424,7 +424,7 @@
 //   const fetchPreviousEvents = async (clubId) => {
 //     try {
 //       const r = await axios.get(
-//         `http://localhost:8080/api/events/club/${clubId}/previous`,
+//         `${BASE_URL}/api/events/club/${clubId}/previous`,
 //         { headers: { Authorization: `Bearer ${token}` }, params: { page: 0, size: 5, sort: "startDate,desc" } }
 //       );
 //       if (r?.data?.success) setPreviousEvents(r.data.data.content || []);
@@ -433,7 +433,7 @@
 
 //   const fetchAdminEmail = async (prn) => {
 //     try {
-//       const r = await axios.get(`http://localhost:8080/api/users/${prn}`, {
+//       const r = await axios.get(`${BASE_URL}/api/users/${prn}`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 //       return r?.data?.email || null;
@@ -442,7 +442,7 @@
 
 //   const fetchAdminData = async (clubId) => {
 //     try {
-//       const r = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, {
+//       const r = await axios.get(`${BASE_URL}/api/clubs/${clubId}/admin`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 //       if (r?.data?.success) {
@@ -480,7 +480,7 @@
 //     });
 //     try {
 //       const r = await axios.get(
-//         `http://localhost:8080/api/user-clubs/club/${encodeURIComponent(name)}`,
+//         `${BASE_URL}/api/user-clubs/club/${encodeURIComponent(name)}`,
 //         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
 //       );
 //       if (r?.data?.success) {
@@ -496,7 +496,7 @@
 //     try {
 //       setLoading(true);
 //       const decoded = decodeURIComponent(clubName);
-//       const res = await axios.get("http://localhost:8080/api/clubs", {
+//       const res = await axios.get(`${BASE_URL}/api/clubs`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 //       if (res?.data?.success) {
@@ -1060,6 +1060,7 @@ const ClubAdminCard = ({ adminData, profileImages }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Page Component
 // ─────────────────────────────────────────────────────────────────────────────
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 export default function ClubDetails() {
   const { clubName } = useParams();
   const navigate = useNavigate();
@@ -1106,7 +1107,7 @@ export default function ClubDetails() {
     const results = await Promise.all(
       withImages.map(async (member) => {
         try {
-          const res = await axios.get(`http://localhost:8080${member.imageUrl}`, {
+          const res = await axios.get(`${BASE_URL}${member.imageUrl}`, {
             headers: { Authorization: `Bearer ${token}` },
             responseType: "blob",
           });
@@ -1129,7 +1130,7 @@ export default function ClubDetails() {
       // Fetch club target data
       console.log(`Fetching club target data for ID: ${clubId}`);
       const clubResponse = await axios.get(
-        `http://localhost:8080/api/events/targetData/CLUB/${clubId}`,
+        `${BASE_URL}/api/events/targetData/CLUB/${clubId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -1170,7 +1171,7 @@ export default function ClubDetails() {
         try {
           console.log(`Fetching department target data for: ${departmentName}`);
           const departmentResponse = await axios.get(
-            `http://localhost:8080/api/events/targetData/DEPARTMENT/${encodeURIComponent(departmentName)}`,
+            `${BASE_URL}/api/events/targetData/DEPARTMENT/${encodeURIComponent(departmentName)}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           console.log("Department target data response:", departmentResponse.data);
@@ -1203,7 +1204,7 @@ export default function ClubDetails() {
       
       // Fetch upcoming events and get count
       const upcomingRes = await axios.get(
-        `http://localhost:8080/api/events/club/${clubId}/upcoming`,
+        `${BASE_URL}/api/events/club/${clubId}/upcoming`,
         { 
           headers: { Authorization: `Bearer ${token}` }, 
           params: { page: 0, size: 1 } // Just need count, so get minimal data
@@ -1220,7 +1221,7 @@ export default function ClubDetails() {
       
       // Fetch previous events and get count
       const previousRes = await axios.get(
-        `http://localhost:8080/api/events/club/${clubId}/previous`,
+        `${BASE_URL}/api/events/club/${clubId}/previous`,
         { 
           headers: { Authorization: `Bearer ${token}` }, 
           params: { page: 0, size: 1 } // Just need count
@@ -1241,7 +1242,7 @@ export default function ClubDetails() {
 
   const fetchAdminEmail = async (prn) => {
     try {
-      const r = await axios.get(`http://localhost:8080/api/users/${prn}`, {
+      const r = await axios.get(`${BASE_URL}/api/users/${prn}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return r?.data?.email || null;
@@ -1250,7 +1251,7 @@ export default function ClubDetails() {
 
   const fetchAdminData = async (clubId) => {
     try {
-      const r = await axios.get(`http://localhost:8080/api/clubs/${clubId}/admin`, {
+      const r = await axios.get(`${BASE_URL}/api/clubs/${clubId}/admin`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (r?.data?.success) {
@@ -1288,7 +1289,7 @@ export default function ClubDetails() {
     });
     try {
       const r = await axios.get(
-        `http://localhost:8080/api/user-clubs/club/${encodeURIComponent(name)}`,
+        `${BASE_URL}/api/user-clubs/club/${encodeURIComponent(name)}`,
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
       if (r?.data?.success) {
@@ -1304,7 +1305,7 @@ export default function ClubDetails() {
     try {
       setLoading(true);
       const decoded = decodeURIComponent(clubName);
-      const res = await axios.get("http://localhost:8080/api/clubs", {
+      const res = await axios.get(`${BASE_URL}/api/clubs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       

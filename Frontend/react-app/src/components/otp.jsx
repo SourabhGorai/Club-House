@@ -310,6 +310,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function OTP() {
   const navigate = useNavigate();
 
@@ -353,7 +355,7 @@ export default function OTP() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/verify-otp",
+        `${BASE_URL}/api/auth/verify-otp`,
         { email, otp }
       );
 
@@ -369,7 +371,7 @@ export default function OTP() {
               
               // Update user email in backend
               await axios.put(
-                `http://localhost:8080/api/users/${prn}`,
+                `${BASE_URL}/api/users/${prn}`,
                 { 
                   email: email,
                   username: currentUser.username,
@@ -434,7 +436,7 @@ export default function OTP() {
     setResendLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/forgot-password",
+        `${BASE_URL}/api/auth/forgot-password`,
         { email }
       );
       alert("OTP resent successfully!");

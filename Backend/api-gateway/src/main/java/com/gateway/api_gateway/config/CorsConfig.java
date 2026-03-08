@@ -20,7 +20,9 @@ public class CorsConfig {
         corsConfig.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",      // React default
                 "http://localhost:4200",      // Angular default
-                "http://localhost:5173"       // Vite default - ONLY ONCE
+                "http://localhost:5173",       // Vite default - ONLY ONCE
+                "http://72.155.88.211:8080",
+                "http://72.155.88.211:80"
                 // Removed: "http://localhost:8081" - microservices don't need CORS
         ));
 

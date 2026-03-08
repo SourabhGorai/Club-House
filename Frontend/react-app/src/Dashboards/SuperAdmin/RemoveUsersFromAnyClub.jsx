@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -106,6 +106,8 @@ const EditRoleModal = ({ user, availableRoles, onClose, onSave, saving }) => {
   );
 };
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 const RemoveUsersFromAnyClub = () => {
   const navigate = useNavigate();
@@ -139,7 +141,7 @@ const RemoveUsersFromAnyClub = () => {
     const fetchRoles = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8080/api/user-clubs/getAllClubRoles",
+          `${BASE_URL}/api/user-clubs/getAllClubRoles`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.data?.success) {
@@ -157,7 +159,7 @@ const RemoveUsersFromAnyClub = () => {
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/clubs", {
+        const response = await axios.get(`${BASE_URL}/api/clubs`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.success) {
@@ -178,12 +180,12 @@ const RemoveUsersFromAnyClub = () => {
       if (selectedClub) {
         const club = clubs.find((c) => String(c.clubId) === String(selectedClub));
         if (club) {
-          url = `http://localhost:8080/api/user-clubs/club/${encodeURIComponent(club.clubName)}/paged?page=${page}&size=${PAGE_SIZE}`;
+          url = `${BASE_URL}/api/user-clubs/club/${encodeURIComponent(club.clubName)}/paged?page=${page}&size=${PAGE_SIZE}`;
         } else {
-          url = `http://localhost:8080/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
+          url = `${BASE_URL}/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
         }
       } else {
-        url = `http://localhost:8080/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
+        url = `${BASE_URL}/api/user-clubs/getAll/paged?page=${page}&size=${PAGE_SIZE}`;
       }
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.success) {
@@ -228,7 +230,7 @@ const RemoveUsersFromAnyClub = () => {
     const { prn, clubName, name, clubId, role, tenure } = user;
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
+        `${BASE_URL}/api/user-clubs/user/${prn}/club/${clubName}`,
         {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           data: { prn, clubId, role, tenure },
@@ -249,7 +251,7 @@ const RemoveUsersFromAnyClub = () => {
     setSavingRole(true);
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/user-clubs/changeClubRole",
+        `${BASE_URL}/api/user-clubs/changeClubRole`,
         { prn: editingUser.prn, clubId: editingUser.clubId, newRole },
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } },
       );
@@ -666,7 +668,7 @@ export default RemoveUsersFromAnyClub;
 //       try {
 //         const token = localStorage.getItem("token");
 
-//         const response = await axios.get("http://localhost:8080/api/clubs", {
+//         const response = await axios.get(`${BASE_URL}/api/clubs`, {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
 //           },
@@ -688,7 +690,7 @@ export default RemoveUsersFromAnyClub;
 //     try {
 //       setLoading(true);
 //       const response = await axios.get(
-//         "http://localhost:8080/api/user-clubs/getAll",
+//         `${BASE_URL}/api/user-clubs/getAll`,
 //         {
 //           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 //         },
@@ -742,7 +744,7 @@ export default RemoveUsersFromAnyClub;
 
 //     try {
 //       const response = await axios.delete(
-//         `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
+//         `${BASE_URL}/api/user-clubs/user/${prn}/club/${clubName}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${localStorage.getItem("token")}`,

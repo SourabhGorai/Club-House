@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
@@ -69,6 +69,8 @@ import CustomSelect from "../../components/CustomSelect";
 //   );
 // }
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function AddStudent() {
   const navigate = useNavigate();
   const [clubs, setClubs] = useState([]);
@@ -133,7 +135,7 @@ export default function AddStudent() {
     try {
       setLoadingTeacherClubs(true);
       const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getMyClubs",
+        `${BASE_URL}/api/user-clubs/getMyClubs`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -161,7 +163,7 @@ export default function AddStudent() {
     try {
       setLoadingClubRoles(true);
       const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getAllClubRoles",
+        `${BASE_URL}/api/user-clubs/getAllClubRoles`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -186,7 +188,7 @@ export default function AddStudent() {
   const fetchAllClubs = async () => {
     try {
       setLoadingClubs(true);
-      const response = await axios.get("http://localhost:8080/api/clubs", {
+      const response = await axios.get(`${BASE_URL}/api/clubs`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -223,7 +225,7 @@ export default function AddStudent() {
       // First, fetch user data (username, email, and role) from the users API
       try {
         const userResponse = await axios.get(
-          `http://localhost:8080/api/users/${prn}`,
+          `${BASE_URL}/api/users/${prn}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -247,7 +249,7 @@ export default function AddStudent() {
 
         // If role is USERS, proceed to fetch profile data
         const profileResponse = await axios.get(
-          `http://localhost:8080/api/profiles/prn/${prn}`,
+          `${BASE_URL}/api/profiles/prn/${prn}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -393,7 +395,7 @@ export default function AddStudent() {
 
       // Call the user-clubs API to add student to club
       const res = await axios.post(
-        "http://localhost:8080/api/user-clubs",
+        `${BASE_URL}/api/user-clubs`,
         {
           prn: form.prn,
           clubId: parseInt(form.clubId),
@@ -1178,7 +1180,7 @@ export default function AddStudent() {
 //     try {
 //       setLoadingTeacherClubs(true);
 //       const response = await axios.get(
-//         "http://localhost:8080/api/user-clubs/getMyClubs",
+//         `${BASE_URL}/api/user-clubs/getMyClubs`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1205,7 +1207,7 @@ export default function AddStudent() {
 //   const fetchAllClubs = async () => {
 //     try {
 //       setLoadingClubs(true);
-//       const response = await axios.get("http://localhost:8080/api/clubs", {
+//       const response = await axios.get(`${BASE_URL}/api/clubs`, {
 //         headers: {
 //           Authorization: `Bearer ${localStorage.getItem("token")}`,
 //         },
@@ -1242,7 +1244,7 @@ export default function AddStudent() {
 //       // First, fetch user data (username, email, and role) from the users API
 //       try {
 //         const userResponse = await axios.get(
-//           `http://localhost:8080/api/users/${prn}`,
+//           `${BASE_URL}/api/users/${prn}`,
 //           {
 //             headers: {
 //               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1266,7 +1268,7 @@ export default function AddStudent() {
 
 //         // If role is USERS, proceed to fetch profile data
 //         const profileResponse = await axios.get(
-//           `http://localhost:8080/api/profiles/prn/${prn}`,
+//           `${BASE_URL}/api/profiles/prn/${prn}`,
 //           {
 //             headers: {
 //               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1411,7 +1413,7 @@ export default function AddStudent() {
 
 //       // Call the user-clubs API to add student to club
 //       const res = await axios.post(
-//         "http://localhost:8080/api/user-clubs",
+//         `${BASE_URL}/api/user-clubs`,
 //         {
 //           prn: form.prn,
 //           clubId: parseInt(form.clubId),

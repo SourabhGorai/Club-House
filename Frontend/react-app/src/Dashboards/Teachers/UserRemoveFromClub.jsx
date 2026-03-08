@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -20,6 +20,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export const useFilteredUsersCount = () => {
   const [count, setCount] = useState(0);
 
@@ -31,7 +33,7 @@ export const useFilteredUsersCount = () => {
 
         if (user?.role === "TEACHERS") {
           const clubsResponse = await axios.get(
-            `http://localhost:8080/api/user-clubs/user/${user.prn}`,
+            `${BASE_URL}/api/user-clubs/user/${user.prn}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
 
@@ -43,7 +45,7 @@ export const useFilteredUsersCount = () => {
             let totalStudents = 0;
             for (const club of teacherRoleClubs) {
               const studentsResponse = await axios.get(
-                `http://localhost:8080/api/user-clubs/club/${club.clubName}`,
+                `${BASE_URL}/api/user-clubs/club/${club.clubName}`,
                 { headers: { Authorization: `Bearer ${token}` } },
               );
               if (studentsResponse.data.success) {
@@ -57,7 +59,7 @@ export const useFilteredUsersCount = () => {
           }
         } else {
           const response = await axios.get(
-            "http://localhost:8080/api/user-clubs",
+            `${BASE_URL}/api/user-clubs`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           if (response.data.success) {
@@ -215,7 +217,7 @@ const UserRemoveFromClub = () => {
     const fetchRoles = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8080/api/user-clubs/getAllClubRoles",
+          `${BASE_URL}/api/user-clubs/getAllClubRoles`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.data?.success) {
@@ -239,7 +241,7 @@ const UserRemoveFromClub = () => {
     const results = await Promise.all(
       withImages.map(async (user) => {
         try {
-          const res = await axios.get(`http://localhost:8080${user.imageUrl}`, {
+          const res = await axios.get(`${BASE_URL}${user.imageUrl}`, {
             headers: { Authorization: `Bearer ${token}` },
             responseType: "blob",
           });
@@ -273,7 +275,7 @@ const UserRemoveFromClub = () => {
     setLoadingClubs(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/user-clubs/user/${prn}`,
+        `${BASE_URL}/api/user-clubs/user/${prn}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (response.data.success) {
@@ -297,7 +299,7 @@ const UserRemoveFromClub = () => {
       const allStudents = [];
       for (const club of clubs) {
         const response = await axios.get(
-          `http://localhost:8080/api/user-clubs/club/${club.clubName}`,
+          `${BASE_URL}/api/user-clubs/club/${club.clubName}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (response.data.success) {
@@ -327,7 +329,7 @@ const UserRemoveFromClub = () => {
         return;
       }
 
-      const response = await axios.get("http://localhost:8080/api/user-clubs", {
+      const response = await axios.get(`${BASE_URL}/api/user-clubs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -378,7 +380,7 @@ const UserRemoveFromClub = () => {
     const { prn, clubName, name, clubId, role, tenure } = user;
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/user-clubs/user/${prn}/club/${clubName}`,
+        `${BASE_URL}/api/user-clubs/user/${prn}/club/${clubName}`,
         {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           data: { prn, clubId, role, tenure },
@@ -400,7 +402,7 @@ const UserRemoveFromClub = () => {
     console.log(newRole, editingUser.prn, editingUser.clubId);
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/user-clubs/changeClubRole",
+        `${BASE_URL}/api/user-clubs/changeClubRole`,
         {
           prn: editingUser.prn,
           clubId: editingUser.clubId,

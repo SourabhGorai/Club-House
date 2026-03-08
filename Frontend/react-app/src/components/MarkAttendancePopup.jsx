@@ -3,7 +3,7 @@ import { X, Loader2, AlertCircle, Camera, CheckCircle } from "lucide-react";
 import axios from "axios";
 import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
 const MarkAttendancePopup = ({ isOpen, onClose, event, token, onSuccess }) => {
   const [loading, setLoading] = useState(false);

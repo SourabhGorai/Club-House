@@ -1,4 +1,4 @@
-// RIYA UPDATED CODE FOR CREATE EVENT
+﻿// RIYA UPDATED CODE FOR CREATE EVENT
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -46,6 +46,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
 export default function CreateEvent() {
   const navigate = useNavigate();
@@ -325,9 +327,9 @@ export default function CreateEvent() {
     try {
       const userRole = user?.role;
 
-      let clubsEndpoint = "http://localhost:8080/api/clubs";
+      let clubsEndpoint = `${BASE_URL}/api/clubs`;
       if (userRole === "TEACHER") {
-        clubsEndpoint = "http://localhost:8080/api/user-clubs/getMyClubs";
+        clubsEndpoint = `${BASE_URL}/api/user-clubs/getMyClubs`;
       }
 
       const clubsResponse = await axios.get(clubsEndpoint, {
@@ -354,7 +356,7 @@ export default function CreateEvent() {
       }
 
       const deptResponse = await axios.get(
-        "http://localhost:8080/api/department",
+        `${BASE_URL}/api/department`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -525,7 +527,7 @@ export default function CreateEvent() {
     try {
       console.log("Submitting event data:", eventData);
       const response = await axios.post(
-        "http://localhost:8080/api/events/create",
+        `${BASE_URL}/api/events/create`,
         eventData,
         {
           headers: {

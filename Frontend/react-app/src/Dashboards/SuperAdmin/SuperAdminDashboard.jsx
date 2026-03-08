@@ -1,4 +1,4 @@
-// import { useState, useEffect } from "react";
+﻿// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 // import ConfirmDialog from "../../components/ConfirmDialog";
@@ -88,7 +88,7 @@
 //   const fetchUserCount = async () => {
 //     try {
 //       const response = await axios.get(
-//         "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+//         `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@
 //   const fetchAllData = async () => {
 //     try {
 //       const usersResponse = await axios.get(
-//         "http://localhost:8080/api/users/",
+//         `${BASE_URL}/api/users/`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -134,7 +134,7 @@
 //     setDeptLoading(true);
 //     setDeptMessage({ text: "", type: "" });
 //     try {
-//       const response = await axios.get("http://localhost:8080/api/department", {
+//       const response = await axios.get(`${BASE_URL}/api/department`, {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //           "Content-Type": "application/json",
@@ -172,7 +172,7 @@
 //     try {
 //       if (editingDept) {
 //         const response = await axios.put(
-//           `http://localhost:8080/api/department/${editingDept.departmentId}`,
+//           `${BASE_URL}/api/department/${editingDept.departmentId}`,
 //           {
 //             name: deptInput,
 //             active: true,
@@ -199,7 +199,7 @@
 //         }
 //       } else {
 //         const response = await axios.post(
-//           `http://localhost:8080/api/department/${deptInput}`,
+//           `${BASE_URL}/api/department/${deptInput}`,
 //           null,
 //           {
 //             headers: {
@@ -242,7 +242,7 @@
 //   const deleteDepartment = async (departmentId) => {
 //     try {
 //       const response = await axios.delete(
-//         `http://localhost:8080/api/department/${departmentId}`,
+//         `${BASE_URL}/api/department/${departmentId}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -281,7 +281,7 @@
 //     try {
 //       setIsLoadingProfile(true);
 //       const response = await axios.get(
-//         `http://localhost:8080/api/profiles/prn/${user?.prn}`,
+//         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -317,7 +317,7 @@
 //   const fetchProfileImage = async () => {
 //     try {
 //       const response = await axios.get(
-//         `http://localhost:8080/api/profiles/${user?.prn}/image`,
+//         `${BASE_URL}/api/profiles/${user?.prn}/image`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -373,7 +373,7 @@
 
 //       if (userProfile) {
 //         await axios.put(
-//           `http://localhost:8080/api/profiles/${profileData.prn}`,
+//           `${BASE_URL}/api/profiles/${profileData.prn}`,
 //           requestData,
 //           {
 //             headers: {
@@ -384,7 +384,7 @@
 //         );
 //       } else {
 //         await axios.post(
-//           "http://localhost:8080/api/profiles",
+//           `${BASE_URL}/api/profiles`,
 //           { ...requestData, prn: profileData.prn },
 //           {
 //             headers: {
@@ -399,7 +399,7 @@
 //         const formData = new FormData();
 //         formData.append("image", selectedImage);
 //         await axios.post(
-//           `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+//           `${BASE_URL}/api/profiles/${profileData.prn}/image`,
 //           formData,
 //           {
 //             headers: {
@@ -1242,7 +1242,7 @@
 //   const fetchUserCount = async () => {
 //     try {
 //       const response = await axios.get(
-//         "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+//         `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -1260,7 +1260,7 @@
 //   const fetchAllData = async () => {
 //     try {
 //       const usersResponse = await axios.get(
-//         "http://localhost:8080/api/users/",
+//         `${BASE_URL}/api/users/`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -1288,7 +1288,7 @@
 //     setDeptLoading(true);
 //     setDeptMessage({ text: "", type: "" });
 //     try {
-//       const response = await axios.get("http://localhost:8080/api/department", {
+//       const response = await axios.get(`${BASE_URL}/api/department`, {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //           "Content-Type": "application/json",
@@ -1326,7 +1326,7 @@
 //     try {
 //       if (editingDept) {
 //         const response = await axios.put(
-//           `http://localhost:8080/api/department/${editingDept.departmentId}`,
+//           `${BASE_URL}/api/department/${editingDept.departmentId}`,
 //           {
 //             name: deptInput,
 //             active: true,
@@ -1353,7 +1353,7 @@
 //         }
 //       } else {
 //         const response = await axios.post(
-//           `http://localhost:8080/api/department/${deptInput}`,
+//           `${BASE_URL}/api/department/${deptInput}`,
 //           null,
 //           {
 //             headers: {
@@ -1396,7 +1396,7 @@
 //   const deleteDepartment = async (departmentId) => {
 //     try {
 //       const response = await axios.delete(
-//         `http://localhost:8080/api/department/${departmentId}`,
+//         `${BASE_URL}/api/department/${departmentId}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -1435,7 +1435,7 @@
 //     try {
 //       setIsLoadingProfile(true);
 //       const response = await axios.get(
-//         `http://localhost:8080/api/profiles/prn/${user?.prn}`,
+//         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -1471,7 +1471,7 @@
 //   const fetchProfileImage = async () => {
 //     try {
 //       const response = await axios.get(
-//         `http://localhost:8080/api/profiles/${user?.prn}/image`,
+//         `${BASE_URL}/api/profiles/${user?.prn}/image`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -1513,7 +1513,7 @@
 //   try {
 //     // Try updating via users endpoint with PUT
 //     const response = await axios.put(
-//       `http://localhost:8080/api/users/${currentUser.prn}`,
+//       `${BASE_URL}/api/users/${currentUser.prn}`,
 //       { 
 //         email: newEmail,
 //         username: currentUser.username,
@@ -1550,7 +1550,7 @@
 //     // Try PATCH method as fallback
 //     try {
 //       const patchResponse = await axios.patch(
-//         `http://localhost:8080/api/users/${currentUser.prn}`,
+//         `${BASE_URL}/api/users/${currentUser.prn}`,
 //         { email: newEmail },
 //         {
 //           headers: {
@@ -1582,7 +1582,7 @@
 //       // Try updating via auth/update endpoint
 //       try {
 //         const authResponse = await axios.post(
-//           "http://localhost:8080/api/auth/update",
+//           `${BASE_URL}/api/auth/update`,
 //           {
 //             prn: currentUser.prn,
 //             email: newEmail,
@@ -1663,7 +1663,7 @@
 
 //       if (userProfile) {
 //         await axios.put(
-//           `http://localhost:8080/api/profiles/${profileData.prn}`,
+//           `${BASE_URL}/api/profiles/${profileData.prn}`,
 //           requestData,
 //           {
 //             headers: {
@@ -1674,7 +1674,7 @@
 //         );
 //       } else {
 //         await axios.post(
-//           "http://localhost:8080/api/profiles",
+//           `${BASE_URL}/api/profiles`,
 //           { ...requestData, prn: profileData.prn },
 //           {
 //             headers: {
@@ -1689,7 +1689,7 @@
 //         const formData = new FormData();
 //         formData.append("image", selectedImage);
 //         await axios.post(
-//           `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+//           `${BASE_URL}/api/profiles/${profileData.prn}/image`,
 //           formData,
 //           {
 //             headers: {
@@ -2586,6 +2586,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
 
@@ -2671,7 +2673,7 @@ export default function SuperAdminDashboard() {
   const fetchUserCount = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+        `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -2687,7 +2689,7 @@ export default function SuperAdminDashboard() {
 
   const fetchAllData = async () => {
     try {
-      const usersResponse = await axios.get("http://localhost:8080/api/users/", {
+      const usersResponse = await axios.get(`${BASE_URL}/api/users/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -2713,7 +2715,7 @@ export default function SuperAdminDashboard() {
     setDeptLoading(true);
     setDeptMessage({ text: "", type: "" });
     try {
-      const response = await axios.get("http://localhost:8080/api/department", {
+      const response = await axios.get(`${BASE_URL}/api/department`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -2748,7 +2750,7 @@ export default function SuperAdminDashboard() {
     try {
       if (editingDept) {
         const response = await axios.put(
-          `http://localhost:8080/api/department/${editingDept.departmentId}`,
+          `${BASE_URL}/api/department/${editingDept.departmentId}`,
           { name: deptInput, active: true },
           {
             headers: {
@@ -2769,7 +2771,7 @@ export default function SuperAdminDashboard() {
         }
       } else {
         const response = await axios.post(
-          `http://localhost:8080/api/department/${deptInput}`,
+          `${BASE_URL}/api/department/${deptInput}`,
           null,
           {
             headers: {
@@ -2806,7 +2808,7 @@ export default function SuperAdminDashboard() {
   const deleteDepartment = async (departmentId) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/department/${departmentId}`,
+        `${BASE_URL}/api/department/${departmentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -2839,7 +2841,7 @@ export default function SuperAdminDashboard() {
     try {
       setIsLoadingProfile(true);
       const response = await axios.get(
-        `http://localhost:8080/api/profiles/prn/${user?.prn}`,
+        `${BASE_URL}/api/profiles/prn/${user?.prn}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
@@ -2867,7 +2869,7 @@ export default function SuperAdminDashboard() {
   // const fetchProfileImage = async () => {
   //   try {
   //     const response = await axios.get(
-  //       `http://localhost:8080/api/profiles/${user?.prn}/image`,
+  //       `${BASE_URL}/api/profiles/${user?.prn}/image`,
   //       {
   //         headers: { Authorization: `Bearer ${token}` },
   //         responseType: "blob",
@@ -2886,7 +2888,7 @@ export default function SuperAdminDashboard() {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/profiles/${user.prn}/image`,
+      `${BASE_URL}/api/profiles/${user.prn}/image`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -2950,7 +2952,7 @@ export default function SuperAdminDashboard() {
 
       if (userProfile) {
         await axios.put(
-          `http://localhost:8080/api/profiles/${profileData.prn}`,
+          `${BASE_URL}/api/profiles/${profileData.prn}`,
           requestData,
           {
             headers: {
@@ -2961,7 +2963,7 @@ export default function SuperAdminDashboard() {
         );
       } else {
         await axios.post(
-          "http://localhost:8080/api/profiles",
+          `${BASE_URL}/api/profiles`,
           { ...requestData, prn: profileData.prn },
           {
             headers: {
@@ -2976,7 +2978,7 @@ export default function SuperAdminDashboard() {
         const formData = new FormData();
         formData.append("image", selectedImage);
         await axios.post(
-          `http://localhost:8080/api/profiles/${profileData.prn}/image`,
+          `${BASE_URL}/api/profiles/${profileData.prn}/image`,
           formData,
           {
             headers: {
@@ -3014,7 +3016,7 @@ export default function SuperAdminDashboard() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
+        `${BASE_URL}/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
         {},
         {
           headers: {

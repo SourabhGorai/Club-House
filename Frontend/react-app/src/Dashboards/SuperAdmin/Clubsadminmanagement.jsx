@@ -1,4 +1,4 @@
-// import { useState, useEffect } from "react";
+﻿// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 // import {
@@ -340,15 +340,15 @@
 //     try {
 //       const [adminsResponse, clubsResponse, deptsResponse] = await Promise.all([
 //         axios.get(
-//           "http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN",
+//           `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
 //           {
 //             headers: { Authorization: `Bearer ${token}` },
 //           },
 //         ),
-//         axios.get("http://localhost:8080/api/clubs", {
+//         axios.get(`${BASE_URL}/api/clubs`, {
 //           headers: { Authorization: `Bearer ${token}` },
 //         }),
-//         axios.get("http://localhost:8080/api/department", {
+//         axios.get(`${BASE_URL}/api/department`, {
 //           headers: { Authorization: `Bearer ${token}` },
 //         }),
 //       ]);
@@ -384,7 +384,7 @@
 //     const imagePromises = adminsWithImages.map(async (admin) => {
 //       try {
 //         const response = await axios.get(
-//           `http://localhost:8080${admin.imageUrl}`,
+//           `${BASE_URL}${admin.imageUrl}`,
 //           {
 //             headers: { Authorization: `Bearer ${token}` },
 //             responseType: "blob",
@@ -1102,6 +1102,7 @@ const customStyles = `
 // ----------------------------------------------------------------
 // Main Component
 // ----------------------------------------------------------------
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 const ClubAdminsManagement = () => {
   const navigate = useNavigate();
 
@@ -1144,13 +1145,13 @@ const ClubAdminsManagement = () => {
     setError(null);
     try {
       const [adminsResponse, clubsResponse, deptsResponse] = await Promise.all([
-        axios.get("http://localhost:8080/api/user-clubs/getAllByRole/CLUB_ADMIN", {
+        axios.get(`${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:8080/api/clubs", {
+        axios.get(`${BASE_URL}/api/clubs`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:8080/api/department", {
+        axios.get(`${BASE_URL}/api/department`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -1179,7 +1180,7 @@ const ClubAdminsManagement = () => {
       adminsWithImages.map(async (admin) => {
         try {
           const response = await axios.get(
-            `http://localhost:8080${admin.imageUrl}`,
+            `${BASE_URL}${admin.imageUrl}`,
             {
               headers: { Authorization: `Bearer ${token}` },
               responseType: "blob",

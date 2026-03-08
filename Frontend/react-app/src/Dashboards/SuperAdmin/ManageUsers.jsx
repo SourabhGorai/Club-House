@@ -742,7 +742,7 @@ import {
 // ----------------------------------------------------------------
 // CONSTANTS
 // ----------------------------------------------------------------
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 const PAGE_SIZE = 15;
 
 const authHeaders = (token) => ({

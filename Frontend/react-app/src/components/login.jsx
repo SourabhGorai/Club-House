@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
-  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  const API_BASE = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
   const [form, setForm] = useState({
     username: "",

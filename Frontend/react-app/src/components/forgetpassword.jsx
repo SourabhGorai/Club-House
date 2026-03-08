@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
 
@@ -21,7 +23,7 @@ export default function ForgotPassword() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/forgot-password",
+        `${BASE_URL}/api/auth/forgot-password`,
         { email }
       );
 
@@ -49,7 +51,7 @@ export default function ForgotPassword() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/reset-password",
+        `${BASE_URL}/api/auth/reset-password`,
         {
           email,
           otp,

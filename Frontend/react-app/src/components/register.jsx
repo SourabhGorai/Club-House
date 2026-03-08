@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
 export default function Register() {
   const navigate = useNavigate();
   
@@ -31,7 +33,7 @@ export default function Register() {
       console.log("Sending registration data:", form);
       
       const res = await axios.post(
-        "http://localhost:8080/api/auth/register",
+        `${BASE_URL}/api/auth/register`,
         form,
         {
           headers: { "Content-Type": "application/json" },
