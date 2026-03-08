@@ -208,7 +208,7 @@ services:
       - microservices-network
     depends_on:
       api-gateway:
-        condition: service_healthy
+        condition: service_started
     restart: unless-stopped
 
 # ========================================
