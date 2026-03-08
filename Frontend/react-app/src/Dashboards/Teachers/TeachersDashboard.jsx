@@ -20,6 +20,7 @@ import {
   ChevronRight,
   CheckCircle,
   AlertCircle,
+  Menu,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -62,6 +63,7 @@ export default function TeachersDashboard() {
   const [error, setError] = useState(null);
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "",
@@ -268,13 +270,57 @@ export default function TeachersDashboard() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-[#F8FAFC]">
-        {/* ===== SIDEBAR ===== */}
-        <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
-          <div className="flex items-center gap-3 mb-8">
+      <div className="min-h-screen bg-[#F8FAFC] flex relative">
+        {/* Mobile Header */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
+          >
+            <Menu size={24} className="text-gray-700" />
+          </button>
+          <div className="flex items-center space-x-2">
             <div
-              className="p-2 rounded-xl"
+              className="p-2 rounded-lg"
               style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+            >
+              <GraduationCap className="text-white w-5 h-5" />
+            </div>
+            <h2 className="text-xl font-black tracking-tight text-gray-800">
+              Teacher<span style={{ color: "#4CA1AF" }}>Hub</span>
+            </h2>
+          </div>
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-100"></div>
+        </div>
+
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* ===== SIDEBAR ===== */}
+        <aside className={`
+          fixed lg:sticky top-0 left-0 h-screen
+          w-80 sm:w-96 bg-white border-r border-gray-100
+          flex flex-col p-8 shadow-lg lg:shadow-sm
+          transition-transform duration-300 ease-in-out z-50
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          overflow-y-auto
+        `}>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+          >
+            <X size={20} className="text-gray-500" />
+          </button>
+
+          <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+            <div
+              className="p-2 rounded-xl shadow-lg"
+              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)", boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)" }}
             >
               <GraduationCap className="text-white w-7 h-7" />
             </div>
@@ -285,7 +331,7 @@ export default function TeachersDashboard() {
 
           {/* Profile Image */}
           <div className="relative group mx-auto mb-6">
-            <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
               {profileImage ? (
                 <img
                   src={profileImage}
@@ -308,7 +354,7 @@ export default function TeachersDashboard() {
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight">
               {profileData.fullName || user?.username}
             </h2>
             <span
@@ -397,7 +443,7 @@ export default function TeachersDashboard() {
         </aside>
 
         {/* ===== MAIN CONTENT ===== */}
-        <main className="flex-1 p-10 overflow-y-auto max-h-screen">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-h-screen lg:mt-0 mt-16">
 
           {/* ── Unverified banner ── */}
           {!currentUser.verified && (
@@ -420,21 +466,21 @@ export default function TeachersDashboard() {
             </div>
           )}
 
-          <header className="flex justify-between items-center mb-10">
+          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-10">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">
                 Dashboard
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Welcome back,{" "}
                 <span className="font-semibold" style={{ color: "#4CA1AF" }}>
                   Prof. {profileData.fullName || user?.username}
                 </span>
               </p>
             </div>
-            <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-bold uppercase tracking-widest">
+            <div className="flex items-center gap-2 sm:gap-3 bg-green-50 text-green-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-green-100">
+              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">
                 All Systems Live
               </span>
             </div>
@@ -451,8 +497,8 @@ export default function TeachersDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* Professor Control Center */}
-            <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
-              <div className="flex items-center gap-3 mb-10">
+            <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50 h-fit">
+              <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-10">
                 <div
                   className="w-1.5 h-10 rounded-full"
                   style={{ background: "linear-gradient(to bottom, #4CA1AF, #315169)" }}
@@ -511,10 +557,10 @@ export default function TeachersDashboard() {
             </section>
 
             {/* My Clubs */}
-            <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
+            <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50">
+              <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Clubs</h2>
                   <div className="h-[1px] w-16 bg-gray-100"></div>
                 </div>
                 <button
@@ -525,7 +571,7 @@ export default function TeachersDashboard() {
                   title={!currentUser.verified ? "Verify your email to refresh clubs" : ""}
                 >
                   <svg
-                    className={`w-4 h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
+                    className={`w-3 sm:w-4 h-3 sm:h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

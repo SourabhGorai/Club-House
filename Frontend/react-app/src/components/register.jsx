@@ -51,7 +51,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-4 overflow-hidden relative" 
+    <div className="min-h-screen w-screen flex items-center justify-center p-2 sm:p-3 sm:p-4 overflow-hidden relative" 
          style={{background: 'var(--primary-gradient)'}}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -64,11 +64,11 @@ export default function Register() {
       </div>
 
       <div className="w-full max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl md:rounded-[2.5rem] shadow-2xl overflow-hidden border"
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-2xl overflow-hidden border"
              style={{borderColor: 'var(--primary-color-1)20'}}>
-          <div className="flex flex-col md:flex-row min-h-[85vh]">
+          <div className="flex flex-col md:flex-row min-h-screen sm:min-h-[85vh]">
             {/* Left Side - Register Form */}
-            <div className="w-full md:w-1/2 p-8 lg:p-12 flex flex-col justify-center relative">
+            <div className="w-full md:w-1/2 px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-6 lg:py-8 flex flex-col justify-center relative">
               {/* Decorative corner accent */}
               <div className="absolute top-0 left-0 w-32 h-32 rounded-br-3xl -translate-x-2 -translate-y-2"
                    style={{background: 'var(--primary-gradient)'}}></div>
@@ -77,24 +77,24 @@ export default function Register() {
               
               <div className="relative z-10">
                 {/* Logo/Brand */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center"
                        style={{background: 'var(--primary-gradient)'}}>
-                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 sm:w-6 h-5 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
+                  <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
                     SecureSignup
                   </span>
                 </div>
 
-                <div className="mb-6">
-                  <p className="text-sm font-semibold tracking-wider uppercase mt-8"
+                <div className="mb-4 sm:mb-6">
+                  <p className="text-[10px] sm:text-sm font-semibold tracking-wider uppercase mt-4 sm:mt-6"
                      style={{color: 'var(--primary-color-1)'}}>
-                    Create your account !!!
+                    Create your account
                   </p>
-                  <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mt-2">
+                  <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 sm:mt-3">
                     Join Our
                     <span className="block bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
                       Community
@@ -333,7 +333,7 @@ export default function Register() {
             </div>
 
             {/* Right Side - Visual */}
-            <div className="hidden md:flex md:w-1/2 relative overflow-hidden"
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
                  style={{background: 'var(--primary-gradient)'}}>
               {/* Floating elements */}
               <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>

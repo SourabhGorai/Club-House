@@ -19,6 +19,7 @@ import {
   CheckCircle,
   AlertCircle,
   AlertTriangle,
+  Menu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -38,6 +39,7 @@ export default function UsersDashboard() {
     phoneNumber: "",
   });
   const [selectedImage, setSelectedImage] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [userProfile, setUserProfile] = useState(null);
@@ -368,13 +370,57 @@ export default function UsersDashboard() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-[#F8FAFC]">
-        {/* SIDEBAR */}
-        <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
-          <div className="flex items-center gap-3 mb-8">
+      <div className="min-h-screen bg-[#F8FAFC] flex relative">
+        {/* Mobile Header */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
+          >
+            <Menu size={24} className="text-gray-700" />
+          </button>
+          <div className="flex items-center space-x-2">
             <div
-              className="p-2 rounded-xl"
+              className="p-2 rounded-lg"
               style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+            >
+              <LayoutDashboard className="text-white w-5 h-5" />
+            </div>
+            <h2 className="text-xl font-black tracking-tight text-gray-800">
+              User<span style={{ color: "#4CA1AF" }}>Portal</span>
+            </h2>
+          </div>
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-100"></div>
+        </div>
+
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* SIDEBAR */}
+        <aside className={`
+          fixed lg:sticky top-0 left-0 h-screen
+          w-80 sm:w-96 bg-white border-r border-gray-100
+          flex flex-col p-8 shadow-lg lg:shadow-sm
+          transition-transform duration-300 ease-in-out z-50
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          overflow-y-auto
+        `}>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+          >
+            <X size={20} className="text-gray-500" />
+          </button>
+
+          <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+            <div
+              className="p-2 rounded-xl shadow-lg"
+              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)", boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)" }}
             >
               <LayoutDashboard className="text-white w-7 h-7" />
             </div>
@@ -385,7 +431,7 @@ export default function UsersDashboard() {
 
           {/* Profile Image Section */}
           <div className="relative group mx-auto mb-6">
-            <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
               {profileImage ? (
                 <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -404,11 +450,11 @@ export default function UsersDashboard() {
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight">
               {profileData.fullName || user?.username}
             </h2>
             <span
-              className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
+              className="mt-2 inline-block text-[9px] sm:text-[10px] font-black px-3 sm:px-4 py-1 sm:py-1.5 rounded-full uppercase tracking-widest"
               style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
             >
               {user?.role || "USER"}
@@ -422,12 +468,12 @@ export default function UsersDashboard() {
             <SidebarInfoBox label="PRN / ID" value={profileData.prn} />
 
             {/* Email field with edit and verify buttons */}
-            <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-              <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+            <div className="p-3 sm:p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
+              <p className="text-[8px] sm:text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
                 Email
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700 font-bold text-sm truncate pr-2">
+                <span className="text-gray-700 font-bold text-xs sm:text-sm truncate pr-2">
                   {currentUser.email}
                 </span>
                 <div className="flex gap-1">
