@@ -2615,7 +2615,7 @@ export default function SuperAdminDashboard() {
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
-  const [clubAdmins, setCount] = useState({});
+  const [clubAdmins, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -2654,11 +2654,19 @@ export default function SuperAdminDashboard() {
   const closeConfirm = () =>
     setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
+  // useEffect(() => {
+  //   fetchUserCount();
+  //   fetchAllData();
+  //   fetchUserProfile();
+  // }, []);
+
   useEffect(() => {
+  if(token){
     fetchUserCount();
     fetchAllData();
     fetchUserProfile();
-  }, []);
+  }
+}, [token]);
 
   const fetchUserCount = async () => {
     try {
@@ -2856,24 +2864,54 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  // const fetchProfileImage = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `http://localhost:8080/api/profiles/${user?.prn}/image`,
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //         responseType: "blob",
+  //       },
+  //     );
+  //     if (response.data) {
+  //       setImagePreview(URL.createObjectURL(response.data));
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching profile image:", error);
+  //     setImagePreview(null);
+  //   }
+  // };
   const fetchProfileImage = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/profiles/${user?.prn}/image`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: "blob",
-        },
-      );
-      if (response.data) {
-        setImagePreview(URL.createObjectURL(response.data));
-      }
-    } catch (error) {
-      console.error("Error fetching profile image:", error);
-      setImagePreview(null);
-    }
-  };
+  if (!token || !user?.prn) return;
 
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/api/profiles/${user.prn}/image`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+      }
+    );
+
+    if (response.status === 200) {
+      const imageUrl = URL.createObjectURL(response.data);
+      setImagePreview(imageUrl);
+    }
+
+  } catch (error) {
+    if (error.response?.status === 404) {
+      console.log("No profile image uploaded yet");
+    } else if (error.response?.status === 401) {
+      console.log("Unauthorized request. Token missing or expired.");
+    } else {
+      console.error("Error fetching profile image:", error);
+    }
+
+    setImagePreview(null);
+  }
+};
   const handleVerificationRedirect = () => {
     localStorage.setItem("verificationEmail", currentUser.email);
     localStorage.setItem("verificationPRN", currentUser.prn);
@@ -3092,14 +3130,25 @@ export default function SuperAdminDashboard() {
             className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
             style={{ borderColor: PRIMARY_LIGHT }}
           >
-            <img
+            {/* <img
               src={
                 imagePreview ||
                 `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
               }
               alt="Profile"
               className="w-full h-full object-cover"
-            />
+            /> */}
+            <img
+  src={
+    imagePreview ||
+    `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
+  }
+  onError={(e)=>{
+    e.target.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4CA1AF&color=fff`;
+  }}
+  alt="Profile"
+  className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
+/>
           </div>
         </div>
 

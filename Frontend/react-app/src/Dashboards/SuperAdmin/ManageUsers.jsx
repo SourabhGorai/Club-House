@@ -818,14 +818,94 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   );
 };
 
+// const RoleEditModal = ({ isOpen, onClose, user, currentRole, onSave, isUpdating }) => {
+//   const [selectedRole, setSelectedRole] = useState(currentRole);
+  
+//   const roleOptions = [
+//     { value: "USERS", label: "User", bgClass: "bg-blue-400" },
+//     { value: "TEACHERS", label: "Teacher", bgClass: "bg-teal-400" },
+//     // { value: "SUPER_ADMIN", label: "Super Admin", color: "bg-purple-600", bgClass: "bg-purple-600" },
+//   ];
+
+//   if (!isOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-md">
+//       <div className="bg-white rounded-xl shadow-lg shadow-[#4CA1AF]/30 p-6 w-11/12 max-w-md">
+//         <h3 className="font-bold text-xl mb-3" style={{ color: "#4CA1AF" }}>
+//           Change User Role
+//         </h3>
+        
+//         <p className="text-gray-600 mb-4">
+//           Changing role for: <span className="font-semibold">{user?.username || user?.prn}</span>
+//         </p>
+
+//         <div className="space-y-3 mb-6">
+//           {roleOptions.map((role) => (
+//             <label
+//               key={role.value}
+//               className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+//                 selectedRole === role.value
+//                   ? "border-[#4CA1AF] bg-[#4CA1AF]/5"
+//                   : "border-gray-200 hover:border-gray-300"
+//               }`}
+//             >
+//               <input
+//                 type="radio"
+//                 name="role"
+//                 value={role.value}
+//                 checked={selectedRole === role.value}
+//                 onChange={(e) => setSelectedRole(e.target.value)}
+//                 className="w-4 h-4 text-[#4CA1AF] focus:ring-[#4CA1AF]"
+//               />
+//               <span className="ml-3 flex-1">
+//                 <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${role.bgClass}`}>
+//                   {role.label}
+//                 </span>
+//               </span>
+//             </label>
+//           ))}
+//         </div>
+
+//         <div className="flex justify-end space-x-3">
+//           <button
+//             onClick={onClose}
+//             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition cursor-pointer"
+//             disabled={isUpdating}
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             onClick={() => onSave(selectedRole)}
+//             disabled={selectedRole === currentRole || isUpdating}
+//             className="px-6 py-2 text-sm font-medium rounded-full text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+//             style={{
+//               background: "linear-gradient(135deg, #4CA1AF, #315169)",
+//               opacity: selectedRole === currentRole || isUpdating ? 0.5 : 1
+//             }}
+//           >
+//             {isUpdating ? "Updating..." : "Update Role"}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 const RoleEditModal = ({ isOpen, onClose, user, currentRole, onSave, isUpdating }) => {
   const [selectedRole, setSelectedRole] = useState(currentRole);
   
+  // Filter out SUPER_ADMIN from role options
   const roleOptions = [
     { value: "USERS", label: "User", bgClass: "bg-blue-400" },
     { value: "TEACHERS", label: "Teacher", bgClass: "bg-teal-400" },
-    // { value: "SUPER_ADMIN", label: "Super Admin", color: "bg-purple-600", bgClass: "bg-purple-600" },
   ];
+
+  // Set the selected role when currentRole changes
+  useEffect(() => {
+    if (currentRole) {
+      setSelectedRole(currentRole);
+    }
+  }, [currentRole]);
 
   if (!isOpen) return null;
 
@@ -891,7 +971,6 @@ const RoleEditModal = ({ isOpen, onClose, user, currentRole, onSave, isUpdating 
     </div>
   );
 };
-
 const FilterModal = ({ isOpen, onClose, departments, selectedDept, selectedYear, selectedRole, prnSearch, onDeptChange, onYearChange, onRoleChange, onPrnSearch, onResetFilters }) => {
   if (!isOpen) return null;
   const roles = [
@@ -1483,7 +1562,7 @@ const UserManagement = () => {
                             </div>
                           </div>
 
-                          {/* Card back */}
+                          {/* Card back
                           <div className="card-face card-back text-white p-6 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center gap-3 mb-4">
@@ -1532,7 +1611,60 @@ const UserManagement = () => {
                                 <Trash2 className="w-4 h-4 mr-1" /> Remove
                               </button>
                             </div>
-                          </div>
+                          </div> */}
+                          {/* Card back */}
+<div className="card-face card-back text-white p-6 flex flex-col justify-between">
+  <div>
+    <div className="flex items-center gap-3 mb-4">
+      <User className="w-6 h-6" />
+      <span className="font-display font-semibold text-2xl">{userItem.prn || "N/A"}</span>
+    </div>
+    <div className="text-sm space-y-3">
+      <div className="flex items-center gap-3">
+        <Mail className="w-4 h-4 text-[#2DD4BF]" />
+        <span className="truncate">{userItem.email}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <Phone className="w-4 h-4 text-[#FB923C]" />
+        <span>{profile?.phoneNumber || "No contact info"}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <BookOpen className="w-4 h-4 text-white/90" />
+        <span>{profile?.department || "—"}</span>
+        <Calendar className="w-4 h-4 ml-4 text-white/90" />
+        <span>Year: {profile?.year || "—"}</span>
+      </div>
+      <div className="flex items-center gap-3 pt-2">
+        <Briefcase className="w-4 h-4 text-white/90" />
+        <span className="px-3 py-1 text-xs rounded-full bg-white font-semibold" style={{ color: "#4CA1AF" }}>
+          {userItem.role?.replace("_", " ") || "STANDARD USER"}
+        </span>
+      </div>
+    </div>
+  </div>
+  <div className="flex justify-center mt-6 gap-2">
+    {/* Only show Edit Role button if user is NOT SUPER_ADMIN */}
+    {userItem.role !== "SUPER_ADMIN" && (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setUserToEdit(userItem);
+          setSelectedNewRole(userItem.role);
+          setIsRoleModalOpen(true);
+        }}
+        className="px-3 py-2 bg-[#4CA1AF] text-white rounded-full text-sm font-medium hover:bg-[#3d8a97] transition flex items-center shadow-md shadow-[#4CA1AF]/30 min-w-[100px] justify-center cursor-pointer"
+      >
+        <User className="w-4 h-4 mr-1" /> Edit Role
+      </button>
+    )}
+    <button
+      onClick={(e) => { e.stopPropagation(); confirmDelete(userItem); }}
+      className="px-3 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition flex items-center shadow-md shadow-red-500/30 min-w-[100px] justify-center cursor-pointer"
+    >
+      <Trash2 className="w-4 h-4 mr-1" /> Remove
+    </button>
+  </div>
+</div>
                         </div>
                       </div>
                     );

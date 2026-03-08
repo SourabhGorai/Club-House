@@ -5,6 +5,10 @@
   --primary-gradient: linear-gradient(135deg, #4CA1AF, #315169);
   --primary-color-1: #4CA1AF;
   --primary-color-2: #315169;
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+  --safe-area-inset-right: env(safe-area-inset-right);
 }
 
 /* Apply gradient to body */
@@ -12,6 +16,23 @@ body {
   background: var(--primary-gradient);
   min-height: 100vh;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-top: var(--safe-area-inset-top);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Mobile base font size */
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 16px;
+  }
 }
 
 /* Animations */
@@ -103,6 +124,99 @@ body {
   animation-delay: 4s;
 }
 
-.animation-delay-4000 {
-  animation-delay: 4s;
+/* Mobile Responsive Utilities */
+
+/* Responsive Typography */
+.title-responsive {
+  @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+}
+
+.subtitle-responsive {
+  @apply text-base sm:text-lg md:text-xl;
+}
+
+/* Responsive Spacing */
+.container-responsive {
+  @apply p-3 sm:p-4 md:p-6 lg:p-8;
+}
+
+.gap-responsive {
+  @apply gap-2 sm:gap-3 md:gap-4 lg:gap-6;
+}
+
+.card-responsive {
+  @apply p-3 sm:p-4 md:p-6;
+}
+
+/* Mobile-first form styling */
+input, textarea, select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Ensure touch targets are at least 44x44px */
+button, a[role="button"], input[type="button"], input[type="submit"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Mobile-friendly backdrop blur */
+.backdrop-blur-mobile {
+  @apply backdrop-blur-sm;
+}
+
+@media (min-width: 768px) {
+  .backdrop-blur-mobile {
+    @apply backdrop-blur-xl;
+  }
+}
+
+/* Responsive grid for cards */
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+}
+
+/* Hide scrollbar width for mobile */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+}
+
+/* Responsive flex direction */
+.flex-responsive {
+  @apply flex flex-col sm:flex-row;
+}
+
+/* Responsive padding adjustments */
+.px-responsive {
+  @apply px-2 sm:px-3 md:px-4 lg:px-6;
+}
+
+.py-responsive {
+  @apply py-2 sm:py-3 md:py-4 lg:py-6;
+}
+
+/* Mobile optimized shadows */
+.shadow-responsive {
+  @apply shadow-sm md:shadow-lg;
+}
+
+/* Safe area padding for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

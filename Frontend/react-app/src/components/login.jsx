@@ -51,7 +51,7 @@ export default function Login() {
 
   return (
     <div
-      className="h-screen w-screen flex items-center justify-center p-3 overflow-hidden relative"
+      className="min-h-screen w-screen flex items-center justify-center p-2 sm:p-3 overflow-hidden relative"
       style={{ background: "var(--primary-gradient)" }}
     >
       {/* Background decorative elements */}
@@ -70,17 +70,18 @@ export default function Login() {
         ></div>
       </div>
 
-      <div className="w-full max-w-6xl h-full max-h-[98vh] mx-auto relative z-10 flex items-center">
+      <div className="w-full max-w-6xl h-full max-h-screen mx-auto relative z-10 flex items-center">
         <div
-          className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border w-full"
+          className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border w-full"
           style={{
             borderColor: "var(--primary-color-1)20",
-            height: "min(95vh, 700px)",
+            height: "auto",
+            minHeight: "min(95vh, 600px)",
           }}
         >
           <div className="flex flex-col md:flex-row h-full">
             {/* Left Side - Login Form */}
-            <div className="w-full md:w-1/2 px-6 py-4 lg:px-10 lg:py-6 flex flex-col justify-center relative overflow-hidden">
+            <div className="w-full md:w-1/2 px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-6 lg:py-8 flex flex-col justify-center relative overflow-hidden">
               {/* Decorative corner accent */}
               <div
                 className="absolute top-0 left-0 w-24 h-24 rounded-br-3xl -translate-x-2 -translate-y-2"
@@ -117,31 +118,31 @@ export default function Login() {
                   </span>
                 </div>
 
-                <div className="mb-6 space-y-8">
+                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
                   <p
-                    className="text-xs font-semibold tracking-wider uppercase"
+                    className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase"
                     style={{ color: "var(--primary-color-1)" }}
                   >
-                    Welcome back !!!
+                    Welcome back
                   </p>
 
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                     Log In to Your{" "}
                     <span className="bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
                       Account
                     </span>
                   </h1>
 
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-gray-500 text-xs sm:text-sm">
                     Enter your credentials to access your dashboard
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                   {/* Username Field */}
                   <div>
                     <label
-                      className="block text-xs font-semibold mb-1"
+                      className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2"
                       style={{ color: "var(--primary-color-1)" }}
                     >
                       Username
@@ -169,7 +170,7 @@ export default function Login() {
                         placeholder="Enter your username"
                         value={form.username}
                         onChange={handleChange}
-                        className="w-full pl-9 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-sm"
+                        className="w-full pl-9 pr-4 py-3 sm:py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-sm"
                         required
                       />
                     </div>
@@ -177,9 +178,9 @@ export default function Login() {
 
                   {/* Password Field */}
                   <div>
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-center mb-1 sm:mb-2">
                       <label
-                        className="block text-xs font-semibold"
+                        className="block text-xs sm:text-sm font-semibold"
                         style={{ color: "var(--primary-color-1)" }}
                       >
                         Password
@@ -187,10 +188,10 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => navigate("/reset-password")}
-                        className="text-xs font-medium transition-colors"
+                        className="text-[10px] sm:text-xs font-medium transition-colors"
                         style={{ color: "var(--primary-color-1)" }}
                       >
-                        Forgot Password?
+                        Forgot?
                       </button>
                     </div>
                     <div className="relative">
@@ -269,7 +270,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed mt-1"
+                    className="w-full py-3 sm:py-4 px-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed mt-2 sm:mt-4"
                     style={{ background: "var(--primary-gradient)" }}
                   >
                     {isLoading ? (
@@ -302,15 +303,15 @@ export default function Login() {
                   </button>
 
                   {/* Sign Up Link */}
-                  <p className="text-center text-xs text-gray-600 pt-2 border-t border-gray-100">
+                  <p className="text-center text-xs sm:text-sm text-gray-600 pt-3 sm:pt-4 border-t border-gray-100">
                     Don't have an account yet?{" "}
                     <button
                       onClick={handleSigninClick}
                       type="button"
-                      className="font-semibold transition-colors hover:underline"
+                      className="font-semibold transition-colors hover:underline whitespace-nowrap"
                       style={{ color: "var(--primary-color-1)" }}
                     >
-                      Create an account
+                      Create account
                     </button>
                   </p>
                 </form>
@@ -319,7 +320,7 @@ export default function Login() {
 
             {/* Right Side - Visual */}
             <div
-              className="hidden md:flex md:w-1/2 relative overflow-hidden"
+              className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
               style={{ background: "var(--primary-gradient)" }}
             >
               {/* Floating blobs */}
