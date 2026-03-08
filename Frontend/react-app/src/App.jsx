@@ -14,7 +14,7 @@ import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyCl
 import MyEvents from "./components/MyEvents";
 
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
-import CreateEvent from "./Dashboards/SuperAdmin/createEvent"; 
+import CreateEvent from "./components/CreateEvent";
 import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 import ClubDetails from "./components/ClubDetails";
 import PreviousEvents from "./Dashboards/Users/PreviousEvents";
