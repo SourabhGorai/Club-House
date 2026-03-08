@@ -41,8 +41,8 @@ services:
   api-gateway:
     image: ${API_GATEWAY_IMAGE}
     container_name: api-gateway
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
       - SECRET_KEY=${SECRET_KEY}
