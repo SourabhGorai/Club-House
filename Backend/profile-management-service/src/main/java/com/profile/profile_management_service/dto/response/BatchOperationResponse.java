@@ -5,13 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BatchOperationResponse {
+public class BatchOperationResponse implements Serializable {
 
     private Integer totalRequests;
     private Integer successCount;

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
@@ -26,7 +27,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_attendance_status", columnList = "status")
     }
 )
-public class Attendance {
+public class Attendance implements Serializable {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

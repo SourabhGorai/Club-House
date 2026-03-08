@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttendanceResponse {
+public class AttendanceResponse implements Serializable {
     
     private Long attendanceId;
     private Long eventId;

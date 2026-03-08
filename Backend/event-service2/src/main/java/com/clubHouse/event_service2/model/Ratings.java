@@ -9,12 +9,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Ratings {
+public class Ratings implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

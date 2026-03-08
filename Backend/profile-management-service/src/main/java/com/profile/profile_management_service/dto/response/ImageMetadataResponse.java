@@ -5,13 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ImageMetadataResponse {
+public class ImageMetadataResponse implements Serializable {
 
     private String prn;
     private Boolean hasImage;

@@ -6,12 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Builder
 @JsonInclude
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompleteEnrollmentResponse {
+public class CompleteEnrollmentResponse implements Serializable {
 
     private Long enrollmentId;
     private String prn;

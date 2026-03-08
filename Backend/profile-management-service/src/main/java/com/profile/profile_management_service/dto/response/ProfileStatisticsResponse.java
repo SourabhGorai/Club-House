@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProfileStatisticsResponse {
+public class ProfileStatisticsResponse implements Serializable {
 
     private Long totalProfiles;
     private Long activeProfiles;

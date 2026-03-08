@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProfileExistenceResponse {
+public class ProfileExistenceResponse implements Serializable {
 
     private String prn;
 //    private Long userId;

@@ -7,13 +7,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "target_data")
-public class TargetData {
+public class TargetData implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

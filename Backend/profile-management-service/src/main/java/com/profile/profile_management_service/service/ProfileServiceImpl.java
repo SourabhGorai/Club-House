@@ -336,7 +336,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "profileImage", key = "#prn", unless = "#result == null")
+//    @Cacheable(value = "profileImage", key = "#prn", unless = "#result == null")
     public byte[] getProfileImage(String prn) {
         log.debug("Fetching profile image for PRN: {} (cache miss)", prn);
 

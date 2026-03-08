@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,12 +15,12 @@ import lombok.NoArgsConstructor;
 @Data
 @Table(
         indexes = {
-                @Index(name = "idx_target_type", columnList = "targetType"),
-                @Index(name = "idx_target_value", columnList = "targetValue"),
-                @Index(name = "idx_target_type_value", columnList = "targetType, targetValue")
+                @Index(name = "idx_target_type", columnList = "target_type"),
+                @Index(name = "idx_target_id", columnList = "target_id"),
+                @Index(name = "idx_target_type_id", columnList = "target_type, target_id")
         }
 )
-public class NotificationTargets {
+public class NotificationTargets implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

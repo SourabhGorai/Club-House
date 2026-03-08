@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,7 +26,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_prn", columnList = "prn")
         }
 )
-public class EventEnrollment {
+public class EventEnrollment implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

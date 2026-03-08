@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity(name = "user_seen_notification")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,7 +21,7 @@ import lombok.NoArgsConstructor;
                 @Index(name = "idx_seen_prn", columnList = "prn")
         }
 )
-public class UserSeenNotification {
+public class UserSeenNotification implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

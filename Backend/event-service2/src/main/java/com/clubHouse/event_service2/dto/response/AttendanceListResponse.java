@@ -5,13 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttendanceListResponse {
+public class AttendanceListResponse implements Serializable {
     
     private Long eventId;
     private String eventTitle;

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_notification_created", columnList = "createdAt")
         }
 )
-public class Notification {
+public class Notification implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

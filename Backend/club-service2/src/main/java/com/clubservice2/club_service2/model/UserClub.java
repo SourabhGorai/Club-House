@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "user_clubs2",
         uniqueConstraints = {
@@ -21,7 +23,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserClub {
+public class UserClub implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -4,11 +4,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ValidationError {
+public class ValidationError implements Serializable {
 
     private String field;
     private String message;

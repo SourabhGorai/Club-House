@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
@@ -67,7 +68,7 @@ import java.time.LocalDateTime;
                         columnList = "eventCreator, isCompleted"),
         }
 )
-public class Events {
+public class Events implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

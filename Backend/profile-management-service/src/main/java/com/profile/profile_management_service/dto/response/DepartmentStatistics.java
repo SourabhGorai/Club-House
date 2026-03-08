@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DepartmentStatistics {
+public class DepartmentStatistics implements Serializable {
 
     /**
      * Map of departmentId to number of profiles in that department

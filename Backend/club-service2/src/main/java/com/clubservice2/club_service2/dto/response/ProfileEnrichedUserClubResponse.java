@@ -6,12 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProfileEnrichedUserClubResponse {
+public class ProfileEnrichedUserClubResponse implements Serializable {
     // User-Club association fields
     private Long userClubId;
     private String prn;

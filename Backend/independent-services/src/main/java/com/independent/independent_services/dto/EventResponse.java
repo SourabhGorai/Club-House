@@ -3,9 +3,11 @@ package com.independent.independent_services.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
+import java.io.Serializable;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
-public class EventResponse {
+public class EventResponse implements Serializable {
 
     private Long eventId;
 

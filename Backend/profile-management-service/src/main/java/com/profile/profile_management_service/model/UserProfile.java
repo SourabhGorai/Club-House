@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -29,7 +30,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserProfile {
+public class UserProfile implements Serializable {
 
     @Id
     @Column(nullable = false, unique = true, length = 20)

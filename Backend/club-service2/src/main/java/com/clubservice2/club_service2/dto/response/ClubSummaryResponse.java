@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClubSummaryResponse {
+public class ClubSummaryResponse implements Serializable {
     private Long clubId;
     private String clubName;
 }

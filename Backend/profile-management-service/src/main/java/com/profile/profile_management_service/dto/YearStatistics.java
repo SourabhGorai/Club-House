@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class YearStatistics {
+public class YearStatistics implements Serializable {
 
     private java.util.Map<Integer, Long> profilesByYear;
 }

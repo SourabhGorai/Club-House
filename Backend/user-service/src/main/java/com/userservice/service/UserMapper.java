@@ -19,6 +19,7 @@ public class UserMapper {
                 .email(u.getEmail())
                 .role(u.getRole())
                 .verified(u.isVerified())
+                .profileCompleted(u.isProfileCompleted())
                 .build();
     }
 

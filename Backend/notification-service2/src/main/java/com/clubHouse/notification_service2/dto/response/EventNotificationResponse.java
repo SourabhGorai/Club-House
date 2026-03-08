@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -14,7 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventNotificationResponse {
+public class EventNotificationResponse implements Serializable {
 
     private Long notificationId;
 

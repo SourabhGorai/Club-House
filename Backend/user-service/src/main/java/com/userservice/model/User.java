@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,7 +41,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements Serializable {
     @Id
     @Column(nullable = false, unique = true, length = 20)
     @NotBlank(message = "PRN is required")

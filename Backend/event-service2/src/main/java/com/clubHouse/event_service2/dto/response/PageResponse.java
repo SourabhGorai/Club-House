@@ -6,13 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageResponse<T> {
+public class PageResponse<T> implements Serializable {
 
     private List<T> content;
     private int pageNumber;       // current page (0-indexed)

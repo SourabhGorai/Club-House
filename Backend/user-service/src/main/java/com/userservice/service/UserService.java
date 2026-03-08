@@ -76,6 +76,7 @@ public class UserService {
     @Cacheable(value = "userByPrn", key = "#prn", unless = "#result == null")
     public UserDto getUserByPrn(String prn) {
         log.debug("Fetching user by PRN: {} from database (cache miss)", prn);
+//        log.info("{}", userRepository.findByPrn(prn));
         return userRepository.findByPrn(prn)
                 .map(mapper::toDto)
                 .orElse(null);

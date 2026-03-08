@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import lombok.AllArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 @Data
-public class EventResponse {
+public class EventResponse implements Serializable {
 
     private Long eventId;
 
