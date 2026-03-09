@@ -38,18 +38,19 @@ spring:
       redis:
         time-to-live: 600000 # 10 min
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.value}
-
 #eureka:
 #  client:
 #    service-url:
-#      defaultZone: http://eureka:8761/eureka/
+#      defaultZone: http://localhost:8761/eureka/
+#  instance:
+#    prefer-ip-address: true
+#    instance-id: ${spring.application.name}:${random.value}
+
+# --------------------PRODUCTION--------------------
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:8761/eureka/
 
 logging:
   level:
