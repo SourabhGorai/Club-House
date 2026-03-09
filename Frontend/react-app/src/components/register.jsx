@@ -12,7 +12,7 @@ export default function Register() {
     username: "",
     password: "",
     email: "",
-    role: "",
+    role: "USERS",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +41,13 @@ export default function Register() {
       );
 
       console.log("Registration response:", res.data);
+
+      // Store verification data so the OTP page can read it
+      localStorage.setItem("verificationEmail", form.email);
+      localStorage.setItem("verificationPRN", form.prn);
+      localStorage.setItem("verificationMode", "regular");
+      localStorage.setItem("verificationReturnUrl", "/");
+
       alert("Registration Successful!");
       navigate("/otp");
     } catch (err) {
@@ -233,42 +240,6 @@ export default function Register() {
                           </svg>
                         )}
                       </button>
-                    </div>
-                  </div>
-
-                  {/* Role Select Field */}
-                  <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
-                           style={{color: 'var(--primary-color-1)'}}>
-                      Role
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 transition-colors" 
-                             style={{color: 'var(--primary-color-1)'}} 
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                      </div>
-                      <select
-                        name="role"
-                        value={form.role}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-4 transition-all duration-300 appearance-none text-gray-800 shadow-sm"
-                        style={{focusRing: 'var(--primary-color-1)20'}}
-                        required
-                      >
-                        <option value="" disabled>Select your role</option>
-                        <option value="USERS">USERS</option>
-                        {/* <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                        <option value="TEACHERS">TEACHERS</option>
-                        <option value="CLUB_ADMIN">CLUB_ADMIN</option> */}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
 

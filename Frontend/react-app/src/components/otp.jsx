@@ -309,6 +309,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "./ConfirmDialog";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -323,6 +324,11 @@ export default function OTP() {
   const [prn, setPrn] = useState("");
   const [oldEmail, setOldEmail] = useState("");
   const [returnUrl, setReturnUrl] = useState("/");
+  const [dialog, setDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", onConfirm: null });
+
+  const closeDialog = () => setDialog((d) => ({ ...d, isOpen: false }));
+  const showDialog = (title, message, variant = "primary", onConfirm = null) =>
+    setDialog({ isOpen: true, title, message, variant, onConfirm: onConfirm || closeDialog });
 
   useEffect(() => {
     // Get stored verification data from localStorage
@@ -354,6 +360,7 @@ export default function OTP() {
     setIsLoading(true);
 
     try {
+      console.log("Submitting OTP verification with data:", { email, otp, verificationMode, prn });
       const response = await axios.post(
         `${BASE_URL}/api/auth/verify-otp`,
         { email, otp }
@@ -413,14 +420,14 @@ export default function OTP() {
         localStorage.removeItem("verificationMode");
         localStorage.removeItem("verificationReturnUrl");
 
-        alert("OTP Verified Successfully!");
-        
-        // Navigate to the return URL or default dashboard
-        navigate(returnUrl);
+        showDialog("Verified!", "OTP verified successfully.", "primary", () => {
+          closeDialog();
+          navigate(returnUrl);
+        });
         console.log(response.data);
       }
     } catch (err) {
-      alert("Invalid OTP ❌ Please try again!");
+      showDialog("Invalid OTP", "The code you entered is incorrect. Please try again.", "danger");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -429,7 +436,7 @@ export default function OTP() {
 
   const handleResendOTP = async () => {
     if (!email) {
-      alert("Please enter your email first");
+      showDialog("Email Required", "Please enter your email address before resending the OTP.", "danger");
       return;
     }
 
@@ -439,10 +446,10 @@ export default function OTP() {
         `${BASE_URL}/api/auth/forgot-password`,
         { email }
       );
-      alert("OTP resent successfully!");
+      showDialog("OTP Sent", "A new OTP has been sent to your email.", "primary");
       console.log(response.data);
     } catch (err) {
-      alert("Failed to resend OTP! Please try again.");
+      showDialog("Failed to Resend", "Could not resend OTP. Please try again.", "danger");
       console.error(err);
     } finally {
       setResendLoading(false);
@@ -450,6 +457,17 @@ export default function OTP() {
   };
 
   return (
+    <>
+    <ConfirmDialog
+      isOpen={dialog.isOpen}
+      title={dialog.title}
+      message={dialog.message}
+      variant={dialog.variant}
+      confirmText="OK"
+      cancelText="Dismiss"
+      onConfirm={dialog.onConfirm}
+      onCancel={closeDialog}
+    />
     <div className="min-h-screen w-screen flex items-center justify-center p-4 overflow-hidden relative"
          style={{background: 'var(--primary-gradient)'}}>
       {/* Background decorative elements */}
@@ -506,8 +524,30 @@ export default function OTP() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Email Field - Hidden since we already have it from localStorage */}
-                  <input type="hidden" value={email} />
+                  {/* Email Field */}
+                  <div className="group">
+                    <label className="block text-sm font-semibold mb-2 transition-colors"
+                           style={{color: 'var(--primary-color-1)'}}>
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5" style={{color: 'var(--primary-color-1)'}}
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="email"
+                        placeholder="Enter your registered email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-10 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:ring-4 transition-all duration-300 placeholder-gray-400 shadow-sm"
+                        required
+                      />
+                    </div>
+                  </div>
 
                   {/* OTP Field */}
                   <div className="group">
@@ -656,5 +696,6 @@ export default function OTP() {
         </div>
       </div>
     </div>
+    </>
   );
 }
