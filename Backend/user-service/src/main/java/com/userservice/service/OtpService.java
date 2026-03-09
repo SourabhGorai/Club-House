@@ -45,7 +45,7 @@ public class OtpService {
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
         userRepository.save(user);
-        sendOtpEmail(email, otp, OTP_EXPIRY_MINUTES);
+//        sendOtpEmail(email, otp, OTP_EXPIRY_MINUTES);
         log.info("Generated and sent OTP for email: {}", email);
     }
 
@@ -64,7 +64,7 @@ public class OtpService {
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
         userRepository.save(user);
-        sendOtpEmail(user.getEmail(), otp, OTP_EXPIRY_MINUTES);
+//        sendOtpEmail(user.getEmail(), otp, OTP_EXPIRY_MINUTES);
         log.info("Generated and sent OTP for user: {}", user.getUsername());
     }
 
