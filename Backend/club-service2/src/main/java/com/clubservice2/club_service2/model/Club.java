@@ -32,7 +32,7 @@ public class Club implements Serializable {
     private String clubName;
 
     @NotBlank(message = "Club description required")
-    @Size(min = 2, max = 100, message = "Club description must be between 2 to 100 characters")
+    @Size(min = 2, max = 200, message = "Club description must be between 2 to 100 characters")
     @Column(name = "club_desc", nullable = false)
     private String clubDesc;
 

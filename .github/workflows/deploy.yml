@@ -25,7 +25,7 @@ name: CI/CD — Build, Push & Deploy
 
 on:
   push:
-    branches: [main,redis]
+    branches: [production]
   workflow_dispatch:
 
 jobs:
