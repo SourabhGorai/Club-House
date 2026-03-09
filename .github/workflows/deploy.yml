@@ -53,6 +53,8 @@ jobs:
             context: ./Backend/independent-services
           - name: event-service
             context: ./Backend/event-service2
+          - name: notification-service
+            context: ./Backend/notification-service2
 
     steps:
       - name: Checkout
@@ -164,6 +166,7 @@ jobs:
             CLUB_SERVICE_IMAGE=${DOCKERHUB_USERNAME}/club-service:${SHA}
             INDEPENDENT_SERVICE_IMAGE=${DOCKERHUB_USERNAME}/independent-service:${SHA}
             EVENT_SERVICE_IMAGE=${DOCKERHUB_USERNAME}/event-service:${SHA}
+            NOTIFICATION_SERVICE_IMAGE=${DOCKERHUB_USERNAME}/notification-service:${SHA}
             FRONTEND_IMAGE=${DOCKERHUB_USERNAME}/frontend:${SHA}
 
             DB_HOST=host.docker.internal
