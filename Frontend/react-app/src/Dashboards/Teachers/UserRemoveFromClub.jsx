@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -479,13 +479,13 @@ const UserRemoveFromClub = () => {
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Sticky Back Button Bar */}
-      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+      {/* Fixed Back Button Bar */}
+      <div className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group cursor-pointer"
             >
               <svg
                 className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
@@ -494,15 +494,20 @@ const UserRemoveFromClub = () => {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
-              <span>Back to Dashboard</span>
+              <span className="font-bold">Back to Dashboard</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-24 sm:px-6 lg:px-8 relative z-10">
         {/* 1. Header */}
         <div className="mb-8">
           <div

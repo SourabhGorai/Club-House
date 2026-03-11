@@ -12,7 +12,7 @@ export default function Register() {
     username: "",
     password: "",
     email: "",
-    role: "",
+    role: "USERS",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -42,6 +42,7 @@ export default function Register() {
 
       console.log("Registration response:", res.data);
       alert("Registration Successful!");
+      localStorage.setItem("verificationEmail", form.email);
       navigate("/otp");
     } catch (err) {
       console.error("Registration error:", err);
@@ -53,10 +54,10 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-2 sm:p-3 sm:p-4 overflow-hidden relative" 
+    <div className="min-h-screen w-screen flex items-center justify-center p-2 xs:p-3 sm:p-4 md:p-6 overflow-hidden relative" 
          style={{background: 'var(--primary-gradient)'}}>
       {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
              style={{backgroundColor: 'var(--primary-color-1)'}}></div>
         <div className="absolute top-1/3 -left-20 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
@@ -66,11 +67,11 @@ export default function Register() {
       </div>
 
       <div className="w-full max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-2xl overflow-hidden border"
+        <div className="bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden border w-full"
              style={{borderColor: 'var(--primary-color-1)20'}}>
-          <div className="flex flex-col md:flex-row min-h-screen sm:min-h-[85vh]">
+          <div className="flex flex-col lg:flex-row">
             {/* Left Side - Register Form */}
-            <div className="w-full md:w-1/2 px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-6 lg:py-8 flex flex-col justify-center relative">
+            <div className="w-full lg:w-1/2 px-4 xs:px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 xs:py-8 sm:py-10 flex flex-col justify-center relative">
               {/* Decorative corner accent */}
               <div className="absolute top-0 left-0 w-32 h-32 rounded-br-3xl -translate-x-2 -translate-y-2"
                    style={{background: 'var(--primary-gradient)'}}></div>
@@ -107,10 +108,10 @@ export default function Register() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3 xs:space-y-3.5 sm:space-y-4">
                   {/* PRN Field */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
+                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 xs:mb-2 transition-colors\"
                            style={{color: 'var(--primary-color-1)'}}>
                       PRN
                     </label>
@@ -137,7 +138,7 @@ export default function Register() {
 
                   {/* Username Field */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
+                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 xs:mb-2 transition-colors\"
                            style={{color: 'var(--primary-color-1)'}}>
                       Username
                     </label>
@@ -164,7 +165,7 @@ export default function Register() {
 
                   {/* Email Field */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
+                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 xs:mb-2 transition-colors\"
                            style={{color: 'var(--primary-color-1)'}}>
                       Email
                     </label>
@@ -191,7 +192,7 @@ export default function Register() {
 
                   {/* Password Field */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
+                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 xs:mb-2 transition-colors\"
                            style={{color: 'var(--primary-color-1)'}}>
                       Password
                     </label>
@@ -236,47 +237,11 @@ export default function Register() {
                     </div>
                   </div>
 
-                  {/* Role Select Field */}
-                  <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors"
-                           style={{color: 'var(--primary-color-1)'}}>
-                      Role
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 transition-colors" 
-                             style={{color: 'var(--primary-color-1)'}} 
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                      </div>
-                      <select
-                        name="role"
-                        value={form.role}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-4 transition-all duration-300 appearance-none text-gray-800 shadow-sm"
-                        style={{focusRing: 'var(--primary-color-1)20'}}
-                        required
-                      >
-                        <option value="" disabled>Select your role</option>
-                        <option value="USERS">USERS</option>
-                        {/* <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                        <option value="TEACHERS">TEACHERS</option>
-                        <option value="CLUB_ADMIN">CLUB_ADMIN</option> */}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Register Button */}
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 px-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed mt-6"
+                    className="w-full py-2.5 xs:py-3 sm:py-3.5 px-4 xs:px-5 rounded-lg xs:rounded-xl sm:rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed mt-3 xs:mt-3.5 sm:mt-4"
                     style={{
                       background: 'var(--primary-gradient)',
                     }}

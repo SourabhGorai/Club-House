@@ -42,8 +42,55 @@ export default function Login() {
         alert("Invalid username or password!");
       }
     } catch (err) {
-      alert("Login Failed !");
-      console.error(err);
+      console.error("Detailed Login Error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        headers: err.response?.headers,
+        message: err.message
+      });
+
+      const errorData = err.response?.data;
+      
+      // Extract the error message string from various possible formats
+      let errorMessage = "Login Failed!";
+      if (typeof errorData === "string") {
+        errorMessage = errorData;
+      } else if (errorData && typeof errorData === "object") {
+        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      const msgStr = String(errorMessage).toLowerCase();
+
+      // Handle 403 Forbidden (usually unverified accounts or role issues)
+      if (err.response?.status === 403) {
+        // Check if the response itself indicates unverified status
+        const isUnverified = msgStr.includes("verify") || 
+                            msgStr.includes("verified") || 
+                            msgStr.includes("verification") || 
+                            msgStr.includes("otp") || 
+                            msgStr.includes("not enabled") ||
+                            (errorData && errorData.user && errorData.user.verified === false);
+
+        if (isUnverified) {
+          alert("Account not verified. Redirecting to verification page...");
+          // Extract email from error data if available, otherwise use form username
+          const emailToVerify = errorData?.user?.email || form.username;
+          localStorage.setItem("verificationEmail", emailToVerify);
+          navigate("/otp");
+        } else {
+          // Otherwise show the specific forbidden message
+          alert(`Access Forbidden: ${errorMessage}\n\nIf you haven't verified your account, please do so.`);
+          // Offer redirection anyway as a fallback
+          if (window.confirm("Would you like to go to the OTP verification page?")) {
+            localStorage.setItem("verificationEmail", form.username);
+            navigate("/otp");
+          }
+        }
+      } else {
+        alert(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +98,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen w-screen flex items-center justify-center p-2 sm:p-3 overflow-hidden relative"
+      className="min-h-screen w-screen flex items-center justify-center p-2 xs:p-3 sm:p-4 md:p-6 overflow-hidden relative"
       style={{ background: "var(--primary-gradient)" }}
     >
       {/* Background decorative elements */}
@@ -70,18 +117,14 @@ export default function Login() {
         ></div>
       </div>
 
-      <div className="w-full max-w-6xl h-full max-h-screen mx-auto relative z-10 flex items-center">
+      <div className="w-full max-w-6xl mx-auto relative z-10">
         <div
-          className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border w-full"
-          style={{
-            borderColor: "var(--primary-color-1)20",
-            height: "auto",
-            minHeight: "min(95vh, 600px)",
-          }}
+          className="bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden border w-full"
+          style={{ borderColor: "var(--primary-color-1)20" }}
         >
-          <div className="flex flex-col md:flex-row h-full">
+          <div className="flex flex-col lg:flex-row">
             {/* Left Side - Login Form */}
-            <div className="w-full md:w-1/2 px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-6 lg:py-8 flex flex-col justify-center relative overflow-hidden">
+            <div className="w-full lg:w-1/2 px-4 xs:px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 xs:py-8 sm:py-10 flex flex-col justify-center relative">
               {/* Decorative corner accent */}
               <div
                 className="absolute top-0 left-0 w-24 h-24 rounded-br-3xl -translate-x-2 -translate-y-2"
@@ -92,15 +135,15 @@ export default function Login() {
                 style={{ background: "var(--primary-gradient)" }}
               ></div>
 
-              <div className="relative z-10">
+              <div className="relative z-10 w-full max-w-xs sm:max-w-sm">
                 {/* Logo/Brand */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 xs:gap-2.5 sm:gap-3 mb-4 xs:mb-5 sm:mb-6">
                   <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    className="w-7 xs:w-8 sm:w-10 h-7 xs:h-8 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: "var(--primary-gradient)" }}
                   >
                     <svg
-                      className="w-5 h-5 text-white"
+                      className="w-4 xs:w-5 sm:w-6 h-4 xs:h-5 sm:h-6 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -113,44 +156,44 @@ export default function Login() {
                       />
                     </svg>
                   </div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
+                  <span className="text-lg xs:text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent truncate">
                     SecureLogin
                   </span>
                 </div>
 
-                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+                <div className="mb-4 xs:mb-5 sm:mb-6 space-y-2 xs:space-y-2.5 sm:space-y-3">
                   <p
-                    className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase"
+                    className="text-[9px] xs:text-[10px] sm:text-xs font-semibold tracking-wider uppercase"
                     style={{ color: "var(--primary-color-1)" }}
                   >
                     Welcome back
                   </p>
 
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                  <h1 className="text-base xs:text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                     Log In to Your{" "}
                     <span className="bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent">
                       Account
                     </span>
                   </h1>
 
-                  <p className="text-gray-500 text-xs sm:text-sm">
+                  <p className="text-gray-500 text-[11px] xs:text-xs sm:text-sm">
                     Enter your credentials to access your dashboard
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3 xs:space-y-3.5 sm:space-y-4">
                   {/* Username Field */}
                   <div>
                     <label
-                      className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2"
+                      className="block text-[11px] xs:text-xs sm:text-sm font-semibold mb-1.5 xs:mb-2"
                       style={{ color: "var(--primary-color-1)" }}
                     >
                       Username
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 xs:pl-3.5 flex items-center pointer-events-none">
                         <svg
-                          className="w-4 h-4"
+                          className="w-3.5 xs:w-4 sm:w-5 h-3.5 xs:h-4 sm:h-5"
                           style={{ color: "var(--primary-color-1)" }}
                           fill="none"
                           viewBox="0 0 24 24"
@@ -170,7 +213,7 @@ export default function Login() {
                         placeholder="Enter your username"
                         value={form.username}
                         onChange={handleChange}
-                        className="w-full pl-9 pr-4 py-3 sm:py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-sm"
+                        className="w-full pl-10 xs:pl-11 pr-3 xs:pr-4 py-2.5 xs:py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg xs:rounded-xl sm:rounded-2xl focus:outline-none focus:border-transparent focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-xs xs:text-sm"
                         required
                       />
                     </div>
@@ -178,9 +221,9 @@ export default function Login() {
 
                   {/* Password Field */}
                   <div>
-                    <div className="flex justify-between items-center mb-1 sm:mb-2">
+                    <div className="flex justify-between items-center mb-1.5 xs:mb-2">
                       <label
-                        className="block text-xs sm:text-sm font-semibold"
+                        className="block text-[11px] xs:text-xs sm:text-sm font-semibold"
                         style={{ color: "var(--primary-color-1)" }}
                       >
                         Password
@@ -188,16 +231,16 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => navigate("/reset-password")}
-                        className="text-[10px] sm:text-xs font-medium transition-colors"
+                        className="text-[9px] xs:text-[10px] sm:text-xs font-medium transition-colors hover:opacity-70"
                         style={{ color: "var(--primary-color-1)" }}
                       >
                         Forgot?
                       </button>
                     </div>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 xs:pl-3.5 flex items-center pointer-events-none">
                         <svg
-                          className="w-4 h-4"
+                          className="w-3.5 xs:w-4 sm:w-5 h-3.5 xs:h-4 sm:h-5"
                           style={{ color: "var(--primary-color-1)" }}
                           fill="none"
                           viewBox="0 0 24 24"
@@ -217,17 +260,17 @@ export default function Login() {
                         placeholder="Enter your password"
                         value={form.password}
                         onChange={handleChange}
-                        className="w-full pl-9 pr-12 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-sm"
+                        className="w-full pl-10 xs:pl-11 pr-10 xs:pr-11 sm:pr-12 py-2.5 xs:py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg xs:rounded-xl sm:rounded-2xl focus:outline-none focus:border-transparent focus:ring-2 transition-all duration-300 placeholder-gray-400 shadow-sm text-xs xs:text-sm"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        className="absolute inset-y-0 right-0 pr-3 xs:pr-3.5 flex items-center cursor-pointer"
                       >
                         {showPassword ? (
                           <svg
-                            className="w-4 h-4"
+                            className="w-3.5 xs:w-4 sm:w-5 h-3.5 xs:h-4 sm:h-5"
                             style={{ color: "var(--primary-color-1)" }}
                             fill="none"
                             viewBox="0 0 24 24"
@@ -242,7 +285,7 @@ export default function Login() {
                           </svg>
                         ) : (
                           <svg
-                            className="w-4 h-4"
+                            className="w-3.5 xs:w-4 sm:w-5 h-3.5 xs:h-4 sm:h-5"
                             style={{ color: "var(--primary-color-1)" }}
                             fill="none"
                             viewBox="0 0 24 24"
@@ -270,23 +313,23 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 sm:py-4 px-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed mt-2 sm:mt-4"
+                    className="w-full py-2.5 xs:py-3 sm:py-3.5 px-4 xs:px-5 rounded-lg xs:rounded-xl sm:rounded-2xl font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed mt-3 xs:mt-3.5 sm:mt-4"
                     style={{ background: "var(--primary-gradient)" }}
                   >
                     {isLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-white text-sm">
+                        <div className="w-3 xs:w-3.5 sm:w-4 h-3 xs:h-3.5 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-white text-xs xs:text-sm">
                           Signing in...
                         </span>
                       </>
                     ) : (
                       <>
-                        <span className="text-white text-sm tracking-wider">
+                        <span className="text-white text-xs xs:text-sm tracking-wider">
                           LOGIN
                         </span>
                         <svg
-                          className="w-4 h-4 text-white transform group-hover:translate-x-1 transition-transform"
+                          className="w-3 xs:w-3.5 sm:w-4 h-3 xs:h-3.5 sm:h-4 text-white transform group-hover:translate-x-1 transition-transform"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -303,15 +346,15 @@ export default function Login() {
                   </button>
 
                   {/* Sign Up Link */}
-                  <p className="text-center text-xs sm:text-sm text-gray-600 pt-3 sm:pt-4 border-t border-gray-100">
-                    Don't have an account yet?{" "}
+                  <p className="text-center text-[10px] xs:text-xs sm:text-sm text-gray-600 pt-3 xs:pt-3.5 sm:pt-4 border-t border-gray-100 mt-3 xs:mt-3.5 sm:mt-4">
+                    Don't have an account?{" "}
                     <button
                       onClick={handleSigninClick}
                       type="button"
                       className="font-semibold transition-colors hover:underline whitespace-nowrap"
                       style={{ color: "var(--primary-color-1)" }}
                     >
-                      Create account
+                      Sign up
                     </button>
                   </p>
                 </form>

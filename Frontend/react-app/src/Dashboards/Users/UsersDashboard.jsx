@@ -25,6 +25,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import CustomSelect from "../../components/CustomSelect";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -230,7 +231,7 @@ export default function UsersDashboard() {
   const handleVerificationRedirect = () => {
     localStorage.setItem("verificationEmail", currentUser.email);
     localStorage.setItem("verificationPRN", currentUser.prn);
-    navigate("/otp");
+    navigate("/verifyotp");
   };
 
   const handleLogout = () => {
@@ -345,7 +346,7 @@ export default function UsersDashboard() {
           setShowEmailEditModal(false);
           setEmailMessage({ text: "", type: "" });
           setNewEmail("");
-          navigate("/otp");
+          navigate("/verifyotp");
         }, 1500);
       }
     } catch (error) {
@@ -369,6 +370,7 @@ export default function UsersDashboard() {
 
   const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 4);
   const joinedClubsCount = myClubs.length;
+  const totalMembersInMyClubs = myClubs.reduce((sum, club) => sum + (parseInt(club.memberCount) || 0), 0);
 
   return (
     <>
@@ -602,12 +604,19 @@ export default function UsersDashboard() {
           </header>
 
           {/* Statistics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             <StatCard
               icon={<CalendarDays />}
               label="Joined Clubs"
               value={joinedClubsCount.toString()}
               color="blue"
+              disabled={!isVerified}
+            />
+            <StatCard
+              icon={<Users />}
+              label="Total Members"
+              value={totalMembersInMyClubs.toString()}
+              color="green"
               disabled={!isVerified}
             />
             <StatCard
@@ -659,6 +668,13 @@ export default function UsersDashboard() {
                   label="Settings"
                   color="purple"
                   onClick={() => handleRestrictedAction(() => (window.location.href = "/settings"))}
+                  disabled={!isVerified}
+                />
+                <ActionCard
+                  icon={<Club size={24} />}
+                  label="Clubs"
+                  color="blue"
+                  onClick={() => handleRestrictedAction(() => navigate("/manage-clubs"))}
                   disabled={!isVerified}
                 />
               </div>
@@ -807,35 +823,37 @@ export default function UsersDashboard() {
                     <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
                       Department
                     </label>
-                    <select
+                    <CustomSelect
+                      name="departmentId"
                       value={profileData.departmentId}
-                      onChange={(e) => setProfileData({ ...profileData, departmentId: e.target.value })}
-                      className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, departmentId: e.target.value })
+                      }
+                      options={departments.map((dept) => ({
+                        value: dept.departmentId,
+                        label: dept.name,
+                      }))}
+                      placeholder="Select Dept"
                       required
-                    >
-                      <option value="">Select Dept</option>
-                      {departments.map((dept) => (
-                        <option key={dept.departmentId} value={dept.departmentId}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
                       Year
                     </label>
-                    <select
+                    <CustomSelect
+                      name="year"
                       value={profileData.year}
-                      onChange={(e) => setProfileData({ ...profileData, year: e.target.value })}
-                      className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, year: e.target.value })
+                      }
+                      options={[1, 2, 3, 4].map((y) => ({
+                        value: y,
+                        label: `Year ${y}`,
+                      }))}
+                      placeholder="Select Year"
                       required
-                    >
-                      <option value="">Select Year</option>
-                      {[1, 2, 3, 4].map((y) => (
-                        <option key={y} value={y}>Year {y}</option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
 
@@ -1001,6 +1019,8 @@ function StatCard({ icon, label, value, color, isStatus, disabled }) {
     blue: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
     orange: { bg: "rgba(249, 115, 22, 0.1)", text: "#F97316" },
     purple: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
+    green: { bg: "rgba(16, 185, 129, 0.1)", text: "#10B981" },
+    red: { bg: "rgba(239, 68, 68, 0.1)", text: "#EF4444" },
   };
   return (
     <div
@@ -1135,648 +1155,4 @@ function FormInput({ label, ...props }) {
     </div>
   );
 }
-// import { User, Plus, Upload, X, CalendarDays, Edit, LogOut, LayoutDashboard, Settings, BookOpen, ShieldCheck, Mail, Phone, AtSign, Users, Club, ChevronRight } from "lucide-react";
-// import { useState, useEffect } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-// import ConfirmDialog from "../../components/ConfirmDialog";
 
-// export default function UsersDashboard() {
-//   const navigate = useNavigate();
-//   const user = JSON.parse(localStorage.getItem("user"));
-//   const token = localStorage.getItem("token");
-//   const [showProfileForm, setShowProfileForm] = useState(false);
-//   const [profileData, setProfileData] = useState({
-//     prn: user?.prn || "",
-//     fullName: "",
-//     departmentId: "",
-//     year: "",
-//     phoneNumber: "",
-//   });
-//   const [selectedImage, setSelectedImage] = useState(null);
-//   const [loading, setLoading] = useState(false);
-//   const [message, setMessage] = useState("");
-//   const [userProfile, setUserProfile] = useState(null);
-//   const [profileImage, setProfileImage] = useState(null);
-//   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-//   const [departments, setDepartments] = useState([]);
-
-//   // New state for clubs
-//   const [myClubs, setMyClubs] = useState([]);
-//   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
-//   const [clubsError, setClubsError] = useState("");
-//   const [showAllClubs, setShowAllClubs] = useState(false);
-//   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
-//   const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
-
-//   useEffect(() => {
-//     fetchUserProfile();
-//     fetchDepartments();
-//     fetchMyClubs();
-//   }, []);
-
-//   useEffect(() => {
-//     if (departments.length > 0 && profileData.departmentId && typeof profileData.departmentId === "string" && isNaN(profileData.departmentId)) {
-//       const dept = departments.find((d) => d.name === profileData.departmentId);
-//       if (dept) {
-//         setProfileData((prev) => ({ ...prev, departmentId: dept.departmentId }));
-//       }
-//     }
-//   }, [departments, profileData.departmentId]);
-
-//   const fetchDepartments = async () => {
-//     try {
-//       const response = await axios.get("http://localhost:8080/api/department", {
-//         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-//       });
-//       if (response.data && response.data.data) setDepartments(response.data.data);
-//     } catch (error) {
-//       console.error("Error fetching departments:", error);
-//     }
-//   };
-
-//   const fetchMyClubs = async () => {
-//     if (!token) {
-//       setClubsError("No authentication token found");
-//       return;
-//     }
-
-//     setIsLoadingClubs(true);
-//     setClubsError("");
-
-//     try {
-//       const response = await axios.get("http://localhost:8080/api/user-clubs/getMyClubs", {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": "application/json"
-//         },
-//       });
-
-//       console.log("Clubs API Response:", response.data);
-
-//       if (response.data) {
-//         if (Array.isArray(response.data)) {
-//           setMyClubs(response.data);
-//         } else if (response.data.data && Array.isArray(response.data.data)) {
-//           setMyClubs(response.data.data);
-//         } else if (response.data.clubs && Array.isArray(response.data.clubs)) {
-//           setMyClubs(response.data.clubs);
-//         } else {
-//           setMyClubs([response.data]);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error fetching my clubs:", error);
-//       setClubsError(error.response?.data?.message || "Failed to fetch your clubs");
-//       setMyClubs([]);
-//     } finally {
-//       setIsLoadingClubs(false);
-//     }
-//   };
-
-//   const handleViewClubDetails = (club) => {
-//     const clubName = club.clubName || club.name || "Club";
-//     navigate(`/club/${encodeURIComponent(clubName)}/details`, {
-//       state: { userRole: user?.role }
-//     });
-//   };
-
-//   const fetchUserProfile = async () => {
-//     try {
-//       setIsLoadingProfile(true);
-//       const response = await axios.get(`http://localhost:8080/api/profiles/prn/${user?.prn}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-
-//       if (response.data) {
-//         setUserProfile(response.data);
-//         let deptId = "";
-//         if (response.data.data.department) {
-//           deptId = typeof response.data.data.department === "object" ? response.data.data.department.departmentId : response.data.data.department;
-//         }
-
-//         setProfileData({
-//           prn: response.data.data.prn || user?.prn || "",
-//           fullName: response.data.data.fullName || "",
-//           departmentId: deptId,
-//           year: response.data.data.year || "",
-//           phoneNumber: response.data.data.phoneNumber || "",
-//         });
-//         fetchProfileImage();
-//       }
-//     } catch (error) {
-//       console.error("Error fetching profile:", error);
-//     } finally {
-//       setIsLoadingProfile(false);
-//     }
-//   };
-
-//   const fetchProfileImage = async () => {
-//     try {
-//       const response = await axios.get(`http://localhost:8080/api/profiles/${user?.prn}/image`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//         responseType: "blob",
-//       });
-//       if (response.data) setProfileImage(URL.createObjectURL(response.data));
-//     } catch (error) {
-//       setProfileImage(null);
-//     }
-//   };
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("user");
-//     localStorage.removeItem("token");
-//     window.location.href = "/login";
-//   };
-
-//   const handleSubmitProfile = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     try {
-//       const requestData = {
-//         fullName: profileData.fullName,
-//         departmentId: parseInt(profileData.departmentId),
-//         year: profileData.year,
-//         phoneNumber: profileData.phoneNumber,
-//       };
-
-//       if (userProfile) {
-//         await axios.put(`http://localhost:8080/api/profiles/${profileData.prn}`, requestData, {
-//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-//         });
-//       } else {
-//         await axios.post("http://localhost:8080/api/profiles", { ...requestData, prn: profileData.prn }, {
-//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-//         });
-//       }
-
-//       if (selectedImage) {
-//         const formData = new FormData();
-//         formData.append("image", selectedImage);
-//         await axios.post(`http://localhost:8080/api/profiles/${profileData.prn}/image`, formData, {
-//           headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-//         });
-//       }
-
-//       fetchUserProfile();
-//       setShowProfileForm(false);
-//     } catch (error) {
-//       setMessage("Error saving profile.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const getDepartmentName = (id) => {
-//     if (typeof id === "string" && isNaN(id)) return id;
-//     const dept = departments.find((d) => d.departmentId === parseInt(id));
-//     return dept ? dept.name : "Not set";
-//   };
-
-//   // Get display clubs (limit to 4 if not showing all for better visibility)
-//   const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 4);
-//   const joinedClubsCount = myClubs.length;
-
-//   return (
-//     <>
-//     <div className="flex min-h-screen bg-[#F8FAFC]">
-//       {/* SIDEBAR */}
-//       <aside className="w-96 bg-white border-r border-gray-100 flex flex-col p-8 sticky top-0 h-screen shadow-sm">
-//         <div className="flex items-center gap-3 mb-8">
-//           <div className="p-2 rounded-xl" style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
-//             <LayoutDashboard className="text-white w-7 h-7" />
-//           </div>
-//           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">User<span style={{color: '#4CA1AF'}}>Portal</span></h1>
-//         </div>
-
-//         {/* Profile Image Section */}
-//         <div className="relative group mx-auto mb-6">
-//           <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
-//             {profileImage ? (
-//               <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-//             ) : (
-//               <div className="w-full h-full flex items-center justify-center text-gray-400">
-//                 <User size={48} />
-//               </div>
-//             )}
-//           </div>
-//           <button
-//             onClick={() => setShowProfileForm(true)}
-//             className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
-//             style={{color: '#4CA1AF'}}
-//           >
-//             <Edit size={18} />
-//           </button>
-//         </div>
-
-//         <div className="text-center mb-6">
-//           <h2 className="text-2xl font-bold text-gray-800 tracking-tight leading-tight">{profileData.fullName || user?.username}</h2>
-//           <span className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
-//                 style={{backgroundColor: 'rgba(76, 161, 175, 0.1)', color: '#4CA1AF'}}>
-//             {user?.role || "USER"}
-//           </span>
-//         </div>
-
-//         {/* Info Boxes */}
-//         <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
-//           <SidebarInfoBox label="Full Name" value={profileData.fullName} />
-//           <SidebarInfoBox label="Username" value={user?.username} />
-//           <SidebarInfoBox label="PRN / ID" value={profileData.prn} />
-//           <SidebarInfoBox label="Email" value={user?.email} />
-//           <SidebarInfoBox label="Department" value={getDepartmentName(profileData.departmentId)} />
-//           <SidebarInfoBox label="Year" value={profileData.year} />
-//           <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
-//         </div>
-
-//         {/* Sign Out Button */}
-//         <button
-//           onClick={() => setConfirmDialog({ isOpen: true, title: "Sign Out", message: "Are you sure you want to sign out?", confirmText: "Sign Out", variant: "danger", onConfirm: () => { closeConfirm(); handleLogout(); } })}
-//           className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
-//         >
-//           <LogOut size={20} /> Sign Out
-//         </button>
-//       </aside>
-
-//       {/* MAIN CONTENT AREA */}
-//       <main className="flex-1 p-10 overflow-y-auto max-h-screen">
-//         <header className="flex justify-between items-center mb-10">
-//           <div>
-//             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
-//             <p className="text-gray-500 mt-1">Welcome back, <span className="font-semibold" style={{color: '#4CA1AF'}}>{user?.username}</span>. System is healthy.</p>
-//           </div>
-//           <div className="flex items-center gap-3 bg-green-50 text-green-600 px-5 py-2.5 rounded-full border border-green-100">
-//             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-//             <span className="text-xs font-bold uppercase tracking-widest">All Systems Live</span>
-//           </div>
-//         </header>
-
-//         {/* Statistics Grid */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-//           <StatCard
-//             icon={<CalendarDays />}
-//             label="Joined Clubs"
-//             value={joinedClubsCount.toString()}
-//             color="blue"
-//           />
-//           <StatCard
-//             icon={<BookOpen />}
-//             label="Total Events"
-//             value="12"
-//             color="orange"
-//           />
-//           <StatCard
-//             icon={<ShieldCheck />}
-//             label="Verified Status"
-//             value={user?.verified ? "Verified" : "Pending"}
-//             color="purple"
-//             isStatus
-//           />
-//         </div>
-
-//         {/* Two Column Layout - Expanded boxes */}
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//           {/* LEFT COLUMN - User Control Center - EXPANDED */}
-//           <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
-//             <div className="flex items-center gap-3 mb-10">
-//               <div className="w-1.5 h-10 rounded-full" style={{background: 'linear-gradient(to bottom, #4CA1AF, #315169)'}}></div>
-//               <h2 className="text-2xl font-bold text-gray-800">User Control Center</h2>
-//             </div>
-
-//             <div className="grid grid-cols-2 gap-8">
-//               <ActionCard
-//                 icon={<CalendarDays size={24} />}
-//                 label="Upcoming Events"
-//                 color="blue"
-//                 onClick={() => window.location.href = "/events"}
-//               />
-
-//               {/* <ActionCard
-//                 icon={<CalendarDays size={24} />}
-//                 label="Previous Events"
-//                 color="blue"
-//                 onClick={() => window.location.href = "/previous-events"}
-//               /> */}
-
-//               <ActionCard
-//                 icon={<BookOpen size={24} />}
-//                 label="Resources"
-//                 color="green"
-//                 onClick={() => window.location.href = "/resources"}
-//               />
-
-//               <ActionCard
-//                 icon={<Settings size={24} />}
-//                 label="Settings"
-//                 color="purple"
-//                 onClick={() => window.location.href = "/settings"}
-//               />
-//             </div>
-//           </section>
-
-//           {/* RIGHT COLUMN - My Clubs Section - EXPANDED */}
-//           <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50">
-//             <div className="flex items-center justify-between mb-8">
-//               <div className="flex items-center gap-4">
-//                 <h2 className="text-2xl font-bold text-gray-800">My Clubs</h2>
-//                 <div className="h-[1px] w-16 bg-gray-100"></div>
-//               </div>
-//               <button
-//                 onClick={fetchMyClubs}
-//                 className="text-xs font-bold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
-//                 style={{color: '#4CA1AF', backgroundColor: 'rgba(76, 161, 175, 0.1)'}}
-//                 disabled={isLoadingClubs}
-//               >
-//                 <svg className={`w-4 h-4 ${isLoadingClubs ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-//                 </svg>
-//                 {isLoadingClubs ? 'Refreshing...' : 'Refresh'}
-//               </button>
-//             </div>
-
-//             {/* Clubs Content - Expanded */}
-//             {isLoadingClubs ? (
-//               <div className="py-16 text-center">
-//                 <div className="animate-spin w-12 h-12 border-4 rounded-full mx-auto mb-4"
-//                      style={{borderColor: 'rgba(76, 161, 175, 0.2)', borderTopColor: '#4CA1AF'}}></div>
-//                 <p className="text-gray-500 font-medium">Loading your clubs...</p>
-//               </div>
-//             ) : clubsError ? (
-//               <div className="bg-red-50 rounded-[2rem] p-8 text-center border border-red-100">
-//                 <div className="text-red-500 mb-3">
-//                   <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-//                   </svg>
-//                 </div>
-//                 <h3 className="text-xl font-bold text-gray-800 mb-3">Unable to Load Clubs</h3>
-//                 <p className="text-red-500/70 mb-5">{clubsError}</p>
-//                 <button
-//                   onClick={fetchMyClubs}
-//                   className="bg-white px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
-//                   style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
-//                 >
-//                   Try Again
-//                 </button>
-//               </div>
-//             ) : myClubs.length === 0 ? (
-//               <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
-//                 <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5">
-//                   <Users className="text-gray-400 w-12 h-12" />
-//                 </div>
-//                 <h3 className="text-xl font-bold text-gray-800 mb-3">No Clubs Joined Yet</h3>
-//                 <p className="text-gray-500 mb-8">You haven't joined any clubs. Explore and join clubs to see them here.</p>
-//                 <button className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
-//                         style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}>
-//                   Browse Clubs
-//                 </button>
-//               </div>
-//             ) : (
-//               <>
-//                 <div className="space-y-5">
-//                   {displayClubs.map((club, index) => (
-//                     <CompactClubCard
-//                       key={club.clubId || club.id || index}
-//                       club={club}
-//                       onViewDetails={handleViewClubDetails}
-//                     />
-//                   ))}
-//                 </div>
-
-//                 {/* Show More/Less Button */}
-//                 {myClubs.length > 4 && (
-//                   <div className="text-center mt-8">
-//                     <button
-//                       onClick={() => setShowAllClubs(!showAllClubs)}
-//                       className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
-//                       style={{color: '#4CA1AF', borderColor: 'rgba(76, 161, 175, 0.2)'}}
-//                     >
-//                       {showAllClubs ? 'Show Less' : `Show All (${myClubs.length} Clubs)`}
-//                       <svg className={`w-4 h-4 transition-transform ${showAllClubs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-//                       </svg>
-//                     </button>
-//                   </div>
-//                 )}
-//               </>
-//             )}
-//           </section>
-//         </div>
-//       </main>
-
-//       {/* Profile Form Modal */}
-//       {showProfileForm && (
-//         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-//           <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
-//             <div className="flex justify-between items-center mb-8">
-//               <h3 className="text-2xl font-bold text-gray-800">{userProfile ? "Edit Profile" : "Complete Profile"}</h3>
-//               <button onClick={() => setShowProfileForm(false)} className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer">
-//                 <X size={20} />
-//               </button>
-//             </div>
-
-//             <form onSubmit={handleSubmitProfile} className="space-y-5">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <FormInput label="PRN (Read Only)" value={profileData.prn} readOnly />
-//                 <FormInput label="Full Name" value={profileData.fullName} onChange={(e) => setProfileData({...profileData, fullName: e.target.value})} required />
-//               </div>
-
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="space-y-1">
-//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">Department</label>
-//                   <select
-//                     value={profileData.departmentId}
-//                     onChange={(e) => setProfileData({...profileData, departmentId: e.target.value})}
-//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
-//                     style={{focus: {ringColor: '#4CA1AF'}}}
-//                     required
-//                   >
-//                     <option value="">Select Dept</option>
-//                     {departments.map(dept => <option key={dept.departmentId} value={dept.departmentId}>{dept.name}</option>)}
-//                   </select>
-//                 </div>
-//                 <div className="space-y-1">
-//                   <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">Year</label>
-//                   <select
-//                     value={profileData.year}
-//                     onChange={(e) => setProfileData({...profileData, year: e.target.value})}
-//                     className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
-//                     style={{focus: {ringColor: '#4CA1AF'}}}
-//                     required
-//                   >
-//                     <option value="">Select Year</option>
-//                     {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
-//                   </select>
-//                 </div>
-//               </div>
-
-//               <FormInput label="Phone Number" value={profileData.phoneNumber} onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})} required />
-
-//               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer"
-//                    style={{hover: {borderColor: '#4CA1AF'}}}>
-//                 <input type="file" accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} className="hidden" id="profile-upload" />
-//                 <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#4CA1AF]">
-//                   <Upload size={24} />
-//                   <span className="text-sm font-semibold">{selectedImage ? selectedImage.name : "Upload Profile Photo"}</span>
-//                 </label>
-//               </div>
-
-//               <button
-//                 type="submit"
-//                 disabled={loading}
-//                 className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
-//                 style={{background: 'linear-gradient(135deg, #4CA1AF, #315169)'}}
-//               >
-//                 {loading ? "Saving..." : userProfile ? "Update Profile" : "Complete Profile"}
-//               </button>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-
-//     <ConfirmDialog
-//       isOpen={confirmDialog.isOpen}
-//       title={confirmDialog.title}
-//       message={confirmDialog.message}
-//       confirmText={confirmDialog.confirmText}
-//       variant={confirmDialog.variant}
-//       onConfirm={confirmDialog.onConfirm}
-//       onCancel={closeConfirm}
-//     />
-//     </>
-//   );
-// }
-
-// /* HELPER COMPONENTS */
-
-// function SidebarInfoBox({ label, value }) {
-//   return (
-//     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-//       <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">{label}</p>
-//       <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
-//     </div>
-//   );
-// }
-
-// function StatCard({ icon, label, value, color, isStatus }) {
-//   const bgColors = {
-//     blue: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'},
-//     orange: {bg: 'rgba(249, 115, 22, 0.1)', text: '#F97316'},
-//     purple: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'}
-//   };
-//   return (
-//     <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 cursor-pointer hover:shadow-md transition-all">
-//       <div className="p-5 rounded-[1.5rem]" style={{backgroundColor: bgColors[color].bg, color: bgColors[color].text}}>{icon}</div>
-//       <div>
-//         <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
-//         <h3 className={`text-2xl font-black tracking-tight ${isStatus ? (value === "Verified" ? "text-green-500" : "text-amber-500") : "text-gray-800"}`}>
-//           {value}
-//         </h3>
-//       </div>
-//     </div>
-//   );
-// }
-
-// // Expanded Club Card
-// function CompactClubCard({ club, onViewDetails }) {
-//   const clubName = club.clubName || club.name || 'Unnamed Club';
-//   const clubDescription = club.description || club.desc || 'No description available';
-//   const clubCategory = club.category || club.type || 'General';
-//   const memberCount = club.memberCount || club.members || club.memberCount || '0';
-//   const clubLogo = club.logo || club.image || club.logoUrl || null;
-
-//   const colors = ['blue', 'orange', 'purple', 'green', 'red'];
-//   const colorIndex = (clubName.length % colors.length);
-//   const color = colors[colorIndex];
-
-//   const bgColors = {
-//     blue: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'},
-//     orange: {bg: 'rgba(249, 115, 22, 0.1)', text: '#F97316'},
-//     purple: {bg: 'rgba(76, 161, 175, 0.1)', text: '#4CA1AF'},
-//     green: {bg: 'rgba(16, 185, 129, 0.1)', text: '#10B981'},
-//     red: {bg: 'rgba(239, 68, 68, 0.1)', text: '#EF4444'}
-//   };
-
-//   const handleCardClick = () => {
-//     onViewDetails(club);
-//   };
-
-//   return (
-//     <div
-//       className="bg-gray-50/50 rounded-2xl p-5 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
-//       onClick={handleCardClick}
-//     >
-//       <div className="flex items-center gap-4">
-//         {/* Club Logo/Icon - Larger */}
-//         <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-//              style={{backgroundColor: bgColors[color].bg}}>
-//           {clubLogo ? (
-//             <img src={clubLogo} alt={clubName} className="w-7 h-7 object-contain" />
-//           ) : (
-//             <Users className="w-6 h-6" style={{color: bgColors[color].text}} />
-//           )}
-//         </div>
-
-//         {/* Club Details - More spacing */}
-//         <div className="flex-1 min-w-0">
-//           <div className="flex items-center justify-between mb-1">
-//             <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>
-//               {clubName}
-//             </h3>
-//             <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
-//               {clubCategory}
-//             </span>
-//           </div>
-
-//           <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2" title={clubDescription}>
-//             {clubDescription}
-//           </p>
-
-//           <div className="flex items-center gap-3">
-//             <div className="flex items-center gap-1.5">
-//               <Users className="w-4 h-4 text-gray-400" />
-//               <span className="text-xs font-bold text-gray-600">{memberCount} members</span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Chevron indicator */}
-//         <ChevronRight size={20} className="text-gray-300" />
-//       </div>
-//     </div>
-//   );
-// }
-
-// function ActionCard({ icon, label, color, onClick }) {
-//   const themes = {
-//     blue: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'},
-//     orange: {bg: 'rgba(249, 115, 22, 0.05)', hover: 'rgba(249, 115, 22, 0.1)', icon: '#F97316'},
-//     green: {bg: 'rgba(16, 185, 129, 0.05)', hover: 'rgba(16, 185, 129, 0.1)', icon: '#10B981'},
-//     purple: {bg: 'rgba(76, 161, 175, 0.05)', hover: 'rgba(76, 161, 175, 0.1)', icon: '#4CA1AF'}
-//   };
-//   return (
-//     <button
-//       onClick={onClick}
-//       className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
-//       style={{backgroundColor: themes[color].bg}}
-//     >
-//       <div className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
-//            style={{color: themes[color].icon}}>
-//         {icon}
-//       </div>
-//       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
-//     </button>
-//   );
-// }
-
-// function FormInput({ label, ...props }) {
-//   return (
-//     <div className="space-y-1">
-//       <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">{label}</label>
-//       <input
-//         className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium transition-all cursor-text"
-//         style={{focus: {ringColor: '#4CA1AF'}}}
-//         {...props}
-//       />
-//     </div>
-//   );
-// }

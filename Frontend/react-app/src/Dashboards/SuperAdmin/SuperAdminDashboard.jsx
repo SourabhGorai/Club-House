@@ -1,4 +1,4 @@
-﻿// import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 // import ConfirmDialog from "../../components/ConfirmDialog";
@@ -1542,6 +1542,7 @@
 //         setShowEmailEditModal(false);
 //         setEmailMessage({ text: "", type: "" });
 //         setNewEmail("");
+//         navigate("/verifyotp");
 //       }, 1500);
 //     }
 //   } catch (error) {
@@ -1574,6 +1575,7 @@
 //           setShowEmailEditModal(false);
 //           setEmailMessage({ text: "", type: "" });
 //           setNewEmail("");
+//           navigate("/verifyotp");
 //         }, 1500);
 //       }
 //     } catch (patchError) {
@@ -1610,6 +1612,7 @@
 //             setShowEmailEditModal(false);
 //             setEmailMessage({ text: "", type: "" });
 //             setNewEmail("");
+//             navigate("/verifyotp");
 //           }, 1500);
 //         }
 //       } catch (authError) {
@@ -2917,7 +2920,7 @@ export default function SuperAdminDashboard() {
   const handleVerificationRedirect = () => {
     localStorage.setItem("verificationEmail", currentUser.email);
     localStorage.setItem("verificationPRN", currentUser.prn);
-    navigate("/otp");
+    navigate("/verifyotp");
   };
 
   const handleLogout = () => {
@@ -3044,7 +3047,7 @@ export default function SuperAdminDashboard() {
           setShowEmailEditModal(false);
           setEmailMessage({ text: "", type: "" });
           setNewEmail("");
-          navigate("/otp");
+          navigate("/verifyotp");
         }, 1500);
       }
     } catch (error) {
@@ -3307,11 +3310,6 @@ export default function SuperAdminDashboard() {
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col group cursor-pointer">
-                <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
-                  {profileData.department || "Not set"}
-                </span>
-              </div>
               <div className="pt-2 border-t border-gray-100 flex items-center justify-between group cursor-pointer">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest transition-colors group-hover:text-[#4CA1AF]">
                   Status
@@ -3476,13 +3474,6 @@ export default function SuperAdminDashboard() {
                   bgColor="rgba(6, 182, 212, 0.1)"
                   iconColor="#06B6D4"
                 />
-                <BigActionButton
-                  label="Create Event"
-                  icon={CalendarPlus}
-                  onClick={() => navigate("/create-event")}
-                  bgColor="rgba(147, 51, 234, 0.1)"
-                  iconColor="#9333EA"
-                />
               </div>
             </section>
           </div>
@@ -3490,45 +3481,51 @@ export default function SuperAdminDashboard() {
 
         {/* Profile Form Modal */}
         {showProfileForm && (
-          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50 overflow-y-auto">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full my-8 overflow-hidden border border-white">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4">
+              {/* Header */}
               <div
-                className="p-8 text-white"
-                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                className="p-6 text-white flex items-center justify-between"
+                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #2d8391)` }}
               >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-bold">
-                    {userProfile ? "Edit Profile" : "Complete Profile"}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowProfileForm(false);
-                      setMessage({ text: "", type: "" });
-                    }}
-                    className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+                <h2 className="text-xl font-bold">
+                  {userProfile ? "Edit Profile" : "Complete Profile"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowProfileForm(false);
+                    setMessage({ text: "", type: "" });
+                  }}
+                  className="p-1 hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                >
+                  <X size={24} />
+                </button>
               </div>
 
-              <form onSubmit={handleSubmitProfile} className="p-8 space-y-5">
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative">
-                    <img
-                      src={
-                        imagePreview ||
-                        `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff&size=128`
-                      }
-                      alt="Profile Preview"
-                      className="w-32 h-32 rounded-full object-cover border-4"
-                      style={{ borderColor: PRIMARY_LIGHT }}
-                    />
+              {/* Form Body */}
+              <form onSubmit={handleSubmitProfile} className="p-6 space-y-5">
+                {/* Photo Upload */}
+                <div className="text-center mb-6">
+                  <div className="relative inline-block group">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+                      <img
+                        src={
+                          imagePreview ||
+                          `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
+                        }
+                        alt="Profile"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4CA1AF&color=fff`;
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <label
-                      className="absolute bottom-0 right-0 p-2 rounded-full cursor-pointer hover:scale-110 transition-all shadow-lg"
-                      style={{ backgroundColor: PRIMARY_COLOR }}
+                      className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
+                      style={{ color: PRIMARY_COLOR }}
+                      title="Change photo"
                     >
-                      <Camera size={20} className="text-white" />
+                      <Camera size={16} />
                       <input
                         type="file"
                         accept="image/*"
@@ -3537,83 +3534,99 @@ export default function SuperAdminDashboard() {
                       />
                     </label>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">Click camera to upload photo</p>
+                  <p className="text-xs text-gray-500 mt-2">Upload photo</p>
                 </div>
 
+                {/* PRN Field */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    PRN <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">PRN</label>
                   <input
                     type="text"
-                    name="prn"
                     value={profileData.prn}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all ${userProfile ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-                    onBlur={(e) => (e.target.style.boxShadow = "")}
-                    readOnly={!!userProfile}
-                    required
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
                   />
                 </div>
 
+                {/* Full Name Field */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Full Name *</label>
                   <input
                     type="text"
                     name="fullName"
                     value={profileData.fullName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
-                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-                    onBlur={(e) => (e.target.style.boxShadow = "")}
-                    placeholder="Enter your full name"
+                    placeholder="Enter your name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
+                    style={{
+                      "--tw-ring-color": PRIMARY_COLOR
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = PRIMARY_COLOR;
+                      e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgb(209, 213, 219)";
+                      e.target.style.boxShadow = "none";
+                    }}
                     required
                   />
                 </div>
 
+                {/* Phone Field */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Phone *</label>
                   <input
                     type="tel"
                     name="phoneNumber"
                     value={profileData.phoneNumber}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
-                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-                    onBlur={(e) => (e.target.style.boxShadow = "")}
-                    placeholder="10-digit phone number"
+                    placeholder="9876543210"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
+                    onFocus={(e) => {
+                      e.target.style.borderColor = PRIMARY_COLOR;
+                      e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgb(209, 213, 219)";
+                      e.target.style.boxShadow = "none";
+                    }}
                     required
                   />
                 </div>
 
+                {/* Message */}
                 {message.text && (
                   <div
-                    className={`p-4 rounded-xl ${message.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+                    className={`p-3 rounded-lg text-sm font-medium ${
+                      message.type === "error"
+                        ? "bg-red-100 text-red-700 border border-red-300"
+                        : "bg-green-100 text-green-700 border border-green-300"
+                    }`}
                   >
-                    <p className="text-sm font-semibold">{message.text}</p>
+                    {message.text}
                   </div>
                 )}
 
-                <div className="flex space-x-4 pt-4">
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowProfileForm(false)}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition-all cursor-pointer"
+                    onClick={() => {
+                      setShowProfileForm(false);
+                      setMessage({ text: "", type: "" });
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={profileLoading}
-                    className="flex-1 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                    className="flex-1 px-4 py-2 text-white rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: profileLoading ? `${PRIMARY_COLOR}80` : PRIMARY_COLOR }}
                   >
-                    {profileLoading ? "Saving..." : userProfile ? "Update Profile" : "Create Profile"}
+                    {profileLoading ? "Saving..." : "Save"}
                   </button>
                 </div>
               </form>

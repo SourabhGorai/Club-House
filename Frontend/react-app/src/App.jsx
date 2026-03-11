@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Register from "./components/register";
 import OTP from "./components/otp";
+import VerifyOTP from "./components/verifyotp";
 import Login from "./components/login";
 import "./App.css";
 import Dashboard from "./components/dashboard";
@@ -14,7 +15,6 @@ import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyCl
 import MyEvents from "./components/MyEvents";
 
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
-import CreateEvent from "./Dashboards/SuperAdmin/CreateEvent";
 import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 import ClubDetails from "./components/ClubDetails";
 import PreviousEvents from "./Dashboards/Users/PreviousEvents";
@@ -39,6 +39,7 @@ export default function App() {
         
         {/* MODIFIED: Remove AuthRoute from OTP so logged-in users can access it */}
         <Route path="/otp" element={<OTP />} />
+        <Route path="/verifyotp" element={<VerifyOTP />} />
         
         <Route
           path="/login"
@@ -131,16 +132,7 @@ export default function App() {
           }
         />
         
-        {/* Add the Create Event route */}
-        <Route
-          path="/create-event"
-          element={
-            <ProtectedRoute>
-              <CreateEvent />
-            </ProtectedRoute>
-          }
-        />
-        
+
         <Route path="/club/:clubName/details" element={
           <ProtectedRoute>
             <ClubDetails />

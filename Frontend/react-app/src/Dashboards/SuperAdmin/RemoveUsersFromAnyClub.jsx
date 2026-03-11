@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -298,7 +298,7 @@ const RemoveUsersFromAnyClub = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden text-slate-900 font-sans antialiased">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative text-slate-900 font-sans antialiased">
       <style jsx>{`
         @keyframes blob {
           0%   { transform: translate(0px, 0px)   scale(1);   }
@@ -329,13 +329,13 @@ const RemoveUsersFromAnyClub = () => {
         />
       )}
 
-      {/* Sticky Back Button Bar */}
-      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+      {/* Fixed Back Button Bar */}
+      <div className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group cursor-pointer"
             >
               <svg
                 className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
@@ -344,15 +344,20 @@ const RemoveUsersFromAnyClub = () => {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
-              <span>Back to Dashboard</span>
+              <span className="font-bold">Back to Dashboard</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-24 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div

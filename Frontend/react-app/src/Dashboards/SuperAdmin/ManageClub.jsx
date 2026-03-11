@@ -1281,6 +1281,8 @@ export default function ManageClubs() {
   const [profileImages, setProfileImages] = useState({}); // prn -> blobUrl
 
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userRole = user?.role;
 
   const customStyles = `
     .font-display { font-family: 'Outfit', sans-serif; }
@@ -1548,7 +1550,7 @@ export default function ManageClubs() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Dashboard...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* Animated Background Blobs */}
@@ -1625,7 +1627,7 @@ export default function ManageClubs() {
             {/* LEFT PANEL */}
             <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
               <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
-              <div className="overflow-y-auto max-h-[60vh] lg:max-h-full space-y-2 pr-2">
+              <div className="overflow-y-auto max-h-96 space-y-2 pr-2">
                 {clubs.map((club) => (
                   <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
                     <div className="flex flex-col">
@@ -1671,8 +1673,9 @@ export default function ManageClubs() {
                       <div className="space-y-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div
-                            className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
-                            onClick={selectedClub?.isActive ? handleMembersClick : null}
+                            className={`stat-card p-6 rounded-2xl ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} hover:shadow-xl transition-all duration-300 group`}
+                            onClick={(selectedClub?.isActive && userRole === "SUPER_ADMIN") ? handleMembersClick : null}
+                            title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can view member list" : ""}
                           >
                             <MembersIcon className="text-[#5db2be] mb-3 group-hover:scale-110 transition-transform" />
                             <span className="text-4xl font-black text-[#5db2be] group-hover:text-[#315169]">{adminData?.totalCount || 0}</span>
