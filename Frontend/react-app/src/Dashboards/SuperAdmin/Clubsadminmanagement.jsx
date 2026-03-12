@@ -1,4 +1,4 @@
-﻿// import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 // import {
@@ -492,7 +492,7 @@
 //   }
 
 //   return (
-//     <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+//     <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
 //       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
 //       {/* Animated Background Blobs */}
@@ -1126,7 +1126,7 @@ const ClubAdminsManagement = () => {
 
   const token = localStorage.getItem("token");
 
-  const handleGoBack = () => navigate(-1);
+  const handleGoBack = () => navigate("/dashboard");
 
   useEffect(() => {
     fetchAllData();
@@ -1270,7 +1270,7 @@ const ClubAdminsManagement = () => {
   }
 
   return (
-    <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* Animated Background Blobs */}

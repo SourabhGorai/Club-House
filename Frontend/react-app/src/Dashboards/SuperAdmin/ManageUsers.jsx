@@ -460,7 +460,7 @@
 //       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
 //         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 //           <div className="flex items-center h-16">
-//             <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group">
+//             <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group">
 //               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
 //               <span>Back to Dashboard</span>
 //             </button>
@@ -1389,7 +1389,7 @@ const UserManagement = () => {
       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group">
+            <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group">
               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
               <span>Back to Dashboard</span>
             </button>

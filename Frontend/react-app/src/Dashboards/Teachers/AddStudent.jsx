@@ -448,7 +448,7 @@ export default function AddStudent() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
       <style jsx>{`
         @keyframes blob {
           0% {
@@ -489,13 +489,13 @@ export default function AddStudent() {
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Fixed Back Button Bar - ClubDetails Style */}
-      <div className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+      {/* Sticky Back Button Bar - ClubDetails Style */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group cursor-pointer"
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
               <svg
                 className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
@@ -511,13 +511,13 @@ export default function AddStudent() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span className="font-bold">Back to Dashboard</span>
+              <span>Back to Dashboard</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-center p-4 min-h-screen pt-20">
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
         <div className="w-full max-w-6xl bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative mx-auto my-4 md:my-8 border border-white/20">
           {/* Left Side - Add Student Form */}
           <div className="w-full md:w-3/5 p-6 md:p-8 lg:p-10 flex flex-col">

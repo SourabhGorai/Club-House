@@ -125,23 +125,33 @@ export default function TeachersDashboard() {
         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (response.data) {
+      
+      if (response.data && response.data.success && response.data.data) {
+        const profile = response.data.data;
         setUserProfile(response.data);
+        
         let deptId = "";
-        if (response.data.data.department) {
+        if (profile.department) {
           deptId =
-            typeof response.data.data.department === "object"
-              ? response.data.data.department.departmentId
-              : response.data.data.department;
+            typeof profile.department === "object"
+              ? profile.department.departmentId
+              : profile.department;
         }
+        
         setProfileData({
-          prn: response.data.data.prn || user?.prn || "",
-          fullName: response.data.data.fullName || "",
+          prn: profile.prn || user?.prn || "",
+          fullName: profile.fullName || "",
           departmentId: deptId,
-          year: response.data.data.year || "",
-          phoneNumber: response.data.data.phoneNumber || "",
+          year: profile.year || "",
+          phoneNumber: profile.phoneNumber || "",
         });
         fetchProfileImage();
+      } else {
+        // Handle the case where the profile doesn't exist yet
+        setProfileData(prev => ({
+          ...prev,
+          prn: user?.prn || ""
+        }));
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -560,7 +570,7 @@ export default function TeachersDashboard() {
                   />
                   <ActionCard
                     icon={<Trophy size={24} />}
-                    label="Manage Clubs"
+                    label="Clubs"
                     color="teal"
                     onClick={() => navigate("/manage-clubs")}
                   />
@@ -646,6 +656,7 @@ export default function TeachersDashboard() {
                   <h3 className="text-xl font-bold text-gray-800 mb-3">No Clubs Assigned Yet</h3>
                   <p className="text-gray-500 mb-8">You haven't been assigned to any clubs yet.</p>
                   <button
+                    onClick={() => navigate("/manage-clubs")}
                     className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
                     style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
                   >
@@ -654,7 +665,28 @@ export default function TeachersDashboard() {
                 </div>
               ) : (
                 <>
-                  <div className="space-y-5">
+                  {/* Mobile Dropdown View */}
+                  <div className="lg:hidden mb-6">
+                    <label className="text-[10px] font-black text-gray-400 ml-1 mb-2 block uppercase tracking-widest">
+                      Select Club to Manage
+                    </label>
+                    <CustomSelect
+                      name="mobileClubSelect"
+                      value=""
+                      onChange={(e) => {
+                        const club = clubs.find(c => String(c.clubId) === String(e.target.value));
+                        if (club) handleViewClubDetails(club);
+                      }}
+                      options={clubs.map((club) => ({
+                        value: club.clubId,
+                        label: club.clubName,
+                      }))}
+                      placeholder="Browse your clubs..."
+                    />
+                  </div>
+
+                  {/* Desktop Cards View */}
+                  <div className="hidden lg:block space-y-5">
                     {displayClubs.map((club) => (
                       <CompactClubCard
                         key={club.clubId}
@@ -663,8 +695,9 @@ export default function TeachersDashboard() {
                       />
                     ))}
                   </div>
+                  
                   {clubs.length > 4 && (
-                    <div className="text-center mt-8">
+                    <div className="text-center mt-8 hidden lg:block">
                       <button
                         onClick={() => setShowAllClubs(!showAllClubs)}
                         className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
@@ -970,11 +1003,14 @@ function StatCard({ icon, label, value, color }) {
     purple: { bg: "rgba(76, 161, 175, 0.1)",  text: "#4CA1AF" },
     red:    { bg: "rgba(239, 68, 68, 0.1)",   text: "#EF4444" },
   };
+  
+  const theme = bgColors[color] || bgColors.blue;
+  
   return (
     <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 cursor-pointer hover:shadow-md transition-all">
       <div
         className="p-5 rounded-[1.5rem]"
-        style={{ backgroundColor: bgColors[color].bg, color: bgColors[color].text }}
+        style={{ backgroundColor: theme.bg, color: theme.text }}
       >
         {icon}
       </div>
@@ -1052,15 +1088,18 @@ function ActionCard({ icon, label, color, onClick }) {
     teal:   { bg: "rgba(76, 161, 175, 0.05)",  icon: "#4CA1AF" },
     orange: { bg: "rgba(249, 115, 22, 0.05)",  icon: "#F97316" },
   };
+  
+  const theme = themes[color] || themes.blue;
+  
   return (
     <button
       onClick={onClick}
       className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
-      style={{ backgroundColor: themes[color].bg }}
+      style={{ backgroundColor: theme.bg }}
     >
       <div
         className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
-        style={{ color: themes[color].icon }}
+        style={{ color: theme.icon }}
       >
         {icon}
       </div>

@@ -1,9 +1,11 @@
 import {Users,CalendarRange,Calendar} from 'lucide-react';
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
 
 export default function ClubAdminDashboard() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", variant: "primary", confirmText: "Confirm", onConfirm: () => {} });
   const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
@@ -94,13 +96,19 @@ export default function ClubAdminDashboard() {
           <div className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 md:p-6 sm:col-span-2 lg:col-span-3">
             <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-gray-800">Club Management</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-                 <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
+                 <button 
+                  onClick={() => navigate("/add-users-with-club")}
+                  className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
                 Add Members
               </button>
-               <button className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
+               <button 
+                  onClick={() => navigate("/remove-users-from-club")}
+                  className="bg-green-500 cursor-pointer hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
                 Remove Members
               </button>
-              <button className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
+              <button 
+                  onClick={() => navigate("/events")}
+                  className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">
                 Schedule Event
               </button>
               <button className="bg-purple-500 hover:bg-purple-600 text-white py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm">

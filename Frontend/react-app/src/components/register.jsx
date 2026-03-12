@@ -42,7 +42,6 @@ export default function Register() {
 
       console.log("Registration response:", res.data);
       alert("Registration Successful!");
-      localStorage.setItem("verificationEmail", form.email);
       navigate("/otp");
     } catch (err) {
       console.error("Registration error:", err);

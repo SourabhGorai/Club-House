@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/CustomSelect";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   Users,
@@ -445,7 +446,7 @@ const UserRemoveFromClub = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-slate-900 font-sans antialiased relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-slate-900 font-sans antialiased relative">
       <style jsx>{`
         @keyframes blob {
           0%   { transform: translate(0px, 0px)   scale(1);   }
@@ -479,13 +480,13 @@ const UserRemoveFromClub = () => {
         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Fixed Back Button Bar */}
-      <div className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+      {/* Sticky Back Button Bar */}
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group cursor-pointer"
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
               <svg
                 className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
@@ -494,20 +495,15 @@ const UserRemoveFromClub = () => {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span className="font-bold">Back to Dashboard</span>
+              <span>Back to Dashboard</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-24 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {/* 1. Header */}
         <div className="mb-8">
           <div
@@ -535,19 +531,19 @@ const UserRemoveFromClub = () => {
             />
           </div>
           <div className="lg:col-span-4 relative group">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors" size={20} style={{ color: "#4CA1AF" }} />
-            <select
-              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:border-transparent transition-all shadow-sm outline-none appearance-none text-slate-700 font-bold cursor-pointer"
+            <CustomSelect
+              name="clubFilter"
               value={selectedClub}
               onChange={(e) => setSelectedClub(e.target.value)}
-            >
-              <option value="">All Clubs</option>
-              {teacherClubs.map((club) => (
-                <option key={club.clubId} value={club.clubId}>
-                  {club.clubName} • {club.role}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Clubs" },
+                ...teacherClubs.map((club) => ({
+                  value: club.clubId,
+                  label: `${club.clubName} • ${club.role}`,
+                })),
+              ]}
+              placeholder="All Clubs"
+            />
           </div>
         </div>
 

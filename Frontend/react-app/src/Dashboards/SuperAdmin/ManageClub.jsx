@@ -1,4 +1,4 @@
-﻿// import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 
@@ -1023,6 +1023,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/CustomSelect";
 
 // ----------------------------------------------------------------
 // MembersModal — receives profileImages map (prn -> blobUrl)
@@ -1317,6 +1318,13 @@ export default function ManageClubs() {
     .animate-blob { animation: blob 7s infinite; }
     .animation-delay-2000 { animation-delay: 2s; }
     .animation-delay-4000 { animation-delay: 4s; }
+    .custom-scrollbar {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Opera */
+    }
   `;
 
   // Cleanup blob URLs on unmount
@@ -1519,7 +1527,7 @@ export default function ManageClubs() {
   };
 
   const handleSelectClub = (club) => { setSelectedClub(club); fetchAdminData(club.clubId); };
-  const handleGoBack = () => navigate(-1);
+  const handleGoBack = () => navigate("/dashboard");
 
   const handleDeleteClub = async () => {
     if (!clubToDelete) return;
@@ -1617,17 +1625,39 @@ export default function ManageClubs() {
                 </h1>
                 <p className="mt-2 text-base sm:text-lg font-light text-white/90">Manage all college clubs with ease and style.</p>
               </div>
-              <button className="flex-shrink-0 bg-white font-bold rounded-full py-3 px-8 shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer" style={{ color: '#4CA1AF' }} onClick={() => setShowAddClubModal(true)}>
-                + Add New Club
-              </button>
+              {userRole === "SUPER_ADMIN" && (
+                <button className="flex-shrink-0 bg-white font-bold rounded-full py-3 px-8 shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer" style={{ color: '#4CA1AF' }} onClick={() => setShowAddClubModal(true)}>
+                  + Add New Club
+                </button>
+              )}
             </div>
           </header>
 
           <div className="flex flex-col lg:flex-row min-h-[70vh]">
+            {/* Mobile Club Selector */}
+            <div className="lg:hidden p-6 bg-gray-50/20 border-b border-gray-100">
+              <label className="text-[10px] font-black text-gray-400 mb-2 block uppercase tracking-widest px-1">
+                Select Club to Manage
+              </label>
+              <CustomSelect
+                name="mobileClubSelect"
+                value={selectedClub?.clubId || ""}
+                onChange={(e) => {
+                  const club = clubs.find(c => String(c.clubId) === String(e.target.value));
+                  if (club) handleSelectClub(club);
+                }}
+                options={clubs.map((club) => ({
+                  value: club.clubId,
+                  label: club.clubName,
+                }))}
+                placeholder="Choose a club..."
+              />
+            </div>
+
             {/* LEFT PANEL */}
-            <div className="lg:w-1/3 border-r border-gray-100 flex flex-col p-6 bg-gray-50/20">
+            <div className="hidden lg:flex lg:w-1/3 border-r border-gray-100 flex-col p-6 bg-gray-50/20">
               <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
-              <div className="overflow-y-auto max-h-96 space-y-2 pr-2">
+              <div className="overflow-y-auto max-h-96 space-y-2 pr-2 custom-scrollbar">
                 {clubs.map((club) => (
                   <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
                     <div className="flex flex-col">
@@ -1655,14 +1685,16 @@ export default function ManageClubs() {
                       <p className="text-gray-400 mt-2 font-medium">Club Added on {formatDate(selectedClub.createdAt)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {selectedClub?.isActive ? (
-                        <button onClick={() => { setClubToDelete(selectedClub); setIsModalOpen(true); }} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors cursor-pointer" disabled={deleteLoading} title="Deactivate Club">
-                          <DeleteIcon />
-                        </button>
-                      ) : (
-                        <button onClick={() => handleActivateClub(selectedClub.clubId)} className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors cursor-pointer" title="Activate Club">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                        </button>
+                      {userRole === "SUPER_ADMIN" && (
+                        selectedClub?.isActive ? (
+                          <button onClick={() => { setClubToDelete(selectedClub); setIsModalOpen(true); }} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors cursor-pointer" disabled={deleteLoading} title="Deactivate Club">
+                            <DeleteIcon />
+                          </button>
+                        ) : (
+                          <button onClick={() => handleActivateClub(selectedClub.clubId)} className="p-3 bg-green-50 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors cursor-pointer" title="Activate Club">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
@@ -1698,7 +1730,12 @@ export default function ManageClubs() {
                               <div className="flex flex-col sm:flex-row items-center gap-3">
                                 <span className="font-bold text-black text-center sm:text-left">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
                                 {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
-                                  <button onClick={handleOpenClubAdminModal} className={`text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
+                                  <button 
+                                    onClick={handleOpenClubAdminModal} 
+                                    className={`text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
+                                    disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
+                                    title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign club admins" : ""}
+                                  >
                                     + Assign Admin
                                   </button>
                                 )}
@@ -1710,7 +1747,12 @@ export default function ManageClubs() {
                               <div className="flex items-center gap-3">
                                 <span className="font-bold text-gray-700">{adminData?.teacherName && adminData.teacherName !== "Not Assigned" ? adminData.teacherName : <span className="text-gray-400 italic">Not Assigned</span>}</span>
                                 {(!adminData?.teacherName || adminData.teacherName === "Not Assigned") && (
-                                  <button onClick={handleOpenTeacherModal} className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!selectedClub?.isActive}>
+                                  <button 
+                                    onClick={handleOpenTeacherModal} 
+                                    className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
+                                    disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
+                                    title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign teacher advisors" : ""}
+                                  >
                                     Assign Now
                                   </button>
                                 )}

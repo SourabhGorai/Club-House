@@ -42,54 +42,18 @@ export default function Login() {
         alert("Invalid username or password!");
       }
     } catch (err) {
-      console.error("Detailed Login Error:", {
-        status: err.response?.status,
-        data: err.response?.data,
-        headers: err.response?.headers,
-        message: err.message
-      });
-
       const errorData = err.response?.data;
+      const errorMessage = (typeof errorData === 'string' ? errorData : errorData?.message) || "Login Failed!";
       
-      // Extract the error message string from various possible formats
-      let errorMessage = "Login Failed!";
-      if (typeof errorData === "string") {
-        errorMessage = errorData;
-      } else if (errorData && typeof errorData === "object") {
-        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
+      alert(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+      console.error(err);
 
+      // If account is not verified, we might want to redirect to verification page
       const msgStr = String(errorMessage).toLowerCase();
-
-      // Handle 403 Forbidden (usually unverified accounts or role issues)
-      if (err.response?.status === 403) {
-        // Check if the response itself indicates unverified status
-        const isUnverified = msgStr.includes("verify") || 
-                            msgStr.includes("verified") || 
-                            msgStr.includes("verification") || 
-                            msgStr.includes("otp") || 
-                            msgStr.includes("not enabled") ||
-                            (errorData && errorData.user && errorData.user.verified === false);
-
-        if (isUnverified) {
-          alert("Account not verified. Redirecting to verification page...");
-          // Extract email from error data if available, otherwise use form username
-          const emailToVerify = errorData?.user?.email || form.username;
-          localStorage.setItem("verificationEmail", emailToVerify);
-          navigate("/otp");
-        } else {
-          // Otherwise show the specific forbidden message
-          alert(`Access Forbidden: ${errorMessage}\n\nIf you haven't verified your account, please do so.`);
-          // Offer redirection anyway as a fallback
-          if (window.confirm("Would you like to go to the OTP verification page?")) {
-            localStorage.setItem("verificationEmail", form.username);
-            navigate("/otp");
-          }
-        }
-      } else {
-        alert(errorMessage);
+      if (err.response?.status === 403 && (msgStr.includes("verify") || msgStr.includes("verification"))) {
+        // Try to get username/email from form to help with verification
+        localStorage.setItem("verificationEmail", form.username); // Assuming username could be email
+        navigate("/otp");
       }
     } finally {
       setIsLoading(false);

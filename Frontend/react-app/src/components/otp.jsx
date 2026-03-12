@@ -30,18 +30,7 @@ export default function OTP() {
       );
 
       alert("OTP Verified Successfully!");
-      
-      // If the response contains user and token, log them in and go to dashboard
-      if (response.data && response.data.token && response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        localStorage.setItem("token", response.data.token);
-        localStorage.removeItem("verificationEmail");
-        navigate("/dashboard");
-      } else {
-        // If no token in response, we still try to go to dashboard 
-        // in case they are already logged in, otherwise dashboard will handle redirect to login
-        navigate("/dashboard");
-      }
+      navigate("/");
       console.log(response.data);
     } catch (err) {
       alert("Invalid OTP ❌ Please try again!");
