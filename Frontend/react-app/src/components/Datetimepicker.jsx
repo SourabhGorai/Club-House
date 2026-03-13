@@ -84,11 +84,14 @@ const DateTimePicker = ({
     if (p) { setNavYear(p.year); setNavMonth(p.month); }
   }, [value]);
 
-  // Close on outside click
+  // Close on outside click — must check both rootRef AND popoverRef because
+  // the popover is rendered via createPortal outside the root element.
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (rootRef.current && !rootRef.current.contains(e.target)) {
+      const insideRoot    = rootRef.current    && rootRef.current.contains(e.target);
+      const insidePopover = popoverRef.current && popoverRef.current.contains(e.target);
+      if (!insideRoot && !insidePopover) {
         setOpen(false);
         setView("calendar");
       }

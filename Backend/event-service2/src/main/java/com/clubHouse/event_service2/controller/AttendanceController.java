@@ -124,7 +124,7 @@ public class AttendanceController {
     }
     
     /**
-     * Get attendance list for an event (Organizer/Admin)
+     * Get attendance list for an event (Organizer/Admin):
      * GET /api/attendance/list/{eventId}
      */
     @GetMapping("/list/{eventId}")

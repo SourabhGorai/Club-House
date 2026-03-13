@@ -370,6 +370,41 @@ export default function UsersDashboard() {
   const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 4);
   const joinedClubsCount = myClubs.length;
   const totalMembersInMyClubs = myClubs.reduce((sum, club) => sum + (parseInt(club.memberCount) || 0), 0);
+  const statsCards = [
+    {
+      icon: <CalendarDays />,
+      label: "Joined Clubs",
+      value: joinedClubsCount.toString(),
+      color: "blue",
+      disabled: !isVerified,
+    },
+    // {
+    //   icon: <Users />,
+    //   label: "Total Members",
+    //   value: totalMembersInMyClubs.toString(),
+    //   color: "green",
+    //   disabled: !isVerified,
+    // },
+    {
+      icon: <BookOpen />,
+      label: "Total Events",
+      value: "12",
+      color: "orange",
+      disabled: !isVerified,
+    },
+    {
+      icon: <ShieldCheck />,
+      label: "Verified Status",
+      value: isVerified ? "Verified" : "Pending",
+      color: "purple",
+      isStatus: true,
+      disabled: false,
+    },
+  ];
+  const statsGridClassName =
+    statsCards.length === 4
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 mb-12"
+      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12";
 
   return (
     <>
@@ -603,36 +638,18 @@ export default function UsersDashboard() {
           </header>
 
           {/* Statistics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <StatCard
-              icon={<CalendarDays />}
-              label="Joined Clubs"
-              value={joinedClubsCount.toString()}
-              color="blue"
-              disabled={!isVerified}
-            />
-            <StatCard
-              icon={<Users />}
-              label="Total Members"
-              value={totalMembersInMyClubs.toString()}
-              color="green"
-              disabled={!isVerified}
-            />
-            <StatCard
-              icon={<BookOpen />}
-              label="Total Events"
-              value="12"
-              color="orange"
-              disabled={!isVerified}
-            />
-            <StatCard
-              icon={<ShieldCheck />}
-              label="Verified Status"
-              value={isVerified ? "Verified" : "Pending"}
-              color="purple"
-              isStatus
-              disabled={false}
-            />
+          <div className={statsGridClassName}>
+            {statsCards.map((card) => (
+              <StatCard
+                key={card.label}
+                icon={card.icon}
+                label={card.label}
+                value={card.value}
+                color={card.color}
+                isStatus={card.isStatus}
+                disabled={card.disabled}
+              />
+            ))}
           </div>
 
           {/* Two Column Layout */}
