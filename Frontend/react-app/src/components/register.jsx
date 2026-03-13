@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "./ConfirmDialog";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -17,6 +18,40 @@ export default function Register() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dialog, setDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "primary",
+    confirmText: "OK",
+    onConfirm: () => {},
+  });
+
+  const closeDialog = () =>
+    setDialog((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+
+  const showDialog = ({
+    title,
+    message,
+    variant = "primary",
+    confirmText = "OK",
+    onConfirm,
+  }) => {
+    setDialog({
+      isOpen: true,
+      title,
+      message,
+      variant,
+      confirmText,
+      onConfirm: () => {
+        closeDialog();
+        if (onConfirm) onConfirm();
+      },
+    });
+  };
 
   const handleSignInClick = () => {
     navigate("/login");
@@ -41,19 +76,27 @@ export default function Register() {
       );
 
       console.log("Registration response:", res.data);
-      alert("Registration Successful!");
-      navigate("/otp");
+      showDialog({
+        title: "Registration Successful",
+        message: "Your account has been created.",
+        onConfirm: () => navigate("/otp"),
+      });
     } catch (err) {
       console.error("Registration error:", err);
       const errorMessage = err.response?.data?.message || err.response?.data || "Registration Failed!";
-      alert(errorMessage);
+      showDialog({
+        title: "Registration Failed",
+        message: String(errorMessage),
+        variant: "danger",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-2 xs:p-3 sm:p-4 md:p-6 overflow-hidden relative" 
+    <>
+      <div className="min-h-screen w-screen flex items-center justify-center p-2 xs:p-3 sm:p-4 md:p-6 overflow-hidden relative" 
          style={{background: 'var(--primary-gradient)'}}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -378,6 +421,18 @@ export default function Register() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <ConfirmDialog
+        isOpen={dialog.isOpen}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        confirmText={dialog.confirmText}
+        cancelText="Close"
+        onConfirm={dialog.onConfirm}
+        onCancel={closeDialog}
+      />
+    </>
   );
 }

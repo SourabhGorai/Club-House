@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +14,40 @@ export default function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dialog, setDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "primary",
+    confirmText: "OK",
+    onConfirm: () => {},
+  });
+
+  const closeDialog = () =>
+    setDialog((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+
+  const showDialog = ({
+    title,
+    message,
+    variant = "primary",
+    confirmText = "OK",
+    onConfirm,
+  }) => {
+    setDialog({
+      isOpen: true,
+      title,
+      message,
+      variant,
+      confirmText,
+      onConfirm: () => {
+        closeDialog();
+        if (onConfirm) onConfirm();
+      },
+    });
+  };
 
   const handleSigninClick = () => {
     navigate("/mainregister");
@@ -39,13 +74,24 @@ export default function Login() {
         localStorage.setItem("token", response.data.token);
         window.location.href = "/dashboard";
       } else {
-        alert("Invalid username or password!");
+        showDialog({
+          title: "Login Failed",
+          message: "Invalid username or password!",
+          variant: "danger",
+        });
       }
     } catch (err) {
       const errorData = err.response?.data;
       const errorMessage = (typeof errorData === 'string' ? errorData : errorData?.message) || "Login Failed!";
-      
-      alert(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+
+      showDialog({
+        title: "Login Failed",
+        message:
+          typeof errorMessage === "string"
+            ? errorMessage
+            : JSON.stringify(errorMessage),
+        variant: "danger",
+      });
       console.error(err);
 
       // If account is not verified, we might want to redirect to verification page
@@ -61,7 +107,8 @@ export default function Login() {
   };
 
   return (
-    <div
+    <>
+      <div
       className="min-h-screen w-screen flex items-center justify-center p-2 xs:p-3 sm:p-4 md:p-6 overflow-hidden relative"
       style={{ background: "var(--primary-gradient)" }}
     >
@@ -419,7 +466,19 @@ export default function Login() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <ConfirmDialog
+        isOpen={dialog.isOpen}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        confirmText={dialog.confirmText}
+        cancelText="Close"
+        onConfirm={dialog.onConfirm}
+        onCancel={closeDialog}
+      />
+    </>
   );
 }
 

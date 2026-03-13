@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "./ConfirmDialog";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -11,6 +12,40 @@ export default function OTP() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [dialog, setDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "primary",
+    confirmText: "OK",
+    onConfirm: () => {},
+  });
+
+  const closeDialog = () =>
+    setDialog((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+
+  const showDialog = ({
+    title,
+    message,
+    variant = "primary",
+    confirmText = "OK",
+    onConfirm,
+  }) => {
+    setDialog({
+      isOpen: true,
+      title,
+      message,
+      variant,
+      confirmText,
+      onConfirm: () => {
+        closeDialog();
+        if (onConfirm) onConfirm();
+      },
+    });
+  };
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("verificationEmail");
@@ -29,11 +64,18 @@ export default function OTP() {
         { email, otp }
       );
 
-      alert("OTP Verified Successfully!");
-      navigate("/");
+      showDialog({
+        title: "OTP Verified",
+        message: "OTP Verified Successfully!",
+        onConfirm: () => navigate("/"),
+      });
       console.log(response.data);
     } catch (err) {
-      alert("Invalid OTP ❌ Please try again!");
+      showDialog({
+        title: "Verification Failed",
+        message: "Invalid OTP. Please try again!",
+        variant: "danger",
+      });
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -42,7 +84,11 @@ export default function OTP() {
 
   const handleResendOTP = async () => {
     if (!email) {
-      alert("Please enter your email first");
+      showDialog({
+        title: "Email Required",
+        message: "Please enter your email first",
+        variant: "danger",
+      });
       return;
     }
 
@@ -52,10 +98,17 @@ export default function OTP() {
         `${BASE_URL}/api/auth/forgot-password`,
         { email }
       );
-      alert("OTP resent successfully!");
+      showDialog({
+        title: "OTP Resent",
+        message: "OTP resent successfully!",
+      });
       console.log(response.data);
     } catch (err) {
-      alert("Failed to resend OTP! Please try again.");
+      showDialog({
+        title: "Resend Failed",
+        message: "Failed to resend OTP! Please try again.",
+        variant: "danger",
+      });
       console.error(err);
     } finally {
       setResendLoading(false);
@@ -63,7 +116,8 @@ export default function OTP() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-4 overflow-hidden relative"
+    <>
+      <div className="min-h-screen w-screen flex items-center justify-center p-4 overflow-hidden relative"
          style={{background: 'var(--primary-gradient)'}}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -311,7 +365,19 @@ export default function OTP() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <ConfirmDialog
+        isOpen={dialog.isOpen}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        confirmText={dialog.confirmText}
+        cancelText="Close"
+        onConfirm={dialog.onConfirm}
+        onCancel={closeDialog}
+      />
+    </>
   );
 }
 
