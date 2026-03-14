@@ -451,10 +451,8 @@ public class GatewayConfig {
 
                 .route("notification-teachers", r -> r
                         .path(
-                                "/api/notification/create",
-                                "/api/notification/getAll/**",
-                                "/api/notification/getBySourceTypes/**",
-                                "/api/notification/getByNotificationType/**"
+                                "/api/notification",
+                                "/api/notification/paged"
                         )
                         .and()
                         .method("GET", "POST")
@@ -464,12 +462,46 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
+                .route("notification-teachers", r -> r
+                        .path(
+                                "/api/notification/{notificationId}",
+                                "/api/notification/{notificationId}/reactivate",
+                                "/api/notification/{notificationId}/deactivate"
+                        )
+                        .and()
+                        .method("PATCH", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
                 .route("notification-all", r -> r
                         .path(
-                                "/api/notification/data/**"
+                                "/api/notification/me/**",
+                                "/api/notification/me",
+                                "/api/notification/{notificationId}",
+                                "/api/notification/by-source/**",
+                                "/api/notification/by-type/**",
+                                "/api/notification/by-target/**",
+                                "/api/notification/meta/**"
+
                         )
                         .and()
                         .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
+                .route("notification-all", r -> r
+                        .path(
+                                "/api/notification/{notificationId}/read"
+
+                        )
+                        .and()
+                        .method("PATCH")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(

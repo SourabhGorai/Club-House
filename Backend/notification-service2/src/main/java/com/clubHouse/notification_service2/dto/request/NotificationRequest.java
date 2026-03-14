@@ -44,11 +44,14 @@ public class NotificationRequest {
 /*
 * {
 *   "sourceType": "EVENT",
-*   "sourceId": 4,
-*   "notificationTitle": "Bhartiyam 2027",
-*   "message": "Everyone is invited to bhartiyam 2027",
-*   "notificationType": "GLOBAL",
-*   "targetType": "GLOBAL"
+*   "sourceId": eventId,
+*   "notificationTitle": "Event Name",
+*   "message": "Everyone is invited to join the event <event name> which is going
+*    to be held in <venu>, (and the <event description>)",
+*   "notificationType": based on event target type,
+*   "targetType": "target Type",
+*   "targetedIds: ids of the target type/ empty list if target type is global"
+*   "validUntil: eventDate time"
 * }
 * */
 

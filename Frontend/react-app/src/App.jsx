@@ -20,6 +20,7 @@ import ClubDetails from "./components/ClubDetails";
 import PreviousEvents from "./Dashboards/Users/PreviousEvents";
 import MyEventsForSuperadmin from "./Dashboards/SuperAdmin/MyEventsForSuperadmin";
 import SuperAdminDashboard from "./Dashboards/SuperAdmin/SuperAdminDashboard"; // Add this import
+import CreateEvent from "./Dashboards/SuperAdmin/CreateEvent";
 
 export default function App() {
   return (
@@ -146,6 +147,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ClubDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/create-event"
+          element={
+            <ProtectedRoute>
+              <CreateEvent />
             </ProtectedRoute>
           }
         />

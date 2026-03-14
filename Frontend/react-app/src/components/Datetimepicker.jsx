@@ -2,51 +2,30 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
 
-/**
- * DateTimePicker — fully custom, zero native browser UI.
- *
- * Props:
- *   value       {string}   — datetime-local string  "YYYY-MM-DDTHH:mm"  (controlled)
- *   onChange    {function} — called with new "YYYY-MM-DDTHH:mm" string
- *   label       {string}   — field label
- *   placeholder {string}   — shown when empty
- *   disabled    {boolean}
- *   required    {boolean}
- *   minValue    {string}   — optional "YYYY-MM-DDTHH:mm" lower bound
- *   maxValue    {string}   — optional "YYYY-MM-DDTHH:mm" upper bound
- *   className   {string}   — extra classes on the root wrapper
- */
-
 // ── tiny helpers ────────────────────────────────────────────────────────────
-const pad  = (n) => String(n).padStart(2, "0");
+const pad = (n) => String(n).padStart(2, "0");
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
 ];
 
-/** Parse "YYYY-MM-DDTHH:mm" → { year, month, day, hour, minute } or null */
 const parseValue = (v) => {
   if (!v || typeof v !== "string") return null;
   const [datePart, timePart] = v.split("T");
   if (!datePart || !timePart) return null;
   const [year, month, day] = datePart.split("-").map(Number);
   const [hour, minute]     = timePart.split(":").map(Number);
-  if ([year, month, day, hour, minute].some(isNaN)) return null;
+  if ([year, month, day, hour, minute].some((x) => Number.isNaN(x))) return null;
   return { year, month, day, hour, minute };
 };
 
-/** Build "YYYY-MM-DDTHH:mm" from parts */
 const buildValue = ({ year, month, day, hour, minute }) =>
   `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}`;
 
-/** Days in a month (accounts for leap years) */
-const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
-
-/** First weekday of a month (0=Sun) */
+const daysInMonth  = (year, month) => new Date(year, month, 0).getDate();
 const firstWeekday = (year, month) => new Date(year, month - 1, 1).getDay();
 
-// ── gradient used throughout ────────────────────────────────────────────────
 const GRAD = "linear-gradient(135deg, #4CA1AF, #2C3E50)";
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -65,9 +44,8 @@ const DateTimePicker = ({
   const minParsed = parseValue(minValue);
   const maxParsed = parseValue(maxValue);
 
-  // ── UI state ──────────────────────────────────────────────────────────────
   const [open, setOpen]         = useState(false);
-  const [view, setView]         = useState("calendar"); // "calendar" | "time"
+  const [view, setView]         = useState("calendar");
   const [navYear, setNavYear]   = useState(() => parsed?.year  ?? new Date().getFullYear());
   const [navMonth, setNavMonth] = useState(() => parsed?.month ?? new Date().getMonth() + 1);
   const [pending, setPending]   = useState(parsed);
@@ -75,32 +53,25 @@ const DateTimePicker = ({
   const rootRef    = useRef(null);
   const popoverRef = useRef(null);
   const triggerRef = useRef(null);
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0 });
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
 
-  // Sync nav when value changes externally
   useEffect(() => {
     const p = parseValue(value);
     setPending(p);
     if (p) { setNavYear(p.year); setNavMonth(p.month); }
   }, [value]);
 
-  // Close on outside click — must check both rootRef AND popoverRef because
-  // the popover is rendered via createPortal outside the root element.
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
       const insideRoot    = rootRef.current    && rootRef.current.contains(e.target);
       const insidePopover = popoverRef.current && popoverRef.current.contains(e.target);
-      if (!insideRoot && !insidePopover) {
-        setOpen(false);
-        setView("calendar");
-      }
+      if (!insideRoot && !insidePopover) { setOpen(false); setView("calendar"); }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // ── helpers ───────────────────────────────────────────────────────────────
   const isDateDisabled = useCallback((y, m, d) => {
     const ts = new Date(y, m - 1, d).getTime();
     if (minParsed) {
@@ -114,15 +85,13 @@ const DateTimePicker = ({
     return false;
   }, [minParsed, maxParsed]);
 
-  const isToday = (y, m, d) => {
+  const isToday    = (y, m, d) => {
     const t = new Date();
     return t.getFullYear() === y && t.getMonth() + 1 === m && t.getDate() === d;
   };
-
   const isSelected = (y, m, d) =>
     pending?.year === y && pending?.month === m && pending?.day === d;
 
-  // ── navigation ────────────────────────────────────────────────────────────
   const prevMonth = () => {
     if (navMonth === 1) { setNavMonth(12); setNavYear(y => y - 1); }
     else setNavMonth(m => m - 1);
@@ -132,23 +101,20 @@ const DateTimePicker = ({
     else setNavMonth(m => m + 1);
   };
 
-  // ── day click ─────────────────────────────────────────────────────────────
   const handleDayClick = (y, m, d) => {
     if (isDateDisabled(y, m, d)) return;
     const next = {
       year: y, month: m, day: d,
-      hour:   pending?.hour   ?? 0,
-      minute: pending?.minute ?? 0,
+      hour:   pending != null ? pending.hour   : 0,
+      minute: pending != null ? pending.minute : 0,
     };
     setPending(next);
     setView("time");
   };
 
-  // ── time change ───────────────────────────────────────────────────────────
-  const handleHourChange   = (h)   => { setPending(p => p ? { ...p, hour: h }      : null); };
-  const handleMinuteChange = (min) => { setPending(p => p ? { ...p, minute: min }   : null); };
+  const handleHourChange   = (h)   => setPending(p => p ? { ...p, hour: h }    : null);
+  const handleMinuteChange = (min) => setPending(p => p ? { ...p, minute: min } : null);
 
-  // ── apply ─────────────────────────────────────────────────────────────────
   const handleApply = () => {
     if (pending) onChange?.(buildValue(pending));
     setOpen(false);
@@ -161,12 +127,10 @@ const DateTimePicker = ({
     setPending(null);
   };
 
-  // ── display label ─────────────────────────────────────────────────────────
   const displayText = parsed
     ? `${MONTHS[parsed.month - 1].slice(0, 3)} ${pad(parsed.day)}, ${parsed.year}  ${pad(parsed.hour)}:${pad(parsed.minute)}`
     : "";
 
-  // ── calendar grid ─────────────────────────────────────────────────────────
   const totalDays = daysInMonth(navYear, navMonth);
   const startDay  = firstWeekday(navYear, navMonth);
   const calCells  = Array.from({ length: startDay + totalDays }, (_, i) =>
@@ -176,38 +140,34 @@ const DateTimePicker = ({
 
   const hours   = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
-  const selHour   = pending?.hour   ?? 0;
-  const selMinute = pending?.minute ?? 0;
+  const selHour   = pending != null ? pending.hour   : 0;
+  const selMinute = pending != null ? pending.minute : 0;
 
-  // ── render ────────────────────────────────────────────────────────────────
   return (
     <div ref={rootRef} className={`relative ${className}`}>
-      {/* Label */}
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
           {label}{required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
       )}
 
-      {/* Trigger */}
       <button
         type="button"
         disabled={disabled}
+        ref={triggerRef}
         onClick={() => {
           if (!disabled) {
             if (triggerRef.current) {
               const rect = triggerRef.current.getBoundingClientRect();
               setPopoverPos({
-                top:   rect.bottom + window.scrollY + 8,
-                left:  rect.left   + window.scrollX,
-                width: rect.width,
+                top:  rect.bottom + window.scrollY + 8,
+                left: rect.left   + window.scrollX,
               });
             }
             setOpen(o => !o);
             setView("calendar");
           }
         }}
-        ref={triggerRef}
         className={`
           w-full flex items-center justify-between gap-2
           px-3.5 py-2.5 rounded-xl border transition-all duration-200
@@ -227,115 +187,80 @@ const DateTimePicker = ({
           </span>
         </div>
         {displayText && !disabled && (
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Clear date and time"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onClick={handleClear}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClear(e);
+              }
+            }}
             className="flex-shrink-0 text-gray-300 hover:text-gray-500 transition-colors p-0.5 rounded"
           >
             <X className="w-3.5 h-3.5" />
-          </button>
+          </span>
         )}
       </button>
 
-      {/* Popover — rendered via portal into document.body to escape all stacking contexts */}
       {open && createPortal(
         <div
           ref={popoverRef}
           className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
-          style={{
-            position: "absolute",
-            top:      popoverPos.top,
-            left:     popoverPos.left,
-            width:    "300px",
-            minWidth: "300px",
-            zIndex:   9999,
-          }}
+          style={{ position: "absolute", top: popoverPos.top, left: popoverPos.left, width: "300px", zIndex: 9999 }}
         >
-          {/* ── Tab bar ── */}
+          {/* Tab bar */}
           <div className="flex border-b border-gray-100">
             {[
               { id: "calendar", icon: <Calendar className="w-3.5 h-3.5" />, label: "Date" },
               { id: "time",     icon: <Clock     className="w-3.5 h-3.5" />, label: "Time" },
             ].map(({ id, icon, label }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setView(id)}
-                className={`
-                  flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold
-                  transition-all duration-200
-                  ${view === id
-                    ? "text-white"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                  }
-                `}
-                style={view === id ? { background: GRAD } : {}}
-              >
+              <button key={id} type="button" onClick={() => setView(id)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-all duration-200 ${view === id ? "text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                style={view === id ? { background: GRAD } : {}}>
                 {icon}{label}
               </button>
             ))}
           </div>
 
-          {/* ── Calendar view ── */}
+          {/* Calendar view */}
           {view === "calendar" && (
             <div className="p-3">
-              {/* Month nav */}
               <div className="flex items-center justify-between mb-3">
-                <button
-                  type="button"
-                  onClick={prevMonth}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-                >
+                <button type="button" onClick={prevMonth}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm font-semibold text-gray-800">
-                  {MONTHS[navMonth - 1]} {navYear}
-                </span>
-                <button
-                  type="button"
-                  onClick={nextMonth}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-                >
+                <span className="text-sm font-semibold text-gray-800">{MONTHS[navMonth - 1]} {navYear}</span>
+                <button type="button" onClick={nextMonth}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Day headers */}
               <div className="grid grid-cols-7 mb-1">
                 {DAYS.map(d => (
-                  <div key={d} className="text-center text-[10px] font-semibold text-gray-400 py-1">
-                    {d}
-                  </div>
+                  <div key={d} className="text-center text-[10px] font-semibold text-gray-400 py-1">{d}</div>
                 ))}
               </div>
 
-              {/* Day cells */}
               <div className="grid grid-cols-7 gap-y-0.5">
                 {calCells.map((day, idx) => {
                   if (!day) return <div key={`empty-${idx}`} />;
-                  const sel      = isSelected(navYear, navMonth, day);
-                  const today    = isToday(navYear, navMonth, day);
-                  const dis      = isDateDisabled(navYear, navMonth, day);
+                  const sel   = isSelected(navYear, navMonth, day);
+                  const today = isToday(navYear, navMonth, day);
+                  const dis   = isDateDisabled(navYear, navMonth, day);
                   return (
-                    <button
-                      key={day}
-                      type="button"
-                      disabled={dis}
+                    <button key={day} type="button" disabled={dis}
                       onClick={() => handleDayClick(navYear, navMonth, day)}
-                      className={`
-                        relative h-8 w-full rounded-lg text-xs font-medium
-                        transition-all duration-150 flex items-center justify-center
-                        ${dis
-                          ? "text-gray-300 cursor-not-allowed"
-                          : sel
-                            ? "text-white shadow-md"
-                            : today
-                              ? "text-[#4CA1AF] font-bold hover:bg-[#4CA1AF]/10"
-                              : "text-gray-700 hover:bg-gray-100"
-                        }
-                      `}
-                      style={sel ? { background: GRAD } : {}}
-                    >
+                      className={`relative h-8 w-full rounded-lg text-xs font-medium transition-all duration-150 flex items-center justify-center ${dis ? "text-gray-300 cursor-not-allowed" : sel ? "text-white shadow-md" : today ? "text-[#4CA1AF] font-bold hover:bg-[#4CA1AF]/10" : "text-gray-700 hover:bg-gray-100"}`}
+                      style={sel ? { background: GRAD } : {}}>
                       {day}
                       {today && !sel && (
                         <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#4CA1AF]" />
@@ -345,184 +270,185 @@ const DateTimePicker = ({
                 })}
               </div>
 
-              {/* Footer */}
               <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <span className="text-xs text-gray-400">
-                  {pending
-                    ? `${pad(pending.hour)}:${pad(pending.minute)} selected`
-                    : "Pick a date to continue"}
+                  {pending ? `${pad(pending.hour)}:${pad(pending.minute)} selected` : "Pick a date to continue"}
                 </span>
-                <button
-                  type="button"
-                  disabled={!pending}
-                  onClick={() => setView("time")}
+                <button type="button" disabled={!pending} onClick={() => setView("time")}
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
-                  style={{ background: GRAD }}
-                >
+                  style={{ background: GRAD }}>
                   Set Time →
                 </button>
               </div>
             </div>
           )}
 
-          {/* ── Time view ── */}
+          {/* Time view */}
           {view === "time" && (
             <div className="p-3">
-              {/* Selected date reminder */}
               {pending && (
                 <div className="mb-3 px-3 py-2 rounded-xl text-center text-xs font-medium text-white" style={{ background: GRAD }}>
                   {MONTHS[pending.month - 1]} {pad(pending.day)}, {pending.year}
                 </div>
               )}
 
-              {/* Time display */}
               <div className="text-center mb-3">
                 <span className="text-3xl font-bold tracking-tight" style={{ color: "#2C3E50" }}>
                   {pad(selHour)}<span className="animate-pulse text-[#4CA1AF]">:</span>{pad(selMinute)}
                 </span>
               </div>
 
-              {/* Scroll wheels */}
               <div className="flex gap-2 justify-center">
                 <div className="flex-1">
                   <p className="text-[10px] text-gray-400 text-center mb-1.5 font-semibold uppercase tracking-wide">Hour</p>
-                  <ScrollWheel
-                    items={hours}
-                    selected={selHour}
-                    onSelect={handleHourChange}
-                    format={(h) => pad(h)}
-                  />
+                  <ScrollWheel items={hours}   selected={selHour}   onSelect={handleHourChange}   format={pad} />
                 </div>
                 <div className="flex-1">
                   <p className="text-[10px] text-gray-400 text-center mb-1.5 font-semibold uppercase tracking-wide">Minute</p>
-                  <ScrollWheel
-                    items={minutes}
-                    selected={selMinute}
-                    onSelect={handleMinuteChange}
-                    format={(m) => pad(m)}
-                  />
+                  <ScrollWheel items={minutes} selected={selMinute} onSelect={handleMinuteChange} format={pad} />
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setView("calendar")}
-                  className="flex-1 py-2 rounded-xl text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
-                >
+                <button type="button" onClick={() => setView("calendar")}
+                  className="flex-1 py-2 rounded-xl text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">
                   ← Back
                 </button>
-                <button
-                  type="button"
-                  disabled={!pending}
-                  onClick={handleApply}
+                <button type="button" disabled={!pending} onClick={handleApply}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40 transition-all shadow-md hover:shadow-lg"
-                  style={{ background: GRAD }}
-                >
+                  style={{ background: GRAD }}>
                   Apply
                 </button>
               </div>
             </div>
           )}
-        </div>
-        , document.body
+        </div>,
+        document.body
       )}
     </div>
   );
 };
 
-// ── ScrollWheel subcomponent ────────────────────────────────────────────────
+// ── ScrollWheel ──────────────────────────────────────────────────────────────
 const ITEM_H  = 36;
 const VISIBLE = 5;
+const OFFSET  = ITEM_H * 2; // centre slot = row index 2
 
 const ScrollWheel = ({ items, selected, onSelect, format }) => {
-  const containerRef = useRef(null);
-  const isDragging   = useRef(false);
+  const ref          = useRef(null);
+  const snapTimer    = useRef(null);
+  const programmatic = useRef(false);
 
-  // Scroll to selected item on mount / selection change
+  // Scroll to selected whenever it changes
   useEffect(() => {
-    const el = containerRef.current;
+    const el = ref.current;
     if (!el) return;
-    const idx = items.indexOf(selected);
+    const idx = items.findIndex((v) => v === selected);
     if (idx === -1) return;
+    programmatic.current = true;
+    // With paddingTop=OFFSET, scrollTop=0 already shows item[0] in centre.
+    // So the correct scrollTop for item[idx] is simply idx * ITEM_H.
     el.scrollTo({ top: idx * ITEM_H, behavior: "smooth" });
+    setTimeout(() => { programmatic.current = false; }, 350);
   }, [selected, items]);
 
-  const handleScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el || isDragging.current) return;
-    const idx = Math.round(el.scrollTop / ITEM_H);
+  const commitSnap = useCallback(() => {
+    const el = ref.current;
+    if (!el || programmatic.current) return;
+    const idx     = Math.round(el.scrollTop / ITEM_H);
     const clamped = Math.max(0, Math.min(items.length - 1, idx));
+    programmatic.current = true;
+    el.scrollTo({ top: clamped * ITEM_H, behavior: "smooth" });
+    setTimeout(() => { programmatic.current = false; }, 350);
     if (items[clamped] !== selected) onSelect(items[clamped]);
   }, [items, selected, onSelect]);
 
-  // Snap on scroll end
   useEffect(() => {
-    const el = containerRef.current;
+    const el = ref.current;
     if (!el) return;
-    let timer;
     const onScroll = () => {
-      clearTimeout(timer);
-      timer = setTimeout(handleScroll, 80);
+      clearTimeout(snapTimer.current);
+      snapTimer.current = setTimeout(commitSnap, 150);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
-    return () => { el.removeEventListener("scroll", onScroll); clearTimeout(timer); };
-  }, [handleScroll]);
+    return () => { el.removeEventListener("scroll", onScroll); clearTimeout(snapTimer.current); };
+  }, [commitSnap]);
+
+  const handleClick = (item, idx) => {
+    const el = ref.current;
+    if (el) {
+      programmatic.current = true;
+      el.scrollTo({ top: idx * ITEM_H, behavior: "smooth" });
+      setTimeout(() => { programmatic.current = false; }, 350);
+    }
+    onSelect(item);
+  };
 
   return (
     <div className="relative rounded-xl overflow-hidden" style={{ height: ITEM_H * VISIBLE }}>
       {/* Top fade */}
-      <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
-        style={{ height: ITEM_H * 2, background: "linear-gradient(to bottom, white 0%, transparent 100%)" }} />
+      <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
+        style={{ height: OFFSET, background: "linear-gradient(to bottom, white 60%, transparent 100%)" }} />
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
-        style={{ height: ITEM_H * 2, background: "linear-gradient(to top, white 0%, transparent 100%)" }} />
+      <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+        style={{ height: OFFSET, background: "linear-gradient(to top, white 60%, transparent 100%)" }} />
 
-      {/* Selection highlight */}
-      <div
-        className="absolute left-0 right-0 z-10 pointer-events-none rounded-lg mx-1"
+      {/* Centre highlight */}
+      <div className="absolute inset-x-1 z-10 pointer-events-none rounded-lg"
         style={{
-          top: ITEM_H * 2,
-          height: ITEM_H,
-          background: "rgba(76, 161, 175, 0.12)",
-          border: "1.5px solid rgba(76, 161, 175, 0.35)",
-        }}
-      />
+          top:        OFFSET,
+          height:     ITEM_H,
+          background: "rgba(76,161,175,0.12)",
+          border:     "1.5px solid rgba(76,161,175,0.35)",
+        }} />
 
-      {/* Scrollable list */}
+      {/*
+        THE FIX:
+        paddingTop / paddingBottom = OFFSET on the scroll container itself.
+        This means:
+          - scrollTop = 0  → item[0]  (00) is centred in the highlight ✓
+          - scrollTop = ITEM_H → item[1] (01) is centred ✓
+          - No spacer divs needed, scroll-snap just works.
+        scrollPaddingTop = OFFSET tells the browser where the snap viewport starts.
+      */}
       <div
-        ref={containerRef}
-        className="dtp-scroll-wheel overflow-y-scroll h-full"
+        ref={ref}
+        className="dtp-wheel"
         style={{
-          scrollSnapType: "y mandatory",
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
+          height:           ITEM_H * VISIBLE,
+          overflowY:        "scroll",
+          boxSizing:        "border-box",
+          paddingTop:       OFFSET,
+          paddingBottom:    OFFSET,
+          scrollSnapType:   "y mandatory",
+          scrollPaddingTop: `${OFFSET}px`,
         }}
       >
-        <div style={{ height: ITEM_H * 2 }} />
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <div
             key={item}
-            onClick={() => {
-              onSelect(item);
-              const el = containerRef.current;
-              if (el) el.scrollTo({ top: items.indexOf(item) * ITEM_H, behavior: "smooth" });
+            onClick={() => handleClick(item, idx)}
+            style={{
+              height:          ITEM_H,
+              scrollSnapAlign: "start",
+              display:         "flex",
+              alignItems:      "center",
+              justifyContent:  "center",
+              cursor:          "pointer",
+              userSelect:      "none",
+              fontSize:        "14px",
+              fontWeight:      item === selected ? 700 : 400,
+              color:           item === selected ? "#2C3E50" : "#9CA3AF",
+              transform:       item === selected ? "scale(1.1)" : "scale(1)",
+              transition:      "color 0.15s, transform 0.15s",
             }}
-            style={{ height: ITEM_H, scrollSnapAlign: "start" }}
-            className={`
-              flex items-center justify-center cursor-pointer
-              text-sm font-medium transition-all duration-150
-              ${item === selected ? "text-[#2C3E50] font-bold scale-110" : "text-gray-400 hover:text-gray-600"}
-            `}
           >
             {format(item)}
           </div>
         ))}
-        <div style={{ height: ITEM_H * 2 }} />
       </div>
 
-      <style>{`.dtp-scroll-wheel::-webkit-scrollbar { display: none; }`}</style>
+      <style>{`.dtp-wheel::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
 };

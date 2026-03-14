@@ -4,7 +4,6 @@ import com.clubHouse.notification_service2.config.CacheConfig;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.response.ClubResponse;
 import com.clubHouse.notification_service2.dto.response.GeneralClubResponse;
-import com.clubHouse.notification_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,57 +29,87 @@ public class ClubServiceClient {
     @Value("${app.club-service.url:http://CLUB-SERVICE2/api}")
     private String clubServiceUrl;
 
+    // ── Header helper ─────────────────────────────────────────────────────────
+
+    private WebClient.RequestHeadersSpec<?> withForwardedHeaders(WebClient.RequestHeadersSpec<?> spec) {
+        String auth   = request.getHeader("Authorization");
+        String userId = request.getHeader("X-User-Id");
+        String role   = request.getHeader("X-User-Role");
+        if (auth   != null) spec = spec.header("Authorization", auth);
+        if (userId != null) spec = spec.header("X-User-Id",     userId);
+        if (role   != null) spec = spec.header("X-User-Role",   role);
+        return spec;
+    }
+
     // ── Not cached: user-specific, changes with membership ───────────────────
 
     public List<GeneralClubResponse> getMyClubs() {
-        String authHeader = request.getHeader("Authorization");
         try {
             log.info("Fetching my clubs from CLUB-SERVICE");
 
-            ApiResponse<List<GeneralClubResponse>> response = webClientBuilder.build()
-                    .get()
-                    .uri(clubServiceUrl + "/user-clubs/getMyClubs")
-                    .header("Authorization", authHeader)
+            ApiResponse<List<GeneralClubResponse>> response = withForwardedHeaders(
+                    webClientBuilder.build()
+                            .get()
+                            .uri(clubServiceUrl + "/user-clubs/getMyClubs"))
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .doOnNext(body -> log.warn(
+                                            "Club service returned {} for getMyClubs: {}",
+                                            clientResponse.statusCode(), body))
+                                    .then(reactor.core.publisher.Mono.empty())
+                    )
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<GeneralClubResponse>>>() {})
                     .timeout(Duration.ofSeconds(5))
+                    .onErrorResume(e -> {
+                        log.warn("getMyClubs call failed, falling back to empty list: {}", e.getMessage());
+                        return reactor.core.publisher.Mono.empty();
+                    })
                     .block();
 
-            if (response != null && response.getSuccess() && response.getData() != null) {
+            if (response != null && response.getData() != null) {
                 return response.getData();
             }
 
-            log.warn("Invalid or empty response from getMyClubs");
+            log.warn("Empty/null response from getMyClubs — returning empty list");
             return List.of();
 
         } catch (Exception e) {
-            log.error("Failed to get clubs of the user", e);
-            throw new ExternalServiceException("Unable to get clubs. Please try again later", e);
+            log.error("getMyClubs failed unexpectedly, returning empty list", e);
+            return List.of();
         }
     }
 
     // ── Cached: club metadata rarely changes ─────────────────────────────────
 
-    /**
-     * Cached by clubId. The cache entry lives for 30 min (configured in CacheConfig).
-     * Call {@link #evictClubCache(Long)} if a club is renamed or deleted.
-     */
     @Cacheable(value = CacheConfig.CLUB_CACHE, key = "#id", unless = "#result == null")
     public ClubResponse getClubById(Long id) {
-        String authHeader = request.getHeader("Authorization");
         try {
             log.info("Fetching club id={} from CLUB-SERVICE (cache miss)", id);
 
-            ApiResponse<ClubResponse> response = webClientBuilder.build()
-                    .get()
-                    .uri(clubServiceUrl + "/clubs/getById/{id}", id)
-                    .header("Authorization", authHeader)
+            ApiResponse<ClubResponse> response = withForwardedHeaders(
+                    webClientBuilder.build()
+                            .get()
+                            .uri(clubServiceUrl + "/clubs/getById/{id}", id))
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .doOnNext(body -> log.warn(
+                                            "Club service returned {} for clubId={}: {}",
+                                            clientResponse.statusCode(), id, body))
+                                    .then(reactor.core.publisher.Mono.empty())
+                    )
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<ClubResponse>>() {})
                     .timeout(Duration.ofSeconds(5))
+                    .onErrorResume(e -> {
+                        log.warn("getClubById id={} failed, returning null: {}", id, e.getMessage());
+                        return reactor.core.publisher.Mono.empty();
+                    })
                     .block();
 
-            if (response != null && response.getSuccess() && response.getData() != null) {
+            if (response != null && Boolean.TRUE.equals(response.getSuccess()) && response.getData() != null) {
                 return response.getData();
             }
 
@@ -88,8 +117,8 @@ public class ClubServiceClient {
             return null;
 
         } catch (Exception e) {
-            log.error("Failed to get club id={}", id, e);
-            throw new ExternalServiceException("Unable to validate club. Please try again later", e);
+            log.error("getClubById id={} failed unexpectedly, returning null", id, e);
+            return null;
         }
     }
 
@@ -98,7 +127,7 @@ public class ClubServiceClient {
         log.info("Evicted club cache for id={}", id);
     }
 
-    // ── Not cached: these are write/delete operations ─────────────────────────
+    // ── Not cached: write/delete operations ──────────────────────────────────
 
     public void permanentlyDeleteUserFromClubService(String prn) {
         String authHeader = request.getHeader("Authorization");
@@ -155,6 +184,10 @@ public class ClubServiceClient {
                     .retrieve()
                     .bodyToMono(ApiResponseWrapper.class)
                     .map(resp -> (List<String>) resp.getData())
+                    .onErrorResume(e -> {
+                        log.warn("getUserClubNames for prn={} failed: {}", prn, e.getMessage());
+                        return reactor.core.publisher.Mono.empty();
+                    })
                     .block();
             return clubNames != null ? clubNames : List.of();
         } catch (Exception e) {

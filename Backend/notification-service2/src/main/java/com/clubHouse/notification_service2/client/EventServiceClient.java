@@ -3,7 +3,6 @@ package com.clubHouse.notification_service2.client;
 import com.clubHouse.notification_service2.config.CacheConfig;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.response.EventResponse;
-import com.clubHouse.notification_service2.exception.ExternalServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,58 +27,92 @@ public class EventServiceClient {
     @Value("${app.event-service.url}")
     private String eventServiceUrl;
 
+    // ── Header helper ─────────────────────────────────────────────────────────
+
+    private WebClient.RequestHeadersSpec<?> withForwardedHeaders(WebClient.RequestHeadersSpec<?> spec) {
+        String auth   = request.getHeader("Authorization");
+        String userId = request.getHeader("X-User-Id");
+        String role   = request.getHeader("X-User-Role");
+        if (auth   != null) spec = spec.header("Authorization", auth);
+        if (userId != null) spec = spec.header("X-User-Id",     userId);
+        if (role   != null) spec = spec.header("X-User-Role",   role);
+        return spec;
+    }
+
     // ── Not cached: user-specific and changes with enrollment status ──────────
 
+    /**
+     * Returns an empty map (not an exception) when the event service is
+     * unhealthy or the user has no enrollments.
+     * NotificationService already handles an empty map safely.
+     */
     public Map<EventResponse, String> getMyEnrolledEvents() {
-        String authHeader = request.getHeader("Authorization");
         try {
             log.info("Fetching my enrolled events from event-service");
 
-            ApiResponse<Map<EventResponse, String>> response = webClientBuilder.build()
-                    .get()
-                    .uri(eventServiceUrl + "/enrollments/myEnrollments")
-                    .header("Authorization", authHeader)
+            ApiResponse<Map<EventResponse, String>> response = withForwardedHeaders(
+                    webClientBuilder.build()
+                            .get()
+                            .uri(eventServiceUrl + "/enrollments/myEnrollments"))
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .doOnNext(body -> log.warn(
+                                            "Event service returned {} for getMyEnrolledEvents: {}",
+                                            clientResponse.statusCode(), body))
+                                    .then(reactor.core.publisher.Mono.empty())
+                    )
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<Map<EventResponse, String>>>() {})
                     .timeout(Duration.ofSeconds(5))
+                    .onErrorResume(e -> {
+                        log.warn("getMyEnrolledEvents failed, falling back to empty map: {}", e.getMessage());
+                        return reactor.core.publisher.Mono.empty();
+                    })
                     .block();
 
-            if (response != null && response.getSuccess() && response.getData() != null) {
+            if (response != null && Boolean.TRUE.equals(response.getSuccess()) && response.getData() != null) {
                 return response.getData();
             }
 
-            log.warn("Invalid or empty response from getMyEnrolledEvents");
+            log.warn("Empty/null response from getMyEnrolledEvents — returning empty map");
             return Map.of();
 
         } catch (Exception e) {
-            log.error("Failed to get enrolled events", e);
-            throw new ExternalServiceException("Unable to get events. Please try again later", e);
+            log.error("getMyEnrolledEvents failed unexpectedly, returning empty map", e);
+            return Map.of();
         }
     }
 
     // ── Cached: event titles don't change frequently ──────────────────────────
 
-    /**
-     * Cached by eventId. TTL is 10 min (shorter than clubs/depts because
-     * event titles/details are more likely to be updated before the event).
-     * Call {@link #evictEventCache(Long)} if the event is updated.
-     */
     @Cacheable(value = CacheConfig.EVENT_CACHE, key = "#id", unless = "#result == null")
     public EventResponse getEventById(Long id) {
-        String authHeader = request.getHeader("Authorization");
         try {
             log.info("Fetching event id={} from event-service (cache miss)", id);
 
-            ApiResponse<EventResponse> response = webClientBuilder.build()
-                    .get()
-                    .uri(eventServiceUrl + "/events/getById/{eventId}", id)
-                    .header("Authorization", authHeader)
+            ApiResponse<EventResponse> response = withForwardedHeaders(
+                    webClientBuilder.build()
+                            .get()
+                            .uri(eventServiceUrl + "/events/getById/{eventId}", id))
                     .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .doOnNext(body -> log.warn(
+                                            "Event service returned {} for eventId={}: {}",
+                                            clientResponse.statusCode(), id, body))
+                                    .then(reactor.core.publisher.Mono.empty())
+                    )
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<EventResponse>>() {})
                     .timeout(Duration.ofSeconds(5))
+                    .onErrorResume(e -> {
+                        log.warn("getEventById id={} failed, returning null: {}", id, e.getMessage());
+                        return reactor.core.publisher.Mono.empty();
+                    })
                     .block();
 
-            if (response != null && response.getSuccess() && response.getData() != null) {
+            if (response != null && Boolean.TRUE.equals(response.getSuccess()) && response.getData() != null) {
                 return response.getData();
             }
 
@@ -87,8 +120,8 @@ public class EventServiceClient {
             return null;
 
         } catch (Exception e) {
-            log.error("Failed to get event id={}", id, e);
-            throw new ExternalServiceException("Unable to get event. Please try again later", e);
+            log.error("getEventById id={} failed unexpectedly, returning null", id, e);
+            return null;
         }
     }
 

@@ -2710,7 +2710,7 @@ export default function SuperAdminDashboard() {
 
     try {
       const res = await axios.get(
-        `${BASE_URL}/api/notifications/me/unread-count`,
+        `${BASE_URL}/api/notification/me/unread-count`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
