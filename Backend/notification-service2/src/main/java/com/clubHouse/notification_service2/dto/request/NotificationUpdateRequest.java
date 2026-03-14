@@ -1,5 +1,6 @@
 package com.clubHouse.notification_service2.dto.request;
 
+import com.clubHouse.notification_service2.model.NotificationType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class NotificationUpdateRequest {
 
     private String message;
 
+    private NotificationType notificationType;
     /**
      * Pass null to keep the existing validUntil.
      * Pass a future date to extend/change expiry.

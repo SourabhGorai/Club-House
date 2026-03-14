@@ -1,5 +1,6 @@
 package com.clubHouse.notification_service2.repository;
 
+import com.clubHouse.notification_service2.model.Notification;
 import com.clubHouse.notification_service2.model.UserSeenNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -32,4 +33,5 @@ public interface UserSeenNotificationRepository extends JpaRepository<UserSeenNo
     @Query("DELETE FROM user_seen_notification u WHERE u.notificationId IN :notificationIds")
     void deleteByNotificationIds(@Param("notificationIds") List<Long> notificationIds);
 
+    List<UserSeenNotification> getByPrn(String prn);
 }

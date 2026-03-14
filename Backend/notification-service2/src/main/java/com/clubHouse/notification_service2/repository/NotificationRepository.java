@@ -79,4 +79,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByCreatedByPrnOrderByCreatedAtDesc(String prn);
 
     Page<Notification> findByCreatedByPrnOrderByCreatedAtDesc(String prn, Pageable pageable);
+
 }

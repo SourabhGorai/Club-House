@@ -451,6 +451,18 @@ public class GatewayConfig {
 
                 .route("notification-teachers", r -> r
                         .path(
+                                "/api/notification/admin/**"
+                        )
+                        .and()
+                        .method("GET")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN"))))
+                        .uri("lb://NOTIFICATION-SERVICE2"))
+
+                .route("notification-teachers", r -> r
+                        .path(
                                 "/api/notification",
                                 "/api/notification/paged",
                                 "/api/notification/cr/**"

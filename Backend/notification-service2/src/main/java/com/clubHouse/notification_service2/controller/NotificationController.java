@@ -3,6 +3,8 @@ package com.clubHouse.notification_service2.controller;
 import com.clubHouse.notification_service2.dto.ApiResponse;
 import com.clubHouse.notification_service2.dto.request.NotificationRequest;
 import com.clubHouse.notification_service2.dto.response.NotificationResponse;
+import com.clubHouse.notification_service2.dto.response.ReadUnreadNotificationPagedResponse;
+import com.clubHouse.notification_service2.dto.response.ReadUnreadNotificationResponse;
 import com.clubHouse.notification_service2.model.NotificationType;
 import com.clubHouse.notification_service2.model.SourceType;
 import com.clubHouse.notification_service2.model.TargetType;
@@ -184,6 +186,45 @@ public class NotificationController {
         log.info("Fetching paginated notifications, active={}, page={}, size={}", active, page, size);
         Page<NotificationResponse> resp = notificationService.getAllPaged(active, pageable(page, size));
         return ok(String.format("Fetched %d notifications", resp.getTotalElements()), resp);
+    }
+
+    // ── Read / Unread Split ───────────────────────────────────────────────────────
+
+    /**
+     * GET /api/notification/me/read-unread
+     * Returns all notifications split into read and unread buckets for the current user.
+     */
+    @GetMapping("/admin/read-unread")
+    public ResponseEntity<ApiResponse<ReadUnreadNotificationResponse>> getReadUnread(
+            HttpServletRequest httpReq
+    ) {
+        log.debug("Fetching read/unread notifications for prn={}", prn(httpReq));
+        ReadUnreadNotificationResponse resp = notificationService.getAllReadUnread(prn(httpReq));
+        return ok(String.format(
+                "Fetched %d read and %d unread notifications",
+                resp.getRead().size(),
+                resp.getUnread().size()
+        ), resp);
+    }
+
+    /**
+     * GET /api/notification/me/read-unread/paged?page=0&size=10
+     * Same as above but both read and unread lists are independently paginated.
+     */
+    @GetMapping("/admin/read-unread/paged")
+    public ResponseEntity<ApiResponse<ReadUnreadNotificationPagedResponse>> getReadUnreadPaged(
+            HttpServletRequest httpReq,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.debug("Fetching read/unread notifications (paginated) for prn={}", prn(httpReq));
+        ReadUnreadNotificationPagedResponse resp =
+                notificationService.getAllReadUnreadPaged(prn(httpReq), pageable(page, size));
+        return ok(String.format(
+                "Fetched %d read and %d unread notifications",
+                resp.getRead().getTotalElements(),
+                resp.getUnread().getTotalElements()
+        ), resp);
     }
 
     // ── My Notifications ──────────────────────────────────────────────────────

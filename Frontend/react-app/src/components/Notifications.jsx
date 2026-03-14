@@ -1079,7 +1079,7 @@ const StatusDot = ({ active }) => (
 
 const ReadBadge = ({ isRead }) => (
   <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${isRead ? "text-slate-400 bg-slate-100" : "text-[#4CA1AF] bg-[rgba(76,161,175,0.1)]"}`}>
-    <span className={`w-1.5 h-1.5 rounded-full ${isRead ? "bg-slate-400" : "bg-[#4CA1AF] animate-pulse"}`}></span>
+    <span className={`w-1.5 h-1.5 rounded-full ${isRead ? "bg-slate-400" : "bg-[#4CA1AF]"}`}></span>
     {isRead ? "Read" : "Unread"}
   </span>
 );
@@ -1115,7 +1115,7 @@ const Loader = ({ text = "Loading notifications..." }) => (
   </div>
 );
 
-// Server-side Pagination component — receives total elements from the Page response
+// Server-side Pagination component
 const Pagination = ({ totalElements, page, pageSize, onPage }) => {
   const pages = Math.ceil(totalElements / pageSize);
   if (pages <= 1) return null;
@@ -1162,8 +1162,7 @@ const Pagination = ({ totalElements, page, pageSize, onPage }) => {
 // Notification Card (read view — used in "My" tabs)
 // ─────────────────────────────────────────────
 const NotificationCard = ({ notif, onMarkRead }) => (
-  <div className={`group relative bg-white rounded-2xl border transition-all hover:shadow-lg ${!notif.isRead ? "border-l-4 shadow-sm" : "border-slate-100"}`}
-    style={!notif.isRead ? { borderLeftColor: "#4CA1AF" } : {}}>
+  <div className="group relative bg-white rounded-2xl border border-slate-100 transition-all hover:shadow-lg">
     <div className="p-5">
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center"
@@ -1174,11 +1173,10 @@ const NotificationCard = ({ notif, onMarkRead }) => (
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
               <TypeBadge type={notif.notificationType} />
-              {!notif.isRead && <span className="w-2 h-2 rounded-full bg-[#4CA1AF] inline-block animate-pulse"></span>}
             </div>
             <span className="text-[11px] text-slate-400 font-semibold whitespace-nowrap">{fmt(notif.createdAt)}</span>
           </div>
-          <h4 className={`mt-2 font-black leading-snug ${!notif.isRead ? "text-[#162F38]" : "text-slate-800"}`}>{notif.title}</h4>
+          <h4 className="mt-2 font-black leading-snug text-slate-800">{notif.title}</h4>
           <p className="mt-1 text-sm text-slate-500 font-medium leading-relaxed">{notif.message}</p>
           {notif.validUntil && (
             <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -1261,7 +1259,6 @@ const AdminNotifRow = ({ notif, onToggle, onDelete, onEdit, showCheckbox, checke
 
 // ─────────────────────────────────────────────
 // Multi-Select Chip Picker
-// Shows a searchable list of options; selected ones appear as removable chips
 // ─────────────────────────────────────────────
 const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholder }) => {
   const [search, setSearch] = useState("");
@@ -1272,7 +1269,6 @@ const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholde
 
   return (
     <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-      {/* Search */}
       <div className="relative border-b border-slate-200">
         <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
@@ -1282,8 +1278,6 @@ const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholde
           className="w-full pl-9 pr-4 py-2.5 bg-white text-sm text-slate-700 font-medium focus:outline-none"
         />
       </div>
-
-      {/* Option list */}
       <div className="max-h-40 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-6 text-slate-400 text-xs font-bold gap-2">
@@ -1314,8 +1308,6 @@ const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholde
           })
         )}
       </div>
-
-      {/* Selected chips */}
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-1.5 px-3 py-2.5 border-t border-slate-200 bg-white">
           {selectedIds.map(id => {
@@ -1338,7 +1330,7 @@ const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholde
 };
 
 // ─────────────────────────────────────────────
-// YEAR options (fixed list — years 1-4)
+// YEAR options
 // ─────────────────────────────────────────────
 const YEAR_OPTIONS = [
   { value: 1, label: "Year 1 — First Year"  },
@@ -1365,15 +1357,13 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
   });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // ── Remote data ───────────────────────────────
-  const [clubs,       setClubs]       = useState([]);
-  const [depts,       setDepts]       = useState([]);
+  const [clubs,        setClubs]        = useState([]);
+  const [depts,        setDepts]        = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
   const [loadingDepts, setLoadingDepts] = useState(false);
 
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Fetch clubs once when needed
   const ensureClubs = useCallback(async () => {
     if (clubs.length > 0 || loadingClubs) return;
     setLoadingClubs(true);
@@ -1385,7 +1375,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
     finally { setLoadingClubs(false); }
   }, [clubs.length, loadingClubs, token]);
 
-  // Fetch depts once when needed
   const ensureDepts = useCallback(async () => {
     if (depts.length > 0 || loadingDepts) return;
     setLoadingDepts(true);
@@ -1397,22 +1386,18 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
     finally { setLoadingDepts(false); }
   }, [depts.length, loadingDepts, token]);
 
-  // Trigger fetches whenever sourceType or targetType changes
   useEffect(() => {
     if (form.sourceType === "CLUB"       || form.targetType === "CLUB")       ensureClubs();
     if (form.sourceType === "DEPARTMENT" || form.targetType === "DEPARTMENT") ensureDepts();
   }, [form.sourceType, form.targetType]);
 
-  // ── Derived option lists ───────────────────────
   const clubOptions = clubs.map(c => ({ value: c.clubId,       label: c.clubName }));
   const deptOptions = depts.map(d => ({ value: d.departmentId, label: d.name     }));
 
-  // Source dropdown options (when sourceType is CLUB or DEPARTMENT)
   const sourceOptions =
     form.sourceType === "CLUB"       ? clubOptions :
     form.sourceType === "DEPARTMENT" ? deptOptions : [];
 
-  // Target multi-select options
   const targetOptions =
     form.targetType === "CLUB"       ? clubOptions :
     form.targetType === "DEPARTMENT" ? deptOptions :
@@ -1421,7 +1406,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
   const needsSourceDropdown = ["CLUB", "DEPARTMENT"].includes(form.sourceType);
   const needsTargetPicker   = ["CLUB", "DEPARTMENT", "YEAR"].includes(form.targetType);
 
-  // Toggle a target id in/out
   const toggleTargetId = (id) =>
     set("targetedIds",
       form.targetedIds.includes(id)
@@ -1429,17 +1413,8 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
         : [...form.targetedIds, id]
     );
 
-  // When sourceType changes, clear stale sourceId
-  const handleSourceTypeChange = (v) => {
-    set("sourceType", v);
-    set("sourceId", "");
-  };
-
-  // When targetType changes, clear stale targetedIds
-  const handleTargetTypeChange = (v) => {
-    set("targetType", v);
-    set("targetedIds", []);
-  };
+  const handleSourceTypeChange = (v) => { set("sourceType", v); set("sourceId", ""); };
+  const handleTargetTypeChange = (v) => { set("targetType", v); set("targetedIds", []); };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1454,7 +1429,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
 
-        {/* Header */}
         <div className="px-7 py-6 flex items-center justify-between border-b border-slate-100"
           style={{ background: "linear-gradient(135deg, rgba(76,161,175,0.07), rgba(49,81,105,0.05))" }}>
           <div>
@@ -1466,25 +1440,21 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-7 py-5">
           <form id="notif-form" onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Title */}
             <FormField label="Title *">
               <input required value={form.notificationTitle} onChange={e => set("notificationTitle", e.target.value)}
                 placeholder="Enter notification title..."
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:border-[#4CA1AF] focus:ring-2 focus:ring-[rgba(76,161,175,0.2)] transition-all" />
             </FormField>
 
-            {/* Message */}
             <FormField label="Message *">
               <textarea required value={form.message} onChange={e => set("message", e.target.value)}
                 placeholder="Write your notification message..." rows={3}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:border-[#4CA1AF] focus:ring-2 focus:ring-[rgba(76,161,175,0.2)] transition-all resize-none" />
             </FormField>
 
-            {/* Notification Type + Source Type */}
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Notification Type *">
                 <SelectField value={form.notificationType} onChange={v => set("notificationType", v)} options={NOTIFICATION_TYPES} />
@@ -1494,7 +1464,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
               </FormField>
             </div>
 
-            {/* Source — dropdown if CLUB or DEPARTMENT, hidden if SYSTEM/EVENT */}
             {needsSourceDropdown && (
               <FormField label={`Source ${form.sourceType === "CLUB" ? "Club" : "Department"} *`}>
                 {(form.sourceType === "CLUB" ? loadingClubs : loadingDepts) ? (
@@ -1517,12 +1486,10 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
               </FormField>
             )}
 
-            {/* Target Type */}
             <FormField label="Target Type *">
               <SelectField value={form.targetType} onChange={handleTargetTypeChange} options={TARGET_TYPES} />
             </FormField>
 
-            {/* Target multi-select — shown when CLUB / DEPARTMENT / YEAR */}
             {needsTargetPicker && (
               <FormField label={`Target ${form.targetType === "CLUB" ? "Clubs" : form.targetType === "DEPARTMENT" ? "Departments" : "Years"} * (select one or more)`}>
                 <MultiSelectPicker
@@ -1543,7 +1510,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
               </FormField>
             )}
 
-            {/* Valid Until */}
             <FormField label="Valid Until">
               <DateTimePicker value={form.validUntil} onChange={(v) => set("validUntil", v)} placeholder="Select validity date and time" />
             </FormField>
@@ -1551,7 +1517,6 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token }) =>
           </form>
         </div>
 
-        {/* Footer */}
         <div className="px-7 py-5 border-t border-slate-100 flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all cursor-pointer">
@@ -1584,26 +1549,45 @@ const SelectField = ({ value, onChange, options }) => (
     options={options.map((o) => ({ value: o, label: o.replace(/_/g, " ") }))} placeholder="Select option" />
 );
 
-// ─────────────────────────────────────────────
-// Filter Bar — now includes Active/Inactive/All toggle
-// ─────────────────────────────────────────────
+const PAGE_BG_ANIMATION_STYLES = `
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
 
-/**
- * activeFilter: "true" | "false" | "all"
- *   "true"  → active=true  passed to backend
- *   "false" → active=false passed to backend
- *   "all"   → not shown in this bar (hidden when showActiveFilter=false)
- */
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+`;
+
+// ─────────────────────────────────────────────
+// Filter Bar
+// ─────────────────────────────────────────────
 const FilterBar = ({ search, onSearch, typeFilter, onType, activeFilter, onActiveFilter, showActiveFilter = true }) => (
   <div className="flex flex-col sm:flex-row gap-3 mb-6">
-    {/* Search */}
     <div className="relative flex-1">
       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
       <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search notifications..."
         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:border-[#4CA1AF] focus:ring-2 focus:ring-[rgba(76,161,175,0.15)] transition-all shadow-sm" />
     </div>
-
-    {/* Type filter */}
     <div className="w-full sm:w-48">
       <CustomSelect
         name="notificationTypeFilter"
@@ -1613,8 +1597,6 @@ const FilterBar = ({ search, onSearch, typeFilter, onType, activeFilter, onActiv
         placeholder="All Types"
       />
     </div>
-
-    {/* Active / Inactive / All toggle — only shown on Manage tabs */}
     {showActiveFilter && (
       <div className="flex rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden shrink-0">
         {[
@@ -1674,7 +1656,18 @@ const TabBar = ({ tabs, active, onChange }) => (
 const PageShell = ({ title, subtitle, icon, roleLabel, children, headerRight }) => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f0fdf4" }}>
+    <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
+      <style dangerouslySetInnerHTML={{ __html: PAGE_BG_ANIMATION_STYLES }} />
+
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-blob"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-blob animation-delay-2000"
+          style={{ backgroundColor: "#4CA1AF" }}
+        ></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-blob animation-delay-4000"></div>
+      </div>
+
       <div className="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
@@ -1711,26 +1704,14 @@ const PageShell = ({ title, subtitle, icon, roleLabel, children, headerRight }) 
 
 // ─────────────────────────────────────────────
 // Manage Table
-//
-// Props:
-//   token           – auth token
-//   showCheckboxes  – show bulk-select checkboxes (SuperAdmin manage tab)
-//   showReadStatus  – show Read/Unread badge instead of Active/Inactive (SuperAdmin "my" tab)
-//   showActiveFilter– show Active/Inactive/All toggle (manage tabs only)
-//   onEdit / onToggle / onDelete / onMarkRead – action callbacks
-//   refreshSignal   – bump to force a re-fetch
-//
-// Endpoint used: GET /api/notification/paged?active=…&page=…&size=…
-// This returns ALL notifications regardless of the user's dept/club —
-// role-based visibility is controlled entirely by the backend JWT.
 // ─────────────────────────────────────────────
 const ManageTable = ({
   token,
-  showCheckboxes  = false,
-  showReadStatus  = false,
-  showFullMessage = false,
+  showCheckboxes   = false,
+  showReadStatus   = false,
+  showFullMessage  = false,
   showActiveFilter = true,
-  fetchMode = "all",
+  fetchMode        = "all",
   onEdit,
   onToggle,
   onDelete,
@@ -1742,7 +1723,6 @@ const ManageTable = ({
   const [page,         setPage]         = useState(0);
   const [search,       setSearch]       = useState("");
   const [typeFilter,   setTypeFilter]   = useState("");
-  // "true" | "false" | "all"
   const [activeFilter, setActiveFilter] = useState("true");
   const [selectedIds,  setSelectedIds]  = useState(new Set());
 
@@ -1757,12 +1737,11 @@ const ManageTable = ({
         const pageData = res.data?.data || res.data;
         setData({ content: pageData?.content || [], totalElements: pageData?.totalElements || 0 });
       } else if (activeFilter === "all") {
-        // Backend only supports boolean active param — fetch both and merge
         const [activeRes, inactiveRes] = await Promise.all([
           axios.get(`${BASE_URL}/api/notification/paged?active=true&page=0&size=1000`,  { headers: { Authorization: `Bearer ${token}` } }),
           axios.get(`${BASE_URL}/api/notification/paged?active=false&page=0&size=1000`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        const extract = (res) => res.data?.data?.content || res.data?.content || [];
+        const extract = (r) => r.data?.data?.content || r.data?.content || [];
         const all = [...extract(activeRes), ...extract(inactiveRes)].sort((a, b) => {
           const da = parseBackendDate(a.createdAt), db = parseBackendDate(b.createdAt);
           return (db?.getTime() || 0) - (da?.getTime() || 0);
@@ -1786,7 +1765,6 @@ const ManageTable = ({
   useEffect(() => { setPage(0); }, [activeFilter, typeFilter, search]);
   useEffect(() => { fetchData(page); }, [fetchData, page, refreshSignal]);
 
-  // Client-side search + type filter applied on top of the server page
   const filtered = data.content.filter(n => {
     const s = search.toLowerCase();
     return (
@@ -1795,12 +1773,11 @@ const ManageTable = ({
     );
   });
 
-  const toggleSelect = (id) => setSelectedIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const selectAll    = () => setSelectedIds(new Set(filtered.map(n => n.notificationId)));
-  const clearSelect  = () => setSelectedIds(new Set());
+  const toggleSelect    = (id) => setSelectedIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const selectAll       = () => setSelectedIds(new Set(filtered.map(n => n.notificationId)));
+  const clearSelect     = () => setSelectedIds(new Set());
   const handlePageChange = (pg) => { setPage(pg); setSelectedIds(new Set()); };
 
-  // Optimistically update read status in local state
   const handleMarkRead = async (id) => {
     if (onMarkRead) await onMarkRead(id);
     setData(d => ({ ...d, content: d.content.map(x => x.notificationId === id ? { ...x, isRead: true } : x) }));
@@ -1898,6 +1875,7 @@ const MyNotificationsPanel = ({ token, onMarkRead, onMarkAllRead, unreadCount })
   const [page,       setPage]       = useState(0);
   const [search,     setSearch]     = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [activeTab,  setActiveTab]  = useState("unread");
 
   const fetchData = useCallback(async (pg = 0) => {
     setLoading(true);
@@ -1925,6 +1903,10 @@ const MyNotificationsPanel = ({ token, onMarkRead, onMarkAllRead, unreadCount })
     );
   });
 
+  const unreadList = filtered.filter(n => !n.isRead);
+  const readList   = filtered.filter(n => n.isRead);
+  const visibleList = activeTab === "unread" ? unreadList : readList;
+
   const handleMarkRead = async (id) => {
     await onMarkRead(id);
     setData(d => ({ ...d, content: d.content.map(x => x.notificationId === id ? { ...x, isRead: true } : x) }));
@@ -1932,17 +1914,32 @@ const MyNotificationsPanel = ({ token, onMarkRead, onMarkAllRead, unreadCount })
 
   return (
     <>
+      <div className="flex items-center gap-2 mb-4">
+        {[{ id: "unread", label: "Unread" }, { id: "read", label: "Read" }].map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className="px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border"
+            style={activeTab === id
+              ? { background: "linear-gradient(135deg, #4CA1AF, #315169)", color: "#fff", borderColor: "transparent" }
+              : { backgroundColor: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <FilterBar
         search={search} onSearch={setSearch}
         typeFilter={typeFilter} onType={setTypeFilter}
         showActiveFilter={false}
       />
-      {loading ? <Loader /> : filtered.length === 0 ? (
+      {loading ? <Loader /> : visibleList.length === 0 ? (
         <EmptyState icon={<BellOff size={36} />} title="No notifications found" subtitle="You're all caught up or no notifications match your filters." />
       ) : (
         <>
           <div className="space-y-3">
-            {filtered.map(n => <NotificationCard key={n.notificationId} notif={n} onMarkRead={handleMarkRead} />)}
+            {visibleList.map(n => <NotificationCard key={n.notificationId} notif={n} onMarkRead={handleMarkRead} />)}
           </div>
           <Pagination totalElements={data.totalElements} page={page} pageSize={PAGE_SIZE} onPage={p => { setPage(p); }} />
         </>
@@ -1952,15 +1949,192 @@ const MyNotificationsPanel = ({ token, onMarkRead, onMarkAllRead, unreadCount })
 };
 
 // ─────────────────────────────────────────────
+// Admin My Notifications Panel
+// Uses /api/notification/me/read-unread/paged
+// Backend is the single source of truth for read status — no stale overwrites on re-fetch
+// ─────────────────────────────────────────────
+const AdminMyNotificationsPanel = ({ token, onMarkRead, onMarkAllRead, refreshSignal }) => {
+  const [readData,   setReadData]   = useState({ content: [], totalElements: 0 });
+  const [unreadData, setUnreadData] = useState({ content: [], totalElements: 0 });
+  const [loading,    setLoading]    = useState(true);
+  const [readPage,   setReadPage]   = useState(0);
+  const [unreadPage, setUnreadPage] = useState(0);
+  const [search,     setSearch]     = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  // "unread" | "read"
+  const [activeTab,  setActiveTab]  = useState("unread");
+
+  const fetchData = useCallback(async (rPage = 0, uPage = 0) => {
+    setLoading(true);
+    try {
+      // Both read and unread share the same page param — use the active tab's page
+      const currentPage = activeTab === "read" ? rPage : uPage;
+      const res = await axios.get(
+        `${BASE_URL}/api/notification/admin/read-unread/paged?page=${currentPage}&size=${PAGE_SIZE}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = res.data?.data || res.data;
+      setReadData({
+        content:       data?.read?.content        || [],
+        totalElements: data?.read?.totalElements  || 0,
+      });
+      setUnreadData({
+        content:       data?.unread?.content       || [],
+        totalElements: data?.unread?.totalElements || 0,
+      });
+    } catch (e) {
+      console.error("Failed to fetch admin read/unread notifications", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, activeTab, readPage, unreadPage]);
+
+  useEffect(() => {
+    fetchData(readPage, unreadPage);
+  }, [fetchData, refreshSignal]);
+
+  // Re-fetch when page changes
+  useEffect(() => {
+    fetchData(readPage, unreadPage);
+  }, [readPage, unreadPage]);
+
+  // Optimistically remove from unread list — backend will include it in read on next fetch
+  const handleMarkRead = async (id) => {
+    await onMarkRead(id);
+    setUnreadData(d => ({
+      ...d,
+      content:       d.content.filter(x => x.notificationId !== id),
+      totalElements: Math.max(0, d.totalElements - 1),
+    }));
+  };
+
+  // Mark all read — refresh both buckets from backend
+  const handleMarkAllRead = async () => {
+    await onMarkAllRead();
+    // After marking all, move everything to read by re-fetching
+    fetchData(readPage, unreadPage);
+  };
+
+  const activeContent = activeTab === "unread" ? unreadData : readData;
+
+  // Client-side search + type filter on the current page slice
+  const filtered = activeContent.content.filter(n => {
+    const s = search.toLowerCase();
+    return (
+      (!search || n.title?.toLowerCase().includes(s) || n.message?.toLowerCase().includes(s)) &&
+      (!typeFilter || n.notificationType === typeFilter)
+    );
+  });
+
+  return (
+    <>
+      {/* Read / Unread sub-tabs */}
+      <div className="flex items-center gap-2 mb-5">
+        {[
+          { id: "unread", label: "Unread", count: unreadData.totalElements, dotColor: "bg-[#4CA1AF]" },
+          { id: "read",   label: "Read",   count: readData.totalElements,   dotColor: "bg-slate-400"  },
+        ].map(({ id, label, count, dotColor }) => (
+          <button
+            key={id}
+            onClick={() => { setActiveTab(id); setReadPage(0); setUnreadPage(0); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border"
+            style={activeTab === id
+              ? { background: "linear-gradient(135deg, #4CA1AF, #315169)", color: "#fff", borderColor: "transparent" }
+              : { backgroundColor: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
+          >
+            <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+            {label}
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${activeTab === id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {count}
+            </span>
+          </button>
+        ))}
+
+        {/* Mark all read button — only show when there are unread items */}
+        {unreadData.totalElements > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white cursor-pointer hover:opacity-90 transition-all"
+            style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+          >
+            <CheckCheck size={14} /> Mark all read
+          </button>
+        )}
+      </div>
+
+      <FilterBar
+        search={search} onSearch={setSearch}
+        typeFilter={typeFilter} onType={setTypeFilter}
+        showActiveFilter={false}
+      />
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {loading ? (
+          <Loader />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<BellOff size={36} />}
+            title={activeTab === "unread" ? "All caught up!" : "No read notifications"}
+            subtitle={
+              activeTab === "unread"
+                ? "You have no unread notifications."
+                : "Notifications you've read will appear here."
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Notification</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:table-cell">Type</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest hidden md:table-cell">Status</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:table-cell">Created</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:table-cell">Expires</th>
+                  <th className="px-4 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(n => (
+                  <AdminNotifRow
+                    key={n.notificationId}
+                    notif={n}
+                    showCheckbox={false}
+                    checked={false}
+                    onCheck={() => {}}
+                    showReadStatus
+                    showFullMessage
+                    onMarkRead={activeTab === "unread" ? handleMarkRead : undefined}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <Pagination
+        totalElements={activeContent.totalElements}
+        page={activeTab === "unread" ? unreadPage : readPage}
+        pageSize={PAGE_SIZE}
+        onPage={(pg) => {
+          if (activeTab === "unread") setUnreadPage(pg);
+          else setReadPage(pg);
+        }}
+      />
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────
 // USER Notifications View
 // ─────────────────────────────────────────────
 const UserNotifications = () => {
   const token = localStorage.getItem("token");
-  const [toast,      setToast]      = useState(null);
+  const [toast,       setToast]       = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // Fetch unread count for the header badge
     axios.get(`${BASE_URL}/api/notification/me/unread-count`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setUnreadCount(res.data?.data ?? res.data ?? 0))
       .catch(() => {});
@@ -2048,7 +2222,7 @@ const TeacherNotifications = () => {
       if (editNotif) {
         await axios.patch(
           `${BASE_URL}/api/notification/${editNotif.notificationId}`,
-          { notificationTitle: data.notificationTitle, message: data.message, validUntil: data.validUntil },
+          { notificationTitle: data.notificationTitle, message: data.message, validUntil: data.validUntil, notificationType: data.notificationType },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setToast({ msg: "Notification updated", type: "success" });
@@ -2187,7 +2361,7 @@ const SuperAdminNotifications = () => {
       if (editNotif) {
         await axios.patch(
           `${BASE_URL}/api/notification/${editNotif.notificationId}`,
-          { notificationTitle: data.notificationTitle, message: data.message, validUntil: data.validUntil },
+          { notificationTitle: data.notificationTitle, message: data.message, validUntil: data.validUntil, notificationType: data.notificationType },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setToast({ msg: "Notification updated", type: "success" });
@@ -2240,13 +2414,6 @@ const SuperAdminNotifications = () => {
               <Plus size={15} /> New Notification
             </button>
           )}
-          {tab === "my" && unreadCount > 0 && (
-            <button onClick={markAllRead}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer hover:opacity-90 transition-all"
-              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
-              <CheckCheck size={15} /> Mark all read ({unreadCount})
-            </button>
-          )}
         </div>
       }
     >
@@ -2267,28 +2434,20 @@ const SuperAdminNotifications = () => {
       />
 
       <TabBar active={tab} onChange={t => setTab(t)} tabs={[
-        { id: "my",     icon: <Bell size={14} />,       label: "My Notifications", badge: unreadCount },
-        { id: "manage", icon: <Zap size={14} />,        label: "Manage All",       badge: 0 },
+        { id: "my",     icon: <Bell size={14} />,  label: "My Notifications", badge: unreadCount },
+        { id: "manage", icon: <Zap size={14} />,   label: "Manage All",       badge: 0 },
       ]} />
 
       {tab === "my" ? (
-        // /api/notification/paged returns ALL notifications — no dept/club filtering
-        // showReadStatus=true renders Read/Unread badge and Mark-as-read button per row
-        // showActiveFilter=false hides the Active/Inactive toggle (not relevant for "my" view)
-        <ManageTable
+        // ✅ Uses /api/notification/me/read-unread/paged — backend is source of truth
+        // Read status is never stale because the split comes from the DB on every fetch
+        <AdminMyNotificationsPanel
           token={token}
-          showCheckboxes={false}
-          showReadStatus
-          showFullMessage
-          showActiveFilter={false}
-          refreshSignal={refreshSignal}
           onMarkRead={markRead}
-          onEdit={(n) => { setEditNotif(n); setShowForm(true); }}
-          onToggle={askToggle}
-          onDelete={askDelete}
+          onMarkAllRead={markAllRead}
+          refreshSignal={refreshSignal}
         />
       ) : (
-        // ManageTable fetches /api/notification/paged — all notifications, no role-based filtering (handled by backend)
         <ManageTable
           token={token}
           showCheckboxes

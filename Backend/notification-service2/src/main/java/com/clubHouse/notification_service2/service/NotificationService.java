@@ -204,6 +204,69 @@ public class NotificationService {
         return new PageImpl<>(responses, pageable, page.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
+    public ReadUnreadNotificationResponse getAllReadUnread(String prn) {
+        log.info("Fetching read & unread notifications for admin prn={}", prn);
+
+        List<Notification> allNotifications = notificationRepository.findAll();
+        if (allNotifications.isEmpty()) {
+            return ReadUnreadNotificationResponse.builder()
+                    .read(List.of())
+                    .unread(List.of())
+                    .build();
+        }
+
+        // Get the IDs the user has already read
+        Set<Long> readIdSet = userSeenNotificationRepository.getByPrn(prn)
+                .stream()
+                .filter(s -> Boolean.TRUE.equals(s.getIsRead()))
+                .map(UserSeenNotification::getNotificationId)
+                .collect(Collectors.toSet());
+
+        // Split notifications into read / unread lists
+        List<Notification> readNotifications = allNotifications.stream()
+                .filter(n -> readIdSet.contains(n.getNotificationId()))
+                .toList();
+
+        List<Notification> unreadNotifications = allNotifications.stream()
+                .filter(n -> !readIdSet.contains(n.getNotificationId()))
+                .toList();
+
+        // Resolve targets + source details for both lists combined (single DB round-trip each)
+        List<Notification> combined = new ArrayList<>(allNotifications);
+        Map<Long, List<NotificationTargets>> targetsMap   = resolveTargets(combined);
+        Map<Long, String>                    sourceMap    = resolveSourceDetails(combined);
+
+        List<NotificationResponse> readResponses = notificationMapper.toResponseList(
+                readNotifications, targetsMap, sourceMap);
+        readResponses.forEach(r -> r.setIsRead(true));
+
+        List<NotificationResponse> unreadResponses = notificationMapper.toResponseList(
+                unreadNotifications, targetsMap, sourceMap);
+        unreadResponses.forEach(r -> r.setIsRead(false));
+
+        return ReadUnreadNotificationResponse.builder()
+                .read(readResponses)
+                .unread(unreadResponses)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ReadUnreadNotificationPagedResponse getAllReadUnreadPaged(String prn, Pageable pageable) {
+        log.info("Fetching paginated read/unread notifications for admin prn={}", prn);
+
+        // Re-use the unpaged method to get the full split, then slice both lists
+        ReadUnreadNotificationResponse all = getAllReadUnread(prn);
+
+        Page<NotificationResponse> readPage   = toPage(all.getRead(),   pageable);
+        Page<NotificationResponse> unreadPage = toPage(all.getUnread(), pageable);
+
+        return ReadUnreadNotificationPagedResponse.builder()
+                .read(readPage)
+                .unread(unreadPage)
+                .build();
+    }
+
     // ── My Notifications ──────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -431,6 +494,9 @@ public class NotificationService {
         }
         if (req.getMessage() != null && !req.getMessage().isBlank()) {
             notification.setMessage(req.getMessage());
+        }
+        if (req.getNotificationType() != null) {
+            notification.setNotificationType(req.getNotificationType());
         }
         if (req.getValidUntil() != null) {
             if (req.getValidUntil().isBefore(LocalDateTime.now())) {
