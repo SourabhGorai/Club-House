@@ -310,6 +310,29 @@ public class NotificationController {
         return ok(String.format("Fetched %d notifications", resp.size()), resp);
     }
 
+    @GetMapping("/cr/created-by-me")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getCreatedByMe(
+            HttpServletRequest httpReq
+    ) {
+        String prn = jwtService.extractPrnFromHeaders(httpReq);
+        log.info("Request received to fetch notifications created by prn: {}", prn);
+        List<NotificationResponse> resp = notificationService.getCreatedByMe(prn);
+        return ok(String.format("Fetched %d notifications", resp.size()), resp);
+    }
+
+    @GetMapping("/cr/created-by-me/paged")
+    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getCreatedByMePaged(
+            HttpServletRequest httpReq,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        String prn = jwtService.extractPrnFromHeaders(httpReq);
+        log.info("Request received to fetch paginated notifications created by prn: {}", prn);
+        Page<NotificationResponse> resp =
+                notificationService.getCreatedByMePaged(prn, pageable(page, size));
+        return ok(String.format("Fetched %d notifications", resp.getTotalElements()), resp);
+    }
+
     // ── Deactivate / Delete ───────────────────────────────────────────────────
 
     /**

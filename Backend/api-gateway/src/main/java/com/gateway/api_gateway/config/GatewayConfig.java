@@ -452,7 +452,8 @@ public class GatewayConfig {
                 .route("notification-teachers", r -> r
                         .path(
                                 "/api/notification",
-                                "/api/notification/paged"
+                                "/api/notification/paged",
+                                "/api/notification/cr/**"
                         )
                         .and()
                         .method("GET", "POST")
@@ -501,7 +502,8 @@ public class GatewayConfig {
 
                         )
                         .and()
-                        .method("PATCH")
+                        .method("PATCH" +
+                                "")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(

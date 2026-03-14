@@ -75,4 +75,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             AND n.sourceId IN :eventIds
             """)
     List<Notification> findEventNotifications(@Param("eventIds") List<Long> eventIds);
+
+    List<Notification> findByCreatedByPrnOrderByCreatedAtDesc(String prn);
+
+    Page<Notification> findByCreatedByPrnOrderByCreatedAtDesc(String prn, Pageable pageable);
 }

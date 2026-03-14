@@ -735,9 +735,9 @@ export default function UsersDashboard() {
             ))}
           </div>
 
-          {/* Two Column Layout */}
+          {/* Stacked Layout */}
           <div
-            className={`grid grid-cols-1 lg:grid-cols-2 gap-8 transition-all duration-300 ${!isVerified ? "opacity-50 pointer-events-none select-none" : ""}`}
+            className={`grid grid-cols-1 gap-8 transition-all duration-300 ${!isVerified ? "opacity-50 pointer-events-none select-none" : ""}`}
           >
             {/* LEFT COLUMN - User Control Center */}
             <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
@@ -753,7 +753,7 @@ export default function UsersDashboard() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <ActionCard
                   icon={<CalendarDays size={24} />}
                   label="Upcoming Events"
@@ -822,7 +822,8 @@ export default function UsersDashboard() {
               </div>
             </section>
 
-            {/* RIGHT COLUMN - My Clubs Section */}
+            {/* My Clubs Section */}
+            {(isLoadingClubs || clubsError || myClubs.length > 0) && (
             <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -966,6 +967,7 @@ export default function UsersDashboard() {
                 </>
               )}
             </section>
+            )}
           </div>
 
           {/* Overlay message when unverified user hovers over disabled area */}

@@ -546,8 +546,8 @@ export default function TeachersDashboard() {
             <StatCard icon={<Users />} label="Assigned Students" value={assignedStudentsCount.toString()} color="orange" />
           </div>
 
-          {/* Two-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Stacked layout */}
+          <div className="grid grid-cols-1 gap-8">
 
             {/* Professor Control Center */}
             <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50 h-fit">
@@ -580,7 +580,7 @@ export default function TeachersDashboard() {
                   </div>
                 )}
 
-                <div className={`grid grid-cols-2 gap-8 ${!currentUser.verified ? "opacity-40 pointer-events-none select-none" : ""}`}>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${!currentUser.verified ? "opacity-40 pointer-events-none select-none" : ""}`}>
                   <ActionCard
                     icon={<CalendarPlus size={24} />}
                     label="Events"
@@ -636,6 +636,7 @@ export default function TeachersDashboard() {
             </section>
 
             {/* My Clubs */}
+            {(isLoadingClubs || error || clubs.length > 0) && (
             <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -775,6 +776,7 @@ export default function TeachersDashboard() {
                 </>
               )}
             </section>
+            )}
           </div>
         </main>
 

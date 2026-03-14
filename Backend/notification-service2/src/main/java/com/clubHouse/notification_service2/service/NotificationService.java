@@ -374,6 +374,47 @@ public class NotificationService {
                 notification, targetType, targetIds, sourceDetailMap.get(notificationId));
     }
 
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getCreatedByMe(String prn) {
+        log.info("Fetching notifications created by prn={}", prn);
+
+        List<Notification> notifications =
+                notificationRepository.findByCreatedByPrnOrderByCreatedAtDesc(prn);
+
+        if (notifications.isEmpty()) return List.of();
+
+        return notificationMapper.toResponseList(
+                notifications,
+                resolveTargets(notifications),
+                resolveSourceDetails(notifications)
+        );
+    }
+
+    /**
+     * Paged variant of getCreatedByMe.
+     * Uses a true DB-level page query so only the requested slice is loaded.
+     */
+    @Transactional(readOnly = true)
+    public Page<NotificationResponse> getCreatedByMePaged(String prn, Pageable pageable) {
+        log.info("Fetching paginated notifications created by prn={}", prn);
+
+        Page<Notification> page =
+                notificationRepository.findByCreatedByPrnOrderByCreatedAtDesc(prn, pageable);
+
+        if (page.isEmpty()) return Page.empty(pageable);
+
+        List<Notification> content = page.getContent();
+        List<NotificationResponse> responses = notificationMapper.toResponseList(
+                content,
+                resolveTargets(content),
+                resolveSourceDetails(content)
+        );
+
+        // Preserve the total element count from the DB page so the caller gets
+        // correct pagination metadata (totalPages, totalElements, etc.)
+        return new PageImpl<>(responses, pageable, page.getTotalElements());
+    }
+
     // ── Update ────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -485,4 +526,6 @@ public class NotificationService {
         userSeenNotificationRepository.deleteByNotificationId(notificationId);
         notificationRepository.deleteById(notificationId);
     }
+
+
 }
