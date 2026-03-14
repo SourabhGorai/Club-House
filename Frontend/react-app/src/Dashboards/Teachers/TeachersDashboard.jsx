@@ -580,7 +580,7 @@ export default function TeachersDashboard() {
                   </div>
                 )}
 
-                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${!currentUser.verified ? "opacity-40 pointer-events-none select-none" : ""}`}>
+                <div className={`grid grid-cols-2 lg:grid-cols-3 gap-6 ${!currentUser.verified ? "opacity-40 pointer-events-none select-none" : ""}`}>
                   <ActionCard
                     icon={<CalendarPlus size={24} />}
                     label="Events"
@@ -723,28 +723,8 @@ export default function TeachersDashboard() {
                 </div>
               ) : (
                 <>
-                  {/* Mobile Dropdown View */}
-                  <div className="lg:hidden mb-6">
-                    <label className="text-[10px] font-black text-gray-400 ml-1 mb-2 block uppercase tracking-widest">
-                      Select Club to Manage
-                    </label>
-                    <CustomSelect
-                      name="mobileClubSelect"
-                      value=""
-                      onChange={(e) => {
-                        const club = clubs.find(c => String(c.clubId) === String(e.target.value));
-                        if (club) handleViewClubDetails(club);
-                      }}
-                      options={clubs.map((club) => ({
-                        value: club.clubId,
-                        label: club.clubName,
-                      }))}
-                      placeholder="Browse your clubs..."
-                    />
-                  </div>
-
-                  {/* Desktop Cards View */}
-                  <div className="hidden lg:block space-y-5">
+                  {/* Clubs Cards View */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {displayClubs.map((club) => (
                       <CompactClubCard
                         key={club.clubId}
@@ -755,7 +735,7 @@ export default function TeachersDashboard() {
                   </div>
                   
                   {clubs.length > 4 && (
-                    <div className="text-center mt-8 hidden lg:block">
+                    <div className="text-center mt-8">
                       <button
                         onClick={() => setShowAllClubs(!showAllClubs)}
                         className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
@@ -1120,9 +1100,9 @@ function CompactClubCard({ club, onViewDetails }) {
             <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>
               {clubName}
             </h3>
-            <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+            {/* <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
               CLUB
-            </span>
+            </span> */}
           </div>
           <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2" title={clubDescription}>
             {clubDescription}

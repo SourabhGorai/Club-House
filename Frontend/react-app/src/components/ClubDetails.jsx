@@ -732,12 +732,12 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName, profileImag
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
-      <div className="bg-white rounded-2xl shadow-2xl w-11/12 max-w-4xl max-h-[80vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full sm:w-11/12 max-w-4xl max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="flex justify-between items-center p-8 pb-4">
-          <h3 className="font-display text-2xl font-bold" style={{ color: "#4CA1AF" }}>
+        <div className="flex justify-between items-center p-4 sm:p-8 pb-3 sm:pb-4">
+          <h3 className="font-display text-lg sm:text-2xl font-bold" style={{ color: "#4CA1AF" }}>
             Members of {clubName}
           </h3>
           <button
@@ -749,7 +749,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName, profileImag
         </div>
 
         {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto px-8">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8">
           {loading ? (
             <div className="text-center py-8">
               <div
@@ -832,11 +832,11 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName, profileImag
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+        <div className="px-4 sm:px-8 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 bg-gray-50">
           <span className="text-sm text-gray-500">Total: {members.length} members</span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 cursor-pointer"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 cursor-pointer w-full sm:w-auto"
           >
             Close
           </button>
@@ -871,7 +871,7 @@ const DetailRow = ({ icon: Icon, label, value, iconColor = "#4CA1AF", bgColor = 
 // ─────────────────────────────────────────────────────────────────────────────
 const AvatarPanel = ({ name, blobUrl, badgeLabel, count, activeIdx }) => (
   <div
-    className="w-36 flex-shrink-0 flex flex-col items-center justify-center gap-3 p-5 border-r border-gray-100"
+    className="w-full sm:w-36 flex-shrink-0 flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-3 p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-gray-100"
     style={{
       background:
         "linear-gradient(160deg, rgba(76,161,175,0.09) 0%, rgba(49,81,105,0.06) 100%)",
@@ -932,7 +932,7 @@ const TeacherCard = ({ adminData, profileImages }) => {
       </div>
 
       {hasTeacher ? (
-        <div className="flex">
+        <div className="flex flex-col sm:flex-row">
           {/* Left – avatar */}
           <AvatarPanel
             name={adminData.teacherName}
@@ -1021,7 +1021,7 @@ const ClubAdminCard = ({ adminData, profileImages }) => {
       </div>
 
       {admins.length > 0 && admin ? (
-        <div className="flex">
+        <div className="flex flex-col sm:flex-row">
           {/* Left – avatar */}
           <AvatarPanel
             name={admin.name}
@@ -1385,45 +1385,45 @@ export default function ClubDetails() {
 
       {/* Sticky top nav */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-600 hover:text-[#4CA1AF] transition-colors group"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Dashboard</span>
+            <span className="text-sm sm:text-base">Back to Dashboard</span>
           </button>
         </div>
       </div>
 
       {/* Page body */}
-      <div className="max-w-7xl mx-auto px-6 py-8 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative">
 
         {/* ── Club header card ── */}
-        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-50 mb-8">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-6">
+        <div className="bg-white rounded-[2rem] p-4 sm:p-8 shadow-sm border border-gray-50 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-6 min-w-0">
               <div
-                className="p-6 rounded-[2rem]"
+                className="p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem]"
                 style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
               >
-                <Trophy className="w-12 h-12" style={{ color: "#F59E42" }} />
+                <Trophy className="w-8 h-8 sm:w-12 sm:h-12" style={{ color: "#F59E42" }} />
               </div>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2 break-words">
                   {clubDetails.clubName}
                 </h1>
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                   <span
-                    className="px-4 py-1.5 rounded-full text-sm font-semibold"
+                    className="px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold"
                     style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#26727e" }}
                   >
                     {clubDetails.category || "Academic Club"}
                   </span>
-                  <span className="flex items-center gap-1 text-gray-600">
+                  <span className="flex items-center gap-1 text-sm sm:text-base text-gray-600">
                     <Users size={18} style={{ color: "#10B981" }} /> {clubMembers.length} Members
                   </span>
-                  <span className="flex items-center gap-1 text-gray-600">
+                  <span className="flex items-center gap-1 text-sm sm:text-base text-gray-600">
                     <Calendar size={18} style={{ color: "#6366F1" }} /> Added {formatDate(clubDetails.createdAt)}
                   </span>
                   <div
@@ -1455,7 +1455,7 @@ export default function ClubDetails() {
                     `/create-event?clubId=${clubDetails.clubId}&clubName=${encodeURIComponent(clubDetails.clubName)}`
                   )
                 }
-                className="px-5 py-2.5 bg-[#4CA1AF] text-white rounded-xl font-semibold hover:bg-[#3d8a98] transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 bg-[#4CA1AF] text-white rounded-xl font-semibold hover:bg-[#3d8a98] transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Plus size={18} /> Add Event
               </button>
@@ -1464,19 +1464,19 @@ export default function ClubDetails() {
         </div>
 
         {/* ── Stats row with event counts ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <div
-            className="bg-white p-6 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-all cursor-pointer"
+            className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-all cursor-pointer"
             onClick={() => setShowMembersModal(true)}
           >
             <Users className="mb-3" size={24} style={{ color: "#10B981" }} />
-            <span className="text-4xl font-black" style={{ color: "#10B981" }}>{clubMembers.length}</span>
+            <span className="text-3xl sm:text-4xl font-black" style={{ color: "#10B981" }}>{clubMembers.length}</span>
             <p className="text-xs font-bold uppercase text-gray-400 mt-2">Total Members</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-50 shadow-sm">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-50 shadow-sm">
             <Calendar className="mb-3" size={24} style={{ color: "#6366F1" }} />
-            <span className="text-4xl font-black" style={{ color: "#6366F1" }}>
+            <span className="text-3xl sm:text-4xl font-black" style={{ color: "#6366F1" }}>
               {upcomingCount}
             </span>
             <p className="text-xs font-bold uppercase text-gray-400 mt-2">Upcoming Events</p>
@@ -1487,9 +1487,9 @@ export default function ClubDetails() {
             )}
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-50 shadow-sm">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-50 shadow-sm">
             <Clock className="mb-3" size={24} style={{ color: "#F43F5E" }} />
-            <span className="text-4xl font-black" style={{ color: "#F43F5E" }}>
+            <span className="text-3xl sm:text-4xl font-black" style={{ color: "#F43F5E" }}>
               {previousCount}
             </span>
             <p className="text-xs font-bold uppercase text-gray-400 mt-2">Past Events</p>

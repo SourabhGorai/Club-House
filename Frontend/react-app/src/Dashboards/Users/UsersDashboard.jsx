@@ -753,7 +753,7 @@ export default function UsersDashboard() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                 <ActionCard
                   icon={<CalendarDays size={24} />}
                   label="Upcoming Events"
@@ -924,7 +924,7 @@ export default function UsersDashboard() {
                 </div>
               ) : (
                 <>
-                  <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {displayClubs.map((club, index) => (
                       <CompactClubCard
                         key={club.clubId || club.id || index}
@@ -1349,9 +1349,9 @@ function CompactClubCard({ club, onViewDetails, disabled }) {
             >
               {clubName}
             </h3>
-            <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
+            {/* <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
               {clubCategory}
-            </span>
+            </span> */}
           </div>
           <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2">
             {clubDescription}
