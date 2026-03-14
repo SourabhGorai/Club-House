@@ -13,7 +13,7 @@ import AddStudent from "./Dashboards/Teachers/AddStudent";
 import UserRemoveFromClub from "./Dashboards/Teachers/UserRemoveFromClub";
 import RemoveUsersFromAnyClub from "./Dashboards/SuperAdmin/RemoveUsersFromAnyClub";
 import MyEvents from "./components/MyEvents";
-
+import Notifications from "./components/Notifications";
 import { ProtectedRoute, AuthRoute } from "./components/ProtectedRoutes";
 import ClubAdminsManagement from "./Dashboards/SuperAdmin/Clubsadminmanagement";
 import ClubDetails from "./components/ClubDetails";
@@ -36,11 +36,11 @@ export default function App() {
             </AuthRoute>
           }
         />
-        
+
         {/* MODIFIED: Remove AuthRoute from OTP so logged-in users can access it */}
         <Route path="/otp" element={<OTP />} />
         <Route path="/verifyotp" element={<VerifyOTP />} />
-        
+
         <Route
           path="/login"
           element={
@@ -106,6 +106,15 @@ export default function App() {
         />
 
         <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/add-users-with-club"
           element={
             <ProtectedRoute>
@@ -131,13 +140,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
 
-        <Route path="/club/:clubName/details" element={
-          <ProtectedRoute>
-            <ClubDetails />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/club/:clubName/details"
+          element={
+            <ProtectedRoute>
+              <ClubDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/events"
@@ -147,7 +158,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/events-superadmin"
           element={

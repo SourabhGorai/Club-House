@@ -21,6 +21,7 @@ import {
   CheckCircle,
   AlertCircle,
   Menu,
+  Bell,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -67,6 +68,7 @@ export default function TeachersDashboard() {
   const [error, setError] = useState(null);
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -84,7 +86,17 @@ export default function TeachersDashboard() {
     fetchUserProfile();
     fetchDepartments();
     fetchUserClubs();
+    fetchUnread();
   }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [token]);
 
   useEffect(() => {
     if (
@@ -157,6 +169,31 @@ export default function TeachersDashboard() {
       console.error("Error fetching profile:", error);
     } finally {
       setIsLoadingProfile(false);
+    }
+  };
+
+  const fetchUnread = async () => {
+    if (!token) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/notifications/me/unread-count`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const count =
+        typeof res.data === "number"
+          ? res.data
+          : (res.data?.data ?? res.data?.count ?? 0);
+
+      setUnreadCount(Number(count) || 0);
+    } catch {
+      setUnreadCount(0);
     }
   };
 
@@ -574,6 +611,26 @@ export default function TeachersDashboard() {
                     color="teal"
                     onClick={() => navigate("/manage-clubs")}
                   />
+                  <button
+                    onClick={() => navigate("/notifications")}
+                    className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
+                    style={{ backgroundColor: "rgba(76, 161, 175, 0.05)" }}
+                  >
+                    <div
+                      className="relative p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+                      style={{ color: "#4CA1AF" }}
+                    >
+                      <Bell size={24} />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-black text-gray-700 uppercase text-xs tracking-widest">
+                      Notifications
+                    </span>
+                  </button>
                 </div>
               </div>
             </section>

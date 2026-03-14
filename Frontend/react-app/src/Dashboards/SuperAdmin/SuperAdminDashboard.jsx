@@ -2587,6 +2587,7 @@ import {
   Mail,
   CheckCircle,
   AlertCircle,
+  Bell,
 } from "lucide-react";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
@@ -2621,6 +2622,7 @@ export default function SuperAdminDashboard() {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
   const [clubAdmins, setCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -2670,8 +2672,18 @@ export default function SuperAdminDashboard() {
     fetchUserCount();
     fetchAllData();
     fetchUserProfile();
+      fetchUnread();
   }
 }, [token]);
+
+    useEffect(() => {
+      const handleFocus = () => {
+        fetchUnread();
+      };
+
+      window.addEventListener("focus", handleFocus);
+      return () => window.removeEventListener("focus", handleFocus);
+    }, [token]);
 
   const fetchUserCount = async () => {
     try {
@@ -2687,6 +2699,31 @@ export default function SuperAdminDashboard() {
       setCount(response.data.data.length);
     } catch (error) {
       console.error("Error fetching club admin count:", error);
+    }
+  };
+
+  const fetchUnread = async () => {
+    if (!token) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/notifications/me/unread-count`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const count =
+        typeof res.data === "number"
+          ? res.data
+          : (res.data?.data ?? res.data?.count ?? 0);
+
+      setUnreadCount(Number(count) || 0);
+    } catch {
+      setUnreadCount(0);
     }
   };
 
@@ -3095,6 +3132,28 @@ export default function SuperAdminDashboard() {
     </button>
   );
 
+  const NotificationActionButton = () => (
+    <button
+      onClick={() => navigate("/notifications")}
+      className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer relative"
+    >
+      <div
+        className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
+        style={{ backgroundColor: PRIMARY_LIGHT, color: PRIMARY_COLOR }}
+      >
+        <Bell className="w-8 h-8" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </div>
+      <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
+        Notifications
+      </span>
+    </button>
+  );
+
   if (loading || isLoadingProfile) {
     return (
       <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center">
@@ -3474,6 +3533,7 @@ export default function SuperAdminDashboard() {
                   bgColor="rgba(6, 182, 212, 0.1)"
                   iconColor="#06B6D4"
                 />
+                <NotificationActionButton />
               </div>
             </section>
           </div>

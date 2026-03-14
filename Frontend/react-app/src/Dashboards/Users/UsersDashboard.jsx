@@ -20,6 +20,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Menu,
+  Bell,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -88,11 +89,47 @@ export default function UsersDashboard() {
     fn();
   };
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // inside fetchUserProfile or a separate useEffect:
+  const fetchUnread = async () => {
+    if (!token) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/notifications/me/unread-count`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const count =
+        typeof res.data === "number"
+          ? res.data
+          : (res.data?.data ?? res.data?.count ?? 0);
+      setUnreadCount(Number(count) || 0);
+    } catch {
+      /* silent */
+    }
+  };
+
   useEffect(() => {
     fetchUserProfile();
     fetchDepartments();
     fetchMyClubs();
+    fetchUnread();
   }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [token]);
 
   useEffect(() => {
     if (
@@ -306,7 +343,10 @@ export default function UsersDashboard() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
-      setEmailMessage({ text: "Please enter a valid email address", type: "error" });
+      setEmailMessage({
+        text: "Please enter a valid email address",
+        type: "error",
+      });
       return;
     }
 
@@ -326,7 +366,11 @@ export default function UsersDashboard() {
       );
 
       if (response.data) {
-        const updatedUser = { ...currentUser, email: newEmail, verified: false };
+        const updatedUser = {
+          ...currentUser,
+          email: newEmail,
+          verified: false,
+        };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setCurrentUser(updatedUser);
 
@@ -369,7 +413,10 @@ export default function UsersDashboard() {
 
   const displayClubs = showAllClubs ? myClubs : myClubs.slice(0, 4);
   const joinedClubsCount = myClubs.length;
-  const totalMembersInMyClubs = myClubs.reduce((sum, club) => sum + (parseInt(club.memberCount) || 0), 0);
+  const totalMembersInMyClubs = myClubs.reduce(
+    (sum, club) => sum + (parseInt(club.memberCount) || 0),
+    0,
+  );
   const statsCards = [
     {
       icon: <CalendarDays />,
@@ -420,7 +467,9 @@ export default function UsersDashboard() {
           <div className="flex items-center space-x-2">
             <div
               className="p-2 rounded-lg"
-              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #315169)",
+              }}
             >
               <LayoutDashboard className="text-white w-5 h-5" />
             </div>
@@ -440,14 +489,16 @@ export default function UsersDashboard() {
         )}
 
         {/* SIDEBAR */}
-        <aside className={`
+        <aside
+          className={`
           fixed lg:sticky top-0 left-0 h-screen
           w-80 sm:w-96 bg-white border-r border-gray-100
           flex flex-col p-8 shadow-lg lg:shadow-sm
           transition-transform duration-300 ease-in-out z-50
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           overflow-y-auto
-        `}>
+        `}
+        >
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
@@ -458,7 +509,10 @@ export default function UsersDashboard() {
           <div className="flex items-center gap-3 mb-8 group cursor-pointer">
             <div
               className="p-2 rounded-xl shadow-lg"
-              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)", boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)" }}
+              style={{
+                background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+              }}
             >
               <LayoutDashboard className="text-white w-7 h-7" />
             </div>
@@ -471,7 +525,11 @@ export default function UsersDashboard() {
           <div className="relative group mx-auto mb-6">
             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
               {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                   <User size={48} />
@@ -493,7 +551,10 @@ export default function UsersDashboard() {
             </h2>
             <span
               className="mt-2 inline-block text-[9px] sm:text-[10px] font-black px-3 sm:px-4 py-1 sm:py-1.5 rounded-full uppercase tracking-widest"
-              style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
+              style={{
+                backgroundColor: "rgba(76, 161, 175, 0.1)",
+                color: "#4CA1AF",
+              }}
             >
               {user?.role || "USER"}
             </span>
@@ -535,13 +596,20 @@ export default function UsersDashboard() {
                     }`}
                     title={isVerified ? "Verified" : "Click to verify"}
                   >
-                    {isVerified ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                    {isVerified ? (
+                      <CheckCircle size={14} />
+                    ) : (
+                      <AlertCircle size={14} />
+                    )}
                   </button>
                 </div>
               </div>
             </div>
 
-            <SidebarInfoBox label="Department" value={getDepartmentName(profileData.departmentId)} />
+            <SidebarInfoBox
+              label="Department"
+              value={getDepartmentName(profileData.departmentId)}
+            />
             <SidebarInfoBox label="Year" value={profileData.year} />
             <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
 
@@ -553,11 +621,17 @@ export default function UsersDashboard() {
                   : "bg-amber-50 border-amber-100"
               }`}
             >
-              <span className={`text-[9px] uppercase font-black tracking-widest ${isVerified ? "text-emerald-600" : "text-amber-600"}`}>
+              <span
+                className={`text-[9px] uppercase font-black tracking-widest ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
+              >
                 Status
               </span>
-              <span className={`flex items-center gap-1.5 text-[10px] font-black ${isVerified ? "text-emerald-600" : "text-amber-600"}`}>
-                <div className={`w-1.5 h-1.5 rounded-full ${isVerified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}></div>
+              <span
+                className={`flex items-center gap-1.5 text-[10px] font-black ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
+              >
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${isVerified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
+                ></div>
                 {isVerified ? "VERIFIED" : "PENDING VERIFICATION"}
               </span>
             </div>
@@ -572,7 +646,10 @@ export default function UsersDashboard() {
                 message: "Are you sure you want to sign out?",
                 confirmText: "Sign Out",
                 variant: "danger",
-                onConfirm: () => { closeConfirm(); handleLogout(); },
+                onConfirm: () => {
+                  closeConfirm();
+                  handleLogout();
+                },
               })
             }
             className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
@@ -583,7 +660,6 @@ export default function UsersDashboard() {
 
         {/* MAIN CONTENT AREA */}
         <main className="flex-1 p-10 overflow-y-auto max-h-screen">
-
           {/* ── UNVERIFIED BANNER ── */}
           {!isVerified && (
             <div className="mb-8 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 shadow-sm">
@@ -603,7 +679,9 @@ export default function UsersDashboard() {
               <button
                 onClick={handleVerificationRedirect}
                 className="flex-shrink-0 text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all hover:opacity-90 hover:scale-105 cursor-pointer uppercase tracking-wider"
-                style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                }}
               >
                 Verify Now
               </button>
@@ -620,7 +698,10 @@ export default function UsersDashboard() {
                 <span className="font-semibold" style={{ color: "#4CA1AF" }}>
                   {user?.username}
                 </span>
-                . {isVerified ? "System is healthy." : "Please verify your account."}
+                .{" "}
+                {isVerified
+                  ? "System is healthy."
+                  : "Please verify your account."}
               </p>
             </div>
             <div
@@ -630,7 +711,9 @@ export default function UsersDashboard() {
                   : "bg-amber-50 text-amber-600 border-amber-100"
               }`}
             >
-              <div className={`w-2.5 h-2.5 rounded-full ${isVerified ? "bg-green-500 animate-pulse" : "bg-amber-400"}`}></div>
+              <div
+                className={`w-2.5 h-2.5 rounded-full ${isVerified ? "bg-green-500 animate-pulse" : "bg-amber-400"}`}
+              ></div>
               <span className="text-xs font-bold uppercase tracking-widest">
                 {isVerified ? "All Systems Live" : "Verification Pending"}
               </span>
@@ -653,15 +736,21 @@ export default function UsersDashboard() {
           </div>
 
           {/* Two Column Layout */}
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 transition-all duration-300 ${!isVerified ? "opacity-50 pointer-events-none select-none" : ""}`}>
+          <div
+            className={`grid grid-cols-1 lg:grid-cols-2 gap-8 transition-all duration-300 ${!isVerified ? "opacity-50 pointer-events-none select-none" : ""}`}
+          >
             {/* LEFT COLUMN - User Control Center */}
             <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-50 h-fit">
               <div className="flex items-center gap-3 mb-10">
                 <div
                   className="w-1.5 h-10 rounded-full"
-                  style={{ background: "linear-gradient(to bottom, #4CA1AF, #315169)" }}
+                  style={{
+                    background: "linear-gradient(to bottom, #4CA1AF, #315169)",
+                  }}
                 ></div>
-                <h2 className="text-2xl font-bold text-gray-800">User Control Center</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  User Control Center
+                </h2>
               </div>
 
               <div className="grid grid-cols-2 gap-8">
@@ -669,30 +758,67 @@ export default function UsersDashboard() {
                   icon={<CalendarDays size={24} />}
                   label="Upcoming Events"
                   color="blue"
-                  onClick={() => handleRestrictedAction(() => (window.location.href = "/events"))}
+                  onClick={() =>
+                    handleRestrictedAction(
+                      () => (window.location.href = "/events"),
+                    )
+                  }
                   disabled={!isVerified}
                 />
                 <ActionCard
                   icon={<BookOpen size={24} />}
                   label="Resources"
                   color="green"
-                  onClick={() => handleRestrictedAction(() => (window.location.href = "/resources"))}
+                  onClick={() =>
+                    handleRestrictedAction(
+                      () => (window.location.href = "/resources"),
+                    )
+                  }
                   disabled={!isVerified}
                 />
                 <ActionCard
                   icon={<Settings size={24} />}
                   label="Settings"
                   color="purple"
-                  onClick={() => handleRestrictedAction(() => (window.location.href = "/settings"))}
+                  onClick={() =>
+                    handleRestrictedAction(
+                      () => (window.location.href = "/settings"),
+                    )
+                  }
                   disabled={!isVerified}
                 />
                 <ActionCard
                   icon={<Club size={24} />}
                   label="Clubs"
                   color="blue"
-                  onClick={() => handleRestrictedAction(() => navigate("/manage-clubs"))}
+                  onClick={() =>
+                    handleRestrictedAction(() => navigate("/manage-clubs"))
+                  }
                   disabled={!isVerified}
                 />
+                <button
+                  onClick={() =>
+                    handleRestrictedAction(() => navigate("/notifications"))
+                  }
+                  disabled={!isVerified}
+                  className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full relative disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: "rgba(76, 161, 175, 0.05)" }}
+                >
+                  <div
+                    className="relative p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+                    style={{ color: "#4CA1AF" }}
+                  >
+                    <Bell size={24} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-black text-gray-700 uppercase text-xs tracking-widest">
+                    Notifications
+                  </span>
+                </button>
               </div>
             </section>
 
@@ -706,7 +832,10 @@ export default function UsersDashboard() {
                 <button
                   onClick={fetchMyClubs}
                   className="text-xs font-bold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 cursor-pointer"
-                  style={{ color: "#4CA1AF", backgroundColor: "rgba(76, 161, 175, 0.1)" }}
+                  style={{
+                    color: "#4CA1AF",
+                    backgroundColor: "rgba(76, 161, 175, 0.1)",
+                  }}
                   disabled={isLoadingClubs}
                 >
                   <svg
@@ -715,7 +844,12 @@ export default function UsersDashboard() {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                   {isLoadingClubs ? "Refreshing..." : "Refresh"}
                 </button>
@@ -725,23 +859,43 @@ export default function UsersDashboard() {
                 <div className="py-16 text-center">
                   <div
                     className="animate-spin w-12 h-12 border-4 rounded-full mx-auto mb-4"
-                    style={{ borderColor: "rgba(76, 161, 175, 0.2)", borderTopColor: "#4CA1AF" }}
+                    style={{
+                      borderColor: "rgba(76, 161, 175, 0.2)",
+                      borderTopColor: "#4CA1AF",
+                    }}
                   ></div>
-                  <p className="text-gray-500 font-medium">Loading your clubs...</p>
+                  <p className="text-gray-500 font-medium">
+                    Loading your clubs...
+                  </p>
                 </div>
               ) : clubsError ? (
                 <div className="bg-red-50 rounded-[2rem] p-8 text-center border border-red-100">
                   <div className="text-red-500 mb-3">
-                    <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-16 h-16 mx-auto"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">Unable to Load Clubs</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">
+                    Unable to Load Clubs
+                  </h3>
                   <p className="text-red-500/70 mb-5">{clubsError}</p>
                   <button
                     onClick={fetchMyClubs}
                     className="bg-white px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer"
-                    style={{ color: "#4CA1AF", borderColor: "rgba(76, 161, 175, 0.2)" }}
+                    style={{
+                      color: "#4CA1AF",
+                      borderColor: "rgba(76, 161, 175, 0.2)",
+                    }}
                   >
                     Try Again
                   </button>
@@ -751,13 +905,18 @@ export default function UsersDashboard() {
                   <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5">
                     <Users className="text-gray-400 w-12 h-12" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">No Clubs Joined Yet</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">
+                    No Clubs Joined Yet
+                  </h3>
                   <p className="text-gray-500 mb-8">
-                    You haven't joined any clubs. Explore and join clubs to see them here.
+                    You haven't joined any clubs. Explore and join clubs to see
+                    them here.
                   </p>
                   <button
                     className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer"
-                    style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                    style={{
+                      background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                    }}
                   >
                     Browse Clubs
                   </button>
@@ -780,16 +939,26 @@ export default function UsersDashboard() {
                       <button
                         onClick={() => setShowAllClubs(!showAllClubs)}
                         className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
-                        style={{ color: "#4CA1AF", borderColor: "rgba(76, 161, 175, 0.2)" }}
+                        style={{
+                          color: "#4CA1AF",
+                          borderColor: "rgba(76, 161, 175, 0.2)",
+                        }}
                       >
-                        {showAllClubs ? "Show Less" : `Show All (${myClubs.length} Clubs)`}
+                        {showAllClubs
+                          ? "Show Less"
+                          : `Show All (${myClubs.length} Clubs)`}
                         <svg
                           className={`w-4 h-4 transition-transform ${showAllClubs ? "rotate-180" : ""}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -825,11 +994,20 @@ export default function UsersDashboard() {
 
               <form onSubmit={handleSubmitProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <FormInput label="PRN (Read Only)" value={profileData.prn} readOnly />
+                  <FormInput
+                    label="PRN (Read Only)"
+                    value={profileData.prn}
+                    readOnly
+                  />
                   <FormInput
                     label="Full Name"
                     value={profileData.fullName}
-                    onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        fullName: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
@@ -841,13 +1019,21 @@ export default function UsersDashboard() {
                     </label>
                     <select
                       value={profileData.departmentId}
-                      onChange={(e) => setProfileData({ ...profileData, departmentId: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          departmentId: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
                       required
                     >
                       <option value="">Select Dept</option>
                       {departments.map((dept) => (
-                        <option key={dept.departmentId} value={dept.departmentId}>
+                        <option
+                          key={dept.departmentId}
+                          value={dept.departmentId}
+                        >
                           {dept.name}
                         </option>
                       ))}
@@ -859,13 +1045,17 @@ export default function UsersDashboard() {
                     </label>
                     <select
                       value={profileData.year}
-                      onChange={(e) => setProfileData({ ...profileData, year: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, year: e.target.value })
+                      }
                       className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
                       required
                     >
                       <option value="">Select Year</option>
                       {[1, 2, 3, 4].map((y) => (
-                        <option key={y} value={y}>Year {y}</option>
+                        <option key={y} value={y}>
+                          Year {y}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -874,7 +1064,12 @@ export default function UsersDashboard() {
                 <FormInput
                   label="Phone Number"
                   value={profileData.phoneNumber}
-                  onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      phoneNumber: e.target.value,
+                    })
+                  }
                   required
                 />
 
@@ -892,7 +1087,9 @@ export default function UsersDashboard() {
                   >
                     <Upload size={24} />
                     <span className="text-sm font-semibold">
-                      {selectedImage ? selectedImage.name : "Upload Profile Photo"}
+                      {selectedImage
+                        ? selectedImage.name
+                        : "Upload Profile Photo"}
                     </span>
                   </label>
                 </div>
@@ -901,9 +1098,15 @@ export default function UsersDashboard() {
                   type="submit"
                   disabled={loading}
                   className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
-                  style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                  style={{
+                    background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                  }}
                 >
-                  {loading ? "Saving..." : userProfile ? "Update Profile" : "Complete Profile"}
+                  {loading
+                    ? "Saving..."
+                    : userProfile
+                      ? "Update Profile"
+                      : "Complete Profile"}
                 </button>
               </form>
             </div>
@@ -916,7 +1119,9 @@ export default function UsersDashboard() {
             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
               <div
                 className="p-6 text-white"
-                style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                style={{
+                  background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                }}
               >
                 <div className="flex justify-between items-center">
                   <div>
@@ -924,7 +1129,9 @@ export default function UsersDashboard() {
                       <Mail size={20} />
                       Update Email Address
                     </h3>
-                    <p className="text-white/80 text-sm mt-1">Enter your new email address</p>
+                    <p className="text-white/80 text-sm mt-1">
+                      Enter your new email address
+                    </p>
                   </div>
                   <button
                     onClick={() => {
@@ -961,7 +1168,10 @@ export default function UsersDashboard() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
-                    onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px rgba(76, 161, 175, 0.2)")}
+                    onFocus={(e) =>
+                      (e.target.style.boxShadow =
+                        "0 0 0 2px rgba(76, 161, 175, 0.2)")
+                    }
                     onBlur={(e) => (e.target.style.boxShadow = "")}
                     placeholder="Enter new email address"
                     required
@@ -973,7 +1183,8 @@ export default function UsersDashboard() {
                     className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
                   >
                     <p className="text-sm font-semibold flex items-center gap-2">
-                      {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
+                      {emailMessage.type === "success" ? "✓" : "⚠"}{" "}
+                      {emailMessage.text}
                     </p>
                   </div>
                 )}
@@ -982,9 +1193,15 @@ export default function UsersDashboard() {
                   <button
                     type="button"
                     onClick={handleEmailUpdate}
-                    disabled={emailLoading || !newEmail || newEmail === currentUser.email}
+                    disabled={
+                      emailLoading ||
+                      !newEmail ||
+                      newEmail === currentUser.email
+                    }
                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                    style={{
+                      background: "linear-gradient(135deg, #4CA1AF, #315169)",
+                    }}
                   >
                     {emailLoading ? (
                       <div className="flex items-center justify-center gap-2">
@@ -1023,7 +1240,9 @@ function SidebarInfoBox({ label, value }) {
       <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
         {label}
       </p>
-      <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
+      <p className="text-gray-700 font-bold text-sm truncate">
+        {value || "Not set"}
+      </p>
     </div>
   );
 }
@@ -1039,17 +1258,24 @@ function StatCard({ icon, label, value, color, isStatus, disabled }) {
   return (
     <div
       className={`bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 transition-all ${
-        disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:shadow-md"
+        disabled
+          ? "opacity-40 cursor-not-allowed"
+          : "cursor-pointer hover:shadow-md"
       }`}
     >
       <div
         className="p-5 rounded-[1.5rem]"
-        style={{ backgroundColor: bgColors[color].bg, color: bgColors[color].text }}
+        style={{
+          backgroundColor: bgColors[color].bg,
+          color: bgColors[color].text,
+        }}
       >
         {icon}
       </div>
       <div>
-        <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">
+          {label}
+        </p>
         <h3
           className={`text-2xl font-black tracking-tight ${
             isStatus
@@ -1068,7 +1294,8 @@ function StatCard({ icon, label, value, color, isStatus, disabled }) {
 
 function CompactClubCard({ club, onViewDetails, disabled }) {
   const clubName = club.clubName || club.name || "Unnamed Club";
-  const clubDescription = club.description || club.desc || "No description available";
+  const clubDescription =
+    club.description || club.desc || "No description available";
   const clubCategory = club.category || club.type || "General";
   const memberCount = club.memberCount || club.members || "0";
   const clubLogo = club.logo || club.image || club.logoUrl || null;
@@ -1099,25 +1326,39 @@ function CompactClubCard({ club, onViewDetails, disabled }) {
           style={{ backgroundColor: bgColors[color].bg }}
         >
           {clubLogo ? (
-            <img src={clubLogo} alt={clubName} className="w-7 h-7 object-contain" />
+            <img
+              src={clubLogo}
+              alt={clubName}
+              className="w-7 h-7 object-contain"
+            />
           ) : (
-            <Users className="w-6 h-6" style={{ color: bgColors[color].text }} />
+            <Users
+              className="w-6 h-6"
+              style={{ color: bgColors[color].text }}
+            />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>
+            <h3
+              className="font-extrabold text-gray-800 text-lg truncate pr-2"
+              title={clubName}
+            >
               {clubName}
             </h3>
             <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-gray-600 uppercase tracking-wider whitespace-nowrap">
               {clubCategory}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2">{clubDescription}</p>
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2">
+            {clubDescription}
+          </p>
           <div className="flex items-center gap-1.5">
             <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-bold text-gray-600">{memberCount} members</span>
+            <span className="text-xs font-bold text-gray-600">
+              {memberCount} members
+            </span>
           </div>
         </div>
 
@@ -1151,7 +1392,9 @@ function ActionCard({ icon, label, color, onClick, disabled }) {
       >
         {icon}
       </div>
-      <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
+      <span className="font-black text-gray-700 uppercase text-xs tracking-widest">
+        {label}
+      </span>
     </button>
   );
 }
