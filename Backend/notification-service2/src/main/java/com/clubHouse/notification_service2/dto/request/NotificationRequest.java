@@ -33,7 +33,7 @@ public class NotificationRequest {
     private NotificationType notificationType;
 
     @NotNull(message = "Target Type is required")
-    private TargetType targetType;
+    private TargetType targetType = TargetType.GLOBAL;
 
     private List<Long> targetedIds;
 

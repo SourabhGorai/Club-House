@@ -465,7 +465,8 @@ public class GatewayConfig {
                         .path(
                                 "/api/notification",
                                 "/api/notification/paged",
-                                "/api/notification/cr/**"
+                                "/api/notification/cr/**",
+                                "/api/notification/trigger/{notificationId}"
                         )
                         .and()
                         .method("GET", "POST")
@@ -510,7 +511,8 @@ public class GatewayConfig {
 
                 .route("notification-all", r -> r
                         .path(
-                                "/api/notification/{notificationId}/read"
+                                "/api/notification/{notificationId}/read",
+                                "/api/notification/me/read-all"
 
                         )
                         .and()
