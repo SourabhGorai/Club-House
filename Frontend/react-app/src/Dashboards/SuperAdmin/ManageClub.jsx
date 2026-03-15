@@ -1318,13 +1318,6 @@ export default function ManageClubs() {
     .animate-blob { animation: blob 7s infinite; }
     .animation-delay-2000 { animation-delay: 2s; }
     .animation-delay-4000 { animation-delay: 4s; }
-    .custom-scrollbar {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, and Opera */
-    }
   `;
 
   // Cleanup blob URLs on unmount
@@ -1572,13 +1565,33 @@ export default function ManageClubs() {
       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <button
+            {/* <button
               onClick={handleGoBack}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
               <ArrowLeftIcon className="group-hover:-translate-x-1 transition-transform" />
               <span>Back to Dashboard</span>
-            </button>
+            </button> */}
+                  <button
+        onClick={() => navigate("/dashboard")}
+        className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+        style={{ background: "var(--primary-gradient)", color: "white" }}
+      >
+        <svg
+          className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+        <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
+      </button>
           </div>
         </div>
       </div>
@@ -1657,7 +1670,7 @@ export default function ManageClubs() {
             {/* LEFT PANEL */}
             <div className="hidden lg:flex lg:w-1/3 border-r border-gray-100 flex-col p-6 bg-gray-50/20">
               <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
-              <div className="overflow-y-auto max-h-96 space-y-2 pr-2 custom-scrollbar">
+              <div className="overflow-y-auto max-h-96 space-y-2 pr-2">
                 {clubs.map((club) => (
                   <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
                     <div className="flex flex-col">

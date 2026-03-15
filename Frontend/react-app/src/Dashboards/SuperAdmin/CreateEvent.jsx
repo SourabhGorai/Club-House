@@ -539,7 +539,7 @@ export default function CreateEvent() {
       </div>
 
       {/* Header */}
-      <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      {/* <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <button
@@ -562,7 +562,60 @@ export default function CreateEvent() {
             </div>
           </div>
         </div>
+      </div> */}
+      <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between items-center h-16">
+      {/* Left section - Back to Dashboard button with Home icon */}
+      {/* <button
+        onClick={() => navigate("/dashboard")}
+        className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+        style={{ background: "var(--primary-gradient)", color: "white" }}
+      >
+        <svg
+          className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+        <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
+      </button> */}
+            <button
+        onClick={() => navigate("/dashboard")}
+        className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+        style={{ background: "var(--primary-gradient)", color: "white" }}
+      >
+        <svg
+          className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+        <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
+      </button>
+
+      {/* Right section - Create New Event */}
+      <div className="flex items-center gap-2">
+        <CalendarPlus className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#4CA1AF" }} />
+        <span className="text-sm sm:text-base font-semibold text-gray-900">Create New Event</span>
       </div>
+    </div>
+  </div>
+</div>
 
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

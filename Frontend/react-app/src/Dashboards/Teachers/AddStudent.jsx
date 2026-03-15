@@ -493,7 +493,7 @@ export default function AddStudent() {
       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <button
+            {/* <button
               onClick={() => navigate("/dashboard")}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
@@ -512,7 +512,27 @@ export default function AddStudent() {
                 />
               </svg>
               <span>Back to Dashboard</span>
-            </button>
+            </button> */}
+                  <button
+        onClick={() => navigate("/dashboard")}
+        className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+        style={{ background: "var(--primary-gradient)", color: "white" }}
+      >
+        <svg
+          className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+        <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
+      </button>
           </div>
         </div>
       </div>
@@ -1013,102 +1033,279 @@ export default function AddStudent() {
           </div>
 
           {/* Right Side - Illustration */}
-          <div
-            className="hidden md:flex md:w-2/5 flex-col items-center justify-center relative overflow-hidden rounded-r-[2.5rem]"
+          {/* Right Side - Premium Visual Experience */}
+<div
+  className="hidden md:flex md:w-2/5 flex-col items-center justify-center relative overflow-hidden rounded-r-[2.5rem]"
+  style={{
+    background: "radial-gradient(circle at 30% 30%, #4CA1AF, #2C5F8A, #0A1929)",
+  }}
+>
+  {/* Particle Network Background */}
+  <div className="absolute inset-0">
+    <svg className="w-full h-full opacity-30" viewBox="0 0 400 800">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4CA1AF" stopOpacity="0.8" />
+          <stop offset="50%" stopColor="#2C5F8A" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#1A3650" stopOpacity="0.4" />
+        </linearGradient>
+      </defs>
+      
+      {/* Animated particles that will be controlled by CSS */}
+      <g className="particle-group">
+        {[...Array(50)].map((_, i) => (
+          <circle
+            key={i}
+            cx={Math.random() * 400}
+            cy={Math.random() * 800}
+            r={Math.random() * 3 + 1}
+            fill="white"
+            className={`particle particle-${i}`}
             style={{
-              background: "linear-gradient(135deg, #4CA1AF, #315169)",
+              animation: `float-particle ${Math.random() * 10 + 10}s infinite linear`,
+              opacity: Math.random() * 0.5 + 0.3,
             }}
-          >
-            <div className="text-center px-8">
-              <div className="mb-6">
-                <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-12 h-12 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  Add Student to Club
-                </h3>
-                <p className="text-white/90 text-sm">
-                  Enter student PRN to verify and add them to the selected club
-                  with tenure.
-                </p>
-              </div>
+          />
+        ))}
+      </g>
+      
+      {/* Connecting lines between some particles */}
+      <g className="lines-group opacity-20">
+        {[...Array(20)].map((_, i) => (
+          <line
+            key={i}
+            x1={Math.random() * 400}
+            y1={Math.random() * 800}
+            x2={Math.random() * 400}
+            y2={Math.random() * 800}
+            stroke="white"
+            strokeWidth="0.5"
+            strokeDasharray="5,5"
+            className="line"
+            style={{
+              animation: `pulse-line ${Math.random() * 5 + 3}s infinite alternate`,
+            }}
+          />
+        ))}
+      </g>
+    </svg>
+  </div>
 
-              <div className="mt-8 space-y-4 text-left">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-white text-sm">
-                    Enter PRN to verify student
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-white text-sm">
-                    Select club and tenure period
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-white text-sm">
-                    Student will be added as MEMBER role
-                  </span>
-                </div>
-              </div>
-            </div>
+  {/* 3D Rotating Cube Structure */}
+  <div className="relative z-10 transform-gpu preserve-3d">
+    <div className="relative animate-rotate-3d">
+      {/* Main cube */}
+      <div className="cube-container">
+        {/* Cube faces */}
+        <div className="cube-face front">
+          <div className="w-48 h-48 bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl shadow-2xl flex items-center justify-center">
+            <svg className="w-24 h-24 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
+        </div>
+        <div className="cube-face back">
+          <div className="w-48 h-48 bg-gradient-to-tr from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl"></div>
+        </div>
+        <div className="cube-face right">
+          <div className="w-48 h-48 bg-gradient-to-bl from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl"></div>
+        </div>
+        <div className="cube-face left">
+          <div className="w-48 h-48 bg-gradient-to-tl from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl"></div>
+        </div>
+        <div className="cube-face top">
+          <div className="w-48 h-48 bg-gradient-to-b from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl"></div>
+        </div>
+        <div className="cube-face bottom">
+          <div className="w-48 h-48 bg-gradient-to-t from-white/20 to-white/5 backdrop-blur-sm border border-white/30 rounded-2xl"></div>
+        </div>
+      </div>
+
+      {/* Orbiting rings */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-72 h-72 border-2 border-white/20 rounded-full animate-spin-slow">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-4 h-4 bg-white rounded-full shadow-lg shadow-white/50 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="absolute w-96 h-96 border border-white/10 rounded-full animate-spin-slow animation-delay-2000">
+          <div className="absolute bottom-0 right-0 transform translate-x-1/2 translate-y-1/2">
+            <div className="w-6 h-6 bg-gradient-to-r from-[#4CA1AF] to-white rounded-full animate-ping"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating geometric shapes */}
+      <div className="absolute -inset-20">
+        <div className="relative w-full h-full">
+          {/* Floating tetrahedron */}
+          <div className="absolute top-0 left-0 animate-float">
+            <div className="w-16 h-16 bg-gradient-to-br from-white/30 to-transparent backdrop-blur-sm transform rotate-45 border border-white/20 rounded-lg"></div>
+          </div>
+          
+          {/* Floating sphere */}
+          <div className="absolute bottom-0 right-0 animate-float animation-delay-2000">
+            <div className="w-20 h-20 bg-gradient-to-tl from-white/20 to-transparent backdrop-blur-sm rounded-full border border-white/30"></div>
+          </div>
+          
+          {/* Floating cylinder (simulated) */}
+          <div className="absolute top-1/2 left-0 animate-float animation-delay-3000">
+            <div className="w-12 h-24 bg-gradient-to-r from-white/20 to-transparent backdrop-blur-sm rounded-full border border-white/20 transform -rotate-12"></div>
+          </div>
+          
+          {/* Floating diamond */}
+          <div className="absolute bottom-1/3 right-10 animate-float animation-delay-1500">
+            <div className="w-14 h-14 bg-gradient-to-br from-white/30 to-transparent backdrop-blur-sm transform rotate-45 border-2 border-white/20"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Energy waves */}
+  <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-full h-full relative">
+        {/* Concentric wave rings */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-32 h-32 border-2 border-white/30 rounded-full animate-ping-slow"></div>
+          <div className="absolute w-64 h-64 border border-white/20 rounded-full animate-ping-slow animation-delay-1000"></div>
+          <div className="absolute w-96 h-96 border border-white/10 rounded-full animate-ping-slow animation-delay-2000"></div>
+        </div>
+        
+        {/* Light beams */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full">
+            <div className="absolute top-0 left-1/2 w-1 h-full bg-gradient-to-b from-transparent via-white/20 to-transparent transform -translate-x-1/2 animate-pulse"></div>
+            <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-transparent via-white/10 to-transparent transform -translate-x-1/2 animate-pulse animation-delay-1500"></div>
+            <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-transparent via-white/10 to-transparent transform translate-x-1/2 animate-pulse animation-delay-2500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Glowing orbs in background */}
+  <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute top-1/4 -left-20 w-40 h-40 bg-[#4CA1AF] rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
+    <div className="absolute bottom-1/4 -right-20 w-60 h-60 bg-[#2C5F8A] rounded-full filter blur-3xl opacity-30 animate-pulse animation-delay-2000"></div>
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#1A3650] rounded-full filter blur-3xl opacity-20 animate-pulse animation-delay-3000"></div>
+  </div>
+
+  {/* Dynamic particle field */}
+  <div className="absolute inset-0">
+    {[...Array(30)].map((_, i) => (
+      <div
+        key={i}
+        className="absolute w-1 h-1 bg-white rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animation: `twinkle ${Math.random() * 3 + 2}s infinite alternate`,
+          opacity: Math.random() * 0.7 + 0.3,
+          boxShadow: '0 0 10px rgba(255,255,255,0.8)',
+        }}
+      />
+    ))}
+  </div>
+
+  {/* Light leaks */}
+  <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-white/10 to-transparent rounded-full filter blur-3xl"></div>
+    <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-white/10 to-transparent rounded-full filter blur-3xl"></div>
+  </div>
+</div>
+
+{/* Add these animations to your style tag */}
+<style jsx>{`
+  @keyframes rotate-3d {
+    0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+    33% { transform: rotateX(30deg) rotateY(20deg) rotateZ(10deg); }
+    66% { transform: rotateX(-20deg) rotateY(-30deg) rotateZ(-10deg); }
+    100% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  }
+  
+  @keyframes float-particle {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(10px, -15px); }
+    50% { transform: translate(20px, 0); }
+    75% { transform: translate(10px, 15px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes pulse-line {
+    0% { opacity: 0.1; stroke-width: 0.5; }
+    100% { opacity: 0.4; stroke-width: 1; }
+  }
+  
+  @keyframes ping-slow {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.2; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.5); }
+  }
+  
+  .animate-rotate-3d {
+    animation: rotate-3d 20s ease-in-out infinite;
+    transform-style: preserve-3d;
+  }
+  
+  .animate-ping-slow {
+    animation: ping-slow 4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  .cube-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    transform-style: preserve-3d;
+    transform: rotateX(-30deg) rotateY(30deg);
+  }
+  
+  .cube-face {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+  }
+  
+  .front  { transform: translateZ(100px); }
+  .back   { transform: rotateY(180deg) translateZ(100px); }
+  .right  { transform: rotateY(90deg) translateZ(100px); }
+  .left   { transform: rotateY(-90deg) translateZ(100px); }
+  .top    { transform: rotateX(90deg) translateZ(100px); }
+  .bottom { transform: rotateX(-90deg) translateZ(100px); }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+  
+  .animation-delay-1500 {
+    animation-delay: 1.5s;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-2500 {
+    animation-delay: 2.5s;
+  }
+  
+  .animation-delay-3000 {
+    animation-delay: 3s;
+  }
+`}</style>
         </div>
       </div>
     </div>
