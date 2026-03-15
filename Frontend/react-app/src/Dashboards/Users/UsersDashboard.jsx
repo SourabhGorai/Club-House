@@ -1891,17 +1891,15 @@
 //           />
 //         )}
 
-//         {/* SIDEBAR */}
-//         <aside
-//           className={`
+//         {/* ===== SIDEBAR (UPDATED TO MATCH TEACHER DASHBOARD) ===== */}
+//         <aside className={`
 //           fixed lg:sticky top-0 left-0 h-screen
 //           w-80 sm:w-96 bg-white border-r border-gray-100
-//           flex flex-col p-6 sm:p-8 shadow-lg lg:shadow-sm
+//           flex flex-col p-8 shadow-lg lg:shadow-sm
 //           transition-transform duration-300 ease-in-out z-50
 //           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
 //           overflow-y-auto
-//         `}
-//         >
+//         `}>
 //           <button
 //             onClick={() => setSidebarOpen(false)}
 //             className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
@@ -1909,7 +1907,7 @@
 //             <X size={20} className="text-gray-500" />
 //           </button>
 
-//           <div className="flex items-center gap-3 mb-6 sm:mb-8 group cursor-pointer">
+//           <div className="flex items-center gap-3 mb-8 group cursor-pointer">
 //             <div
 //               className="p-2 rounded-xl shadow-lg"
 //               style={{
@@ -1917,16 +1915,16 @@
 //                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
 //               }}
 //             >
-//               <LayoutDashboard className="text-white w-6 h-6 sm:w-7 sm:h-7" />
+//               <LayoutDashboard className="text-white w-7 h-7" />
 //             </div>
-//             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">
+//             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
 //               User<span style={{ color: "#4CA1AF" }}>Portal</span>
 //             </h1>
 //           </div>
 
-//           {/* Profile Image Section */}
-//           <div className="relative group mx-auto mb-4 sm:mb-6">
-//             <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border-4 sm:border-8 border-gray-50 shadow-inner bg-gray-100">
+//           {/* Profile Image */}
+//           <div className="relative group mx-auto mb-6">
+//             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
 //               {profileImage ? (
 //                 <img
 //                   src={profileImage}
@@ -1935,25 +1933,25 @@
 //                 />
 //               ) : (
 //                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-//                   <User size={32} className="sm:w-12 sm:h-12" />
+//                   <User size={48} />
 //                 </div>
 //               )}
 //             </div>
 //             <button
 //               onClick={() => setShowProfileForm(true)}
-//               className="absolute bottom-1 right-1 bg-white p-2 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+//               className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
 //               style={{ color: "#4CA1AF" }}
 //             >
-//               <Edit size={14} className="sm:w-[18px] sm:h-[18px]" />
+//               <Edit size={18} />
 //             </button>
 //           </div>
 
-//           <div className="text-center mb-4 sm:mb-6">
-//             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 tracking-tight leading-tight px-2">
+//           <div className="text-center mb-6">
+//             <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight">
 //               {profileData.fullName || user?.username}
 //             </h2>
 //             <span
-//               className="mt-2 inline-block text-[8px] sm:text-[9px] md:text-[10px] font-black px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 rounded-full uppercase tracking-widest"
+//               className="mt-2 inline-block text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest"
 //               style={{
 //                 backgroundColor: "rgba(76, 161, 175, 0.1)",
 //                 color: "#4CA1AF",
@@ -1963,36 +1961,36 @@
 //             </span>
 //           </div>
 
-//           {/* Info Boxes */}
-//           <div className="flex-1 space-y-2 sm:space-y-3 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar pb-4">
+//           {/* Info Boxes - Updated to match teacher dashboard style */}
+//           <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
 //             <SidebarInfoBox label="Full Name" value={profileData.fullName} />
 //             <SidebarInfoBox label="Username" value={user?.username} />
 //             <SidebarInfoBox label="PRN / ID" value={profileData.prn} />
 
 //             {/* Email field with edit and verify buttons */}
-//             <div className="p-3 sm:p-4 bg-gray-50/50 rounded-xl sm:rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-//               <p className="text-[8px] sm:text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+//             <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
+//               <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
 //                 Email
 //               </p>
-//               <div className="flex items-center justify-between gap-2">
-//                 <span className="text-gray-700 font-bold text-xs sm:text-sm truncate">
+//               <div className="flex items-center justify-between">
+//                 <span className="text-gray-700 font-bold text-sm truncate pr-2">
 //                   {currentUser.email}
 //                 </span>
-//                 <div className="flex gap-1 flex-shrink-0">
+//                 <div className="flex gap-1">
 //                   <button
 //                     onClick={() => {
 //                       setNewEmail(currentUser.email);
 //                       setShowEmailEditModal(true);
 //                     }}
-//                     className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 cursor-pointer"
+//                     className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
 //                     style={{ color: "#4CA1AF" }}
 //                     title="Edit email"
 //                   >
-//                     <Edit size={12} className="sm:w-[14px] sm:h-[14px]" />
+//                     <Edit size={14} />
 //                   </button>
 //                   <button
 //                     onClick={handleVerificationRedirect}
-//                     className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 cursor-pointer ${
+//                     className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer ${
 //                       isVerified
 //                         ? "bg-green-50 text-green-600 hover:bg-green-100"
 //                         : "bg-amber-50 text-amber-600 hover:bg-amber-100"
@@ -2000,9 +1998,9 @@
 //                     title={isVerified ? "Verified" : "Click to verify"}
 //                   >
 //                     {isVerified ? (
-//                       <CheckCircle size={12} className="sm:w-[14px] sm:h-[14px]" />
+//                       <CheckCircle size={14} />
 //                     ) : (
-//                       <AlertCircle size={12} className="sm:w-[14px] sm:h-[14px]" />
+//                       <AlertCircle size={14} />
 //                     )}
 //                   </button>
 //                 </div>
@@ -2016,31 +2014,33 @@
 //             <SidebarInfoBox label="Year" value={profileData.year} />
 //             <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
 
-//             {/* Verification status */}
+//             {/* Verification status - Updated to match teacher dashboard style */}
 //             <div
-//               className={`p-3 sm:p-4 rounded-xl sm:rounded-[1.2rem] border flex items-center justify-between ${
+//               className={`p-4 rounded-[1.2rem] border ${
 //                 isVerified
 //                   ? "bg-emerald-50 border-emerald-100"
 //                   : "bg-amber-50 border-amber-100"
 //               }`}
 //             >
-//               <span
-//                 className={`text-[8px] sm:text-[9px] uppercase font-black tracking-widest ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
-//               >
-//                 Status
-//               </span>
-//               <span
-//                 className={`flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
-//               >
-//                 <div
-//                   className={`w-1.5 h-1.5 rounded-full ${isVerified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
-//                 ></div>
-//                 {isVerified ? "VERIFIED" : "PENDING"}
-//               </span>
+//               <div className="flex items-center justify-between">
+//                 <span
+//                   className={`text-[9px] uppercase font-black tracking-widest ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
+//                 >
+//                   Status
+//                 </span>
+//                 <span
+//                   className={`flex items-center gap-1.5 text-[10px] font-black ${isVerified ? "text-emerald-600" : "text-amber-600"}`}
+//                 >
+//                   <div
+//                     className={`w-1.5 h-1.5 rounded-full ${isVerified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
+//                   ></div>
+//                   {isVerified ? "VERIFIED" : "PENDING"}
+//                 </span>
+//               </div>
 //             </div>
 //           </div>
 
-//           {/* Sign Out Button */}
+//           {/* Sign Out Button - Updated to match teacher dashboard */}
 //           <button
 //             onClick={() =>
 //               setConfirmDialog({
@@ -2055,9 +2055,9 @@
 //                 },
 //               })
 //             }
-//             className="mt-4 flex items-center justify-center gap-2 sm:gap-3 text-red-500 font-bold py-3 sm:py-4 hover:bg-red-50 rounded-xl sm:rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer text-sm sm:text-base"
+//             className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
 //           >
-//             <LogOut size={16} className="sm:w-5 sm:h-5" /> Sign Out
+//             <LogOut size={20} /> Sign Out
 //           </button>
 //         </aside>
 
@@ -2185,7 +2185,7 @@
 //                     }
 //                     disabled={!isVerified}
 //                   />
-//                   <ActionCard
+//                   {/* <ActionCard
 //                     icon={<BookOpen size={20} className="sm:w-6 sm:h-6" />}
 //                     label="Resources"
 //                     color="green"
@@ -2206,7 +2206,7 @@
 //                       )
 //                     }
 //                     disabled={!isVerified}
-//                   />
+//                   /> */}
 //                   <ActionCard
 //                     icon={<Club size={20} className="sm:w-6 sm:h-6" />}
 //                     label="Clubs"
@@ -2243,198 +2243,193 @@
 //               </div>
 //             </section>
 
-           
 //             {/* My Clubs Section */}
-// {(isLoadingClubs || clubsError || myClubs.length > 0) && (
-// <section className="bg-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm border border-gray-50">
-//   {/* Fixed header - always row, button on right */}
-//   <div className="flex items-center justify-between mb-6 sm:mb-8">
-//     <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Clubs</h2>
-    
-//     {/* Refresh Button - Always on the right */}
-//     <button
-//       onClick={fetchMyClubs}
-//       disabled={isLoadingClubs || !isVerified}
-//       className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 whitespace-nowrap"
-//       style={{
-//         color: "#4CA1AF",
-//         backgroundColor: "rgba(76, 161, 175, 0.1)",
-//       }}
-//       title={!isVerified ? "Verify your email to refresh clubs" : ""}
-//     >
-//       <svg
-//         className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
-//         fill="none"
-//         viewBox="0 0 24 24"
-//         stroke="currentColor"
-//       >
-//         <path
-//           strokeLinecap="round"
-//           strokeLinejoin="round"
-//           strokeWidth={2}
-//           d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-//         />
-//       </svg>
-//       {/* Hide text on very small screens, show icon only */}
-//       <span className="hidden sm:inline">{isLoadingClubs ? "Refreshing..." : "Refresh"}</span>
-//       <span className="sm:hidden">Refresh</span>
-//     </button>
-//   </div>
+//             {(isLoadingClubs || clubsError || myClubs.length > 0) && (
+//             <section className="bg-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 lg:p-10 shadow-sm border border-gray-50">
+//               <div className="flex items-center justify-between mb-6 sm:mb-8">
+//                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Clubs</h2>
+//                 <button
+//                   onClick={fetchMyClubs}
+//                   disabled={isLoadingClubs || !isVerified}
+//                   className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 whitespace-nowrap"
+//                   style={{
+//                     color: "#4CA1AF",
+//                     backgroundColor: "rgba(76, 161, 175, 0.1)",
+//                   }}
+//                   title={!isVerified ? "Verify your email to refresh clubs" : ""}
+//                 >
+//                   <svg
+//                     className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLoadingClubs ? "animate-spin" : ""}`}
+//                     fill="none"
+//                     viewBox="0 0 24 24"
+//                     stroke="currentColor"
+//                   >
+//                     <path
+//                       strokeLinecap="round"
+//                       strokeLinejoin="round"
+//                       strokeWidth={2}
+//                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+//                     />
+//                   </svg>
+//                   <span className="hidden sm:inline">{isLoadingClubs ? "Refreshing..." : "Refresh"}</span>
+//                   <span className="sm:hidden">Refresh </span>
+//                 </button>
+//               </div>
 
-//   {/* Clubs content - rest remains the same */}
-//   {!isVerified ? (
-//     <div className="py-10 sm:py-12 md:py-16 text-center border-2 border-dashed border-amber-200 rounded-xl sm:rounded-2xl md:rounded-[2rem] bg-amber-50/30">
-//       <div className="bg-amber-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-//         <svg className="w-8 h-8 sm:w-9 sm:h-9 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-//           <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-//         </svg>
-//       </div>
-//       <h3 className="text-lg font-bold text-gray-700 mb-2">Clubs Locked</h3>
-//       <p className="text-gray-500 text-sm mb-6 px-4">
-//         Verify your email address to view and manage your club memberships.
-//       </p>
-//       <button
-//         onClick={handleVerificationRedirect}
-//         className="text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-lg transition-colors cursor-pointer bg-amber-500 hover:bg-amber-600"
-//       >
-//         Verify Email
-//       </button>
-//     </div>
-//   ) : isLoadingClubs ? (
-//     <div className="py-10 sm:py-12 md:py-16 text-center">
-//       <div
-//         className="animate-spin w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 border-4 rounded-full mx-auto mb-3 sm:mb-4"
-//         style={{
-//           borderColor: "rgba(76, 161, 175, 0.2)",
-//           borderTopColor: "#4CA1AF",
-//         }}
-//       ></div>
-//       <p className="text-sm sm:text-base text-gray-500 font-medium">
-//         Loading your clubs...
-//       </p>
-//     </div>
-//   ) : clubsError ? (
-//     <div className="bg-red-50 rounded-xl sm:rounded-2xl md:rounded-[2rem] p-6 sm:p-8 text-center border border-red-100">
-//       <div className="text-red-500 mb-3">
-//         <svg
-//           className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto"
-//           fill="none"
-//           viewBox="0 0 24 24"
-//           stroke="currentColor"
-//         >
-//           <path
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//             strokeWidth={2}
-//             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-//           />
-//         </svg>
-//       </div>
-//       <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
-//         Unable to Load Clubs
-//       </h3>
-//       <p className="text-red-500/70 text-sm sm:text-base mb-4 sm:mb-5">{clubsError}</p>
-//       <button
-//         onClick={fetchMyClubs}
-//         className="bg-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold border transition-colors cursor-pointer"
-//         style={{
-//           color: "#4CA1AF",
-//           borderColor: "rgba(76, 161, 175, 0.2)",
-//         }}
-//       >
-//         Try Again
-//       </button>
-//     </div>
-//   ) : myClubs.length === 0 ? (
-//     <div className="py-10 sm:py-12 md:py-16 text-center border-2 border-dashed border-gray-200 rounded-xl sm:rounded-2xl md:rounded-[2rem]">
-//       <div className="bg-gray-50 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
-//         <Users className="text-gray-400 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
-//       </div>
-//       <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
-//         No Clubs Joined Yet
-//       </h3>
-//       <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 px-4">
-//         You haven't joined any clubs. Explore and join clubs to see
-//         them here.
-//       </p>
-//       <button
-//         className="text-white px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 rounded-full text-xs sm:text-sm font-bold shadow-lg transition-colors cursor-pointer"
-//         style={{
-//           background: "linear-gradient(135deg, #4CA1AF, #315169)",
-//         }}
-//       >
-//         Browse Clubs
-//       </button>
-//     </div>
-//   ) : (
-//     <>
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-//         {displayClubs.map((club, index) => (
-//           <CompactClubCard
-//             key={club.clubId || club.id || index}
-//             club={club}
-//             onViewDetails={handleViewClubDetails}
-//             disabled={!isVerified}
-//           />
-//         ))}
-//       </div>
+//               {/* Clubs content */}
+//               {!isVerified ? (
+//                 <div className="py-10 sm:py-12 md:py-16 text-center border-2 border-dashed border-amber-200 rounded-xl sm:rounded-2xl md:rounded-[2rem] bg-amber-50/30">
+//                   <div className="bg-amber-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+//                     <svg className="w-8 h-8 sm:w-9 sm:h-9 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+//                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+//                     </svg>
+//                   </div>
+//                   <h3 className="text-lg font-bold text-gray-700 mb-2">Clubs Locked</h3>
+//                   <p className="text-gray-500 text-sm mb-6 px-4">
+//                     Verify your email address to view and manage your club memberships.
+//                   </p>
+//                   <button
+//                     onClick={handleVerificationRedirect}
+//                     className="text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-lg transition-colors cursor-pointer bg-amber-500 hover:bg-amber-600"
+//                   >
+//                     Verify Email
+//                   </button>
+//                 </div>
+//               ) : isLoadingClubs ? (
+//                 <div className="py-10 sm:py-12 md:py-16 text-center">
+//                   <div
+//                     className="animate-spin w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 border-4 rounded-full mx-auto mb-3 sm:mb-4"
+//                     style={{
+//                       borderColor: "rgba(76, 161, 175, 0.2)",
+//                       borderTopColor: "#4CA1AF",
+//                     }}
+//                   ></div>
+//                   <p className="text-sm sm:text-base text-gray-500 font-medium">
+//                     Loading your clubs...
+//                   </p>
+//                 </div>
+//               ) : clubsError ? (
+//                 <div className="bg-red-50 rounded-xl sm:rounded-2xl md:rounded-[2rem] p-6 sm:p-8 text-center border border-red-100">
+//                   <div className="text-red-500 mb-3">
+//                     <svg
+//                       className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         strokeLinecap="round"
+//                         strokeLinejoin="round"
+//                         strokeWidth={2}
+//                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                       />
+//                     </svg>
+//                   </div>
+//                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
+//                     Unable to Load Clubs
+//                   </h3>
+//                   <p className="text-red-500/70 text-sm sm:text-base mb-4 sm:mb-5">{clubsError}</p>
+//                   <button
+//                     onClick={fetchMyClubs}
+//                     className="bg-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold border transition-colors cursor-pointer"
+//                     style={{
+//                       color: "#4CA1AF",
+//                       borderColor: "rgba(76, 161, 175, 0.2)",
+//                     }}
+//                   >
+//                     Try Again
+//                   </button>
+//                 </div>
+//               ) : myClubs.length === 0 ? (
+//                 <div className="py-10 sm:py-12 md:py-16 text-center border-2 border-dashed border-gray-200 rounded-xl sm:rounded-2xl md:rounded-[2rem]">
+//                   <div className="bg-gray-50 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
+//                     <Users className="text-gray-400 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
+//                   </div>
+//                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">
+//                     No Clubs Joined Yet
+//                   </h3>
+//                   <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 px-4">
+//                     You haven't joined any clubs. Explore and join clubs to see
+//                     them here.
+//                   </p>
+//                   <button
+//                     className="text-white px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 rounded-full text-xs sm:text-sm font-bold shadow-lg transition-colors cursor-pointer"
+//                     style={{
+//                       background: "linear-gradient(135deg, #4CA1AF, #315169)",
+//                     }}
+//                   >
+//                     Browse Clubs
+//                   </button>
+//                 </div>
+//               ) : (
+//                 <>
+//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
+//                     {displayClubs.map((club, index) => (
+//                       <CompactClubCard
+//                         key={club.clubId || club.id || index}
+//                         club={club}
+//                         onViewDetails={handleViewClubDetails}
+//                         disabled={!isVerified}
+//                       />
+//                     ))}
+//                   </div>
 
-//       {myClubs.length > 4 && (
-//         <div className="text-center mt-6 sm:mt-8">
-//           <button
-//             onClick={() => setShowAllClubs(!showAllClubs)}
-//             className="bg-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs sm:text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
-//             style={{
-//               color: "#4CA1AF",
-//               borderColor: "rgba(76, 161, 175, 0.2)",
-//             }}
-//           >
-//             <span>
-//               {showAllClubs
-//                 ? "Show Less"
-//                 : `Show All (${myClubs.length} Clubs)`}
-//             </span>
-//             <svg
-//               className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showAllClubs ? "rotate-180" : ""}`}
-//               fill="none"
-//               viewBox="0 0 24 24"
-//               stroke="currentColor"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 strokeWidth={2}
-//                 d="M19 9l-7 7-7-7"
-//               />
-//             </svg>
-//           </button>
-//         </div>
-//       )}
-//     </>
-//   )}
-// </section>
-// )}
+//                   {myClubs.length > 4 && (
+//                     <div className="text-center mt-6 sm:mt-8">
+//                       <button
+//                         onClick={() => setShowAllClubs(!showAllClubs)}
+//                         className="bg-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs sm:text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+//                         style={{
+//                           color: "#4CA1AF",
+//                           borderColor: "rgba(76, 161, 175, 0.2)",
+//                         }}
+//                       >
+//                         <span>
+//                           {showAllClubs
+//                             ? "Show Less"
+//                             : `Show All (${myClubs.length} Clubs)`}
+//                         </span>
+//                         <svg
+//                           className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showAllClubs ? "rotate-180" : ""}`}
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                           stroke="currentColor"
+//                         >
+//                           <path
+//                             strokeLinecap="round"
+//                             strokeLinejoin="round"
+//                             strokeWidth={2}
+//                             d="M19 9l-7 7-7-7"
+//                           />
+//                         </svg>
+//                       </button>
+//                     </div>
+//                   )}
+//                 </>
+//               )}
+//             </section>
+//             )}
 //           </div>
 //         </main>
 
-//         {/* Profile Form Modal — always accessible */}
+//         {/* Profile Form Modal */}
 //         {showProfileForm && (
 //           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-//             <div className="bg-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8">
-//               <div className="flex justify-between items-center mb-4 sm:mb-6 md:mb-8">
-//                 <h3 className="text-xl sm:text-2xl font-bold text-gray-800">
+//             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
+//               <div className="flex justify-between items-center mb-8">
+//                 <h3 className="text-2xl font-bold text-gray-800">
 //                   {userProfile ? "Edit Profile" : "Complete Profile"}
 //                 </h3>
 //                 <button
 //                   onClick={() => setShowProfileForm(false)}
-//                   className="bg-gray-50 p-1.5 sm:p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+//                   className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
 //                 >
-//                   <X size={16} className="sm:w-5 sm:h-5" />
+//                   <X size={20} />
 //                 </button>
 //               </div>
 
-//               <form onSubmit={handleSubmitProfile} className="space-y-4 sm:space-y-5">
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+//               <form onSubmit={handleSubmitProfile} className="space-y-5">
+//                 <div className="grid grid-cols-2 gap-4">
 //                   <FormInput
 //                     label="PRN (Read Only)"
 //                     value={profileData.prn}
@@ -2453,9 +2448,9 @@
 //                   />
 //                 </div>
 
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+//                 <div className="grid grid-cols-2 gap-4">
 //                   <div className="space-y-1">
-//                     <label className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+//                     <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
 //                       Department
 //                     </label>
 //                     <select
@@ -2466,7 +2461,7 @@
 //                           departmentId: e.target.value,
 //                         })
 //                       }
-//                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 outline-none text-gray-700 text-sm sm:text-base font-medium cursor-pointer"
+//                       className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
 //                       required
 //                     >
 //                       <option value="">Select Dept</option>
@@ -2481,7 +2476,7 @@
 //                     </select>
 //                   </div>
 //                   <div className="space-y-1">
-//                     <label className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+//                     <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
 //                       Year
 //                     </label>
 //                     <select
@@ -2489,7 +2484,7 @@
 //                       onChange={(e) =>
 //                         setProfileData({ ...profileData, year: e.target.value })
 //                       }
-//                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 outline-none text-gray-700 text-sm sm:text-base font-medium cursor-pointer"
+//                       className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium cursor-pointer"
 //                       required
 //                     >
 //                       <option value="">Select Year</option>
@@ -2514,7 +2509,7 @@
 //                   required
 //                 />
 
-//                 <div className="bg-gray-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer">
+//                 <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer">
 //                   <input
 //                     type="file"
 //                     accept="image/*"
@@ -2526,8 +2521,8 @@
 //                     htmlFor="profile-upload"
 //                     className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#4CA1AF]"
 //                   >
-//                     <Upload size={20} className="sm:w-6 sm:h-6" />
-//                     <span className="text-xs sm:text-sm font-semibold">
+//                     <Upload size={24} />
+//                     <span className="text-sm font-semibold">
 //                       {selectedImage
 //                         ? selectedImage.name
 //                         : "Upload Profile Photo"}
@@ -2538,7 +2533,7 @@
 //                 <button
 //                   type="submit"
 //                   disabled={loading}
-//                   className="w-full text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+//                   className="w-full text-white py-4 rounded-2xl font-bold shadow-lg transition-all disabled:opacity-50 cursor-pointer"
 //                   style={{
 //                     background: "linear-gradient(135deg, #4CA1AF, #315169)",
 //                   }}
@@ -2556,21 +2551,21 @@
 
 //         {/* Email Edit Modal */}
 //         {showEmailEditModal && (
-//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 z-50">
-//             <div className="bg-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
+//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
+//             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
 //               <div
-//                 className="p-4 sm:p-5 md:p-6 text-white"
+//                 className="p-6 text-white"
 //                 style={{
 //                   background: "linear-gradient(135deg, #4CA1AF, #315169)",
 //                 }}
 //               >
 //                 <div className="flex justify-between items-center">
 //                   <div>
-//                     <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-//                       <Mail size={16} className="sm:w-5 sm:h-5" />
-//                       Update Email
+//                     <h3 className="text-xl font-bold flex items-center gap-2">
+//                       <Mail size={20} />
+//                       Update Email Address
 //                     </h3>
-//                     <p className="text-white/80 text-xs sm:text-sm mt-1">
+//                     <p className="text-white/80 text-sm mt-1">
 //                       Enter your new email address
 //                     </p>
 //                   </div>
@@ -2580,35 +2575,35 @@
 //                       setEmailMessage({ text: "", type: "" });
 //                       setNewEmail("");
 //                     }}
-//                     className="bg-white/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
+//                     className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
 //                   >
-//                     <X size={14} className="sm:w-4 sm:h-4" />
+//                     <X size={18} />
 //                   </button>
 //                 </div>
 //               </div>
 
-//               <div className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5">
+//               <div className="p-6 space-y-5">
 //                 <div>
-//                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
 //                     Current Email
 //                   </label>
 //                   <input
 //                     type="email"
 //                     value={currentUser.email}
-//                     className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 border-2 border-gray-200 rounded-lg sm:rounded-xl text-gray-600 text-sm sm:text-base cursor-not-allowed"
+//                     className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
 //                     disabled
 //                   />
 //                 </div>
 
 //                 <div>
-//                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
 //                     New Email <span className="text-red-500">*</span>
 //                   </label>
 //                   <input
 //                     type="email"
 //                     value={newEmail}
 //                     onChange={(e) => setNewEmail(e.target.value)}
-//                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none transition-all text-sm sm:text-base"
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
 //                     onFocus={(e) =>
 //                       (e.target.style.boxShadow =
 //                         "0 0 0 2px rgba(76, 161, 175, 0.2)")
@@ -2621,16 +2616,16 @@
 
 //                 {emailMessage.text && (
 //                   <div
-//                     className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+//                     className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
 //                   >
-//                     <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+//                     <p className="text-sm font-semibold flex items-center gap-2">
 //                       {emailMessage.type === "success" ? "✓" : "⚠"}{" "}
 //                       {emailMessage.text}
 //                     </p>
 //                   </div>
 //                 )}
 
-//                 <div className="pt-2 sm:pt-4">
+//                 <div className="pt-4">
 //                   <button
 //                     type="button"
 //                     onClick={handleEmailUpdate}
@@ -2639,14 +2634,14 @@
 //                       !newEmail ||
 //                       newEmail === currentUser.email
 //                     }
-//                     className="w-full text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed text-sm sm:text-base"
+//                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 //                     style={{
 //                       background: "linear-gradient(135deg, #4CA1AF, #315169)",
 //                     }}
 //                   >
 //                     {emailLoading ? (
 //                       <div className="flex items-center justify-center gap-2">
-//                         <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
 //                         Updating...
 //                       </div>
 //                     ) : (
@@ -2677,11 +2672,11 @@
 
 // function SidebarInfoBox({ label, value }) {
 //   return (
-//     <div className="p-2 sm:p-3 md:p-4 bg-gray-50/50 rounded-lg sm:rounded-xl md:rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-//       <p className="text-[8px] sm:text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+//     <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
+//       <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
 //         {label}
 //       </p>
-//       <p className="text-gray-700 font-bold text-xs sm:text-sm truncate">
+//       <p className="text-gray-700 font-bold text-sm truncate">
 //         {value || "Not set"}
 //       </p>
 //     </div>
@@ -2698,14 +2693,14 @@
 //   };
 //   return (
 //     <div
-//       className={`bg-white p-4 sm:p-5 md:p-6 lg:p-7 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6 transition-all ${
+//       className={`bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 transition-all ${
 //         disabled
 //           ? "opacity-40 cursor-not-allowed"
 //           : "cursor-pointer hover:shadow-md"
 //       }`}
 //     >
 //       <div
-//         className="p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl md:rounded-[1.5rem]"
+//         className="p-5 rounded-[1.5rem]"
 //         style={{
 //           backgroundColor: bgColors[color].bg,
 //           color: bgColors[color].text,
@@ -2714,11 +2709,11 @@
 //         {icon}
 //       </div>
 //       <div>
-//         <p className="text-gray-400 text-[10px] sm:text-xs font-black uppercase tracking-widest mb-1">
+//         <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">
 //           {label}
 //         </p>
 //         <h3
-//           className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight ${
+//           className={`text-2xl font-black tracking-tight ${
 //             isStatus
 //               ? value === "Verified"
 //                 ? "text-green-500"
@@ -2753,27 +2748,27 @@
 
 //   return (
 //     <div
-//       className={`bg-gray-50/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 transition-all border border-transparent ${
+//       className={`bg-gray-50/50 rounded-2xl p-5 transition-all border border-transparent ${
 //         disabled
 //           ? "opacity-50 cursor-not-allowed"
 //           : "hover:bg-gray-50 cursor-pointer hover:border-gray-200"
 //       }`}
 //       onClick={() => !disabled && onViewDetails(club)}
 //     >
-//       <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+//       <div className="flex items-center gap-4">
 //         <div
-//           className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0"
+//           className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
 //           style={{ backgroundColor: bgColors[color].bg }}
 //         >
 //           {clubLogo ? (
 //             <img
 //               src={clubLogo}
 //               alt={clubName}
-//               className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 object-contain"
+//               className="w-7 h-7 object-contain"
 //             />
 //           ) : (
 //             <Users
-//               className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+//               className="w-6 h-6"
 //               style={{ color: bgColors[color].text }}
 //             />
 //           )}
@@ -2782,24 +2777,24 @@
 //         <div className="flex-1 min-w-0">
 //           <div className="flex items-center justify-between mb-1">
 //             <h3
-//               className="font-extrabold text-gray-800 text-sm sm:text-base md:text-lg truncate pr-2"
+//               className="font-extrabold text-gray-800 text-lg truncate pr-2"
 //               title={clubName}
 //             >
 //               {clubName}
 //             </h3>
 //           </div>
-//           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-1 sm:mb-2">
+//           <p className="text-sm text-gray-500 line-clamp-2 mb-2">
 //             {clubDescription}
 //           </p>
 //           <div className="flex items-center gap-1.5">
-//             <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-//             <span className="text-[10px] sm:text-xs font-bold text-gray-600">
+//             <Users className="w-4 h-4 text-gray-400" />
+//             <span className="text-xs font-bold text-gray-600">
 //               {memberCount} members
 //             </span>
 //           </div>
 //         </div>
 
-//         <ChevronRight size={16} className="sm:w-5 sm:h-5 text-gray-300 flex-shrink-0" />
+//         <ChevronRight size={20} className="text-gray-300" />
 //       </div>
 //     </div>
 //   );
@@ -2816,7 +2811,7 @@
 //     <button
 //       onClick={onClick}
 //       disabled={disabled}
-//       className={`p-4 sm:p-5 md:p-6 lg:p-8 rounded-xl sm:rounded-2xl border border-gray-50/50 transition-all flex flex-col items-center justify-center gap-2 sm:gap-3 md:gap-4 group shadow-sm w-full ${
+//       className={`p-8 rounded-2xl border border-gray-50/50 transition-all flex flex-col items-center justify-center gap-4 group shadow-sm w-full ${
 //         disabled
 //           ? "opacity-40 cursor-not-allowed"
 //           : "hover:scale-[1.02] cursor-pointer"
@@ -2824,12 +2819,12 @@
 //       style={{ backgroundColor: themes[color].bg }}
 //     >
 //       <div
-//         className="p-2 sm:p-3 md:p-4 bg-white rounded-lg sm:rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+//         className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
 //         style={{ color: themes[color].icon }}
 //       >
 //         {icon}
 //       </div>
-//       <span className="font-black text-gray-700 uppercase text-[10px] sm:text-xs tracking-widest text-center">
+//       <span className="font-black text-gray-700 uppercase text-xs tracking-widest">
 //         {label}
 //       </span>
 //     </button>
@@ -2839,11 +2834,11 @@
 // function FormInput({ label, ...props }) {
 //   return (
 //     <div className="space-y-1">
-//       <label className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
+//       <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">
 //         {label}
 //       </label>
 //       <input
-//         className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 outline-none text-gray-700 text-sm sm:text-base font-medium transition-all cursor-text"
+//         className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium transition-all cursor-text"
 //         {...props}
 //       />
 //     </div>
@@ -3000,6 +2995,13 @@ export default function UsersDashboard() {
     }
   }, [departments, profileData.departmentId]);
 
+  // Refresh image when profile form is closed
+  useEffect(() => {
+    if (!showProfileForm && token && user?.prn) {
+      fetchProfileImage();
+    }
+  }, [showProfileForm, token, user?.prn]);
+
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/department`, {
@@ -3092,7 +3094,6 @@ export default function UsersDashboard() {
           year: response.data.data.year || "",
           phoneNumber: response.data.data.phoneNumber || "",
         });
-        fetchProfileImage();
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -3102,6 +3103,8 @@ export default function UsersDashboard() {
   };
 
   const fetchProfileImage = async () => {
+    if (!token || !user?.prn) return;
+
     try {
       const response = await axios.get(
         `${BASE_URL}/api/profiles/${user?.prn}/image`,
@@ -3110,8 +3113,14 @@ export default function UsersDashboard() {
           responseType: "blob",
         },
       );
-      if (response.data) setProfileImage(URL.createObjectURL(response.data));
+      if (response.status === 200 && response.data) {
+        if (profileImage) {
+          URL.revokeObjectURL(profileImage);
+        }
+        setProfileImage(URL.createObjectURL(response.data));
+      }
     } catch (error) {
+      console.log("No profile image found");
       setProfileImage(null);
     }
   };
@@ -3314,7 +3323,22 @@ export default function UsersDashboard() {
               User<span style={{ color: "#4CA1AF" }}>Portal</span>
             </h2>
           </div>
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-100"></div>
+          <div 
+            className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-100 cursor-pointer"
+            onClick={() => setShowProfileForm(true)}
+          >
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                <User size={20} className="text-gray-400" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Overlay for mobile sidebar */}
@@ -3325,7 +3349,7 @@ export default function UsersDashboard() {
           />
         )}
 
-        {/* ===== SIDEBAR (UPDATED TO MATCH TEACHER DASHBOARD) ===== */}
+        {/* ===== SIDEBAR ===== */}
         <aside className={`
           fixed lg:sticky top-0 left-0 h-screen
           w-80 sm:w-96 bg-white border-r border-gray-100
@@ -3395,7 +3419,7 @@ export default function UsersDashboard() {
             </span>
           </div>
 
-          {/* Info Boxes - Updated to match teacher dashboard style */}
+          {/* Info Boxes */}
           <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
             <SidebarInfoBox label="Full Name" value={profileData.fullName} />
             <SidebarInfoBox label="Username" value={user?.username} />
@@ -3448,7 +3472,7 @@ export default function UsersDashboard() {
             <SidebarInfoBox label="Year" value={profileData.year} />
             <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
 
-            {/* Verification status - Updated to match teacher dashboard style */}
+            {/* Verification status */}
             <div
               className={`p-4 rounded-[1.2rem] border ${
                 isVerified
@@ -3474,7 +3498,7 @@ export default function UsersDashboard() {
             </div>
           </div>
 
-          {/* Sign Out Button - Updated to match teacher dashboard */}
+          {/* Sign Out Button */}
           <button
             onClick={() =>
               setConfirmDialog({
@@ -3619,28 +3643,7 @@ export default function UsersDashboard() {
                     }
                     disabled={!isVerified}
                   />
-                  {/* <ActionCard
-                    icon={<BookOpen size={20} className="sm:w-6 sm:h-6" />}
-                    label="Resources"
-                    color="green"
-                    onClick={() =>
-                      handleRestrictedAction(
-                        () => (window.location.href = "/resources"),
-                      )
-                    }
-                    disabled={!isVerified}
-                  />
-                  <ActionCard
-                    icon={<Settings size={20} className="sm:w-6 sm:h-6" />}
-                    label="Settings"
-                    color="purple"
-                    onClick={() =>
-                      handleRestrictedAction(
-                        () => (window.location.href = "/settings"),
-                      )
-                    }
-                    disabled={!isVerified}
-                  /> */}
+
                   <ActionCard
                     icon={<Club size={20} className="sm:w-6 sm:h-6" />}
                     label="Clubs"
@@ -3650,6 +3653,17 @@ export default function UsersDashboard() {
                     }
                     disabled={!isVerified}
                   />
+                              <ActionCard
+                   icon={<Settings size={24} />}
+                   label="Settings"
+                   color="purple"
+                   onClick={() =>
+                     handleRestrictedAction(
+                     () => (window.location.href = "#"),
+                     )
+                 }
+                 disabled={!isVerified}
+                />
                   <button
                     onClick={() =>
                       handleRestrictedAction(() => navigate("/notifications"))
@@ -3947,7 +3961,21 @@ export default function UsersDashboard() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setSelectedImage(file);
+                        // Create preview
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (profileImage) {
+                            URL.revokeObjectURL(profileImage);
+                          }
+                          setProfileImage(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
                     className="hidden"
                     id="profile-upload"
                   />
