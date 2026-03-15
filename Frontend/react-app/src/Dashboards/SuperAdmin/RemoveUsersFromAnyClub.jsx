@@ -333,7 +333,7 @@ const RemoveUsersFromAnyClub = () => {
       <div className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <button
+            {/* <button
               onClick={() => navigate("/dashboard")}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#4CA1AF] transition-colors group"
             >
@@ -347,7 +347,27 @@ const RemoveUsersFromAnyClub = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               <span>Back to Dashboard</span>
-            </button>
+            </button> */}
+                  <button
+        onClick={() => navigate("/dashboard")}
+        className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+        style={{ background: "var(--primary-gradient)", color: "white" }}
+      >
+        <svg
+          className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+        <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
+      </button>
           </div>
         </div>
       </div>
@@ -355,13 +375,13 @@ const RemoveUsersFromAnyClub = () => {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <div
+          {/* <div
             className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
             style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#37828d" }}
           >
             <ShieldCheck size={14} />
             <span>Membership Management</span>
-          </div>
+          </div> */}
           <h1 className="text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-[#4CA1AF] to-[#162F38] bg-clip-text text-transparent">
             Remove User from Club
           </h1>
