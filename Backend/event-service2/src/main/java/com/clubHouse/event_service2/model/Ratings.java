@@ -1,9 +1,6 @@
 package com.clubHouse.event_service2.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,8 +19,9 @@ public class Ratings implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ratingId;
 
-    @NotNull(message = "Event Id required")
-    private Long eventId;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Events events;
 
     private Long ratingSum;
 
