@@ -17,7 +17,7 @@ public class RatingResponse implements Serializable {
 
     private Long ratingId;
     private Long eventId;
-    private Long ratingSum;
-    private Long count;
+    private String eventTitle;
+    private Double overallRatings;
 
 }

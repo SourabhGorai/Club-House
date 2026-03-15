@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,9 +88,9 @@ public class EventService {
 
         Events saved = eventRepository.save(events);
 
-        ratingsRepository.save(
+        Ratings ratings = ratingsRepository.save(
                 Ratings.builder()
-                        .eventId(saved.getEventId())
+                        .event(events)
                         .build()
         );
 
@@ -110,7 +111,7 @@ public class EventService {
 
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
 
-        return EventMapper.toResponse(saved, prn, profile.getFullName(), req.getTargetIds());
+        return EventMapper.toResponse(saved, prn, profile.getFullName(), req.getTargetIds(), ratings);
     }
 
     // ── Read (Original — untouched) ──────────────────────────────────────────────
@@ -126,7 +127,6 @@ public class EventService {
     public List<EventResponse> getMyEvents(String prn) {
         log.info("Attempting to fetch all the events created by PRN: {} - Cache miss, loading from DB", prn);
         List<Events> events = eventRepository.findByEventCreator(prn);
-        ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
         return toList(events);
     }
 
@@ -142,7 +142,8 @@ public class EventService {
                 .stream()
                 .map(TargetData::getTargetId)
                 .toList();
-        EventResponse response = EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName(), targetIds);
+        Ratings ratings = ratingsRepository.findByEvent(event);
+        EventResponse response = EventMapper.toResponse(event, event.getEventCreator(), resp.getFullName(), targetIds, ratings);
         log.info("{}", response);
         return response;
     }
@@ -377,7 +378,8 @@ public class EventService {
                 .stream()
                 .map(TargetData::getTargetId)
                 .toList();
-        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds);
+        Ratings ratings = ratingsRepository.findByEvent(event);
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds, ratings);
     }
 
     @Transactional
@@ -411,20 +413,21 @@ public class EventService {
                 throw new ServiceException("Enrollment deadline must be before event date");
             }
         }
-        if (request.getTitle() != null)                   event.setTitle(request.getTitle());
-        if (request.getDescription() != null)             event.setDescription(request.getDescription());
-        if (request.getSpeakerName() != null)             event.setSpeakerName(request.getSpeakerName());
-        if (request.getVenue() != null)                   event.setVenue(request.getVenue());
-        if (request.getOrganizer() != null)               event.setOrganizer(request.getOrganizer());
-        if (request.getEventDate() != null)               event.setEventDate(request.getEventDate());
-        if (request.getEnrollmentDeadline() != null)      event.setEnrollmentDeadline(request.getEnrollmentDeadline());
-        if (request.getMaxEnrollments() != null)          event.setMaxEnrollments(request.getMaxEnrollments());
-        if (request.getLatitude() != null)                event.setLatitude(request.getLatitude());
-        if (request.getLongitude() != null)               event.setLongitude(request.getLongitude());
-        if (request.getRadiusInMeters() != null)          event.setRadiusInMeters(request.getRadiusInMeters());
-        if (request.getAttendanceWindowStart() != null)   event.setAttendanceWindowStart(request.getAttendanceWindowStart());
-        if (request.getAttendanceWindowEnd() != null)     event.setAttendanceWindowEnd(request.getAttendanceWindowEnd());
-        if (request.getQrRefreshInterval() != null)       event.setQrRefreshIntervalSeconds(request.getQrRefreshInterval());
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getSpeakerName() != null) event.setSpeakerName(request.getSpeakerName());
+        if (request.getVenue() != null) event.setVenue(request.getVenue());
+        if (request.getOrganizer() != null) event.setOrganizer(request.getOrganizer());
+        if (request.getEventDate() != null) event.setEventDate(request.getEventDate());
+        if (request.getEnrollmentDeadline() != null) event.setEnrollmentDeadline(request.getEnrollmentDeadline());
+        if (request.getMaxEnrollments() != null) event.setMaxEnrollments(request.getMaxEnrollments());
+        if (request.getLatitude() != null) event.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null) event.setLongitude(request.getLongitude());
+        if (request.getRadiusInMeters() != null) event.setRadiusInMeters(request.getRadiusInMeters());
+        if (request.getAttendanceWindowStart() != null)
+            event.setAttendanceWindowStart(request.getAttendanceWindowStart());
+        if (request.getAttendanceWindowEnd() != null) event.setAttendanceWindowEnd(request.getAttendanceWindowEnd());
+        if (request.getQrRefreshInterval() != null) event.setQrRefreshIntervalSeconds(request.getQrRefreshInterval());
         Events saved = eventRepository.save(event);
         ProfileResponse profile = profileManagementServiceClient.getProfileByPrn(prn);
         List<Long> targetIds = targetDataRepository
@@ -433,7 +436,8 @@ public class EventService {
                 .map(TargetData::getTargetId)
                 .toList();
         log.info("Event {} updated successfully by {}", eventId, prn);
-        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds);
+        Ratings ratings = ratingsRepository.findByEvent(event);
+        return EventMapper.toResponse(saved, saved.getEventCreator(), profile.getFullName(), targetIds, ratings);
     }
 
     // ── Delete ──────────────────────────────────────────────────────────────────
@@ -458,7 +462,7 @@ public class EventService {
         log.info("Attempting to delete event with ID: {}", eventId);
         eventEnrollmentRepository.deleteByEvent_EventId(eventId);
         targetDataRepository.deleteByEvents_EventId(eventId);
-        ratingsRepository.deleteByEventId(eventId);
+        ratingsRepository.deleteByEvent_EventId(eventId);
         eventRepository.deleteById(eventId);
     }
 
@@ -507,13 +511,16 @@ public class EventService {
                     ProfileResponse profile = profileMap.get(event.getEventCreator());
                     String creatorName = profile != null ? profile.getFullName() : event.getEventCreator();
                     List<Long> targetIds = targetIdsMap.getOrDefault(event.getEventId(), List.of());
-                    return EventMapper.toResponse(event, event.getEventCreator(), creatorName, targetIds);
+                    Ratings ratings = ratingsRepository.findByEvent(event);
+                    return EventMapper.toResponse(event, event.getEventCreator(), creatorName, targetIds, ratings);
                 })
                 .collect(Collectors.toList());
         return new PageImpl<>(responses, pageable, eventsPage.getTotalElements());
     }
 
-    /** Returns an empty PageResponse without hitting the DB. */
+    /**
+     * Returns an empty PageResponse without hitting the DB.
+     */
     private PageResponse<EventResponse> emptyPageResponse(Pageable pageable) {
         return PageResponse.<EventResponse>builder()
                 .content(List.of())
@@ -535,25 +542,50 @@ public class EventService {
                 .map(Events::getEventCreator)
                 .distinct()
                 .collect(Collectors.toList());
+
         log.info("Fetching profiles for {} unique creators", creatorPrns.size());
+
         Map<String, ProfileResponse> profileMap = fetchProfilesMap(creatorPrns);
+
         List<Long> eventIds = events.stream()
                 .map(Events::getEventId)
                 .collect(Collectors.toList());
+
         List<TargetData> allTargetData = targetDataRepository.findByEvents_EventIdIn(eventIds);
+
         Map<Long, List<Long>> targetIdsMap = allTargetData.stream()
                 .collect(Collectors.groupingBy(
                         td -> td.getEvents().getEventId(),
                         Collectors.mapping(TargetData::getTargetId, Collectors.toList())
                 ));
+
+        List<Ratings> ratings = ratingsRepository.findByEvent_EventIdIn(eventIds);
+
+        Map<Long, Ratings> ratingByEventId = ratings.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getEvent().getEventId(),
+                        Function.identity()
+                ));
+
         return events.stream()
                 .map(event -> {
                     ProfileResponse profile = profileMap.get(event.getEventCreator());
+
                     String eventCreatorName = profile != null
                             ? profile.getFullName()
                             : event.getEventCreator();
+
                     List<Long> targetIds = targetIdsMap.getOrDefault(event.getEventId(), List.of());
-                    return EventMapper.toResponse(event, event.getEventCreator(), eventCreatorName, targetIds);
+
+                    Ratings rating = ratingByEventId.get(event.getEventId());
+
+                    return EventMapper.toResponse(
+                            event,
+                            event.getEventCreator(),
+                            eventCreatorName,
+                            targetIds,
+                            rating
+                    );
                 })
                 .collect(Collectors.toList());
     }

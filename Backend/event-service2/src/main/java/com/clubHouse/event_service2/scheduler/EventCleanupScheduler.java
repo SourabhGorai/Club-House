@@ -76,7 +76,7 @@ public class EventCleanupScheduler {
                 if (!eventIds.isEmpty()) {
                     int enrollmentsDeleted  = eventEnrollmentRepository.deleteByEvent_EventIdIn(eventIds);
                     int targetDataDeleted   = targetDataRepository.deleteByEvents_EventIdIn(eventIds);
-                    int ratingsDeleted      = ratingsRepository.deleteByEventIdIn(eventIds);
+                    int ratingsDeleted      = ratingsRepository.deleteByEvent_EventIdIn(eventIds);
                     int eventsDeleted       = eventRepository.deleteByEventIdIn(eventIds);
 
                     totalEventsDeleted      += eventsDeleted;
@@ -143,7 +143,7 @@ public class EventCleanupScheduler {
 
             int enrollmentsDeleted = eventEnrollmentRepository.deleteByEvent_EventIdIn(oldEventIds);
             int targetDataDeleted  = targetDataRepository.deleteByEvents_EventIdIn(oldEventIds);
-            int ratingsDeleted     = ratingsRepository.deleteByEventIdIn(oldEventIds);
+            int ratingsDeleted     = ratingsRepository.deleteByEvent_EventIdIn(oldEventIds);
             int eventsDeleted      = eventRepository.deleteByEventIdIn(oldEventIds);
 
             log.info("Deleted old events. Events: {}, Enrollments: {}, Target Data: {}, Ratings: {}",

@@ -2,6 +2,7 @@ package com.clubHouse.event_service2.mapper;
 
 import com.clubHouse.event_service2.dto.response.EventResponse;
 import com.clubHouse.event_service2.model.Events;
+import com.clubHouse.event_service2.model.Ratings;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -34,14 +35,15 @@ public class EventMapper {
             List<Events> events,
             String prn,
             String name,
-            List<Long> targetIds
+            List<Long> targetIds,
+            Ratings ratings
     ) {
         if (events == null || events.isEmpty()) {
             return List.of();
         }
 
         return events.stream()
-                .map(event -> toResponse(event, prn, name, targetIds))
+                .map(event -> toResponse(event, prn, name, targetIds, ratings))
                 .collect(Collectors.toList());
     }
 
@@ -49,7 +51,8 @@ public class EventMapper {
             Events event,
             String prn,
             String creatorName,
-            List<Long> targetIds
+            List<Long> targetIds,
+            Ratings rating
     ) {
         if (event == null) return null;
 
@@ -78,6 +81,9 @@ public class EventMapper {
                 .attendanceWindowEnd(event.getAttendanceWindowEnd())
                 .qrRefreshInterval(event.getQrRefreshIntervalSeconds())
                 .attendanceActive(event.isAttendanceActive())
+                .ratings(rating.getCount() == 0
+                        ? 0.0
+                        : (double) rating.getRatingSum() / rating.getCount())
                 .build();
     }
 
@@ -86,23 +92,25 @@ public class EventMapper {
     public static List<EventResponse> toResponseList(
             List<Events> events,
             String prn,
-            String name
+            String name,
+            Ratings ratings
     ) {
         if (events == null || events.isEmpty()) {
             return List.of();
         }
 
         return events.stream()
-                .map(event -> toResponse(event, prn, name, null))
+                .map(event -> toResponse(event, prn, name, null, ratings))
                 .collect(Collectors.toList());
     }
 
     public static EventResponse toResponse(
             Events event,
             String prn,
-            String creatorName
+            String creatorName,
+            Ratings ratings
     ) {
-        return toResponse(event, prn, creatorName, null);
+        return toResponse(event, prn, creatorName, null, ratings);
     }
 
     // ── Private helpers ─────────────────────────────────────────────────────────

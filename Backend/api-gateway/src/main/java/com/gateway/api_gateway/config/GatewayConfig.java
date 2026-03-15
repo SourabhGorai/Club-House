@@ -447,6 +447,20 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
+                // ----------------------- RATINGS -----------------------
+
+                .route("ratings", r -> r
+                        .path(
+                                "/api/ratings/**"
+                        )
+                        .and()
+                        .method("GET", "POST", "PATCH")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                        .uri("lb://EVENT-SERVICE2"))
+
                 // ==================== NOTIFICATION-SERVICE ====================
 
                 .route("notification-teachers", r -> r

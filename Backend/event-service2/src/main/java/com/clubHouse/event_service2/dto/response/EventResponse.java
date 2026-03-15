@@ -63,4 +63,6 @@ public class EventResponse implements Serializable {
 
     private boolean attendanceActive;
 
+    private Double ratings;
+
 }
