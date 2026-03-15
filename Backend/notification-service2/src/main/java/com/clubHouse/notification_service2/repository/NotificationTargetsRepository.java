@@ -56,7 +56,7 @@ public interface NotificationTargetsRepository extends JpaRepository<Notificatio
             SELECT DISTINCT n FROM notification_table n
             LEFT JOIN NotificationTargets nt ON nt.notification.notificationId = n.notificationId
             WHERE
-                n.notificationType = 'GLOBAL'
+                n.targetType = 'GLOBAL'
                 OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
                 OR (nt.targetType = 'CLUB'       AND nt.targetId IN :clubIds)
                 OR (nt.targetType = 'YEAR'        AND nt.targetId = :year)
@@ -66,4 +66,6 @@ public interface NotificationTargetsRepository extends JpaRepository<Notificatio
             @Param("clubIds") List<Long> clubIds,
             @Param("year") Integer year
     );
+
+    List<NotificationTargets> findByNotification(Notification notification);
 }

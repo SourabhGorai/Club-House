@@ -7,6 +7,7 @@ import com.clubHouse.notification_service2.client.ProfileManagementServiceClient
 import com.clubHouse.notification_service2.dto.request.NotificationRequest;
 import com.clubHouse.notification_service2.dto.request.NotificationUpdateRequest;
 import com.clubHouse.notification_service2.dto.response.*;
+import com.clubHouse.notification_service2.exception.NotFoundException;
 import com.clubHouse.notification_service2.exception.ServiceException;
 import com.clubHouse.notification_service2.mapper.NotificationMapper;
 import com.clubHouse.notification_service2.model.*;
@@ -147,6 +148,7 @@ public class NotificationService {
                 .message(req.getMessage())
                 .sourceType(req.getSourceType())
                 .sourceId(req.getSourceId())
+                .targetType(req.getTargetType())
                 .createdByPrn(prn)
                 .isActive(true)
                 .validUntil(req.getValidUntil())
@@ -183,8 +185,8 @@ public class NotificationService {
     public List<NotificationResponse> getAll(boolean active) {
         log.info("Fetching all {} notifications", active ? "active" : "inactive");
         List<Notification> notifications = active
-                ? notificationRepository.findByIsActiveTrue()
-                : notificationRepository.findByIsActiveFalse();
+                ? notificationRepository.findByIsActiveTrueOrderByCreatedAtDesc()
+                : notificationRepository.findByIsActiveFalseOrderByCreatedAtDesc();
         if (notifications.isEmpty()) return List.of();
         return notificationMapper.toResponseList(
                 notifications, resolveTargets(notifications), resolveSourceDetails(notifications));
@@ -194,8 +196,8 @@ public class NotificationService {
     public Page<NotificationResponse> getAllPaged(boolean active, Pageable pageable) {
         log.info("Fetching paginated {} notifications", active ? "active" : "inactive");
         Page<Notification> page = active
-                ? notificationRepository.findByIsActiveTrue(pageable)
-                : notificationRepository.findByIsActiveFalse(pageable);
+                ? notificationRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable)
+                : notificationRepository.findByIsActiveFalseOrderByCreatedAtDesc(pageable);
         if (page.isEmpty()) return Page.empty(pageable);
 
         List<Notification> content = page.getContent();
@@ -208,7 +210,7 @@ public class NotificationService {
     public ReadUnreadNotificationResponse getAllReadUnread(String prn) {
         log.info("Fetching read & unread notifications for admin prn={}", prn);
 
-        List<Notification> allNotifications = notificationRepository.findAll();
+        List<Notification> allNotifications = notificationRepository.findAllByOrderByCreatedAtDesc();
         if (allNotifications.isEmpty()) {
             return ReadUnreadNotificationResponse.builder()
                     .read(List.of())
@@ -234,8 +236,8 @@ public class NotificationService {
 
         // Resolve targets + source details for both lists combined (single DB round-trip each)
         List<Notification> combined = new ArrayList<>(allNotifications);
-        Map<Long, List<NotificationTargets>> targetsMap   = resolveTargets(combined);
-        Map<Long, String>                    sourceMap    = resolveSourceDetails(combined);
+        Map<Long, List<NotificationTargets>> targetsMap = resolveTargets(combined);
+        Map<Long, String> sourceMap = resolveSourceDetails(combined);
 
         List<NotificationResponse> readResponses = notificationMapper.toResponseList(
                 readNotifications, targetsMap, sourceMap);
@@ -258,7 +260,7 @@ public class NotificationService {
         // Re-use the unpaged method to get the full split, then slice both lists
         ReadUnreadNotificationResponse all = getAllReadUnread(prn);
 
-        Page<NotificationResponse> readPage   = toPage(all.getRead(),   pageable);
+        Page<NotificationResponse> readPage = toPage(all.getRead(), pageable);
         Page<NotificationResponse> unreadPage = toPage(all.getUnread(), pageable);
 
         return ReadUnreadNotificationPagedResponse.builder()
@@ -593,5 +595,58 @@ public class NotificationService {
         notificationRepository.deleteById(notificationId);
     }
 
+    @Transactional
+    public NotificationResponse triggerNotification(Long notificationId, String prn, String role) {
 
+        log.info("Attempting to create trigger");
+
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotFoundException("Notification", notificationId.toString()));
+
+        if (!role.equals("SUPER_ADMIN") && !prn.equals(notification.getCreatedByPrn())) {
+            throw new ServiceException("You are not authorized to change the notification");
+        }
+
+        List<NotificationTargets> targets = nTRepository.findByNotification(notification);
+
+        Notification newReminder = Notification.builder()
+                .notificationType(NotificationType.REMINDER)
+                .title(notification.getTitle())
+                .message(notification.getMessage())
+                .sourceType(notification.getSourceType())
+                .sourceId(notification.getSourceId())
+                .createdByPrn(prn)
+                .targetType(notification.getTargetType())
+                .isActive(true)
+                .triggerAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
+                .validUntil(notification.getValidUntil())
+                .build();
+
+        Notification saved = notificationRepository.save(newReminder);
+
+        // copy targets
+        List<NotificationTargets> newTargets = targets.stream()
+                .map(t -> NotificationTargets.builder()
+                        .notification(saved)
+                        .targetType(t.getTargetType())
+                        .targetId(t.getTargetId())
+                        .build())
+                .toList();
+
+        nTRepository.saveAll(newTargets);
+
+        List<Long> targetIds = newTargets.stream()
+                .map(NotificationTargets::getTargetId)
+                .toList();
+
+        Map<Long, String> sourceDetailMap = resolveSourceDetails(List.of(saved));
+
+        return notificationMapper.toResponse(
+                saved,
+                NotificationType.REMINDER.name(),
+                targetIds,
+                sourceDetailMap.get(saved.getNotificationId())
+        );
+    }
 }

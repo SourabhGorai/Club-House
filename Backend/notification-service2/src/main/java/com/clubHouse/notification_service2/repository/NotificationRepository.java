@@ -19,11 +19,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // ── Active / Inactive ─────────────────────────────────────────────────────
 
-    List<Notification> findByIsActiveTrue();
-    List<Notification> findByIsActiveFalse();
+    List<Notification> findByIsActiveTrueOrderByCreatedAtDesc();
+    List<Notification> findByIsActiveFalseOrderByCreatedAtDesc();
 
-    Page<Notification> findByIsActiveTrue(Pageable pageable);
-    Page<Notification> findByIsActiveFalse(Pageable pageable);
+    Page<Notification> findByIsActiveTrueOrderByCreatedAtDesc(Pageable pageable);
+    Page<Notification> findByIsActiveFalseOrderByCreatedAtDesc(Pageable pageable);
 
     // ── By Source Type ────────────────────────────────────────────────────────
 
@@ -80,4 +80,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     Page<Notification> findByCreatedByPrnOrderByCreatedAtDesc(String prn, Pageable pageable);
 
+    List<Notification> findAllByOrderByCreatedAtDesc();
 }

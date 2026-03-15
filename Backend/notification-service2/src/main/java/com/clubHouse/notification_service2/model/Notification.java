@@ -45,6 +45,10 @@ public class Notification implements Serializable {
 
     private Long sourceId;
 
+    @NotNull(message = "Target Type is required")
+    @Enumerated(EnumType.STRING)
+    private TargetType targetType;
+
     private String createdByPrn;
 
     private Boolean isActive;  // active or inactive

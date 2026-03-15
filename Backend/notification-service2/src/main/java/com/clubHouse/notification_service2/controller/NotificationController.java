@@ -229,6 +229,22 @@ public class NotificationController {
 
     // ── My Notifications ──────────────────────────────────────────────────────
 
+    @GetMapping("/trigger/{notificationId}")
+    public ResponseEntity<ApiResponse<NotificationResponse>> triggerNotification(
+            @PathVariable Long notificationId,
+            HttpServletRequest httpReq
+    ) {
+        log.info("Request received to trigger notification with Id: {}", notificationId);
+        NotificationResponse resp = notificationService.triggerNotification(
+                notificationId, prn(httpReq), role(httpReq));
+        return ok(
+                "Successfully created trigger for notification",
+                resp
+        );
+    }
+
+    // ── My Notifications ──────────────────────────────────────────────────────
+
     /**
      * GET /api/notifications/me
      * Returns all valid notifications relevant to the current user
