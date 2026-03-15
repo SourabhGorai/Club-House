@@ -3695,7 +3695,7 @@ export default function SuperAdminDashboard() {
         )}
 
         {/* Department CRUD Modal */}
-        {showDeptModal && (
+        {/* {showDeptModal && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-white flex flex-col">
               <div
@@ -3846,7 +3846,160 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           </div>
+        )} */}
+{showDeptModal && (
+  <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50">
+    <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden border border-white flex flex-col">
+      <div
+        className="p-5 sm:p-8 text-white flex justify-between items-center"
+        style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+      >
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Department Management</h3>
+          <p className="text-white/80 text-xs sm:text-sm truncate">Add or remove academic departments</p>
+        </div>
+        <button
+          onClick={() => {
+            setShowDeptModal(false);
+            setEditingDept(null);
+            setDeptInput("");
+            setDeptMessage({ text: "", type: "" });
+          }}
+          className="bg-white/20 p-1.5 sm:p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer flex-shrink-0"
+        >
+          <X size={18} className="sm:w-5 sm:h-5" />
+        </button>
+      </div>
+
+      <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
+        {deptMessage.text && (
+          <div
+            className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+          >
+            <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+              {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
+            </p>
+          </div>
         )}
+
+        <form onSubmit={handleDeptSubmit} className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <input
+              type="text"
+              placeholder="Enter department name..."
+              className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all text-sm sm:text-base"
+              onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
+              onBlur={(e) => (e.target.style.boxShadow = "")}
+              value={deptInput}
+              onChange={(e) => setDeptInput(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="w-full sm:w-auto text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg cursor-pointer text-sm sm:text-base"
+              style={{
+                background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
+                boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+              }}
+            >
+              {editingDept ? <Edit size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />}
+              {editingDept ? "Update" : "Add Dept"}
+            </button>
+          </div>
+          {editingDept && (
+            <div className="mt-2 text-xs sm:text-sm text-gray-500 flex items-center gap-2">
+              <span className="truncate">
+                Editing: <span className="font-bold">{editingDept.name}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingDept(null);
+                  setDeptInput("");
+                }}
+                className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer flex-shrink-0"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </form>
+
+        {deptLoading ? (
+          <div className="py-8 sm:py-10 text-center text-gray-500 italic">
+            <div
+              className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 mx-auto mb-3 cursor-wait"
+              style={{ borderColor: PRIMARY_COLOR }}
+            ></div>
+            <p className="text-sm sm:text-base">Loading departments...</p>
+          </div>
+        ) : (
+          <div className="space-y-2 sm:space-y-3">
+            {departments.length > 0 ? (
+              departments.map((dept) => (
+                <div
+                  key={dept.departmentId}
+                  className="flex items-center justify-between p-3 sm:p-4 bg-gray-50/50 rounded-xl sm:rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
+                >
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <span className="font-bold text-gray-700 text-sm sm:text-base truncate">{dept.name}</span>
+                    <span
+                      className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
+                    >
+                      {dept.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDialog({
+                          isOpen: true,
+                          title: "Delete Department",
+                          message:
+                            "Are you sure you want to delete this department? This action cannot be undone.",
+                          confirmText: "Delete",
+                          variant: "danger",
+                          onConfirm: () => {
+                            closeConfirm();
+                            deleteDepartment(dept.departmentId);
+                          },
+                        });
+                      }}
+                      className="p-1.5 sm:p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 sm:py-10">
+                <Database className="w-10 h-10 sm:w-12 sm:h-12 text-gray-200 mx-auto mb-2 sm:mb-3" />
+                <p className="text-sm sm:text-base text-gray-400 font-medium">No departments found in system.</p>
+                <p className="text-xs sm:text-sm text-gray-300 mt-1">Add a department using the form above</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="px-4 sm:px-8 py-3 sm:py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+        <div className="text-xs sm:text-sm text-gray-500">
+          {departments.length} department{departments.length !== 1 ? "s" : ""}
+        </div>
+        <button
+          onClick={() => setShowDeptModal(false)}
+          className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer"
+        >
+          Close Manager
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
         {/* Email Edit Modal */}
         {showEmailEditModal && (

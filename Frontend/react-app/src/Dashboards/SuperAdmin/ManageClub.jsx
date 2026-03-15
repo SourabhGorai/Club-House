@@ -1733,51 +1733,51 @@ export default function ManageClubs() {
                           </div>
                         </div>
 
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <span className="w-1 h-6 rounded-full" style={{ backgroundColor: '#4CA1AF' }}></span> Leadership & Contact
-                          </h3>
-                          <div className="grid gap-4">
-                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Club Admins:</span>
-                              <div className="flex flex-col sm:flex-row items-center gap-3">
-                                <span className="font-bold text-black text-center sm:text-left">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
-                                {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
-                                  <button 
-                                    onClick={handleOpenClubAdminModal} 
-                                    className={`text-[10px] uppercase px-4 py-2 mt-2 sm:mt-0 whitespace-nowrap rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
-                                    disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
-                                    title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign club admins" : ""}
-                                  >
-                                    + Assign Admin
-                                  </button>
-                                )}
-                              </div>
-                            </div>
+                       <div className="space-y-6">
+  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+    <span className="w-1 h-6 rounded-full" style={{ backgroundColor: '#4CA1AF' }}></span> Leadership & Contact
+  </h3>
+  <div className="grid gap-4">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <span className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-2 sm:mb-0">Club Admins:</span>
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end w-full sm:w-auto">
+        <span className="font-bold text-black">{adminData?.clubAdmins?.map(a => a.name).join(", ") || "None Assigned"}</span>
+        {(!adminData?.clubAdmins || adminData.clubAdmins.length === 0) && (
+          <button 
+            onClick={handleOpenClubAdminModal} 
+            className={`text-[10px] uppercase px-4 py-2 whitespace-nowrap rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
+            disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
+            title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign club admins" : ""}
+          >
+            + Assign Admin
+          </button>
+        )}
+      </div>
+    </div>
 
-                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm items-center gap-4">
-                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Teacher Advisor:</span>
-                              <div className="flex items-center gap-3">
-                                <span className="font-bold text-gray-700">{adminData?.teacherName && adminData.teacherName !== "Not Assigned" ? adminData.teacherName : <span className="text-gray-400 italic">Not Assigned</span>}</span>
-                                {(!adminData?.teacherName || adminData.teacherName === "Not Assigned") && (
-                                  <button 
-                                    onClick={handleOpenTeacherModal} 
-                                    className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
-                                    disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
-                                    title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign teacher advisors" : ""}
-                                  >
-                                    Assign Now
-                                  </button>
-                                )}
-                              </div>
-                            </div>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <span className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-2 sm:mb-0">Teacher Advisor:</span>
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end w-full sm:w-auto">
+        <span className="font-bold text-gray-700">{adminData?.teacherName && adminData.teacherName !== "Not Assigned" ? adminData.teacherName : <span className="text-gray-400 italic">Not Assigned</span>}</span>
+        {(!adminData?.teacherName || adminData.teacherName === "Not Assigned") && (
+          <button 
+            onClick={handleOpenTeacherModal} 
+            className={`text-[10px] uppercase px-4 py-2 rounded-full ${selectedClub?.isActive && userRole === "SUPER_ADMIN" ? "btn-gradient cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} 
+            disabled={!selectedClub?.isActive || userRole !== "SUPER_ADMIN"}
+            title={userRole !== "SUPER_ADMIN" ? "Only Super Admins can assign teacher advisors" : ""}
+          >
+            Assign Now
+          </button>
+        )}
+      </div>
+    </div>
 
-                            <div className="flex flex-col sm:flex-row justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                              <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Contact Email:</span>
-                              <span className="font-bold text-black">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
-                            </div>
-                          </div>
-                        </div>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <span className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-2 sm:mb-0">Contact Email:</span>
+      <span className="font-bold text-black sm:text-right w-full sm:w-auto">{adminData?.clubAdmins?.map(a => a.email).join(", ") || "N/A"}</span>
+    </div>
+  </div>
+</div>
                       </div>
                     );
                   })()}
