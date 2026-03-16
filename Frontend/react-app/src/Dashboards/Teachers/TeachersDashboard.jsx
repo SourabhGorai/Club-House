@@ -1177,6 +1177,7 @@ import {
   ChevronRight,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   Menu,
   Bell,
   Building2,
@@ -1202,6 +1203,7 @@ export default function TeachersDashboard() {
     prn: user?.prn || "",
     verified: user?.verified || false,
   });
+  const [userAccountData, setUserAccountData] = useState(null);
 
   const [showEmailEditModal, setShowEmailEditModal] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -1258,6 +1260,7 @@ export default function TeachersDashboard() {
 
   useEffect(() => {
     fetchUserProfile();
+    fetchUserAccountData();
     fetchDepartments();
     fetchUserClubs();
     fetchUnread();
@@ -1349,6 +1352,21 @@ export default function TeachersDashboard() {
       }
     } finally {
       setIsLoadingProfile(false);
+    }
+  };
+
+  const fetchUserAccountData = async () => {
+    try {
+      if (!token || !user?.prn) return;
+      const response = await axios.get(
+        `${BASE_URL}/api/users/${user.prn}`,
+        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } },
+      );
+      if (response.data) {
+        setUserAccountData(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user account data:", error);
     }
   };
 
@@ -1501,6 +1519,17 @@ export default function TeachersDashboard() {
   };
 
   const displayClubs = showAllClubs ? clubs : clubs.slice(0, 4);
+  const profileDeletionDaysRemaining = (() => {
+    if (!userAccountData || userAccountData.profileCompleted) return null;
+    if (!userAccountData.createdAt) return null;
+
+    const createdAt = new Date(userAccountData.createdAt);
+    if (Number.isNaN(createdAt.getTime())) return null;
+
+    const deletionDate = new Date(createdAt);
+    deletionDate.setDate(deletionDate.getDate() + 7);
+    return Math.ceil((deletionDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  })();
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -1667,6 +1696,29 @@ export default function TeachersDashboard() {
 
         {/* ── Main content ── */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-h-screen lg:mt-0 mt-16">
+
+          {/* Profile incomplete deletion warning */}
+          {profileDeletionDaysRemaining !== null && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <AlertTriangle className="text-red-500 flex-shrink-0" size={20} />
+              <div className="flex-1">
+                <p className="text-red-800 font-bold text-sm">
+                  Profile incomplete - account scheduled for deletion
+                </p>
+                <p className="text-red-600 text-xs mt-0.5">
+                  {profileDeletionDaysRemaining > 0
+                    ? `Complete your profile within ${profileDeletionDaysRemaining === 1 ? "1 day" : `${profileDeletionDaysRemaining} days`} or your account will be deleted 7 days after registration.`
+                    : "Your account is overdue for deletion. Complete your profile immediately to avoid losing access."}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowProfileForm(true)}
+                className="text-xs font-bold px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Complete Profile
+              </button>
+            </div>
+          )}
 
           {/* Unverified banner */}
           {!currentUser.verified && (
