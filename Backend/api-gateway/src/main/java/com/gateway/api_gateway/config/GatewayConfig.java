@@ -363,8 +363,7 @@ public class GatewayConfig {
                         .path(
                                 "/api/events/create",
                                 "/api/events/myEvents",
-                                "/api/events/myEvents/paged",
-
+                                "/api/events/myEvents/**",
                                 "/api/events/getByEventCreator/{prn}",
                                 "/api/events/getByEventCreator/{prn}/paged",
                                 "/api/events/ratings/{rating}",

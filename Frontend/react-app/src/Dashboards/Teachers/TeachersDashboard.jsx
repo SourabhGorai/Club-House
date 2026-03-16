@@ -1182,6 +1182,8 @@ import {
   Bell,
   Building2,
   Mail,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
@@ -1233,6 +1235,8 @@ export default function TeachersDashboard() {
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [showAllClubs, setShowAllClubs] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [eventsManagedCount, setEventsManagedCount] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("teacherDashboardTheme") === "dark");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [formMessage, setFormMessage] = useState({ text: "", type: "" });
   const [confirmDialog, setConfirmDialog] = useState({
@@ -1259,11 +1263,16 @@ export default function TeachersDashboard() {
   }, []);
 
   useEffect(() => {
+    localStorage.setItem("teacherDashboardTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  useEffect(() => {
     fetchUserProfile();
     fetchUserAccountData();
     fetchDepartments();
     fetchUserClubs();
     fetchUnread();
+    fetchEventsManagedCount();
   }, []);
 
   useEffect(() => {
@@ -1383,6 +1392,29 @@ export default function TeachersDashboard() {
       setUnreadCount(Number(count) || 0);
     } catch {
       setUnreadCount(0);
+    }
+  };
+
+  const fetchEventsManagedCount = async () => {
+    if (!token) {
+      setEventsManagedCount(0);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${BASE_URL}/api/events/myEvents/count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const count =
+        typeof response.data === "number"
+          ? response.data
+          : (response.data?.data ?? response.data?.count ?? 0);
+
+      setEventsManagedCount(Number(count) || 0);
+    } catch (error) {
+      console.error("Error fetching managed events count:", error);
+      setEventsManagedCount(0);
     }
   };
 
@@ -1535,35 +1567,44 @@ export default function TeachersDashboard() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#F8FAFC] flex relative">
+      <div className={`min-h-screen flex relative ${isDarkMode ? "bg-zinc-950" : "bg-[#F8FAFC]"}`}>
 
         {/* Mobile Header */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
+        <div className={`lg:hidden fixed top-0 left-0 right-0 px-4 py-4 flex items-center justify-between z-50 shadow-sm ${isDarkMode ? "bg-zinc-900 border-b border-zinc-800" : "bg-white border-b border-gray-100"}`}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
+            className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer ${isDarkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"}`}
           >
-            <Menu size={24} className="text-gray-700" />
+            <Menu size={24} className={isDarkMode ? "text-zinc-100" : "text-gray-700"} />
           </button>
           <div className="flex items-center space-x-2">
             <div className="p-2 rounded-lg" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
               <GraduationCap className="text-white w-5 h-5" />
             </div>
-            <h2 className="text-xl font-black tracking-tight text-gray-800">
+            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>
               Teacher<span style={{ color: "#4CA1AF" }}>Hub</span>
             </h2>
           </div>
-          <div
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-100 cursor-pointer"
-            onClick={() => setShowProfileForm(true)}
-          >
-            {profileImage ? (
-              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <User size={20} className="text-gray-400" />
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className={`p-2 rounded-xl transition-colors cursor-pointer ${isDarkMode ? "bg-zinc-800 text-zinc-100 hover:bg-zinc-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <div
+              className={`w-10 h-10 rounded-full overflow-hidden border-2 cursor-pointer ${isDarkMode ? "border-zinc-700" : "border-gray-100"}`}
+              onClick={() => setShowProfileForm(true)}
+            >
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className={`w-full h-full flex items-center justify-center ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`}>
+                  <User size={20} className={isDarkMode ? "text-zinc-400" : "text-gray-400"} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1578,7 +1619,7 @@ export default function TeachersDashboard() {
         {/* ── Sidebar ── */}
         <aside className={`
           fixed lg:sticky top-0 left-0 h-screen
-          w-80 sm:w-96 bg-white border-r border-gray-100
+          w-80 sm:w-96 ${isDarkMode ? "bg-zinc-900 border-r border-zinc-800" : "bg-white border-r border-gray-100"}
           flex flex-col p-8 shadow-lg lg:shadow-sm
           transition-transform duration-300 ease-in-out z-50
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -1586,9 +1627,9 @@ export default function TeachersDashboard() {
         `}>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+            className={`lg:hidden absolute top-4 right-4 p-2 rounded-xl transition-all duration-200 hover:rotate-90 cursor-pointer ${isDarkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"}`}
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className={isDarkMode ? "text-zinc-400" : "text-gray-500"} />
           </button>
 
           <div className="flex items-center gap-3 mb-8 group cursor-pointer">
@@ -1598,25 +1639,25 @@ export default function TeachersDashboard() {
             >
               <GraduationCap className="text-white w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+            <h1 className={`text-2xl font-bold tracking-tight ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>
               Teacher<span style={{ color: "#4CA1AF" }}>Hub</span>
             </h1>
           </div>
 
           {/* Profile picture */}
           <div className="relative group mx-auto mb-6">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-inner bg-gray-100">
+            <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] overflow-hidden border-8 shadow-inner ${isDarkMode ? "border-zinc-800 bg-zinc-800" : "border-gray-50 bg-gray-100"}`}>
               {profileImage ? (
                 <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className={`w-full h-full flex items-center justify-center ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`}>
                   <User size={48} />
                 </div>
               )}
             </div>
             <button
               onClick={() => setShowProfileForm(true)}
-              className="absolute bottom-1 right-1 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100 transition-transform hover:scale-110 cursor-pointer"
+              className={`absolute bottom-1 right-1 p-2.5 rounded-2xl shadow-xl border transition-transform hover:scale-110 cursor-pointer ${isDarkMode ? "bg-zinc-800 border-zinc-700" : "bg-white border-gray-100"}`}
               style={{ color: "#4CA1AF" }}
             >
               <Edit size={18} />
@@ -1624,7 +1665,7 @@ export default function TeachersDashboard() {
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight">
+            <h2 className={`text-xl sm:text-2xl font-bold tracking-tight leading-tight ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>
               {profileData.fullName || user?.username}
             </h2>
             <span
@@ -1637,21 +1678,21 @@ export default function TeachersDashboard() {
 
           {/* Info boxes */}
           <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
-            <SidebarInfoBox label="Full Name" value={profileData.fullName} />
-            <SidebarInfoBox label="Username" value={user?.username} />
-            <SidebarInfoBox label="Staff ID" value={profileData.prn} />
+            <SidebarInfoBox label="Full Name" value={profileData.fullName} isDarkMode={isDarkMode} />
+            <SidebarInfoBox label="Username" value={user?.username} isDarkMode={isDarkMode} />
+            <SidebarInfoBox label="Staff ID" value={profileData.prn} isDarkMode={isDarkMode} />
 
             {/* Email with edit + verify */}
-            <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-              <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+            <div className={`p-4 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer ${isDarkMode ? "bg-zinc-800/70" : "bg-gray-50/50"}`}>
+              <p className={`text-[9px] uppercase font-black mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF] ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`}>
                 Email
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700 font-bold text-sm truncate pr-2">{currentUser.email}</span>
+                <span className={`font-bold text-sm truncate pr-2 ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>{currentUser.email}</span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => { setNewEmail(currentUser.email); setShowEmailEditModal(true); }}
-                    className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
+                    className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer ${isDarkMode ? "hover:bg-zinc-700" : "hover:bg-gray-200"}`}
                     style={{ color: "#4CA1AF" }}
                     title="Edit email"
                   >
@@ -1672,8 +1713,8 @@ export default function TeachersDashboard() {
               </div>
             </div>
 
-            <SidebarInfoBox label="Department" value={getDepartmentName(profileData.departmentId)} />
-            <SidebarInfoBox label="Phone" value={profileData.phoneNumber} />
+            <SidebarInfoBox label="Department" value={getDepartmentName(profileData.departmentId)} isDarkMode={isDarkMode} />
+            <SidebarInfoBox label="Phone" value={profileData.phoneNumber} isDarkMode={isDarkMode} />
           </div>
 
           {/* Sign out */}
@@ -1688,7 +1729,7 @@ export default function TeachersDashboard() {
                 onConfirm: () => { closeConfirm(); handleLogout(); },
               })
             }
-            className="mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 hover:bg-red-50 rounded-[1.5rem] transition-all border border-transparent hover:border-red-100 cursor-pointer"
+            className={`mt-4 flex items-center justify-center gap-3 text-red-500 font-bold py-4 rounded-[1.5rem] transition-all border border-transparent cursor-pointer ${isDarkMode ? "hover:bg-red-500/10 hover:border-red-500/20" : "hover:bg-red-50 hover:border-red-100"}`}
           >
             <LogOut size={20} /> Sign Out
           </button>
@@ -1740,47 +1781,55 @@ export default function TeachersDashboard() {
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-10">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              <p className={`text-xs sm:text-sm mt-1 ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>
                 Welcome back,{" "}
                 <span className="font-semibold" style={{ color: "#4CA1AF" }}>
                   Prof. {profileData.fullName || user?.username}
                 </span>
               </p>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 bg-green-50 text-green-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-green-100">
-              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">All Systems Live</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsDarkMode((prev) => !prev)}
+                className={`px-3 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer ${isDarkMode ? "bg-zinc-800 text-zinc-100 hover:bg-zinc-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                {isDarkMode ? "Light" : "Dark"}
+              </button>
+              <div className="flex items-center gap-2 sm:gap-3 bg-green-50 text-green-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-green-100">
+                <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">All Systems Live</span>
+              </div>
             </div>
           </header>
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <StatCard icon={<Calendar />} label="Events Managed" value="0" color="blue" />
-            <StatCard icon={<Trophy />} label="My Clubs" value={clubs.length.toString()} color="green" />
-            <StatCard icon={<Users />} label="Assigned Students" value={assignedStudentsCount.toString()} color="orange" />
+            <StatCard icon={<Calendar />} label="Events Managed" value={eventsManagedCount.toString()} color="blue" isDarkMode={isDarkMode} />
+            <StatCard icon={<Trophy />} label="My Clubs" value={clubs.length.toString()} color="green" isDarkMode={isDarkMode} />
+            <StatCard icon={<Users />} label="Assigned Students" value={assignedStudentsCount.toString()} color="orange" isDarkMode={isDarkMode} />
           </div>
 
           <div className="grid grid-cols-1 gap-8">
 
             {/* Control center */}
-            <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50 h-fit">
+            <section className={`rounded-[2.5rem] p-6 sm:p-10 shadow-sm border h-fit ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-50"}`}>
               <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-10">
                 <div
                   className="w-1.5 h-10 rounded-full"
                   style={{ background: "linear-gradient(to bottom, #4CA1AF, #315169)" }}
                 />
-                <h2 className="text-2xl font-bold text-gray-800">Professor Control Center</h2>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>Professor Control Center</h2>
               </div>
 
               <div className="relative">
                 {!currentUser.verified && (
-                  <div className="absolute inset-0 z-10 rounded-2xl bg-white/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3">
+                  <div className={`absolute inset-0 z-10 rounded-2xl backdrop-blur-[2px] flex flex-col items-center justify-center gap-3 ${isDarkMode ? "bg-zinc-950/65" : "bg-white/60"}`}>
                     <div className="bg-amber-100 p-4 rounded-full">
                       <svg className="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <p className="text-gray-700 font-bold text-sm">Verify your email to access these features</p>
+                    <p className={`font-bold text-sm ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>Verify your email to access these features</p>
                     <button
                       onClick={handleVerificationRedirect}
                       className="text-xs font-bold px-5 py-2 bg-amber-500 text-white rounded-full hover:bg-amber-600 transition-colors cursor-pointer"
@@ -1791,17 +1840,17 @@ export default function TeachersDashboard() {
                 )}
 
                 <div className={`grid grid-cols-2 lg:grid-cols-3 gap-6 ${!currentUser.verified ? "opacity-40 pointer-events-none select-none" : ""}`}>
-                  <ActionCard icon={<CalendarPlus size={24} />} label="Events" color="blue" onClick={() => navigate("/events")} />
-                  <ActionCard icon={<Users size={24} />} label="Add Student" color="teal" onClick={() => navigate("/add-users-with-club")} />
-                  <ActionCard icon={<Building2 size={24} />} label="Club Association" color="orange" onClick={() => navigate("/remove-users-from-club")} />
-                  <ActionCard icon={<Trophy size={24} />} label="Clubs" color="teal" onClick={() => navigate("/manage-clubs")} />
+                  <ActionCard icon={<CalendarPlus size={24} />} label="Events" color="blue" onClick={() => navigate("/events")} isDarkMode={isDarkMode} />
+                  <ActionCard icon={<Users size={24} />} label="Add Student" color="teal" onClick={() => navigate("/add-users-with-club")} isDarkMode={isDarkMode} />
+                  <ActionCard icon={<Building2 size={24} />} label="Club Association" color="orange" onClick={() => navigate("/remove-users-from-club")} isDarkMode={isDarkMode} />
+                  <ActionCard icon={<Trophy size={24} />} label="Clubs" color="teal" onClick={() => navigate("/manage-clubs")} isDarkMode={isDarkMode} />
                   <button
                     onClick={() => navigate("/notifications")}
-                    className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
-                    style={{ backgroundColor: "rgba(76, 161, 175, 0.05)" }}
+                    className={`p-8 rounded-2xl border transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full ${isDarkMode ? "border-zinc-800" : "border-gray-50/50"}`}
+                    style={{ backgroundColor: isDarkMode ? "rgba(255, 255, 255, 0.03)" : "rgba(76, 161, 175, 0.05)" }}
                   >
                     <div
-                      className="relative p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1"
+                      className={`relative p-4 rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1 ${isDarkMode ? "bg-zinc-800" : "bg-white"}`}
                       style={{ color: "#4CA1AF" }}
                     >
                       <Bell size={24} />
@@ -1811,7 +1860,7 @@ export default function TeachersDashboard() {
                         </span>
                       )}
                     </div>
-                    <span className="font-black text-gray-700 uppercase text-xs tracking-widest">Notifications</span>
+                    <span className={`font-black uppercase text-xs tracking-widest ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>Notifications</span>
                   </button>
                 </div>
               </div>
@@ -1819,11 +1868,11 @@ export default function TeachersDashboard() {
 
             {/* My clubs */}
             {(isLoadingClubs || error || clubs.length > 0) && (
-              <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-50">
+              <section className={`rounded-[2.5rem] p-6 sm:p-10 shadow-sm border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-50"}`}>
                 <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Clubs</h2>
-                    <div className="h-[1px] w-16 bg-gray-100" />
+                    <h2 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>My Clubs</h2>
+                    <div className={`h-[1px] w-16 ${isDarkMode ? "bg-zinc-700" : "bg-gray-100"}`} />
                   </div>
                   <button
                     onClick={fetchUserClubs}
@@ -1845,8 +1894,8 @@ export default function TeachersDashboard() {
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-2">Clubs Locked</h3>
-                    <p className="text-gray-500 text-sm mb-6 px-4">Verify your email address to view and manage your club memberships.</p>
+                    <h3 className={`text-lg font-bold mb-2 ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>Clubs Locked</h3>
+                    <p className={`text-sm mb-6 px-4 ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>Verify your email address to view and manage your club memberships.</p>
                     <button onClick={handleVerificationRedirect} className="text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer bg-amber-500 hover:bg-amber-600">
                       Verify Email
                     </button>
@@ -1854,7 +1903,7 @@ export default function TeachersDashboard() {
                 ) : isLoadingClubs ? (
                   <div className="py-16 text-center">
                     <div className="animate-spin w-12 h-12 border-4 rounded-full mx-auto mb-4" style={{ borderColor: "rgba(76, 161, 175, 0.2)", borderTopColor: "#4CA1AF" }} />
-                    <p className="text-gray-500 font-medium">Loading your clubs...</p>
+                    <p className={`font-medium ${isDarkMode ? "text-zinc-300" : "text-gray-500"}`}>Loading your clubs...</p>
                   </div>
                 ) : error ? (
                   <div className="bg-red-50 rounded-[2rem] p-8 text-center border border-red-100">
@@ -1863,19 +1912,19 @@ export default function TeachersDashboard() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-3">Unable to Load Clubs</h3>
+                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>Unable to Load Clubs</h3>
                     <p className="text-red-500/70 mb-5">{error}</p>
-                    <button onClick={fetchUserClubs} className="bg-white px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer" style={{ color: "#4CA1AF", borderColor: "rgba(76, 161, 175, 0.2)" }}>
+                    <button onClick={fetchUserClubs} className={`px-8 py-3 rounded-full text-sm font-bold border transition-colors cursor-pointer ${isDarkMode ? "bg-zinc-800" : "bg-white"}`} style={{ color: "#4CA1AF", borderColor: "rgba(76, 161, 175, 0.2)" }}>
                       Try Again
                     </button>
                   </div>
                 ) : clubs.length === 0 ? (
-                  <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-[2rem]">
-                    <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <div className={`py-16 text-center border-2 border-dashed rounded-[2rem] ${isDarkMode ? "border-zinc-700" : "border-gray-200"}`}>
+                    <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5 ${isDarkMode ? "bg-zinc-800" : "bg-gray-50"}`}>
                       <Trophy className="text-gray-400 w-12 h-12" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-3">No Clubs Assigned Yet</h3>
-                    <p className="text-gray-500 mb-8">You haven't been assigned to any clubs yet.</p>
+                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>No Clubs Assigned Yet</h3>
+                    <p className={`mb-8 ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`}>You haven't been assigned to any clubs yet.</p>
                     <button onClick={() => navigate("/manage-clubs")} className="text-white px-10 py-4 rounded-full text-sm font-bold shadow-lg transition-colors cursor-pointer" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
                       Browse Clubs
                     </button>
@@ -1884,14 +1933,14 @@ export default function TeachersDashboard() {
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {displayClubs.map((club) => (
-                        <CompactClubCard key={club.clubId} club={club} onViewDetails={handleViewClubDetails} />
+                        <CompactClubCard key={club.clubId} club={club} onViewDetails={handleViewClubDetails} isDarkMode={isDarkMode} />
                       ))}
                     </div>
                     {clubs.length > 4 && (
                       <div className="text-center mt-8">
                         <button
                           onClick={() => setShowAllClubs(!showAllClubs)}
-                          className="bg-white px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer"
+                          className={`px-8 py-4 rounded-full text-sm font-bold border transition-colors inline-flex items-center gap-2 cursor-pointer ${isDarkMode ? "bg-zinc-800" : "bg-white"}`}
                           style={{ color: "#4CA1AF", borderColor: "rgba(76, 161, 175, 0.2)" }}
                         >
                           {showAllClubs ? "Show Less" : `Show All (${clubs.length} Clubs)`}
@@ -1911,14 +1960,14 @@ export default function TeachersDashboard() {
         {/* ── Profile form modal ── */}
         {showProfileForm && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8">
+            <div className={`rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8 ${isDarkMode ? "bg-zinc-900" : "bg-white"}`}>
               <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-800">
+                <h3 className={`text-2xl font-bold ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>
                   {profileExists ? "Edit Profile" : "Complete Profile"}
                 </h3>
                 <button
                   onClick={() => { setShowProfileForm(false); setFormMessage({ text: "", type: "" }); setSelectedImage(null); setImagePreviewUrl(null); }}
-                  className="bg-gray-50 p-2 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                  className={`p-2 rounded-full hover:text-red-500 transition-colors cursor-pointer ${isDarkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-50 hover:bg-red-50"}`}
                 >
                   <X size={20} />
                 </button>
@@ -1926,11 +1975,12 @@ export default function TeachersDashboard() {
 
               <form onSubmit={handleSubmitProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <FormInput label="Staff ID (Read Only)" value={profileData.prn} readOnly />
+                  <FormInput label="Staff ID (Read Only)" value={profileData.prn} readOnly isDarkMode={isDarkMode} />
                   <FormInput
                     label="Full Name"
                     value={profileData.fullName}
                     onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
+                    isDarkMode={isDarkMode}
                     required
                   />
                 </div>
@@ -1971,11 +2021,12 @@ export default function TeachersDashboard() {
                   label="Phone Number"
                   value={profileData.phoneNumber}
                   onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
+                  isDarkMode={isDarkMode}
                   required
                 />
 
                 {/* Image upload with preview */}
-                <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200 text-center transition-colors cursor-pointer">
+                <div className={`p-6 rounded-2xl border-2 border-dashed text-center transition-colors cursor-pointer ${isDarkMode ? "bg-zinc-800 border-zinc-700" : "bg-gray-50 border-gray-200"}`}>
                   <input
                     type="file"
                     accept="image/*"
@@ -1992,7 +2043,7 @@ export default function TeachersDashboard() {
                     className="hidden"
                     id="profile-upload"
                   />
-                  <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-[#4CA1AF]">
+                  <label htmlFor="profile-upload" className={`cursor-pointer flex flex-col items-center gap-2 hover:text-[#4CA1AF] ${isDarkMode ? "text-zinc-300" : "text-gray-500"}`}>
                     {imagePreviewUrl ? (
                       <img src={imagePreviewUrl} alt="Preview" className="w-20 h-20 rounded-2xl object-cover mx-auto mb-1" />
                     ) : (
@@ -2027,7 +2078,7 @@ export default function TeachersDashboard() {
         {/* ── Email edit modal ── */}
         {showEmailEditModal && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
+            <div className={`rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-white"}`}>
               <div className="p-6 text-white" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
                 <div className="flex justify-between items-center">
                   <div>
@@ -2047,18 +2098,18 @@ export default function TeachersDashboard() {
 
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Current Email</label>
-                  <input type="email" value={currentUser.email} className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed" disabled />
+                  <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? "text-zinc-200" : "text-gray-700"}`}>Current Email</label>
+                  <input type="email" value={currentUser.email} className={`w-full px-4 py-3 border-2 rounded-xl cursor-not-allowed ${isDarkMode ? "bg-zinc-800 border-zinc-700 text-zinc-300" : "bg-gray-100 border-gray-200 text-gray-600"}`} disabled />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? "text-zinc-200" : "text-gray-700"}`}>
                     New Email <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
+                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-all ${isDarkMode ? "bg-zinc-800 border-zinc-700 text-zinc-100" : "border-gray-200"}`}
                     onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px rgba(76, 161, 175, 0.2)")}
                     onBlur={(e) => (e.target.style.boxShadow = "")}
                     placeholder="Enter new email address"
@@ -2155,18 +2206,18 @@ export default function TeachersDashboard() {
 
 /* ── Helper components ───────────────────────────────────────────────────────── */
 
-function SidebarInfoBox({ label, value }) {
+function SidebarInfoBox({ label, value, isDarkMode = false }) {
   return (
-    <div className="p-4 bg-gray-50/50 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer">
-      <p className="text-[9px] uppercase font-black text-gray-400 mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+    <div className={`p-4 rounded-[1.2rem] border border-transparent transition-colors group cursor-pointer ${isDarkMode ? "bg-zinc-800/70" : "bg-gray-50/50"}`}>
+      <p className={`text-[9px] uppercase font-black mb-1 tracking-widest transition-colors group-hover:text-[#4CA1AF] ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`}>
         {label}
       </p>
-      <p className="text-gray-700 font-bold text-sm truncate">{value || "Not set"}</p>
+      <p className={`font-bold text-sm truncate ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>{value || "Not set"}</p>
     </div>
   );
 }
 
-function StatCard({ icon, label, value, color }) {
+function StatCard({ icon, label, value, color, isDarkMode = false }) {
   const bgColors = {
     blue:   { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
     green:  { bg: "rgba(16, 185, 129, 0.1)", text: "#10B981" },
@@ -2174,21 +2225,23 @@ function StatCard({ icon, label, value, color }) {
     purple: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
     red:    { bg: "rgba(239, 68, 68, 0.1)",  text: "#EF4444" },
   };
-  const theme = bgColors[color] || bgColors.blue;
+  const theme = isDarkMode
+    ? { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" }
+    : (bgColors[color] || bgColors.blue);
   return (
-    <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-gray-50 flex items-center gap-6 cursor-pointer hover:shadow-md transition-all">
+    <div className={`p-7 rounded-[2.5rem] shadow-sm border flex items-center gap-6 cursor-pointer hover:shadow-md transition-all ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-gray-50"}`}>
       <div className="p-5 rounded-[1.5rem]" style={{ backgroundColor: theme.bg, color: theme.text }}>
         {icon}
       </div>
       <div>
-        <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
-        <h3 className="text-2xl font-black tracking-tight text-gray-800">{value}</h3>
+        <p className={`text-xs font-black uppercase tracking-widest mb-1 ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`}>{label}</p>
+        <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`}>{value}</h3>
       </div>
     </div>
   );
 }
 
-function CompactClubCard({ club, onViewDetails }) {
+function CompactClubCard({ club, onViewDetails, isDarkMode = false }) {
   const clubName = club.clubName || "Unnamed Club";
   const clubDescription = club.desc || club.description || "No description available";
   const memberCount = club.memberCount ?? 0;
@@ -2197,7 +2250,15 @@ function CompactClubCard({ club, onViewDetails }) {
   const colors = ["blue", "orange", "purple", "green", "red"];
   const color = colors[clubName.length % colors.length];
 
-  const bgColors = {
+  const bgColors = isDarkMode
+    ? {
+        blue: { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" },
+        orange: { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" },
+        purple: { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" },
+        green: { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" },
+        red: { bg: "rgba(255, 255, 255, 0.06)", text: "#E4E4E7" },
+      }
+    : {
     blue:   { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
     orange: { bg: "rgba(249, 115, 22, 0.1)", text: "#F97316" },
     purple: { bg: "rgba(76, 161, 175, 0.1)", text: "#4CA1AF" },
@@ -2207,7 +2268,7 @@ function CompactClubCard({ club, onViewDetails }) {
 
   return (
     <div
-      className="bg-gray-50/50 rounded-2xl p-5 hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-200"
+      className={`rounded-2xl p-5 transition-all cursor-pointer border ${isDarkMode ? "bg-zinc-800/70 hover:bg-zinc-800 border-zinc-700" : "bg-gray-50/50 hover:bg-gray-50 border-transparent hover:border-gray-200"}`}
       onClick={() => onViewDetails(club)}
     >
       <div className="flex items-center gap-4">
@@ -2219,47 +2280,54 @@ function CompactClubCard({ club, onViewDetails }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-extrabold text-gray-800 text-lg truncate pr-2" title={clubName}>{clubName}</h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2 mb-2" title={clubDescription}>{clubDescription}</p>
+          <h3 className={`font-extrabold text-lg truncate pr-2 ${isDarkMode ? "text-zinc-100" : "text-gray-800"}`} title={clubName}>{clubName}</h3>
+          <p className={`text-sm mt-1 line-clamp-2 mb-2 ${isDarkMode ? "text-zinc-400" : "text-gray-500"}`} title={clubDescription}>{clubDescription}</p>
           <div className="flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-bold text-gray-600">{memberCount} members</span>
+            <Users className={`w-4 h-4 ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`} />
+            <span className={`text-xs font-bold ${isDarkMode ? "text-zinc-300" : "text-gray-600"}`}>{memberCount} members</span>
           </div>
         </div>
-        <ChevronRight size={20} className="text-gray-300" />
+        <ChevronRight size={20} className={isDarkMode ? "text-zinc-600" : "text-gray-300"} />
       </div>
     </div>
   );
 }
 
-function ActionCard({ icon, label, color, onClick }) {
-  const themes = {
-    blue:   { bg: "rgba(76, 161, 175, 0.05)", icon: "#4CA1AF" },
-    red:    { bg: "rgba(239, 68, 68, 0.05)",  icon: "#EF4444" },
-    teal:   { bg: "rgba(76, 161, 175, 0.05)", icon: "#4CA1AF" },
-    orange: { bg: "rgba(249, 115, 22, 0.05)", icon: "#F97316" },
-  };
+function ActionCard({ icon, label, color, onClick, isDarkMode = false }) {
+  const themes = isDarkMode
+    ? {
+        blue: { bg: "rgba(255, 255, 255, 0.03)", icon: "#E4E4E7" },
+        red: { bg: "rgba(255, 255, 255, 0.03)", icon: "#E4E4E7" },
+        teal: { bg: "rgba(255, 255, 255, 0.03)", icon: "#E4E4E7" },
+        orange: { bg: "rgba(255, 255, 255, 0.03)", icon: "#E4E4E7" },
+      }
+    : {
+        blue: { bg: "rgba(76, 161, 175, 0.05)", icon: "#4CA1AF" },
+        red: { bg: "rgba(239, 68, 68, 0.05)", icon: "#EF4444" },
+        teal: { bg: "rgba(76, 161, 175, 0.05)", icon: "#4CA1AF" },
+        orange: { bg: "rgba(249, 115, 22, 0.05)", icon: "#F97316" },
+      };
   const theme = themes[color] || themes.blue;
   return (
     <button
       onClick={onClick}
-      className="p-8 rounded-2xl border border-gray-50/50 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full"
+      className={`p-8 rounded-2xl border transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-4 group shadow-sm cursor-pointer w-full ${isDarkMode ? "border-zinc-800" : "border-gray-50/50"}`}
       style={{ backgroundColor: theme.bg }}
     >
-      <div className="p-4 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1" style={{ color: theme.icon }}>
+      <div className={`p-4 rounded-xl shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1 ${isDarkMode ? "bg-zinc-800" : "bg-white"}`} style={{ color: theme.icon }}>
         {icon}
       </div>
-      <span className="font-black text-gray-700 uppercase text-xs tracking-widest">{label}</span>
+      <span className={`font-black uppercase text-xs tracking-widest ${isDarkMode ? "text-zinc-100" : "text-gray-700"}`}>{label}</span>
     </button>
   );
 }
 
-function FormInput({ label, ...props }) {
+function FormInput({ label, isDarkMode = false, ...props }) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">{label}</label>
+      <label className={`text-[10px] font-black ml-1 uppercase tracking-widest ${isDarkMode ? "text-zinc-500" : "text-gray-400"}`}>{label}</label>
       <input
-        className="w-full px-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 outline-none text-gray-700 font-medium transition-all cursor-text"
+        className={`w-full px-4 py-3.5 border-none rounded-2xl focus:ring-2 outline-none font-medium transition-all cursor-text ${isDarkMode ? "bg-zinc-800 text-zinc-100" : "bg-gray-50 text-gray-700"}`}
         {...props}
       />
     </div>

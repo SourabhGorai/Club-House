@@ -84,6 +84,19 @@ public class EventController {
         ));
     }
 
+    @GetMapping("/myEvents/count")
+    public ResponseEntity<ApiResponse<Integer>> getCountOfEventsCreatedByMe(
+            HttpServletRequest request
+    ) {
+        String prn = jwtService.extractPrnFromHeaders(request);
+        log.info("REST received to get counts of events created by PRN: {}", prn);
+        List<EventResponse> resp = eventService.getMyEvents(prn);
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched list with size %d", resp.size()),
+                resp.size()
+        ));
+    }
+
     // ALL
     @GetMapping("/getById/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> getEventById(
