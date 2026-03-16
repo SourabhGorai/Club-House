@@ -1334,7 +1334,8 @@ const SuperAdminNotifications = () => {
   const askTrigger = (notif) => setConfirmDialog({ isOpen: true, title: "Trigger Notification", message: "This will immediately trigger this notification.", confirmText: "Trigger", variant: "primary", onConfirm: async () => { closeConfirm(); await triggerNotif(notif); } });
 
   return (
-    <PageShell title="Notification Management" subtitle="System-wide notification control center — create, manage, and broadcast"
+    // <PageShell title="Notification Management" subtitle="System-wide notification control center — create, manage, and broadcast"
+    <PageShell title="Notification Management" 
       icon={<ShieldCheck size={12} />} roleLabel="Super Admin"
       headerRight={
         <div className="flex gap-2">

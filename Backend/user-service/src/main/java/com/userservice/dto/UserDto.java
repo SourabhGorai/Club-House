@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,5 @@ public class UserDto implements Serializable {
     private Role role;
     private boolean verified;
     private boolean profileCompleted;
+    private LocalDateTime createdAt;
 }

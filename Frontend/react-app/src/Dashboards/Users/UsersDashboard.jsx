@@ -2938,6 +2938,29 @@ export default function UsersDashboard() {
 
   const isVerified = currentUser.verified;
 
+  // Account data (profileCompleted + createdAt)
+  const [userAccountData, setUserAccountData] = useState(null);
+
+  const fetchUserAccountData = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/users/${user?.prn}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data) setUserAccountData(res.data);
+    } catch {
+      /* silent — banner simply won't show */
+    }
+  };
+
+  const profileDeletionDaysRemaining = (() => {
+    if (!userAccountData || userAccountData.profileCompleted) return null;
+    const created = new Date(userAccountData.createdAt);
+    const deadline = new Date(created);
+    deadline.setDate(deadline.getDate() + 7);
+    const remaining = Math.ceil((deadline - Date.now()) / (1000 * 60 * 60 * 24));
+    return remaining;
+  })();
+
   // Handler for disabled features — no-op since banner is always visible
   const handleRestrictedAction = (fn) => {
     if (!isVerified) return; // banner already visible, just block silently
@@ -2975,6 +2998,7 @@ export default function UsersDashboard() {
     fetchDepartments();
     fetchMyClubs();
     fetchUnread();
+    fetchUserAccountData();
   }, []);
 
   useEffect(() => {
@@ -3529,6 +3553,38 @@ export default function UsersDashboard() {
 
         {/* MAIN CONTENT AREA */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-h-screen mt-16 lg:mt-0">
+          {/* ── PROFILE INCOMPLETE / DELETION WARNING BANNER ── */}
+          {profileDeletionDaysRemaining !== null && (
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm">
+              <div className="flex items-start sm:items-center gap-3 w-full sm:w-auto">
+                <div className="p-2 bg-red-100 rounded-lg sm:rounded-xl flex-shrink-0">
+                  <AlertTriangle className="text-red-600 w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs sm:text-sm font-bold text-red-800">
+                    Profile incomplete — account will be deleted
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-red-600 mt-0.5">
+                    {profileDeletionDaysRemaining > 0
+                      ? `Complete your profile within ${
+                          profileDeletionDaysRemaining === 1
+                            ? "1 day"
+                            : `${profileDeletionDaysRemaining} days`
+                        } to keep your account.`
+                      : "Your account is overdue for deletion. Complete your profile immediately."}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowProfileForm(true)}
+                className="w-full sm:w-auto text-white text-[10px] sm:text-xs font-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all hover:opacity-90 hover:scale-105 cursor-pointer uppercase tracking-wider"
+                style={{ background: "linear-gradient(135deg, #ef4444, #b91c1c)" }}
+              >
+                Complete Profile
+              </button>
+            </div>
+          )}
+
           {/* ── UNVERIFIED BANNER ── */}
           {!isVerified && (
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm">

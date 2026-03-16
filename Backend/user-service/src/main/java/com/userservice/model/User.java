@@ -17,24 +17,13 @@ import java.time.LocalDateTime;
 @Table(
         name = "users2",
         indexes = {
-
-                // Primary lookup (though PK is auto-indexed)
-                @Index(name = "idx_users2_prn", columnList = "prn"),
-
-                // Login lookups
-                @Index(name = "idx_users2_username", columnList = "username"),
-
-                // Email verification lookups
-                @Index(name = "idx_users2_email", columnList = "email"),
-
-                // Role-based filtering
-                @Index(name = "idx_users2_role", columnList = "role"),
-
-                // Profile completion queries
-                @Index(name = "idx_users2_profile_completed", columnList = "profileCompleted"),
-
-                // Verification status
-                @Index(name = "idx_users2_is_verified", columnList = "is_verified")
+                @Index(name = "idx_users2_prn",                        columnList = "prn"),
+                @Index(name = "idx_users2_username",                   columnList = "username"),
+                @Index(name = "idx_users2_email",                      columnList = "email"),
+                @Index(name = "idx_users2_role",                       columnList = "role"),
+                @Index(name = "idx_users2_profile_completed",          columnList = "profileCompleted"),
+                @Index(name = "idx_users2_is_verified",                columnList = "is_verified"),
+                @Index(name = "idx_users2_profile_completed_created_at", columnList = "profileCompleted, createdAt")
         }
 )
 @Data
@@ -42,6 +31,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class User implements Serializable {
+
     @Id
     @Column(nullable = false, unique = true, length = 20)
     @NotBlank(message = "PRN is required")
@@ -60,7 +50,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    // new fields for OTP / verification
     @Column(name = "is_verified")
     private boolean isVerified = false;
 

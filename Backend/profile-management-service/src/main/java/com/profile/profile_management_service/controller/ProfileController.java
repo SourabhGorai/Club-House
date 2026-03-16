@@ -646,4 +646,16 @@ public class ProfileController {
                 .build());
     }
 
+    @GetMapping("/getDataForNotification/{prn}")
+    public ResponseEntity<ApiResponse<RawResponseForNotification>> getRawResponse(
+            @PathVariable String prn
+    ) {
+        log.info("Request received to get raw response for notification");
+        RawResponseForNotification resp = profileService.getRawData(prn);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Fetched successful",
+                resp
+        ));
+    }
+
 }

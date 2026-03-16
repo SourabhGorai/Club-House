@@ -19,9 +19,8 @@ import java.util.List;
 public class IncompleteRegistrationCleanupScheduler {
 
     private final UserRepository userRepository;
-    private final CacheManager cacheManager; // add to constructor (Lombok handles it)
+    private final CacheManager cacheManager;
 
-    // Add this helper method
     private void evictCachesForUsers(List<User> users) {
         Cache userByPrn      = cacheManager.getCache("userByPrn");
         Cache userByUsername = cacheManager.getCache("userByUsername");
@@ -37,19 +36,15 @@ public class IncompleteRegistrationCleanupScheduler {
     }
 
     /**
-     * Runs every 7 days at 3:00 AM.
-     *
      * Permanently deletes users who:
      *   - Registered more than 7 days ago
      *   - Never completed their profile (profileCompleted = false)
      *
-     * These are considered abandoned registrations — the user signed up
-     * but never followed through with profile creation.
-     *
-     * Processed in batches of 100 to avoid locking the table.
+     * NOT @Transactional at the top level — each batch manages its own
+     * transaction via deleteBatch(), so a failure in one batch doesn't
+     * roll back the successfully deleted batches before it.
      */
-    @Scheduled(cron = "0 0 3 * * MON")   // 3:00 AM every Monday
-    @Transactional
+    @Scheduled(cron = "0 0 0 * * *")   // midnight every day
     public void cleanupIncompleteRegistrations() {
         LocalDateTime cutoff = LocalDateTime.now().minusWeeks(1);
 
@@ -64,28 +59,33 @@ public class IncompleteRegistrationCleanupScheduler {
 
         log.info("Found {} incomplete registrations older than 7 days", incomplete.size());
 
-        int batchSize = 100;
+        int batchSize    = 100;
         int totalDeleted = 0;
 
         for (int i = 0; i < incomplete.size(); i += batchSize) {
             List<User> batch = incomplete.subList(i, Math.min(i + batchSize, incomplete.size()));
-            List<String> batchPrns = batch.stream()
-                    .map(User::getPrn)
-                    .toList();
-
             try {
-                int deleted = userRepository.deleteByPrns(batchPrns);
+                int deleted = deleteBatch(batch);
                 totalDeleted += deleted;
-                evictCachesForUsers(batch);
-                log.debug("Deleted batch of {} users (prns: {})", deleted, batchPrns);
-
+                log.debug("Deleted batch of {} users", deleted);
             } catch (Exception e) {
-                // Log and continue — don't let one bad batch abort the entire run
                 log.error("Failed to delete batch starting at index {}: {}", i, e.getMessage(), e);
             }
         }
 
         log.info("Incomplete registration cleanup complete — deleted {} of {} users",
                 totalDeleted, incomplete.size());
+    }
+
+    /**
+     * Wraps a single batch delete in its own transaction.
+     * If this batch fails it rolls back only itself — other batches are unaffected.
+     */
+    @Transactional
+    public int deleteBatch(List<User> batch) {
+        List<String> prns = batch.stream().map(User::getPrn).toList();
+        int deleted = userRepository.deleteByPrns(prns);
+        evictCachesForUsers(batch);
+        return deleted;
     }
 }

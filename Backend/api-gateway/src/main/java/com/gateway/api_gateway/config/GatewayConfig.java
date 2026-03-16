@@ -130,7 +130,7 @@ public class GatewayConfig {
 
                 // Create profile - USERS and SUPER_ADMIN (USERS create their own, SUPER_ADMIN can create for others)
                 .route("profile-create", r -> r
-                        .path("/api/profiles")
+                        .path("/api/profiles/create")
                         .and()
                         .method("POST")
                         .filters(f -> f

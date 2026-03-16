@@ -41,6 +41,7 @@ public class UserController {
         return ResponseEntity.ok(dto);
     }
 
+
     // PUT /api/users/{id} -> update (password/email/role optional)
     @PutMapping("/{prn}")
     public ResponseEntity<UserDto> updateUser(@PathVariable String prn, @RequestBody UserUpdateDto dto) {

@@ -20,6 +20,7 @@ public class UserMapper {
                 .role(u.getRole())
                 .verified(u.isVerified())
                 .profileCompleted(u.isProfileCompleted())
+                .createdAt(u.getCreatedAt())
                 .build();
     }
 
