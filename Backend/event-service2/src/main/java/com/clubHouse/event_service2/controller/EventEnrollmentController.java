@@ -1,5 +1,6 @@
 package com.clubHouse.event_service2.controller;
 
+import com.clubHouse.event_service2.dto.request.RestartEnrollmentRequest;
 import com.clubHouse.event_service2.dto.response.ApiResponse;
 import com.clubHouse.event_service2.dto.response.CompleteEnrollmentResponse;
 import com.clubHouse.event_service2.dto.response.EnrollmentResponse;
@@ -114,4 +115,5 @@ public class EventEnrollmentController {
         ));
 
     }
+
 }

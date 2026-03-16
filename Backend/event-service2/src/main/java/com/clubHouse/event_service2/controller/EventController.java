@@ -1,5 +1,6 @@
 package com.clubHouse.event_service2.controller;
 
+import com.clubHouse.event_service2.dto.request.RestartEnrollmentRequest;
 import com.clubHouse.event_service2.dto.response.ApiResponse;
 import com.clubHouse.event_service2.dto.request.EventRequest;
 import com.clubHouse.event_service2.dto.response.EventResponse;
@@ -396,6 +397,20 @@ public class EventController {
                 "Event updated successfully",
                 resp
         ));
+    }
+
+    @PutMapping("/restartEnrollment")
+    public ResponseEntity<ApiResponse<Void>> restartEnrollment(
+            @RequestBody RestartEnrollmentRequest req
+    ){
+
+        log.info("Request received to restart enrollment with ID: {}", req.getEventId());
+        eventService.restartEnrollment(req);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Enrollment started successfully",
+                null
+        ));
+
     }
 
     // need an endpoint to fetch total events for me (global, dept, club)

@@ -4,9 +4,12 @@ import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.request.RatingRequest;
 import com.clubHouse.event_service2.dto.response.RatingResponse;
 import com.clubHouse.event_service2.exception.NotFoundException;
+import com.clubHouse.event_service2.exception.ServiceException;
 import com.clubHouse.event_service2.mapper.RatingsMapper;
+import com.clubHouse.event_service2.model.Attendance;
 import com.clubHouse.event_service2.model.Events;
 import com.clubHouse.event_service2.model.Ratings;
+import com.clubHouse.event_service2.repository.AttendanceRepository;
 import com.clubHouse.event_service2.repository.EventRepository;
 import com.clubHouse.event_service2.repository.RatingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -25,6 +29,7 @@ public class RatingsService {
 
     private final RatingsRepository ratingsRepository;
     private final EventRepository eventRepository;
+    private final AttendanceRepository attendanceRepository;
 
     @Transactional
     @Caching(evict = {
@@ -50,6 +55,19 @@ public class RatingsService {
         Events event = eventRepository.findById(req.getEventId()).orElseThrow(
                 () -> new NotFoundException("Event", req.getEventId().toString())
         );
+
+        Optional<Attendance> attendance = attendanceRepository.findByEventAndPrn(event, prn);
+
+        if(attendance.isEmpty()){
+            throw new ServiceException(
+                    "You cant give ratings to the event since you didn't attended it."
+            );
+        }else{
+            Attendance getAttendance = attendance.get();
+            getAttendance.setRated(true);
+            getAttendance.setRatings(req.getRating());
+        }
+
         Ratings eventRating = ratingsRepository.findByEvent(event);
 
         eventRating.setRatingSum(eventRating.getRatingSum() + req.getRating());

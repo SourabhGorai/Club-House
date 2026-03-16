@@ -3,6 +3,7 @@ package com.clubHouse.event_service2.service;
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.request.EventRequest;
+import com.clubHouse.event_service2.dto.request.RestartEnrollmentRequest;
 import com.clubHouse.event_service2.dto.response.EventResponse;
 import com.clubHouse.event_service2.dto.response.PageResponse;
 import com.clubHouse.event_service2.dto.response.ProfileResponse;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -464,6 +466,39 @@ public class EventService {
         targetDataRepository.deleteByEvents_EventId(eventId);
         ratingsRepository.deleteByEvent_EventId(eventId);
         eventRepository.deleteById(eventId);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.EVENT_BY_ID, key = "#req.eventId"),
+            @CacheEvict(value = CacheConfig.ALL_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_TYPE, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_RATING, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#req.eventId")
+    })
+    @Transactional
+    public void restartEnrollment(RestartEnrollmentRequest req) {
+        log.info("Attempting to re-start enrollment time");
+
+        Events event = eventRepository.findById(req.getEventId()).orElseThrow(
+                () -> new NotFoundException("Events", req.getEventId().toString())
+        );
+
+        if(event.isCompleted() || LocalDateTime.now().isAfter(event.getEventDate())){
+            throw new ServiceException("Either the event is completed or the event is already started");
+        }
+
+        event.setEnrollmentStatus("OPEN");
+        event.setEnrollmentDeadline(req.getEnrollmentDeadline());
+
+        eventRepository.save(event);
     }
 
     // ── Private Helpers ─────────────────────────────────────────────────────────

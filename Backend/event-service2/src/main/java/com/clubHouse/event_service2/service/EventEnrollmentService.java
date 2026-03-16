@@ -2,6 +2,7 @@ package com.clubHouse.event_service2.service;
 
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.config.CacheConfig;
+import com.clubHouse.event_service2.dto.request.RestartEnrollmentRequest;
 import com.clubHouse.event_service2.dto.response.CompleteEnrollmentResponse;
 import com.clubHouse.event_service2.dto.response.EnrollmentResponse;
 import com.clubHouse.event_service2.dto.response.EventResponse;

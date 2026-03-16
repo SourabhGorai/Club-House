@@ -338,6 +338,7 @@ const TeacherEvents = () => {
   const [showCreatedEvents,setShowCreatedEvents] = useState(false);
   const [selectedStatus,   setSelectedStatus  ] = useState("all");
   const [completedFilter,  setCompletedFilter ] = useState("all");
+  const [selectedRating,   setSelectedRating  ] = useState("all");
 
   // ── Pagination ──────────────────────────────────────────────────
   const [currentPage,    setCurrentPage  ] = useState(0);
@@ -390,6 +391,15 @@ const TeacherEvents = () => {
     { value: "date",       label: "Sort by Date"       },
     { value: "popularity", label: "Sort by Popularity" },
     { value: "enrollment", label: "Sort by Capacity"   },
+    { value: "ratings",    label: "Sort by Ratings"    },
+  ];
+  const ratingOptions = [
+    { value: "all", label: "Ratings" },
+    { value: "1",   label: "1+"      },
+    { value: "2",   label: "2+"      },
+    { value: "3",   label: "3+"      },
+    { value: "4",   label: "4+"      },
+    { value: "5",   label: "5"       },
   ];
 
   // ── Init ────────────────────────────────────────────────────────
@@ -659,6 +669,36 @@ const TeacherEvents = () => {
     }
   };
 
+  const fetchEventsByRatingsPaged = async (rating, page = 0, size = pageSize) => {
+    try {
+      setLoading(true);
+      const token      = localStorage.getItem("token");
+      const user       = JSON.parse(localStorage.getItem("user"));
+      const currentPrn = user?.prn || userPrn;
+      const headers    = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      const response   = await axios.get(
+        `${BASE_URL}/api/events/ratings/${rating}/paged`,
+        { headers, params: { page, size } },
+      );
+      if (response.data.success) {
+        const pageData = response.data.data;
+        let fetched = pageData.content || [];
+        fetched = await enrichWithCreatorNames(token, fetched);
+        fetched = fetched.filter((event) =>
+          isEventVisibleToUser(event, deptId, userClubs, currentPrn, true),
+        );
+        setEvents(fetched);
+        setAllEvents(fetched);
+        applyPageResponse(pageData);
+      }
+    } catch (err) {
+      console.error("Error fetching events by ratings:", err);
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ── Page change ────────────────────────────────────────────────
   const handlePageChange = (newPage) => {
     if (newPage < 0 || newPage >= totalPages) return;
@@ -668,6 +708,8 @@ const TeacherEvents = () => {
       fetchEventsByCompletedStatusPaged(completedFilter === "completed", newPage, pageSize);
     } else if (selectedStatus !== "all") {
       fetchEventsByDeadlinePaged(selectedStatus.toUpperCase(), newPage, pageSize);
+    } else if (selectedRating !== "all") {
+      fetchEventsByRatingsPaged(Number(selectedRating), newPage, pageSize);
     } else {
       fetchEventsPaged(token, "TEACHER", filterType, selectedClubId || deptId, newPage, pageSize);
     }
@@ -682,6 +724,8 @@ const TeacherEvents = () => {
       fetchEventsByCompletedStatusPaged(completedFilter === "completed", 0, newSize);
     } else if (selectedStatus !== "all") {
       fetchEventsByDeadlinePaged(selectedStatus.toUpperCase(), 0, newSize);
+    } else if (selectedRating !== "all") {
+      fetchEventsByRatingsPaged(Number(selectedRating), 0, newSize);
     } else {
       fetchEventsPaged(token, "TEACHER", filterType, selectedClubId || deptId, 0, newSize);
     }
@@ -699,6 +743,7 @@ const TeacherEvents = () => {
       setShowClubDropdown(false);
       setCompletedFilter("all");
       setSelectedStatus("all");
+      setSelectedRating("all");
     };
 
     if (newFilterType === "CREATED") {
@@ -715,6 +760,7 @@ const TeacherEvents = () => {
 
   const handleCompletedFilterChange = async (value) => {
     setCompletedFilter(value);
+    setSelectedRating("all");
     setCurrentPage(0);
     if (value === "all") {
       const token = localStorage.getItem("token");
@@ -726,6 +772,7 @@ const TeacherEvents = () => {
 
   const handleStatusFilterChange = async (value) => {
     setSelectedStatus(value);
+    setSelectedRating("all");
     setCurrentPage(0);
     if (value === "all") {
       const token = localStorage.getItem("token");
@@ -735,10 +782,24 @@ const TeacherEvents = () => {
     }
   };
 
+  const handleRatingFilterChange = async (value) => {
+    setSelectedRating(value);
+    setSelectedStatus("all");
+    setCompletedFilter("all");
+    setCurrentPage(0);
+    if (value === "all") {
+      const token = localStorage.getItem("token");
+      await fetchEventsPaged(token, "TEACHER", filterType, selectedClubId || deptId, 0, pageSize);
+    } else {
+      await fetchEventsByRatingsPaged(Number(value), 0, pageSize);
+    }
+  };
+
   const clearAllFilters = () => {
     setSearchTerm("");
     setSelectedStatus("all");
     setCompletedFilter("all");
+    setSelectedRating("all");
     setFilterType("GLOBAL");
     setSelectedClubId("");
     setShowCreatedEvents(false);
@@ -756,6 +817,13 @@ const TeacherEvents = () => {
 
   const removeCompletedFilter = () => {
     setCompletedFilter("all");
+    setCurrentPage(0);
+    const token = localStorage.getItem("token");
+    fetchEventsPaged(token, "TEACHER", filterType, selectedClubId || deptId, 0, pageSize);
+  };
+
+  const removeRatingFilter = () => {
+    setSelectedRating("all");
     setCurrentPage(0);
     const token = localStorage.getItem("token");
     fetchEventsPaged(token, "TEACHER", filterType, selectedClubId || deptId, 0, pageSize);
@@ -840,6 +908,7 @@ const TeacherEvents = () => {
       case "date":       filtered.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));          break;
       case "popularity": filtered.sort((a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0)); break;
       case "enrollment": filtered.sort((a, b) => (b.maxEnrollments  || 0) - (a.maxEnrollments  || 0)); break;
+      case "ratings":    filtered.sort((a, b) => (Number(b.ratings) || 0) - (Number(a.ratings) || 0)); break;
       default: break;
     }
     return filtered;
@@ -1047,7 +1116,7 @@ const TeacherEvents = () => {
               </div>
 
               {/* Active filter chips */}
-              {(filterType !== "GLOBAL" || selectedStatus !== "all" || completedFilter !== "all" || selectedClubId || showCreatedEvents) && (
+              {(filterType !== "GLOBAL" || selectedStatus !== "all" || completedFilter !== "all" || selectedRating !== "all" || selectedClubId || showCreatedEvents) && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-gray-600 mr-2">Active Filters:</span>
@@ -1079,6 +1148,12 @@ const TeacherEvents = () => {
                       <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center">
                         Completed: {completedFilter === "completed" ? "Yes" : "No"}
                         <button onClick={removeCompletedFilter} className="ml-2 hover:text-purple-900"><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                    {selectedRating !== "all" && (
+                      <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm flex items-center">
+                        Rating: {selectedRating}+
+                        <button onClick={removeRatingFilter} className="ml-2 hover:text-amber-900"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     <button onClick={clearAllFilters} className="px-3 py-1 text-red-600 hover:text-red-800 text-sm font-medium ml-auto">Clear All</button>
@@ -1119,6 +1194,9 @@ const TeacherEvents = () => {
                         </div>
                         <div className="w-48">
                           <CustomSelect name="completedFilter" value={completedFilter} onChange={(e) => handleCompletedFilterChange(e.target.value)} options={completedStatusOptions} placeholder="Completed Status" />
+                        </div>
+                        <div className="w-48">
+                          <CustomSelect name="selectedRating" value={selectedRating} onChange={(e) => handleRatingFilterChange(e.target.value)} options={ratingOptions} placeholder="Ratings" />
                         </div>
                       </div>
                     </div>
@@ -1216,6 +1294,8 @@ const TeacherEvents = () => {
                     const targetTypeColor = getTargetTypeColor(event.targetType);
                     const isCreator       = event.creatorPrn === userPrn;
                     const isActive        = activeAttendanceEvents[event.eventId];
+                    const overallRating   = Number(event.ratings);
+                    const hasOverallRating = Number.isFinite(overallRating) && overallRating > 0;
 
                     return (
                       <div key={event.eventId} className="event-card-container animate-[fadeIn_0.5s_ease-in-out]" style={{ animationDelay: `${index * 100}ms` }}>
@@ -1242,6 +1322,14 @@ const TeacherEvents = () => {
                                 <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full flex items-center shadow-lg animate-pulse">
                                   <span className="w-1.5 h-1.5 bg-white rounded-full mr-1"></span>
                                   <span className="text-[10px] font-semibold">LIVE</span>
+                                </div>
+                              )}
+                              {event.completed && hasOverallRating && (
+                                <div className="absolute bottom-2 left-2 z-10 flex items-center gap-0.5 bg-black/35 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                                  <Star className="w-2.5 h-2.5" style={{ fill: "#FBBF24", color: "#FBBF24" }} />
+                                  <span className="text-white text-[10px] font-bold leading-none">
+                                    {overallRating.toFixed(1)}
+                                  </span>
                                 </div>
                               )}
                               <div className="absolute bottom-2 right-2 text-right">
@@ -1281,6 +1369,23 @@ const TeacherEvents = () => {
                                   <span className="ml-1 capitalize text-xs">{event.targetType || "N/A"}</span>
                                 </span>
                               </div>
+                              {event.completed && hasOverallRating && (
+                                <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                      <Star
+                                        key={s}
+                                        className="w-2.5 h-2.5"
+                                        style={{
+                                          fill: s <= Math.round(overallRating) ? "#FBBF24" : "#E5E7EB",
+                                          color: s <= Math.round(overallRating) ? "#FBBF24" : "#E5E7EB",
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-[10px] text-gray-500 font-medium">{overallRating.toFixed(1)}</span>
+                                </div>
+                              )}
                               <div className="text-center text-[8px] mt-1 flex items-center justify-center text-purple-600">
                                 <span className="animate-pulse mr-1 text-[6px]">●</span>
                                 Hover to view all details

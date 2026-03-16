@@ -285,6 +285,8 @@ public class AttendanceService {
                 .status(AttendanceStatus.PRESENT)
                 .deviceInfo(request.getDeviceInfo())
                 .ipAddress(httpRequest.getRemoteAddr())
+                .rated(false)
+                .ratings(0)
                 .build();
 
         attendanceRepository.save(attendance);
@@ -296,7 +298,9 @@ public class AttendanceService {
                 eventId,
                 prn,
                 attendance.getMarkedAt(),
-                distance
+                distance,
+                false, // boolean gaveRatings
+                0
         );
 
         return ApiResponse.success("Attendance marked successfully", response);
@@ -394,6 +398,8 @@ public class AttendanceService {
                         .status(a.getStatus())
                         .markedAt(a.getMarkedAt())
                         .distanceFromVenue(a.getDistanceFromVenue())
+                        .rated(a.isRated())
+                        .ratings(a.getRatings())
                         .success(true)
                         .build())
                 .collect(Collectors.toList());
@@ -423,6 +429,8 @@ public class AttendanceService {
                 .status(attendance.getStatus())
                 .markedAt(attendance.getMarkedAt())
                 .distanceFromVenue(attendance.getDistanceFromVenue())
+                .rated(attendance.isRated())
+                .ratings(attendance.getRatings())
                 .message("Attendance marked")
                 .build();
 

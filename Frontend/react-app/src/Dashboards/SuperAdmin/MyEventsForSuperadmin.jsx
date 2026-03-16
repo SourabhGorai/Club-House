@@ -39,6 +39,7 @@ const authHeaders = (token) => ({ Authorization: `Bearer ${token}`, "Content-Typ
 //   { kind: "all" }
 //   { kind: "enrollment", status: "OPEN" | "CLOSED" }
 //   { kind: "completed",  value: "true" | "false" }
+//   { kind: "ratings",    rating: number }
 //   { kind: "targetType", targetType: "GLOBAL" | "DEPARTMENT" | "CLUB" }
 //   { kind: "targetData", targetType: "DEPARTMENT" | "CLUB", targetId: number }
 const buildUrl = (descriptor, page) => {
@@ -47,6 +48,7 @@ const buildUrl = (descriptor, page) => {
     case "all":        return `${BASE_URL}/api/events/paged?${p}`;
     case "enrollment": return `${BASE_URL}/api/events/enrollment/${descriptor.status}/paged?${p}`;
     case "completed":  return `${BASE_URL}/api/events/endEvent/${descriptor.value}/paged?${p}`;
+    case "ratings":    return `${BASE_URL}/api/events/ratings/${descriptor.rating}/paged?${p}`;
     case "targetType": return `${BASE_URL}/api/events/getByTargetType/${descriptor.targetType}/paged?${p}`;
     case "targetData": return `${BASE_URL}/api/events/targetData/${descriptor.targetType}/${descriptor.targetId}/paged?${p}`;
     default:           return `${BASE_URL}/api/events/paged?${p}`;
@@ -112,6 +114,7 @@ const MyEventsForSuperadmin = () => {
   const [selectedClub, setSelectedClub]             = useState("all");
   const [selectedStatus, setSelectedStatus]         = useState("all");
   const [selectedCompleted, setSelectedCompleted]   = useState("all");
+  const [selectedRating, setSelectedRating]         = useState("all");
 
   // ── Client-side only (search + sort) ──────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
@@ -219,6 +222,7 @@ const MyEventsForSuperadmin = () => {
     setSelectedClub("all");
     setSelectedStatus("all");
     setSelectedCompleted("all");
+    setSelectedRating("all");
     applyDescriptor(next === "all" ? { kind: "all" } : { kind: "targetType", targetType: next });
   };
 
@@ -228,6 +232,7 @@ const MyEventsForSuperadmin = () => {
     setSelectedClub("all");
     setSelectedStatus("all");
     setSelectedCompleted("all");
+    setSelectedRating("all");
     setFilterType(value === "all" ? "all" : "DEPARTMENT");
     applyDescriptor(
       value === "all"
@@ -242,6 +247,7 @@ const MyEventsForSuperadmin = () => {
     setSelectedDepartment("all");
     setSelectedStatus("all");
     setSelectedCompleted("all");
+    setSelectedRating("all");
     setFilterType(value === "all" ? "all" : "CLUB");
     applyDescriptor(
       value === "all"
@@ -257,6 +263,7 @@ const MyEventsForSuperadmin = () => {
     setFilterType("all");
     setSelectedDepartment("all");
     setSelectedClub("all");
+    setSelectedRating("all");
     applyDescriptor(value === "all" ? { kind: "all" } : { kind: "enrollment", status: value.toUpperCase() });
   };
 
@@ -267,7 +274,19 @@ const MyEventsForSuperadmin = () => {
     setFilterType("all");
     setSelectedDepartment("all");
     setSelectedClub("all");
+    setSelectedRating("all");
     applyDescriptor(value === "all" ? { kind: "all" } : { kind: "completed", value: value === "completed" ? "true" : "false" });
+  };
+
+  // Ratings filter (minimum rating) → /ratings/{rating}/paged
+  const handleRatingsFilterChange = (value) => {
+    setSelectedRating(value);
+    setSelectedStatus("all");
+    setSelectedCompleted("all");
+    setFilterType("all");
+    setSelectedDepartment("all");
+    setSelectedClub("all");
+    applyDescriptor(value === "all" ? { kind: "all" } : { kind: "ratings", rating: parseInt(value) });
   };
 
   const clearAllFilters = () => {
@@ -277,6 +296,7 @@ const MyEventsForSuperadmin = () => {
     setSelectedClub("all");
     setSelectedStatus("all");
     setSelectedCompleted("all");
+    setSelectedRating("all");
     applyDescriptor({ kind: "all" });
   };
 
@@ -321,6 +341,7 @@ const MyEventsForSuperadmin = () => {
       case "date":       list.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)); break;
       case "popularity": list.sort((a, b) => (b.currEnrollments || 0) - (a.currEnrollments || 0)); break;
       case "enrollment": list.sort((a, b) => (b.maxEnrollments  || 0) - (a.maxEnrollments  || 0)); break;
+      case "ratings":    list.sort((a, b) => (Number(b.ratings) || 0) - (Number(a.ratings) || 0)); break;
     }
     return list;
   })();
@@ -532,6 +553,7 @@ const MyEventsForSuperadmin = () => {
                       { value: "date",       label: "Sort by Date" },
                       { value: "popularity", label: "Sort by Popularity" },
                       { value: "enrollment", label: "Sort by Capacity" },
+                      { value: "ratings",    label: "Sort by Ratings" },
                     ]}
                   />
                 </div>
@@ -570,6 +592,12 @@ const MyEventsForSuperadmin = () => {
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm flex items-center">
                         Completion: {selectedCompleted === "completed" ? "Completed" : "Not Completed"}
                         <button onClick={() => handleCompletedStatusChange("all")} className="ml-2"><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                    {selectedRating !== "all" && (
+                      <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm flex items-center">
+                        Rating: {selectedRating}+
+                        <button onClick={() => handleRatingsFilterChange("all")} className="ml-2"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     {searchTerm && (
@@ -611,7 +639,7 @@ const MyEventsForSuperadmin = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                       <CustomSelect
@@ -648,6 +676,21 @@ const MyEventsForSuperadmin = () => {
                         value={selectedCompleted}
                         onChange={(e) => handleCompletedStatusChange(e.target.value)}
                         options={[{ value: "all", label: "All Events" }, { value: "completed", label: "Completed" }, { value: "not-completed", label: "Not Completed" }]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ratings</label>
+                      <CustomSelect
+                        value={selectedRating}
+                        onChange={(e) => handleRatingsFilterChange(e.target.value)}
+                        options={[
+                          { value: "all", label: "All Ratings" },
+                          { value: "1", label: "1+" },
+                          { value: "2", label: "2+" },
+                          { value: "3", label: "3+" },
+                          { value: "4", label: "4+" },
+                          { value: "5", label: "5" },
+                        ]}
                       />
                     </div>
                   </div>
@@ -703,6 +746,8 @@ const MyEventsForSuperadmin = () => {
                   const daysUntil       = getDaysUntil(event.dateTime);
                   const targetTypeColor = getTargetTypeColor(event.targetType);
                   const enrollmentPct   = Math.min(100, ((event.currEnrollments || 0) / (event.maxEnrollments || 1)) * 100);
+                  const overallRating   = Number(event.ratings);
+                  const hasOverallRating = Number.isFinite(overallRating) && overallRating > 0;
 
                   return (
                     <div key={event.eventId} className="event-card-container" style={{ animationDelay: `${index * 80}ms` }}>
@@ -724,6 +769,14 @@ const MyEventsForSuperadmin = () => {
                                 {event.completed ? "Completed" : "Upcoming"}
                               </span>
                             </div>
+                            {event.completed && hasOverallRating && (
+                              <div className="absolute bottom-2 left-2 z-10 flex items-center gap-0.5 bg-black/35 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                                <Star className="w-2.5 h-2.5" style={{ fill: "#FBBF24", color: "#FBBF24" }} />
+                                <span className="text-white text-[10px] font-bold leading-none">
+                                  {overallRating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
                             <div className="absolute bottom-2 right-2 text-right">
                               <h3 className="text-sm font-bold text-white mb-0.5 line-clamp-1">{event.title}</h3>
                               <p className="text-[10px] text-white/80 line-clamp-1">{event.description}</p>
@@ -758,6 +811,23 @@ const MyEventsForSuperadmin = () => {
                                 {getTargetTypeIcon(event.targetType)}<span className="ml-1 capitalize text-xs">{event.targetType || "N/A"}</span>
                               </span>
                             </div>
+                            {event.completed && hasOverallRating && (
+                              <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className="w-2.5 h-2.5"
+                                      style={{
+                                        fill: s <= Math.round(overallRating) ? "#FBBF24" : "#E5E7EB",
+                                        color: s <= Math.round(overallRating) ? "#FBBF24" : "#E5E7EB",
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-[10px] text-gray-500 font-medium">{overallRating.toFixed(1)}</span>
+                              </div>
+                            )}
                             <div className="text-center text-[8px] mt-1 flex items-center justify-center" style={{ color: "#4CA1AF" }}>
                               <span className="animate-pulse mr-1 text-[6px]">●</span>Hover to view all details
                             </div>

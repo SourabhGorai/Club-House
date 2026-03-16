@@ -14,22 +14,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AttendanceResponse implements Serializable {
-    
+
     private Long attendanceId;
     private Long eventId;
     private String prn;
     private AttendanceStatus status;
     private LocalDateTime markedAt;
     private Double distanceFromVenue;
-    
+    private boolean rated;
+    private Integer ratings;
+
     // For error responses
     private boolean success;
     private String message;
     private String errorCode;
-    
-    public static AttendanceResponse success(Long attendanceId, Long eventId, 
-                                            String prn, LocalDateTime markedAt, 
-                                            Double distance) {
+
+    public static AttendanceResponse success(Long attendanceId, Long eventId,
+                                             String prn, LocalDateTime markedAt,
+                                             Double distance, boolean rated,
+                                             Integer ratings) {
         return AttendanceResponse.builder()
                 .success(true)
                 .attendanceId(attendanceId)
@@ -38,10 +41,12 @@ public class AttendanceResponse implements Serializable {
                 .status(AttendanceStatus.PRESENT)
                 .markedAt(markedAt)
                 .distanceFromVenue(distance)
+                .rated(rated)
+                .ratings(ratings)
                 .message("Attendance marked successfully")
                 .build();
     }
-    
+
     public static AttendanceResponse error(String errorCode, String message) {
         return AttendanceResponse.builder()
                 .success(false)

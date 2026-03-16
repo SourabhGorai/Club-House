@@ -60,4 +60,7 @@ public class Attendance implements Serializable {
     // Audit fields (optional but recommended)
     private String deviceInfo;
     private String ipAddress;
+
+    private boolean rated = false;
+    private Integer ratings;
 }
