@@ -1670,7 +1670,7 @@ export default function ManageClubs() {
             {/* LEFT PANEL */}
             <div className="hidden lg:flex lg:w-1/3 border-r border-gray-100 flex-col p-6 bg-gray-50/20">
               <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: '#2d8391' }}>Your Clubs</h2>
-              <div className="overflow-y-auto max-h-96 space-y-2 pr-2">
+              <div className="overflow-y-auto max-h-[600px] space-y-2 pr-2">
                 {clubs.map((club) => (
                   <div key={club.clubId} className={`club-item p-4 rounded-xl cursor-pointer ${selectedClub?.clubId === club.clubId ? "active" : "hover:bg-white"}`} onClick={() => handleSelectClub(club)}>
                     <div className="flex flex-col">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
@@ -195,6 +195,8 @@ const UserRemoveFromClub = () => {
   // Pagination state
   const PAGE_SIZE = 10;
   const [currentPage, setCurrentPage] = useState(0);
+  const pagedUsers = filteredUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const [expandedMobileCard, setExpandedMobileCard] = useState(null);
 
   // prn -> blob URL
   const [profileImages, setProfileImages] = useState({});
@@ -365,8 +367,13 @@ const UserRemoveFromClub = () => {
       );
     }
     if (selectedClub) {
+      const selectedClubKey = String(selectedClub);
       filtered = filtered.filter(
-        (user) => user.clubId && user.clubId.toString() === selectedClub,
+        (user) => {
+          const byClubId = user.clubId != null && String(user.clubId) === selectedClubKey;
+          const byClubName = user.clubName != null && String(user.clubName) === selectedClubKey;
+          return byClubId || byClubName;
+        },
       );
     }
     setFilteredUsers(filtered);
@@ -376,6 +383,10 @@ const UserRemoveFromClub = () => {
   useEffect(() => {
     setCurrentPage(0);
   }, [searchTerm, selectedClub, userClubs, teacherStudents]);
+
+  useEffect(() => {
+    setExpandedMobileCard(null);
+  }, [currentPage, searchTerm, selectedClub]);
 
   const handleRemoveUser = async (user) => {
     const { prn, clubName, name, clubId, role, tenure } = user;
@@ -523,17 +534,17 @@ const UserRemoveFromClub = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8 relative z-10">
         {/* 1. Header */}
         <div className="mb-8">
           <div
             className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
             style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
           ></div>
-          <h1 className="text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-[#4CA1AF] to-[#162F38] bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight bg-gradient-to-r from-[#4CA1AF] to-[#162F38] bg-clip-text text-transparent">
             User Club Association
           </h1>
-          <p className="text-slate-500 mt-2 text-lg font-medium">
+          <p className="text-slate-500 mt-2 text-base sm:text-lg font-medium">
             Refine your organization by managing club rosters and permissions.
           </p>
         </div>
@@ -558,7 +569,7 @@ const UserRemoveFromClub = () => {
               options={[
                 { value: "", label: "All Clubs" },
                 ...teacherClubs.map((club) => ({
-                  value: club.clubId,
+                  value: String(club.clubId),
                   label: `${club.clubName} • ${club.role}`,
                 })),
               ]}
@@ -586,18 +597,18 @@ const UserRemoveFromClub = () => {
 
         {/* Teacher Dashboard Banner */}
         {teacherClubs.length > 0 && (
-          <div className="mb-6 p-6 border rounded-[2rem] shadow-xl" style={{ background: "linear-gradient(to right, rgba(76,161,175,0.1), rgba(49,81,105,0.1))", borderColor: "rgba(76,161,175,0.2)" }}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="mb-6 p-4 sm:p-6 border rounded-[1.5rem] sm:rounded-[2rem] shadow-xl" style={{ background: "linear-gradient(to right, rgba(76,161,175,0.1), rgba(49,81,105,0.1))", borderColor: "rgba(76,161,175,0.2)" }}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-3 rounded-2xl" style={{ backgroundColor: "rgba(190,166,108,0.15)", color: "#ef9d0f" }}>
                   <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black" style={{ color: "#26727e" }}>Teacher Dashboard Mode</h3>
+                    <h3 className="text-lg sm:text-xl font-black" style={{ color: "#26727e" }}>Teacher Dashboard Mode</h3>
                   <p className="text-sm font-medium" style={{ color: "#26727e" }}>Showing students from your assigned clubs</p>
                 </div>
               </div>
-              <div className="text-right">
+                <div className="text-left sm:text-right">
                 <p className="text-sm font-bold" style={{ color: "#26727e" }}>PRN: {teacherPrn}</p>
                 <p className="text-xs" style={{ color: "#26727e" }}>{teacherClubs.length} clubs assigned</p>
               </div>
@@ -630,7 +641,7 @@ const UserRemoveFromClub = () => {
         )}
 
         {/* 4. Table */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
+        <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
           <div className="overflow-x-auto">
             {filteredUsers.length === 0 ? (
               <div className="py-24 text-center">
@@ -641,97 +652,171 @@ const UserRemoveFromClub = () => {
                 <p className="text-slate-500 font-medium">Try broadening your search or adjusting filters.</p>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Member</th>
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Club & Status</th>
-                    <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Education</th>
-                    <th className="px-10 py-6 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((user) => {
+              <>
+                <div className="hidden lg:block">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/50 border-b border-slate-100">
+                        <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Member</th>
+                        <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Club & Status</th>
+                        <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Education</th>
+                        <th className="px-10 py-6 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pagedUsers.map((user) => {
+                        const blobUrl = profileImages[user.prn];
+                        return (
+                          <tr key={user.userClubId} className="group hover:bg-[#4CA1AF]/5 transition-all duration-300">
+                            <td className="px-10 py-6">
+                              <div className="flex items-center space-x-4">
+                                <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                                  {blobUrl ? (
+                                    <img src={blobUrl} alt={user.name} className="w-14 h-14 object-cover rounded-2xl" />
+                                  ) : (
+                                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
+                                      {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-black text-slate-900 text-lg leading-tight transition-colors group-hover:text-[#4CA1AF]">{user.name}</p>
+                                  <p className="text-xs font-bold text-slate-400 mt-1">{user.prn}</p>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-10 py-6">
+                              <div className="flex flex-col space-y-2">
+                                <span className="inline-flex items-center text-sm font-black text-slate-800">
+                                  <Building2 size={16} className="mr-2" style={{ color: "#4CA1AF" }} />
+                                  {user.clubName}
+                                </span>
+                                <div>
+                                  <span
+                                    className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border ${
+                                      user.role === "CLUB_ADMIN" ? "text-purple-700 border-purple-100" : "text-blue-700 border-blue-100"
+                                    }`}
+                                    style={user.role === "CLUB_ADMIN" ? { backgroundColor: "rgba(76,161,175,0.1)" } : { backgroundColor: "rgba(59,130,246,0.1)" }}
+                                  >
+                                    {user.role.replace(/_/g, " ")}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-10 py-6">
+                              <div className="space-y-1">
+                                <div className="flex items-center text-sm font-bold text-slate-700">
+                                  <Briefcase size={14} className="mr-2 text-slate-400" />
+                                  {user.department}
+                                </div>
+                                <p className="text-xs font-bold text-slate-400 ml-5">Year {user.year} • {user.tenure}</p>
+                              </div>
+                            </td>
+
+                            <td className="px-10 py-6">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => setEditingUser(user)}
+                                  className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-90 cursor-pointer"
+                                  title="Edit role"
+                                >
+                                  <Pencil size={18} />
+                                </button>
+                                <button
+                                  onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
+                                  className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-red-500 transition-all shadow-sm active:scale-90 cursor-pointer"
+                                  title="Remove from club"
+                                >
+                                  <UserMinus size={22} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="lg:hidden p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  {pagedUsers.map((user) => {
                     const blobUrl = profileImages[user.prn];
+                    const isExpanded = expandedMobileCard === user.userClubId;
                     return (
-                      <tr key={user.userClubId} className="group hover:bg-[#4CA1AF]/5 transition-all duration-300">
-                        {/* Member */}
-                        <td className="px-10 py-6">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                      <div key={user.userClubId} className="rounded-2xl border border-slate-200 p-4 shadow-sm bg-white">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedMobileCard((prev) => (prev === user.userClubId ? null : user.userClubId))}
+                          className="w-full flex items-center justify-between gap-3 text-left"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 shadow-sm">
                               {blobUrl ? (
-                                <img src={blobUrl} alt={user.name} className="w-14 h-14 object-cover rounded-2xl" />
+                                <img src={blobUrl} alt={user.name} className="w-11 h-11 object-cover rounded-xl" />
                               ) : (
-                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
+                                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black" style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}>
                                   {user.name.charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <p className="font-black text-slate-900 text-lg leading-tight transition-colors group-hover:text-[#4CA1AF]">{user.name}</p>
-                              <p className="text-xs font-bold text-slate-400 mt-1">{user.prn}</p>
+                            <div className="min-w-0">
+                              <p className="font-black text-slate-900 truncate">{user.name}</p>
+                              <p className="text-xs font-bold text-slate-400 mt-0.5">{user.prn}</p>
                             </div>
                           </div>
-                        </td>
+                          <ChevronRight
+                            size={18}
+                            className={`text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+                          />
+                        </button>
 
-                        {/* Club & Status */}
-                        <td className="px-10 py-6">
-                          <div className="flex flex-col space-y-2">
-                            <span className="inline-flex items-center text-sm font-black text-slate-800">
-                              <Building2 size={16} className="mr-2" style={{ color: "#4CA1AF" }} />
-                              {user.clubName}
-                            </span>
-                            <div>
-                              <span
-                                className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border ${
-                                  user.role === "CLUB_ADMIN" ? "text-purple-700 border-purple-100" : "text-blue-700 border-blue-100"
-                                }`}
-                                style={user.role === "CLUB_ADMIN" ? { backgroundColor: "rgba(76,161,175,0.1)" } : { backgroundColor: "rgba(59,130,246,0.1)" }}
+                        {isExpanded && (
+                          <>
+                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                              <div className="flex items-center text-slate-700 font-bold">
+                                <Building2 size={14} className="mr-2 text-[#4CA1AF]" />
+                                <span className="truncate">{user.clubName}</span>
+                              </div>
+                              <div>
+                                <span
+                                  className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border whitespace-nowrap ${
+                                    user.role === "CLUB_ADMIN" ? "text-purple-700 border-purple-100" : "text-blue-700 border-blue-100"
+                                  }`}
+                                  style={user.role === "CLUB_ADMIN" ? { backgroundColor: "rgba(76,161,175,0.1)" } : { backgroundColor: "rgba(59,130,246,0.1)" }}
+                                >
+                                  {user.role.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-slate-700 font-bold sm:col-span-2">
+                                <Briefcase size={14} className="mr-2 text-slate-400" />
+                                <span className="truncate">{user.department}</span>
+                              </div>
+                              <div className="text-xs font-bold text-slate-400 sm:col-span-2">Year {user.year} • {user.tenure}</div>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setEditingUser(user)}
+                                className="inline-flex items-center justify-center h-10 px-3 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-white hover:border-transparent hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-95"
                               >
-                                {user.role.replace(/_/g, " ")}
-                              </span>
+                                <Pencil size={16} className="mr-1.5" /> Edit
+                              </button>
+                              <button
+                                onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
+                                className="inline-flex items-center justify-center h-10 px-3 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-white hover:border-transparent hover:bg-red-500 transition-all shadow-sm active:scale-95"
+                              >
+                                <UserMinus size={16} className="mr-1.5" /> Remove
+                              </button>
                             </div>
-                          </div>
-                        </td>
-
-                        {/* Education */}
-                        <td className="px-10 py-6">
-                          <div className="space-y-1">
-                            <div className="flex items-center text-sm font-bold text-slate-700">
-                              <Briefcase size={14} className="mr-2 text-slate-400" />
-                              {user.department}
-                            </div>
-                            <p className="text-xs font-bold text-slate-400 ml-5">Year {user.year} • {user.tenure}</p>
-                          </div>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-10 py-6">
-                          <div className="flex items-center justify-end gap-2">
-                            {/* Edit Role button */}
-                            <button
-                              onClick={() => setEditingUser(user)}
-                              className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:bg-[#4CA1AF] transition-all shadow-sm active:scale-90 cursor-pointer"
-                              title="Edit role"
-                            >
-                              <Pencil size={18} />
-                            </button>
-
-                            {/* Remove button */}
-                            <button
-                              onClick={() => setConfirmDialog({ isOpen: true, title: "Remove from Club", message: `Are you sure you want to remove ${user.name} from ${user.clubName}?`, confirmText: "Remove", variant: "danger", onConfirm: () => { closeConfirm(); handleRemoveUser(user); } })}
-                              className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-white hover:border-transparent hover:rotate-12 hover:bg-red-500 transition-all shadow-sm active:scale-90 cursor-pointer"
-                              title="Remove from club"
-                            >
-                              <UserMinus size={22} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                          </>
+                        )}
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -792,9 +877,9 @@ const UserRemoveFromClub = () => {
         )}
 
         {/* Footer */}
-        <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 opacity-60">
+        <div className="mt-10 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] px-2 sm:px-6 opacity-60 gap-3">
           <p>Database synchronization active • {filteredUsers.length} Users Listed</p>
-          <div className="flex items-center space-x-6 mt-4 md:mt-0">
+          <div className="flex items-center space-x-4 sm:space-x-6 md:mt-0">
             <span className="flex items-center">
               <span className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm" style={{ backgroundColor: "#4CA1AF" }}></span>
               Admin
