@@ -1,3 +1,2930 @@
+// import { useState, useEffect } from "react";
+// import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+// import ConfirmDialog from "../../components/ConfirmDialog";
+// import {
+//   User,
+//   Upload,
+//   X,
+//   CalendarDays,
+//   Edit,
+//   Users,
+//   Briefcase,
+//   ShieldCheck,
+//   Settings,
+//   Database,
+//   LogOut,
+//   LayoutDashboard,
+//   UserPlus,
+//   ShieldAlert,
+//   Menu,
+//   Camera,
+//   Trash2,
+//   Plus,
+//   Building2,
+//   CalendarPlus,
+//   Mail,
+//   CheckCircle,
+//   AlertCircle,
+//   Bell,
+// } from "lucide-react";
+
+// const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
+// export default function SuperAdminDashboard() {
+//   const navigate = useNavigate();
+
+//   const PRIMARY_COLOR = "#4CA1AF";
+//   const PRIMARY_DARK = "#2d8391";
+//   const PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
+
+//   const user = JSON.parse(localStorage.getItem("user"));
+//   const token = localStorage.getItem("token");
+
+//   const [currentUser, setCurrentUser] = useState({
+//     username: user?.username || "admin_user",
+//     email: user?.email || "admin@college.edu",
+//     role: user?.role || "SUPER_ADMIN",
+//     prn: user?.prn || "2021BCS001",
+//     verified: user?.verified || false,
+//   });
+
+//   // Email update states
+//   const [showEmailEditModal, setShowEmailEditModal] = useState(false);
+//   const [newEmail, setNewEmail] = useState("");
+//   const [emailLoading, setEmailLoading] = useState(false);
+//   const [emailMessage, setEmailMessage] = useState({ text: "", type: "" });
+
+//   // Verification state
+//   const [verificationStatus, setVerificationStatus] = useState(currentUser.verified);
+
+//   const [users, setUsers] = useState([]);
+//   const [stats, setStats] = useState({});
+//   const [clubAdmins, setCount] = useState(0);
+//   const [unreadCount, setUnreadCount] = useState(0);
+//   const [loading, setLoading] = useState(true);
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+//   // Profile states
+//   const [showProfileForm, setShowProfileForm] = useState(false);
+//   const [profileData, setProfileData] = useState({
+//     prn: user?.prn || "",
+//     fullName: "",
+//     department: "",
+//     year: "",
+//     phoneNumber: "",
+//     departmentId: "",
+//   });
+//   const [selectedImage, setSelectedImage] = useState(null);
+//   const [imagePreview, setImagePreview] = useState(null);
+//   const [profileLoading, setProfileLoading] = useState(false);
+//   const [message, setMessage] = useState({ text: "", type: "" });
+//   const [userProfile, setUserProfile] = useState(null);
+//   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+//   // Department CRUD States
+//   const [showDeptModal, setShowDeptModal] = useState(false);
+//   const [departments, setDepartments] = useState([]);
+//   const [deptLoading, setDeptLoading] = useState(false);
+//   const [editingDept, setEditingDept] = useState(null);
+//   const [deptInput, setDeptInput] = useState("");
+//   const [deptMessage, setDeptMessage] = useState({ text: "", type: "" });
+//   const [confirmDialog, setConfirmDialog] = useState({
+//     isOpen: false,
+//     title: "",
+//     message: "",
+//     variant: "primary",
+//     confirmText: "Confirm",
+//     onConfirm: () => {},
+//   });
+//   const closeConfirm = () =>
+//     setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+//   useEffect(() => {
+//     if(token){
+//       fetchUserCount();
+//       fetchAllData();
+//       fetchUserProfile();
+//       fetchUnread();
+//       fetchProfileImage();
+//     }
+//   }, [token]);
+
+//   useEffect(() => {
+//     const handleFocus = () => {
+//       fetchUnread();
+//     };
+
+//     window.addEventListener("focus", handleFocus);
+//     return () => window.removeEventListener("focus", handleFocus);
+//   }, [token]);
+
+//   // Refresh image when profile form is closed
+//   useEffect(() => {
+//     if (!showProfileForm && token && user?.prn) {
+//       fetchProfileImage();
+//     }
+//   }, [showProfileForm, token, user?.prn]);
+
+//   const fetchUserCount = async () => {
+//     try {
+//       const response = await axios.get(
+//         `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
+//       setCount(response.data.data.length);
+//     } catch (error) {
+//       console.error("Error fetching club admin count:", error);
+//     }
+//   };
+
+//   const fetchUnread = async () => {
+//     if (!token) {
+//       setUnreadCount(0);
+//       return;
+//     }
+
+//     try {
+//       const res = await axios.get(
+//         `${BASE_URL}/api/notification/me/unread-count`,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
+
+//       const count =
+//         typeof res.data === "number"
+//           ? res.data
+//           : (res.data?.data ?? res.data?.count ?? 0);
+
+//       setUnreadCount(Number(count) || 0);
+//     } catch {
+//       setUnreadCount(0);
+//     }
+//   };
+
+//   const fetchAllData = async () => {
+//     try {
+//       const usersResponse = await axios.get(`${BASE_URL}/api/users/`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+
+//       setUsers(usersResponse.data);
+
+//       const userStats = usersResponse.data.reduce((acc, user) => {
+//         acc[user.role] = (acc[user.role] || 0) + 1;
+//         return acc;
+//       }, {});
+
+//       setStats(userStats);
+//       setLoading(false);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//       setLoading(false);
+//     }
+//   };
+
+//   const fetchDepartments = async () => {
+//     setDeptLoading(true);
+//     setDeptMessage({ text: "", type: "" });
+//     try {
+//       const response = await axios.get(`${BASE_URL}/api/department`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+
+//       if (response.data.success && response.data.data) {
+//         setDepartments(response.data.data);
+//       } else {
+//         setDepartments([]);
+//         setDeptMessage({
+//           text: response.data.message || "No departments found",
+//           type: "error",
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error fetching departments:", error);
+//       setDepartments([]);
+//       setDeptMessage({ text: "Error fetching departments", type: "error" });
+//     } finally {
+//       setDeptLoading(false);
+//     }
+//   };
+
+//   const handleDeptSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!deptInput.trim()) {
+//       setDeptMessage({ text: "Please enter a department name", type: "error" });
+//       return;
+//     }
+
+//     try {
+//       if (editingDept) {
+//         const response = await axios.put(
+//           `${BASE_URL}/api/department/${editingDept.departmentId}`,
+//           { name: deptInput, active: true },
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+
+//         if (response.data.success) {
+//           setDeptMessage({ text: "Department updated successfully!", type: "success" });
+//         } else {
+//           setDeptMessage({
+//             text: response.data.message || "Failed to update department",
+//             type: "error",
+//           });
+//           return;
+//         }
+//       } else {
+//         const response = await axios.post(
+//           `${BASE_URL}/api/department/${deptInput}`,
+//           null,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+
+//         if (response.data.success) {
+//           setDeptMessage({ text: "Department added successfully!", type: "success" });
+//         } else {
+//           setDeptMessage({
+//             text: response.data.message || "Failed to add department",
+//             type: "error",
+//           });
+//           return;
+//         }
+//       }
+
+//       setDeptInput("");
+//       setEditingDept(null);
+//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
+//       fetchDepartments();
+//     } catch (error) {
+//       console.error("Error saving department:", error);
+//       setDeptMessage({
+//         text: error.response?.data?.message || "Error saving department",
+//         type: "error",
+//       });
+//     }
+//   };
+
+//   const deleteDepartment = async (departmentId) => {
+//     try {
+//       const response = await axios.delete(
+//         `${BASE_URL}/api/department/${departmentId}`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
+
+//       if (response.data.success) {
+//         setDeptMessage({ text: "Department deleted successfully!", type: "success" });
+//         fetchDepartments();
+//       } else {
+//         setDeptMessage({
+//           text: response.data.message || "Failed to delete department",
+//           type: "error",
+//         });
+//       }
+
+//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
+//     } catch (error) {
+//       console.error("Error deleting department:", error);
+//       setDeptMessage({
+//         text: error.response?.data?.message || "Error deleting department",
+//         type: "error",
+//       });
+//     }
+//   };
+
+//   const fetchUserProfile = async () => {
+//     try {
+//       setIsLoadingProfile(true);
+//       const response = await axios.get(
+//         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
+//         { headers: { Authorization: `Bearer ${token}` } },
+//       );
+
+//       if (response.data) {
+//         setUserProfile(response.data);
+//         setProfileData({
+//           prn: response.data.data.prn || user?.prn || "",
+//           fullName: response.data.data.fullName || "",
+//           department: response.data.data.department || "",
+//           year: response.data.data.year || "",
+//           phoneNumber: response.data.data.phoneNumber || "",
+//           departmentId: response.data.data.departmentId || "",
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error fetching profile:", error);
+//       setUserProfile(null);
+//       setProfileData((prev) => ({ ...prev, prn: user?.prn || "" }));
+//     } finally {
+//       setIsLoadingProfile(false);
+//     }
+//   };
+
+//   const fetchProfileImage = async () => {
+//     if (!token || !user?.prn) {
+//       console.log("No token or PRN available");
+//       return;
+//     }
+
+//     try {
+//       const response = await axios.get(
+//         `${BASE_URL}/api/profiles/${user.prn}/image`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//           responseType: "blob",
+//         }
+//       );
+
+//       if (response.status === 200 && response.data) {
+//         // Clean up previous object URL to prevent memory leaks
+//         if (imagePreview) {
+//           URL.revokeObjectURL(imagePreview);
+//         }
+        
+//         const imageUrl = URL.createObjectURL(response.data);
+//         setImagePreview(imageUrl);
+//       }
+
+//     } catch (error) {
+//       console.log("Error fetching profile image:", error.message);
+      
+//       if (error.response?.status === 404) {
+//         console.log("No profile image uploaded yet");
+//       } else if (error.response?.status === 401) {
+//         console.log("Unauthorized request. Token missing or expired.");
+//       }
+      
+//       setImagePreview(null);
+//     }
+//   };
+
+//   const handleVerificationRedirect = () => {
+//     localStorage.setItem("verificationEmail", currentUser.email);
+//     localStorage.setItem("verificationPRN", currentUser.prn);
+//     navigate("/verifyotp");
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     navigate("/login");
+//   };
+
+//   const handleInputChange = (e) => {
+//     setProfileData({ ...profileData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleImageChange = (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       setSelectedImage(file);
+//       const reader = new FileReader();
+//       reader.onloadend = () => setImagePreview(reader.result);
+//       reader.readAsDataURL(file);
+//     }
+//   };
+
+//   const handleSubmitProfile = async (e) => {
+//     e.preventDefault();
+//     setProfileLoading(true);
+//     try {
+//       const requestData = {
+//         fullName: profileData.fullName,
+//         departmentId: parseInt(profileData.departmentId),
+//         phoneNumber: profileData.phoneNumber,
+//       };
+
+//       if (userProfile) {
+//         await axios.put(
+//           `${BASE_URL}/api/profiles/${profileData.prn}`,
+//           requestData,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+//       } else {
+//         await axios.post(
+//           `${BASE_URL}/api/profiles`,
+//           { ...requestData, prn: profileData.prn },
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+//       }
+
+//       if (selectedImage) {
+//         const formData = new FormData();
+//         formData.append("image", selectedImage);
+//         await axios.post(
+//           `${BASE_URL}/api/profiles/${profileData.prn}/image`,
+//           formData,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "multipart/form-data",
+//             },
+//           },
+//         );
+//       }
+
+//       fetchUserProfile();
+//       setShowProfileForm(false);
+//     } catch (error) {
+//       setMessage({ text: "Error saving profile.", type: "error" });
+//     } finally {
+//       setProfileLoading(false);
+//     }
+//   };
+
+//   // Clean single API call for email change
+//   const handleEmailUpdate = async () => {
+//     if (!newEmail.trim()) {
+//       setEmailMessage({ text: "Please enter a valid email", type: "error" });
+//       return;
+//     }
+
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(newEmail)) {
+//       setEmailMessage({ text: "Please enter a valid email address", type: "error" });
+//       return;
+//     }
+
+//     setEmailLoading(true);
+//     setEmailMessage({ text: "", type: "" });
+
+//     try {
+//       const response = await axios.put(
+//         `${BASE_URL}/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
+//         {},
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         }
+//       );
+
+//       if (response.data) {
+//         const updatedUser = { ...currentUser, email: newEmail, verified: false };
+//         localStorage.setItem("user", JSON.stringify(updatedUser));
+//         setCurrentUser(updatedUser);
+//         setVerificationStatus(false);
+
+//         setEmailMessage({ text: "Email updated! OTP sent to your new email...", type: "success" });
+
+//         localStorage.setItem("verificationEmail", newEmail);
+//         localStorage.setItem("verificationOldEmail", currentUser.email);
+//         localStorage.setItem("verificationPRN", currentUser.prn);
+//         localStorage.setItem("verificationMode", "email_change");
+//         localStorage.setItem("verificationReturnUrl", "/dashboard");
+
+//         setTimeout(() => {
+//           setShowEmailEditModal(false);
+//           setEmailMessage({ text: "", type: "" });
+//           setNewEmail("");
+//           navigate("/verifyotp");
+//         }, 1500);
+//       }
+//     } catch (error) {
+//       console.error("Error changing email:", error);
+//       setEmailMessage({
+//         text: error.response?.data?.message || "Failed to update email. Please try again.",
+//         type: "error",
+//       });
+//     } finally {
+//       setEmailLoading(false);
+//     }
+//   };
+
+//   const StatCard = ({ title, count, icon: Icon, bgColor, iconColor }) => (
+//     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group">
+//       <div
+//         className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110"
+//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+//       >
+//         <Icon className="w-7 h-7" />
+//       </div>
+//       <div className="min-w-0">
+//         <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider truncate group-hover:text-gray-700 transition-colors">
+//           {title}
+//         </p>
+//         <p className="text-3xl font-bold text-gray-900">{count}</p>
+//       </div>
+//     </div>
+//   );
+
+//   const BigActionButton = ({ label, icon: Icon, onClick, bgColor, iconColor }) => (
+//     <button
+//       onClick={onClick}
+//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer"
+//     >
+//       <div
+//         className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
+//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+//       >
+//         <Icon className="w-8 h-8" />
+//       </div>
+//       <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
+//         {label}
+//       </span>
+//     </button>
+//   );
+
+//   const NotificationActionButton = () => (
+//     <button
+//       onClick={() => navigate("/notifications")}
+//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer relative"
+//     >
+//       <div
+//         className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
+//         style={{ backgroundColor: PRIMARY_LIGHT, color: PRIMARY_COLOR }}
+//       >
+//         <Bell className="w-8 h-8" />
+//         {unreadCount > 0 && (
+//           <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+//             {unreadCount > 9 ? "9+" : unreadCount}
+//           </span>
+//         )}
+//       </div>
+//       <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
+//         Notifications
+//       </span>
+//     </button>
+//   );
+
+//   if (loading || isLoadingProfile) {
+//     return (
+//       <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center">
+//         <div className="text-center">
+//           <div
+//             className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
+//             style={{ borderColor: PRIMARY_DARK }}
+//           ></div>
+//           <p className="text-gray-600 font-semibold">Loading dashboard...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <>
+//       <div className="min-h-screen bg-[#fcfcfd] flex relative">
+//         {/* Mobile Header */}
+//         <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
+//           <button
+//             onClick={() => setSidebarOpen(!sidebarOpen)}
+//             className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
+//           >
+//             <Menu size={24} className="text-gray-700" />
+//           </button>
+//           <div className="flex items-center space-x-2">
+//             <div
+//               className="p-2 rounded-lg transition-transform hover:scale-105 cursor-pointer"
+//               style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+//             >
+//               <LayoutDashboard className="text-white w-5 h-5" />
+//             </div>
+//             <h2 className="text-xl font-black tracking-tight text-gray-800">
+//               Super<span style={{ color: PRIMARY_COLOR }}>Admin</span>
+//             </h2>
+//           </div>
+//           <div
+//             className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
+//             style={{ borderColor: PRIMARY_LIGHT }}
+//             onClick={() => setShowProfileForm(true)}
+//           >
+//             <img
+//               src={
+//                 imagePreview ||
+//                 `https://ui-avatars.com/api/?name=${
+//                   encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                 }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//               }
+//               onError={(e) => {
+//                 e.target.onerror = null; // Prevent infinite loop
+//                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//               }}
+//               alt={profileData.fullName || currentUser.username || "Profile"}
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+//         </div>
+
+//         {/* Overlay for mobile sidebar */}
+//         {sidebarOpen && (
+//           <div
+//             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+//             onClick={() => setSidebarOpen(false)}
+//           />
+//         )}
+
+//         {/* Sidebar */}
+//         <aside
+//           className={`
+//             fixed lg:sticky top-0 left-0 h-screen
+//             w-80 sm:w-96 bg-white border-r border-gray-100 
+//             flex flex-col p-8 shadow-lg lg:shadow-sm
+//             transition-transform duration-300 ease-in-out z-50
+//             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+//             overflow-y-auto
+//           `}
+//         >
+//           <button
+//             onClick={() => setSidebarOpen(false)}
+//             className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+//           >
+//             <X size={20} className="text-gray-500" />
+//           </button>
+
+//           <div className="flex items-center space-x-3 mb-10 group cursor-pointer">
+//             <div
+//               className="p-2.5 rounded-xl shadow-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
+//               style={{
+//                 background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
+//                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+//               }}
+//             >
+//               <LayoutDashboard className="text-white" size={24} />
+//             </div>
+//             <h2 className="text-2xl font-black tracking-tight text-gray-800">
+//               Super<span style={{ color: PRIMARY_DARK }}>Admin</span>
+//             </h2>
+//           </div>
+
+//           <div className="flex flex-col items-center text-center mb-8">
+//             <div
+//               className="relative p-1 border-2 rounded-3xl mb-4 transition-all duration-300 hover:shadow-lg cursor-pointer"
+//               style={{
+//                 borderColor: PRIMARY_LIGHT,
+//                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.1)",
+//               }}
+//             >
+//               <img
+//                 src={
+//                   imagePreview ||
+//                   `https://ui-avatars.com/api/?name=${
+//                     encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                   }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//                 }
+//                 alt="Profile"
+//                 className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
+//                 onError={(e) => {
+//                   e.target.onerror = null;
+//                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//                 }}
+//               />
+//               <button
+//                 onClick={() => setShowProfileForm(true)}
+//                 className="absolute -bottom-1 -right-1 bg-white p-2 rounded-xl shadow-lg border border-gray-50 transition-all duration-200 hover:scale-110 cursor-pointer"
+//                 style={{ color: PRIMARY_DARK }}
+//               >
+//                 <Edit size={16} />
+//               </button>
+//             </div>
+//             <h3 className="font-bold text-gray-900 text-xl tracking-tight">
+//               {profileData.fullName || currentUser.username}
+//             </h3>
+//             <p
+//               className="text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-[0.1em] transition-colors cursor-pointer"
+//               style={{ color: PRIMARY_DARK, backgroundColor: PRIMARY_LIGHT }}
+//             >
+//               {currentUser.role.replace("_", " ")}
+//             </p>
+//           </div>
+
+//           <nav className="space-y-2 flex-1 overflow-y-auto">
+//             <div className="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 space-y-4 transition-all duration-300 hover:shadow-md hover:bg-gray-50">
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+//                   Full Name
+//                 </span>
+//                 <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+//                   {profileData.fullName || "Not set"}
+//                 </span>
+//               </div>
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+//                   Username
+//                 </span>
+//                 <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+//                   {currentUser.username}
+//                 </span>
+//               </div>
+
+//               {/* Email field with both edit and verify buttons */}
+//               <div className="flex flex-col group cursor-pointer relative">
+//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+//                   Email
+//                 </span>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-sm font-bold text-gray-700 break-all group-hover:text-gray-900 transition-colors pr-2">
+//                     {currentUser.email}
+//                   </span>
+//                   <div className="flex gap-1">
+//                     <button
+//                       onClick={() => {
+//                         setNewEmail(currentUser.email);
+//                         setShowEmailEditModal(true);
+//                       }}
+//                       className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
+//                       style={{ color: PRIMARY_COLOR }}
+//                       title="Edit email"
+//                     >
+//                       <Edit size={14} />
+//                     </button>
+//                     <button
+//                       onClick={handleVerificationRedirect}
+//                       className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer flex items-center gap-1 ${
+//                         verificationStatus
+//                           ? "bg-green-50 text-green-600 hover:bg-green-100"
+//                           : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+//                       }`}
+//                       title={verificationStatus ? "Verified" : "Click to verify"}
+//                     >
+//                       {verificationStatus ? (
+//                         <CheckCircle size={14} />
+//                       ) : (
+//                         <AlertCircle size={14} />
+//                       )}
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+//                   Phone
+//                 </span>
+//                 <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
+//                   {profileData.phoneNumber || "Not set"}
+//                 </span>
+//               </div>
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="flex flex-col group cursor-pointer">
+//                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+//                     PRN
+//                   </span>
+//                   <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+//                     {profileData.prn || "Not set"}
+//                   </span>
+//                 </div>
+//               </div>
+//               <div className="pt-2 border-t border-gray-100 flex items-center justify-between group cursor-pointer">
+//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+//                   Status
+//                 </span>
+//                 <span
+//                   className={`flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md group-hover:scale-105 transition-all duration-200 cursor-pointer ${
+//                     currentUser.verified
+//                       ? "text-emerald-600 bg-emerald-50 group-hover:bg-emerald-100"
+//                       : "text-amber-600 bg-amber-50 group-hover:bg-amber-100"
+//                   }`}
+//                 >
+//                   <div
+//                     className={`w-1.5 h-1.5 rounded-full mr-1.5 ${currentUser.verified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
+//                   ></div>
+//                   {currentUser.verified ? "ACTIVE" : "PENDING VERIFICATION"}
+//                 </span>
+//               </div>
+//             </div>
+//           </nav>
+
+//           <button
+//             onClick={() =>
+//               setConfirmDialog({
+//                 isOpen: true,
+//                 title: "Sign Out",
+//                 message: "Are you sure you want to sign out?",
+//                 confirmText: "Sign Out",
+//                 variant: "danger",
+//                 onConfirm: () => {
+//                   closeConfirm();
+//                   handleLogout();
+//                 },
+//               })
+//             }
+//             className="mt-6 flex items-center justify-center space-x-3 w-full py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 font-bold text-sm border border-transparent hover:border-red-100 hover:shadow-md hover:shadow-red-100/50 cursor-pointer"
+//           >
+//             <LogOut size={20} />
+//             <span>Sign Out</span>
+//           </button>
+//         </aside>
+
+//         {/* Main Content */}
+//         <main className="flex-1 w-full pt-20 lg:pt-0 px-6 lg:px-10 pb-10">
+//           <div className="max-w-7xl mx-auto">
+//             <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-12 pt-10">
+//               <div>
+//                 <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+//                   Dashboard
+//                 </h1>
+//                 <p className="text-base text-gray-500 font-medium">
+//                   Welcome back,{" "}
+//                   <span className="font-bold" style={{ color: PRIMARY_COLOR }}>
+//                     {currentUser.username}
+//                   </span>
+//                   . System is healthy.
+//                 </p>
+//               </div>
+//               <div className="flex items-center space-x-3 bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm shadow-emerald-50 self-start transition-all duration-300 hover:bg-emerald-100 hover:shadow-md hover:shadow-emerald-100/50 hover:-translate-y-0.5 cursor-pointer">
+//                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+//                 <span className="text-sm font-black uppercase tracking-wider">
+//                   All Systems Live
+//                 </span>
+//               </div>
+//             </header>
+
+//             {/* Stats Grid */}
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-16">
+//               <StatCard
+//                 title="Total Users"
+//                 count={users.length}
+//                 icon={Users}
+//                 bgColor={PRIMARY_LIGHT}
+//                 iconColor={PRIMARY_COLOR}
+//               />
+//               <StatCard
+//                 title="Faculty"
+//                 count={stats.TEACHERS || 0}
+//                 icon={Briefcase}
+//                 bgColor="rgba(59, 130, 246, 0.1)"
+//                 iconColor="#3B82F6"
+//               />
+//               <StatCard
+//                 title="Club Admins"
+//                 count={clubAdmins || 0}
+//                 icon={ShieldCheck}
+//                 bgColor="rgba(16, 185, 129, 0.1)"
+//                 iconColor="#10B981"
+//               />
+//               <StatCard
+//                 title="Regular"
+//                 count={stats.USERS || 0}
+//                 icon={User}
+//                 bgColor="rgba(249, 115, 22, 0.1)"
+//                 iconColor="#F97316"
+//               />
+//             </div>
+
+//             {/* Control Center */}
+//             <section>
+//               <div className="flex items-center space-x-4 mb-8">
+//                 <h3 className="text-2xl font-black text-gray-800 tracking-tight whitespace-nowrap">
+//                   Control Center
+//                 </h3>
+//                 <div
+//                   className="flex-1 h-[2px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 rounded-full"
+//                   style={{
+//                     backgroundImage: `linear-gradient(to right, #e5e7eb, ${PRIMARY_COLOR}, #e5e7eb)`,
+//                   }}
+//                 ></div>
+//               </div>
+
+//               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+//                 <BigActionButton
+//                   label="Manage Users"
+//                   icon={Users}
+//                   onClick={() => navigate("/manage-users")}
+//                   bgColor={PRIMARY_LIGHT}
+//                   iconColor={PRIMARY_COLOR}
+//                 />
+//                 <BigActionButton
+//                   label="Events"
+//                   icon={CalendarDays}
+//                   onClick={() => navigate("/events-superadmin")}
+//                   bgColor="rgba(16, 185, 129, 0.1)"
+//                   iconColor="#10B981"
+//                 />
+//                 <BigActionButton
+//                   label="Departments"
+//                   icon={Database}
+//                   onClick={() => {
+//                     fetchDepartments();
+//                     setShowDeptModal(true);
+//                   }}
+//                   bgColor="rgba(236, 72, 153, 0.1)"
+//                   iconColor="#EC4899"
+//                 />
+//                 <BigActionButton
+//                   label="Manage Clubs"
+//                   icon={Database}
+//                   onClick={() => navigate("/manage-clubs")}
+//                   bgColor="rgba(6, 182, 212, 0.1)"
+//                   iconColor="#06B6D4"
+//                 />
+//                 <BigActionButton
+//                   label="Club Admins"
+//                   icon={ShieldCheck}
+//                   onClick={() => navigate("/club-admins")}
+//                   bgColor="rgba(249, 115, 22, 0.1)"
+//                   iconColor="#F97316"
+//                 />
+//                 <BigActionButton
+//                   label="Add Student"
+//                   icon={UserPlus}
+//                   onClick={() => navigate("/add-users-with-club")}
+//                   bgColor="rgba(59, 130, 246, 0.1)"
+//                   iconColor="#3B82F6"
+//                 />
+//                 <BigActionButton
+//                   label="Club Association"
+//                   icon={Building2}
+//                   onClick={() => navigate("/remove-users-from-any-club")}
+//                   bgColor="rgba(6, 182, 212, 0.1)"
+//                   iconColor="#06B6D4"
+//                 />
+//                 <NotificationActionButton />
+//               </div>
+//             </section>
+//           </div>
+//         </main>
+
+//         {/* Profile Form Modal */}
+//         {showProfileForm && (
+//           <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+//             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4">
+//               {/* Header */}
+//               <div
+//                 className="p-6 text-white flex items-center justify-between"
+//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #2d8391)` }}
+//               >
+//                 <h2 className="text-xl font-bold">
+//                   {userProfile ? "Edit Profile" : "Complete Profile"}
+//                 </h2>
+//                 <button
+//                   onClick={() => {
+//                     setShowProfileForm(false);
+//                     setMessage({ text: "", type: "" });
+//                   }}
+//                   className="p-1 hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+//                 >
+//                   <X size={24} />
+//                 </button>
+//               </div>
+
+//               {/* Form Body */}
+//               <form onSubmit={handleSubmitProfile} className="p-6 space-y-5">
+//                 {/* Photo Upload */}
+//                 <div className="text-center mb-6">
+//                   <div className="relative inline-block group">
+//                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+//                       <img
+//                         src={
+//                           imagePreview ||
+//                           `https://ui-avatars.com/api/?name=${
+//                             encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                           }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//                         }
+//                         alt="Profile"
+//                         onError={(e) => {
+//                           e.target.onerror = null;
+//                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//                         }}
+//                         className="w-full h-full object-cover"
+//                       />
+//                     </div>
+//                     <label
+//                       className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
+//                       style={{ color: PRIMARY_COLOR }}
+//                       title="Change photo"
+//                     >
+//                       <Camera size={16} />
+//                       <input
+//                         type="file"
+//                         accept="image/*"
+//                         onChange={handleImageChange}
+//                         className="hidden"
+//                       />
+//                     </label>
+//                   </div>
+//                   <p className="text-xs text-gray-500 mt-2">Upload photo</p>
+//                 </div>
+
+//                 {/* PRN Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">PRN</label>
+//                   <input
+//                     type="text"
+//                     value={profileData.prn}
+//                     readOnly
+//                     className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
+//                   />
+//                 </div>
+
+//                 {/* Full Name Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Full Name *</label>
+//                   <input
+//                     type="text"
+//                     name="fullName"
+//                     value={profileData.fullName}
+//                     onChange={handleInputChange}
+//                     placeholder="Enter your name"
+//                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
+//                     style={{
+//                       "--tw-ring-color": PRIMARY_COLOR
+//                     }}
+//                     onFocus={(e) => {
+//                       e.target.style.borderColor = PRIMARY_COLOR;
+//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+//                     }}
+//                     onBlur={(e) => {
+//                       e.target.style.borderColor = "rgb(209, 213, 219)";
+//                       e.target.style.boxShadow = "none";
+//                     }}
+//                     required
+//                   />
+//                 </div>
+
+//                 {/* Phone Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Phone *</label>
+//                   <input
+//                     type="tel"
+//                     name="phoneNumber"
+//                     value={profileData.phoneNumber}
+//                     onChange={handleInputChange}
+//                     placeholder="9876543210"
+//                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
+//                     onFocus={(e) => {
+//                       e.target.style.borderColor = PRIMARY_COLOR;
+//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+//                     }}
+//                     onBlur={(e) => {
+//                       e.target.style.borderColor = "rgb(209, 213, 219)";
+//                       e.target.style.boxShadow = "none";
+//                     }}
+//                     required
+//                   />
+//                 </div>
+
+//                 {/* Message */}
+//                 {message.text && (
+//                   <div
+//                     className={`p-3 rounded-lg text-sm font-medium ${
+//                       message.type === "error"
+//                         ? "bg-red-100 text-red-700 border border-red-300"
+//                         : "bg-green-100 text-green-700 border border-green-300"
+//                     }`}
+//                   >
+//                     {message.text}
+//                   </div>
+//                 )}
+
+//                 {/* Buttons */}
+//                 <div className="flex gap-3 pt-2">
+//                   <button
+//                     type="button"
+//                     onClick={() => {
+//                       setShowProfileForm(false);
+//                       setMessage({ text: "", type: "" });
+//                     }}
+//                     className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
+//                   >
+//                     Cancel
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     disabled={profileLoading}
+//                     className="flex-1 px-4 py-2 text-white rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+//                     style={{ backgroundColor: profileLoading ? `${PRIMARY_COLOR}80` : PRIMARY_COLOR }}
+//                   >
+//                     {profileLoading ? "Saving..." : "Save"}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Department CRUD Modal */}
+//         {showDeptModal && (
+//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50">
+//             <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden border border-white flex flex-col">
+//               <div
+//                 className="p-5 sm:p-8 text-white flex justify-between items-center"
+//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+//               >
+//                 <div className="flex-1 min-w-0">
+//                   <h3 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Department Management</h3>
+//                   <p className="text-white/80 text-xs sm:text-sm truncate">Add or remove academic departments</p>
+//                 </div>
+//                 <button
+//                   onClick={() => {
+//                     setShowDeptModal(false);
+//                     setEditingDept(null);
+//                     setDeptInput("");
+//                     setDeptMessage({ text: "", type: "" });
+//                   }}
+//                   className="bg-white/20 p-1.5 sm:p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer flex-shrink-0"
+//                 >
+//                   <X size={18} className="sm:w-5 sm:h-5" />
+//                 </button>
+//               </div>
+
+//               <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
+//                 {deptMessage.text && (
+//                   <div
+//                     className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+//                   >
+//                     <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+//                       {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
+//                     </p>
+//                   </div>
+//                 )}
+
+//                 <form onSubmit={handleDeptSubmit} className="mb-6 sm:mb-8">
+//                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+//                     <input
+//                       type="text"
+//                       placeholder="Enter department name..."
+//                       className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all text-sm sm:text-base"
+//                       onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
+//                       onBlur={(e) => (e.target.style.boxShadow = "")}
+//                       value={deptInput}
+//                       onChange={(e) => setDeptInput(e.target.value)}
+//                       required
+//                     />
+//                     <button
+//                       type="submit"
+//                       className="w-full sm:w-auto text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg cursor-pointer text-sm sm:text-base"
+//                       style={{
+//                         background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
+//                         boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+//                       }}
+//                     >
+//                       {editingDept ? <Edit size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />}
+//                       {editingDept ? "Update" : "Add Dept"}
+//                     </button>
+//                   </div>
+//                   {editingDept && (
+//                     <div className="mt-2 text-xs sm:text-sm text-gray-500 flex items-center gap-2">
+//                       <span className="truncate">
+//                         Editing: <span className="font-bold">{editingDept.name}</span>
+//                       </span>
+//                       <button
+//                         type="button"
+//                         onClick={() => {
+//                           setEditingDept(null);
+//                           setDeptInput("");
+//                         }}
+//                         className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer flex-shrink-0"
+//                       >
+//                         Cancel
+//                       </button>
+//                     </div>
+//                   )}
+//                 </form>
+
+//                 {deptLoading ? (
+//                   <div className="py-8 sm:py-10 text-center text-gray-500 italic">
+//                     <div
+//                       className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 mx-auto mb-3 cursor-wait"
+//                       style={{ borderColor: PRIMARY_COLOR }}
+//                     ></div>
+//                     <p className="text-sm sm:text-base">Loading departments...</p>
+//                   </div>
+//                 ) : (
+//                   <div className="space-y-2 sm:space-y-3">
+//                     {departments.length > 0 ? (
+//                       departments.map((dept) => (
+//                         <div
+//                           key={dept.departmentId}
+//                           className="flex items-center justify-between p-3 sm:p-4 bg-gray-50/50 rounded-xl sm:rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
+//                         >
+//                           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+//                             <span className="font-bold text-gray-700 text-sm sm:text-base truncate">{dept.name}</span>
+//                             <span
+//                               className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
+//                             >
+//                               {dept.active ? "Active" : "Inactive"}
+//                             </span>
+//                           </div>
+//                           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+//                             <button
+//                               onClick={(e) => {
+//                                 e.stopPropagation();
+//                                 setConfirmDialog({
+//                                   isOpen: true,
+//                                   title: "Delete Department",
+//                                   message:
+//                                     "Are you sure you want to delete this department? This action cannot be undone.",
+//                                   confirmText: "Delete",
+//                                   variant: "danger",
+//                                   onConfirm: () => {
+//                                     closeConfirm();
+//                                     deleteDepartment(dept.departmentId);
+//                                   },
+//                                 });
+//                               }}
+//                               className="p-1.5 sm:p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+//                               title="Delete"
+//                             >
+//                               <Trash2 size={14} className="sm:w-4 sm:h-4" />
+//                             </button>
+//                           </div>
+//                         </div>
+//                       ))
+//                     ) : (
+//                       <div className="text-center py-8 sm:py-10">
+//                         <Database className="w-10 h-10 sm:w-12 sm:h-12 text-gray-200 mx-auto mb-2 sm:mb-3" />
+//                         <p className="text-sm sm:text-base text-gray-400 font-medium">No departments found in system.</p>
+//                         <p className="text-xs sm:text-sm text-gray-300 mt-1">Add a department using the form above</p>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+
+//               <div className="px-4 sm:px-8 py-3 sm:py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+//                 <div className="text-xs sm:text-sm text-gray-500">
+//                   {departments.length} department{departments.length !== 1 ? "s" : ""}
+//                 </div>
+//                 <button
+//                   onClick={() => setShowDeptModal(false)}
+//                   className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer"
+//                 >
+//                   Close Manager
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Email Edit Modal */}
+//         {showEmailEditModal && (
+//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
+//             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
+//               <div
+//                 className="p-6 text-white"
+//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+//               >
+//                 <div className="flex justify-between items-center">
+//                   <div>
+//                     <h3 className="text-xl font-bold flex items-center gap-2">
+//                       <Mail size={20} />
+//                       Update Email Address
+//                     </h3>
+//                     <p className="text-white/80 text-sm mt-1">Enter your new email address</p>
+//                   </div>
+//                   <button
+//                     onClick={() => {
+//                       setShowEmailEditModal(false);
+//                       setEmailMessage({ text: "", type: "" });
+//                       setNewEmail("");
+//                     }}
+//                     className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
+//                   >
+//                     <X size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div className="p-6 space-y-5">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Current Email
+//                   </label>
+//                   <input
+//                     type="email"
+//                     value={currentUser.email}
+//                     className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+//                     disabled
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     New Email <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="email"
+//                     value={newEmail}
+//                     onChange={(e) => setNewEmail(e.target.value)}
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
+//                     onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
+//                     onBlur={(e) => (e.target.style.boxShadow = "")}
+//                     placeholder="Enter new email address"
+//                     required
+//                   />
+//                 </div>
+
+//                 {emailMessage.text && (
+//                   <div
+//                     className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+//                   >
+//                     <p className="text-sm font-semibold flex items-center gap-2">
+//                       {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
+//                     </p>
+//                   </div>
+//                 )}
+
+//                 <div className="pt-4">
+//                   <button
+//                     type="button"
+//                     onClick={handleEmailUpdate}
+//                     disabled={emailLoading || !newEmail || newEmail === currentUser.email}
+//                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+//                     style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+//                   >
+//                     {emailLoading ? (
+//                       <div className="flex items-center justify-center gap-2">
+//                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                         Updating...
+//                       </div>
+//                     ) : (
+//                       "Update Email"
+//                     )}
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <ConfirmDialog
+//         isOpen={confirmDialog.isOpen}
+//         title={confirmDialog.title}
+//         message={confirmDialog.message}
+//         confirmText={confirmDialog.confirmText}
+//         variant={confirmDialog.variant}
+//         onConfirm={confirmDialog.onConfirm}
+//         onCancel={closeConfirm}
+//       />
+//     </>
+//   );
+// }
+
+
+
+
+
+// import { useState, useEffect } from "react";
+// import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+// import ConfirmDialog from "../../components/ConfirmDialog";
+// import {
+//   User,
+//   Upload,
+//   X,
+//   CalendarDays,
+//   Edit,
+//   Users,
+//   Briefcase,
+//   ShieldCheck,
+//   Settings,
+//   Database,
+//   LogOut,
+//   LayoutDashboard,
+//   UserPlus,
+//   ShieldAlert,
+//   Menu,
+//   Camera,
+//   Trash2,
+//   Plus,
+//   Building2,
+//   CalendarPlus,
+//   Mail,
+//   CheckCircle,
+//   AlertCircle,
+//   Bell,
+// } from "lucide-react";
+
+// const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
+// export default function SuperAdminDashboard() {
+//   const navigate = useNavigate();
+
+//   const PRIMARY_COLOR = "#4CA1AF";
+//   const PRIMARY_DARK = "#2d8391";
+//   const PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
+//   const PRIMARY_GRADIENT = "linear-gradient(135deg, #4CA1AF 0%, #2c7a8a 100%)";
+  
+//   // Very light sky blue color palette
+//   const BG_MAIN = "#f5faff"; // Ultra light sky blue (almost white with a hint of blue)
+//   const BG_GRADIENT = "linear-gradient(135deg, #f5faff 0%, #f0f8ff 100%)"; // Very subtle gradient
+//   const BG_SIDEBAR = "#ffffff"; // Clean white sidebar
+//   const BG_CARD = "#ffffff"; // White cards
+//   const BORDER_COLOR = "#e9f0f9"; // Very soft blue border
+//   const BORDER_COLOR_HOVER = "#d9e6f5"; // Slightly darker on hover
+//   const TEXT_PRIMARY = "#1e293b"; // Dark slate
+//   const TEXT_SECONDARY = "#475569"; // Medium slate
+//   const TEXT_MUTED = "#64748b"; // Light slate
+//   const ACCENT_SOFT = "#f8fcff"; // Extremely light blue for hover states
+
+//   const user = JSON.parse(localStorage.getItem("user"));
+//   const token = localStorage.getItem("token");
+
+//   const [currentUser, setCurrentUser] = useState({
+//     username: user?.username || "admin_user",
+//     email: user?.email || "admin@college.edu",
+//     role: user?.role || "SUPER_ADMIN",
+//     prn: user?.prn || "2021BCS001",
+//     verified: user?.verified || false,
+//   });
+
+//   // Email update states
+//   const [showEmailEditModal, setShowEmailEditModal] = useState(false);
+//   const [newEmail, setNewEmail] = useState("");
+//   const [emailLoading, setEmailLoading] = useState(false);
+//   const [emailMessage, setEmailMessage] = useState({ text: "", type: "" });
+
+//   // Verification state
+//   const [verificationStatus, setVerificationStatus] = useState(currentUser.verified);
+
+//   const [users, setUsers] = useState([]);
+//   const [stats, setStats] = useState({});
+//   const [clubAdmins, setCount] = useState(0);
+//   const [unreadCount, setUnreadCount] = useState(0);
+//   const [loading, setLoading] = useState(true);
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+//   // Profile states
+//   const [showProfileForm, setShowProfileForm] = useState(false);
+//   const [profileData, setProfileData] = useState({
+//     prn: user?.prn || "",
+//     fullName: "",
+//     department: "",
+//     year: "",
+//     phoneNumber: "",
+//     departmentId: "",
+//   });
+//   const [selectedImage, setSelectedImage] = useState(null);
+//   const [imagePreview, setImagePreview] = useState(null);
+//   const [profileLoading, setProfileLoading] = useState(false);
+//   const [message, setMessage] = useState({ text: "", type: "" });
+//   const [userProfile, setUserProfile] = useState(null);
+//   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+//   // Department CRUD States
+//   const [showDeptModal, setShowDeptModal] = useState(false);
+//   const [departments, setDepartments] = useState([]);
+//   const [deptLoading, setDeptLoading] = useState(false);
+//   const [editingDept, setEditingDept] = useState(null);
+//   const [deptInput, setDeptInput] = useState("");
+//   const [deptMessage, setDeptMessage] = useState({ text: "", type: "" });
+//   const [confirmDialog, setConfirmDialog] = useState({
+//     isOpen: false,
+//     title: "",
+//     message: "",
+//     variant: "primary",
+//     confirmText: "Confirm",
+//     onConfirm: () => {},
+//   });
+//   const closeConfirm = () =>
+//     setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+//   useEffect(() => {
+//     if(token){
+//       fetchUserCount();
+//       fetchAllData();
+//       fetchUserProfile();
+//       fetchUnread();
+//       fetchProfileImage();
+//     }
+//   }, [token]);
+
+//   useEffect(() => {
+//     const handleFocus = () => {
+//       fetchUnread();
+//     };
+
+//     window.addEventListener("focus", handleFocus);
+//     return () => window.removeEventListener("focus", handleFocus);
+//   }, [token]);
+
+//   // Refresh image when profile form is closed
+//   useEffect(() => {
+//     if (!showProfileForm && token && user?.prn) {
+//       fetchProfileImage();
+//     }
+//   }, [showProfileForm, token, user?.prn]);
+
+//   const fetchUserCount = async () => {
+//     try {
+//       const response = await axios.get(
+//         `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
+//       setCount(response.data.data.length);
+//     } catch (error) {
+//       console.error("Error fetching club admin count:", error);
+//     }
+//   };
+
+//   const fetchUnread = async () => {
+//     if (!token) {
+//       setUnreadCount(0);
+//       return;
+//     }
+
+//     try {
+//       const res = await axios.get(
+//         `${BASE_URL}/api/notification/me/unread-count`,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
+
+//       const count =
+//         typeof res.data === "number"
+//           ? res.data
+//           : (res.data?.data ?? res.data?.count ?? 0);
+
+//       setUnreadCount(Number(count) || 0);
+//     } catch {
+//       setUnreadCount(0);
+//     }
+//   };
+
+//   const fetchAllData = async () => {
+//     try {
+//       const usersResponse = await axios.get(`${BASE_URL}/api/users/`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+
+//       setUsers(usersResponse.data);
+
+//       const userStats = usersResponse.data.reduce((acc, user) => {
+//         acc[user.role] = (acc[user.role] || 0) + 1;
+//         return acc;
+//       }, {});
+
+//       setStats(userStats);
+//       setLoading(false);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//       setLoading(false);
+//     }
+//   };
+
+//   const fetchDepartments = async () => {
+//     setDeptLoading(true);
+//     setDeptMessage({ text: "", type: "" });
+//     try {
+//       const response = await axios.get(`${BASE_URL}/api/department`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       });
+
+//       if (response.data.success && response.data.data) {
+//         setDepartments(response.data.data);
+//       } else {
+//         setDepartments([]);
+//         setDeptMessage({
+//           text: response.data.message || "No departments found",
+//           type: "error",
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error fetching departments:", error);
+//       setDepartments([]);
+//       setDeptMessage({ text: "Error fetching departments", type: "error" });
+//     } finally {
+//       setDeptLoading(false);
+//     }
+//   };
+
+//   const handleDeptSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!deptInput.trim()) {
+//       setDeptMessage({ text: "Please enter a department name", type: "error" });
+//       return;
+//     }
+
+//     try {
+//       if (editingDept) {
+//         const response = await axios.put(
+//           `${BASE_URL}/api/department/${editingDept.departmentId}`,
+//           { name: deptInput, active: true },
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+
+//         if (response.data.success) {
+//           setDeptMessage({ text: "Department updated successfully!", type: "success" });
+//         } else {
+//           setDeptMessage({
+//             text: response.data.message || "Failed to update department",
+//             type: "error",
+//           });
+//           return;
+//         }
+//       } else {
+//         const response = await axios.post(
+//           `${BASE_URL}/api/department/${deptInput}`,
+//           null,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+
+//         if (response.data.success) {
+//           setDeptMessage({ text: "Department added successfully!", type: "success" });
+//         } else {
+//           setDeptMessage({
+//             text: response.data.message || "Failed to add department",
+//             type: "error",
+//           });
+//           return;
+//         }
+//       }
+
+//       setDeptInput("");
+//       setEditingDept(null);
+//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
+//       fetchDepartments();
+//     } catch (error) {
+//       console.error("Error saving department:", error);
+//       setDeptMessage({
+//         text: error.response?.data?.message || "Error saving department",
+//         type: "error",
+//       });
+//     }
+//   };
+
+//   const deleteDepartment = async (departmentId) => {
+//     try {
+//       const response = await axios.delete(
+//         `${BASE_URL}/api/department/${departmentId}`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
+
+//       if (response.data.success) {
+//         setDeptMessage({ text: "Department deleted successfully!", type: "success" });
+//         fetchDepartments();
+//       } else {
+//         setDeptMessage({
+//           text: response.data.message || "Failed to delete department",
+//           type: "error",
+//         });
+//       }
+
+//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
+//     } catch (error) {
+//       console.error("Error deleting department:", error);
+//       setDeptMessage({
+//         text: error.response?.data?.message || "Error deleting department",
+//         type: "error",
+//       });
+//     }
+//   };
+
+//   const fetchUserProfile = async () => {
+//     try {
+//       setIsLoadingProfile(true);
+//       const response = await axios.get(
+//         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
+//         { headers: { Authorization: `Bearer ${token}` } },
+//       );
+
+//       if (response.data) {
+//         setUserProfile(response.data);
+//         setProfileData({
+//           prn: response.data.data.prn || user?.prn || "",
+//           fullName: response.data.data.fullName || "",
+//           department: response.data.data.department || "",
+//           year: response.data.data.year || "",
+//           phoneNumber: response.data.data.phoneNumber || "",
+//           departmentId: response.data.data.departmentId || "",
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error fetching profile:", error);
+//       setUserProfile(null);
+//       setProfileData((prev) => ({ ...prev, prn: user?.prn || "" }));
+//     } finally {
+//       setIsLoadingProfile(false);
+//     }
+//   };
+
+//   const fetchProfileImage = async () => {
+//     if (!token || !user?.prn) {
+//       console.log("No token or PRN available");
+//       return;
+//     }
+
+//     try {
+//       const response = await axios.get(
+//         `${BASE_URL}/api/profiles/${user.prn}/image`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//           responseType: "blob",
+//         }
+//       );
+
+//       if (response.status === 200 && response.data) {
+//         // Clean up previous object URL to prevent memory leaks
+//         if (imagePreview) {
+//           URL.revokeObjectURL(imagePreview);
+//         }
+        
+//         const imageUrl = URL.createObjectURL(response.data);
+//         setImagePreview(imageUrl);
+//       }
+
+//     } catch (error) {
+//       console.log("Error fetching profile image:", error.message);
+      
+//       if (error.response?.status === 404) {
+//         console.log("No profile image uploaded yet");
+//       } else if (error.response?.status === 401) {
+//         console.log("Unauthorized request. Token missing or expired.");
+//       }
+      
+//       setImagePreview(null);
+//     }
+//   };
+
+//   const handleVerificationRedirect = () => {
+//     localStorage.setItem("verificationEmail", currentUser.email);
+//     localStorage.setItem("verificationPRN", currentUser.prn);
+//     navigate("/verifyotp");
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     navigate("/login");
+//   };
+
+//   const handleInputChange = (e) => {
+//     setProfileData({ ...profileData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleImageChange = (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       setSelectedImage(file);
+//       const reader = new FileReader();
+//       reader.onloadend = () => setImagePreview(reader.result);
+//       reader.readAsDataURL(file);
+//     }
+//   };
+
+//   const handleSubmitProfile = async (e) => {
+//     e.preventDefault();
+//     setProfileLoading(true);
+//     try {
+//       const requestData = {
+//         fullName: profileData.fullName,
+//         departmentId: parseInt(profileData.departmentId),
+//         phoneNumber: profileData.phoneNumber,
+//       };
+
+//       if (userProfile) {
+//         await axios.put(
+//           `${BASE_URL}/api/profiles/${profileData.prn}`,
+//           requestData,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+//       } else {
+//         await axios.post(
+//           `${BASE_URL}/api/profiles`,
+//           { ...requestData, prn: profileData.prn },
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+//       }
+
+//       if (selectedImage) {
+//         const formData = new FormData();
+//         formData.append("image", selectedImage);
+//         await axios.post(
+//           `${BASE_URL}/api/profiles/${profileData.prn}/image`,
+//           formData,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${token}`,
+//               "Content-Type": "multipart/form-data",
+//             },
+//           },
+//         );
+//       }
+
+//       fetchUserProfile();
+//       setShowProfileForm(false);
+//     } catch (error) {
+//       setMessage({ text: "Error saving profile.", type: "error" });
+//     } finally {
+//       setProfileLoading(false);
+//     }
+//   };
+
+//   // Clean single API call for email change
+//   const handleEmailUpdate = async () => {
+//     if (!newEmail.trim()) {
+//       setEmailMessage({ text: "Please enter a valid email", type: "error" });
+//       return;
+//     }
+
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(newEmail)) {
+//       setEmailMessage({ text: "Please enter a valid email address", type: "error" });
+//       return;
+//     }
+
+//     setEmailLoading(true);
+//     setEmailMessage({ text: "", type: "" });
+
+//     try {
+//       const response = await axios.put(
+//         `${BASE_URL}/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
+//         {},
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "Content-Type": "application/json",
+//           },
+//         }
+//       );
+
+//       if (response.data) {
+//         const updatedUser = { ...currentUser, email: newEmail, verified: false };
+//         localStorage.setItem("user", JSON.stringify(updatedUser));
+//         setCurrentUser(updatedUser);
+//         setVerificationStatus(false);
+
+//         setEmailMessage({ text: "Email updated! OTP sent to your new email...", type: "success" });
+
+//         localStorage.setItem("verificationEmail", newEmail);
+//         localStorage.setItem("verificationOldEmail", currentUser.email);
+//         localStorage.setItem("verificationPRN", currentUser.prn);
+//         localStorage.setItem("verificationMode", "email_change");
+//         localStorage.setItem("verificationReturnUrl", "/dashboard");
+
+//         setTimeout(() => {
+//           setShowEmailEditModal(false);
+//           setEmailMessage({ text: "", type: "" });
+//           setNewEmail("");
+//           navigate("/verifyotp");
+//         }, 1500);
+//       }
+//     } catch (error) {
+//       console.error("Error changing email:", error);
+//       setEmailMessage({
+//         text: error.response?.data?.message || "Failed to update email. Please try again.",
+//         type: "error",
+//       });
+//     } finally {
+//       setEmailLoading(false);
+//     }
+//   };
+
+//   const StatCard = ({ title, count, icon: Icon, bgColor, iconColor }) => (
+//     <div 
+//       className="p-6 rounded-2xl flex items-center space-x-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
+//       style={{ 
+//         background: BG_CARD,
+//         border: `1px solid ${BORDER_COLOR}`,
+//         boxShadow: "0 4px 12px rgba(76, 161, 175, 0.05)"
+//       }}
+//     >
+//       <div
+//         className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+//       >
+//         <Icon className="w-7 h-7" />
+//       </div>
+//       <div className="min-w-0">
+//         <p className="text-sm font-semibold uppercase tracking-wider truncate" style={{ color: TEXT_SECONDARY }}>
+//           {title}
+//         </p>
+//         <p className="text-3xl font-bold" style={{ color: TEXT_PRIMARY }}>{count}</p>
+//       </div>
+//     </div>
+//   );
+
+//   const BigActionButton = ({ label, icon: Icon, onClick, bgColor, iconColor }) => (
+//     <button
+//       onClick={onClick}
+//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 min-h-[160px] hover:-translate-y-2 hover:shadow-xl cursor-pointer"
+//       style={{ 
+//         background: BG_CARD,
+//         border: `1px solid ${BORDER_COLOR}`,
+//         boxShadow: "0 4px 12px rgba(76, 161, 175, 0.03)"
+//       }}
+//     >
+//       <div
+//         className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+//       >
+//         <Icon className="w-8 h-8" />
+//       </div>
+//       <span className="text-lg font-bold transition-colors text-center px-2" style={{ color: TEXT_PRIMARY }}>
+//         {label}
+//       </span>
+//     </button>
+//   );
+
+//   const NotificationActionButton = () => (
+//     <button
+//       onClick={() => navigate("/notifications")}
+//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 min-h-[160px] hover:-translate-y-2 hover:shadow-xl cursor-pointer relative"
+//       style={{ 
+//         background: BG_CARD,
+//         border: `1px solid ${BORDER_COLOR}`,
+//         boxShadow: "0 4px 12px rgba(76, 161, 175, 0.03)"
+//       }}
+//     >
+//       <div
+//         className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+//         style={{ backgroundColor: PRIMARY_LIGHT, color: PRIMARY_COLOR }}
+//       >
+//         <Bell className="w-8 h-8" />
+//         {unreadCount > 0 && (
+//           <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md">
+//             {unreadCount > 9 ? "9+" : unreadCount}
+//           </span>
+//         )}
+//       </div>
+//       <span className="text-lg font-bold transition-colors text-center px-2" style={{ color: TEXT_PRIMARY }}>
+//         Notifications
+//       </span>
+//     </button>
+//   );
+
+//   if (loading || isLoadingProfile) {
+//     return (
+//       <div 
+//         className="min-h-screen flex items-center justify-center"
+//         style={{ background: BG_GRADIENT }}
+//       >
+//         <div className="text-center p-8 rounded-2xl" style={{ background: BG_CARD, border: `1px solid ${BORDER_COLOR}` }}>
+//           <div
+//             className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
+//             style={{ borderColor: PRIMARY_COLOR }}
+//           ></div>
+//           <p className="font-semibold" style={{ color: TEXT_SECONDARY }}>Loading dashboard...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <>
+//       <div 
+//         className="min-h-screen flex relative"
+//         style={{ background: BG_GRADIENT }}
+//       >
+//         {/* Decorative light elements */}
+//         <div className="fixed inset-0 overflow-hidden pointer-events-none">
+//           <div className="absolute top-20 left-10 w-64 h-64 bg-white/40 rounded-full blur-3xl"></div>
+//           <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/40 rounded-full blur-3xl"></div>
+//         </div>
+
+//         {/* Mobile Header */}
+//         <div className="lg:hidden fixed top-0 left-0 right-0 z-50 px-4 py-4 flex items-center justify-between shadow-sm backdrop-blur-sm"
+//           style={{ background: 'rgba(255, 255, 255, 0.95)', borderBottom: `1px solid ${BORDER_COLOR}` }}
+//         >
+//           <button
+//             onClick={() => setSidebarOpen(!sidebarOpen)}
+//             className="p-2 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer"
+//             style={{ color: TEXT_SECONDARY }}
+//           >
+//             <Menu size={24} />
+//           </button>
+//           <div className="flex items-center space-x-2">
+//             <div
+//               className="p-2 rounded-lg transition-transform hover:scale-105 cursor-pointer"
+//               style={{ background: PRIMARY_GRADIENT }}
+//             >
+//               <LayoutDashboard className="text-white w-5 h-5" />
+//             </div>
+//             <h2 className="text-xl font-black tracking-tight" style={{ color: TEXT_PRIMARY }}>
+//               Super<span style={{ color: PRIMARY_COLOR }}>Admin</span>
+//             </h2>
+//           </div>
+//           <div
+//             className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
+//             style={{ borderColor: PRIMARY_LIGHT }}
+//             onClick={() => setShowProfileForm(true)}
+//           >
+//             <img
+//               src={
+//                 imagePreview ||
+//                 `https://ui-avatars.com/api/?name=${
+//                   encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                 }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//               }
+//               onError={(e) => {
+//                 e.target.onerror = null;
+//                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//               }}
+//               alt={profileData.fullName || currentUser.username || "Profile"}
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+//         </div>
+
+//         {/* Overlay for mobile sidebar */}
+//         {sidebarOpen && (
+//           <div
+//             className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+//             onClick={() => setSidebarOpen(false)}
+//           />
+//         )}
+
+//         {/* Sidebar */}
+//         <aside
+//           className={`
+//             fixed lg:sticky top-0 left-0 h-screen
+//             w-80 sm:w-96
+//             flex flex-col p-8
+//             transition-transform duration-300 ease-in-out z-50
+//             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+//             overflow-y-auto
+//           `}
+//           style={{ 
+//             background: BG_SIDEBAR,
+//             borderRight: `1px solid ${BORDER_COLOR}`,
+//             boxShadow: "4px 0 20px rgba(76, 161, 175, 0.05)"
+//           }}
+//         >
+//           <button
+//             onClick={() => setSidebarOpen(false)}
+//             className="lg:hidden absolute top-4 right-4 p-2 rounded-xl transition-all duration-200 hover:rotate-90 cursor-pointer"
+//             style={{ color: TEXT_SECONDARY }}
+//           >
+//             <X size={20} />
+//           </button>
+
+//           <div className="flex items-center space-x-3 mb-10 group cursor-pointer">
+//             <div
+//               className="p-2.5 rounded-xl shadow-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
+//               style={{
+//                 background: PRIMARY_GRADIENT,
+//                 boxShadow: `0 10px 15px -3px ${PRIMARY_COLOR}30`,
+//               }}
+//             >
+//               <LayoutDashboard className="text-white" size={24} />
+//             </div>
+//             <h2 className="text-2xl font-black tracking-tight" style={{ color: TEXT_PRIMARY }}>
+//               Super<span style={{ color: PRIMARY_COLOR }}>Admin</span>
+//             </h2>
+//           </div>
+
+//           <div className="flex flex-col items-center text-center mb-8">
+//             <div
+//               className="relative p-1 rounded-3xl mb-4 transition-all duration-300 hover:shadow-lg cursor-pointer"
+//               style={{
+//                 border: `2px solid ${PRIMARY_LIGHT}`,
+//                 boxShadow: `0 10px 15px -3px ${PRIMARY_COLOR}20`,
+//               }}
+//             >
+//               <img
+//                 src={
+//                   imagePreview ||
+//                   `https://ui-avatars.com/api/?name=${
+//                     encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                   }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//                 }
+//                 alt="Profile"
+//                 className="w-32 h-32 rounded-[2rem] object-cover"
+//                 onError={(e) => {
+//                   e.target.onerror = null;
+//                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//                 }}
+//               />
+//               <button
+//                 onClick={() => setShowProfileForm(true)}
+//                 className="absolute -bottom-1 -right-1 p-2 rounded-xl shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+//                 style={{ background: PRIMARY_COLOR, color: 'white' }}
+//               >
+//                 <Edit size={16} />
+//               </button>
+//             </div>
+//             <h3 className="font-bold text-xl tracking-tight" style={{ color: TEXT_PRIMARY }}>
+//               {profileData.fullName || currentUser.username}
+//             </h3>
+//             <p
+//               className="text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-[0.1em] transition-colors cursor-pointer"
+//               style={{ color: PRIMARY_COLOR, backgroundColor: PRIMARY_LIGHT }}
+//             >
+//               {currentUser.role.replace("_", " ")}
+//             </p>
+//           </div>
+
+//           <nav className="space-y-2 flex-1 overflow-y-auto">
+//             <div 
+//               className="p-6 rounded-2xl space-y-4 transition-all duration-300 hover:shadow-md"
+//               style={{ 
+//                 background: ACCENT_SOFT,
+//                 border: `1px solid ${BORDER_COLOR}`,
+//               }}
+//             >
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: TEXT_MUTED }}>
+//                   Full Name
+//                 </span>
+//                 <span className="text-sm font-bold break-words transition-colors" style={{ color: TEXT_PRIMARY }}>
+//                   {profileData.fullName || "Not set"}
+//                 </span>
+//               </div>
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: TEXT_MUTED }}>
+//                   Username
+//                 </span>
+//                 <span className="text-sm font-bold break-words transition-colors" style={{ color: TEXT_PRIMARY }}>
+//                   {currentUser.username}
+//                 </span>
+//               </div>
+
+//               {/* Email field with both edit and verify buttons */}
+//               <div className="flex flex-col group cursor-pointer relative">
+//                 <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: TEXT_MUTED }}>
+//                   Email
+//                 </span>
+//                 <div className="flex items-center justify-between">
+//                   <span className="text-sm font-bold break-all pr-2" style={{ color: TEXT_PRIMARY }}>
+//                     {currentUser.email}
+//                   </span>
+//                   <div className="flex gap-1">
+//                     <button
+//                       onClick={() => {
+//                         setNewEmail(currentUser.email);
+//                         setShowEmailEditModal(true);
+//                       }}
+//                       className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
+//                       style={{ color: PRIMARY_COLOR, background: `${PRIMARY_COLOR}10` }}
+//                       title="Edit email"
+//                     >
+//                       <Edit size={14} />
+//                     </button>
+//                     <button
+//                       onClick={handleVerificationRedirect}
+//                       className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer flex items-center gap-1 ${
+//                         verificationStatus
+//                           ? "text-green-600 bg-green-50"
+//                           : "text-amber-600 bg-amber-50"
+//                       }`}
+//                       title={verificationStatus ? "Verified" : "Click to verify"}
+//                     >
+//                       {verificationStatus ? (
+//                         <CheckCircle size={14} />
+//                       ) : (
+//                         <AlertCircle size={14} />
+//                       )}
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div className="flex flex-col group cursor-pointer">
+//                 <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: TEXT_MUTED }}>
+//                   Phone
+//                 </span>
+//                 <span className="text-sm font-bold transition-colors" style={{ color: TEXT_PRIMARY }}>
+//                   {profileData.phoneNumber || "Not set"}
+//                 </span>
+//               </div>
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="flex flex-col group cursor-pointer">
+//                   <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: TEXT_MUTED }}>
+//                     PRN
+//                   </span>
+//                   <span className="text-sm font-bold break-words transition-colors" style={{ color: TEXT_PRIMARY }}>
+//                     {profileData.prn || "Not set"}
+//                   </span>
+//                 </div>
+//               </div>
+//               <div className="pt-2 border-t flex items-center justify-between group cursor-pointer" style={{ borderColor: BORDER_COLOR }}>
+//                 <span className="text-[10px] font-bold uppercase tracking-widest transition-colors" style={{ color: TEXT_MUTED }}>
+//                   Status
+//                 </span>
+//                 <span
+//                   className={`flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md group-hover:scale-105 transition-all duration-200 cursor-pointer ${
+//                     currentUser.verified
+//                       ? "text-emerald-600 bg-emerald-50"
+//                       : "text-amber-600 bg-amber-50"
+//                   }`}
+//                 >
+//                   <div
+//                     className={`w-1.5 h-1.5 rounded-full mr-1.5 ${currentUser.verified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
+//                   ></div>
+//                   {currentUser.verified ? "ACTIVE" : "PENDING"}
+//                 </span>
+//               </div>
+//             </div>
+//           </nav>
+
+//           <button
+//             onClick={() =>
+//               setConfirmDialog({
+//                 isOpen: true,
+//                 title: "Sign Out",
+//                 message: "Are you sure you want to sign out?",
+//                 confirmText: "Sign Out",
+//                 variant: "danger",
+//                 onConfirm: () => {
+//                   closeConfirm();
+//                   handleLogout();
+//                 },
+//               })
+//             }
+//             className="mt-6 flex items-center justify-center space-x-3 w-full py-4 rounded-2xl transition-all duration-200 font-bold text-sm border hover:shadow-md hover:scale-[1.02] cursor-pointer"
+//             style={{ 
+//               color: '#ef4444',
+//               background: 'white',
+//               borderColor: BORDER_COLOR,
+//             }}
+//           >
+//             <LogOut size={20} />
+//             <span>Sign Out</span>
+//           </button>
+//         </aside>
+
+//         {/* Main Content */}
+//         <main className="flex-1 w-full pt-20 lg:pt-0 px-6 lg:px-10 pb-10 relative z-10">
+//           <div className="max-w-7xl mx-auto">
+//             <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-12 pt-10">
+//               <div>
+//                 <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: TEXT_PRIMARY }}>
+//                   Dashboard
+//                 </h1>
+//                 <p className="text-base font-medium" style={{ color: TEXT_SECONDARY }}>
+//                   Welcome back,{" "}
+//                   <span className="font-bold" style={{ color: PRIMARY_COLOR }}>
+//                     {currentUser.username}
+//                   </span>
+//                   . System is healthy.
+//                 </p>
+//               </div>
+//               <div className="flex items-center space-x-3 px-5 py-2.5 rounded-2xl border shadow-sm self-start transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+//                 style={{ 
+//                   background: '#ecfdf5',
+//                   borderColor: '#bbf7d0',
+//                   color: '#059669'
+//                 }}
+//               >
+//                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+//                 <span className="text-sm font-black uppercase tracking-wider">
+//                   All Systems Live
+//                 </span>
+//               </div>
+//             </header>
+
+//             {/* Stats Grid */}
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-16">
+//               <StatCard
+//                 title="Total Users"
+//                 count={users.length}
+//                 icon={Users}
+//                 bgColor={PRIMARY_LIGHT}
+//                 iconColor={PRIMARY_COLOR}
+//               />
+//               <StatCard
+//                 title="Faculty"
+//                 count={stats.TEACHERS || 0}
+//                 icon={Briefcase}
+//                 bgColor="rgba(59, 130, 246, 0.1)"
+//                 iconColor="#3B82F6"
+//               />
+//               <StatCard
+//                 title="Club Admins"
+//                 count={clubAdmins || 0}
+//                 icon={ShieldCheck}
+//                 bgColor="rgba(16, 185, 129, 0.1)"
+//                 iconColor="#10B981"
+//               />
+//               <StatCard
+//                 title="Regular"
+//                 count={stats.USERS || 0}
+//                 icon={User}
+//                 bgColor="rgba(249, 115, 22, 0.1)"
+//                 iconColor="#F97316"
+//               />
+//             </div>
+
+//             {/* Control Center */}
+//             <section>
+//               <div className="flex items-center space-x-4 mb-8">
+//                 <h3 className="text-2xl font-black tracking-tight whitespace-nowrap" style={{ color: TEXT_PRIMARY }}>
+//                   Control Center
+//                 </h3>
+//                 <div
+//                   className="flex-1 h-[2px] rounded-full"
+//                   style={{
+//                     background: `linear-gradient(to right, ${BORDER_COLOR}, ${PRIMARY_COLOR}, ${BORDER_COLOR})`,
+//                   }}
+//                 ></div>
+//               </div>
+
+//               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+//                 <BigActionButton
+//                   label="Manage Users"
+//                   icon={Users}
+//                   onClick={() => navigate("/manage-users")}
+//                   bgColor={PRIMARY_LIGHT}
+//                   iconColor={PRIMARY_COLOR}
+//                 />
+//                 <BigActionButton
+//                   label="Events"
+//                   icon={CalendarDays}
+//                   onClick={() => navigate("/events-superadmin")}
+//                   bgColor="rgba(16, 185, 129, 0.1)"
+//                   iconColor="#10B981"
+//                 />
+//                 <BigActionButton
+//                   label="Departments"
+//                   icon={Database}
+//                   onClick={() => {
+//                     fetchDepartments();
+//                     setShowDeptModal(true);
+//                   }}
+//                   bgColor="rgba(236, 72, 153, 0.1)"
+//                   iconColor="#EC4899"
+//                 />
+//                 <BigActionButton
+//                   label="Manage Clubs"
+//                   icon={Database}
+//                   onClick={() => navigate("/manage-clubs")}
+//                   bgColor="rgba(6, 182, 212, 0.1)"
+//                   iconColor="#06B6D4"
+//                 />
+//                 <BigActionButton
+//                   label="Club Admins"
+//                   icon={ShieldCheck}
+//                   onClick={() => navigate("/club-admins")}
+//                   bgColor="rgba(249, 115, 22, 0.1)"
+//                   iconColor="#F97316"
+//                 />
+//                 <BigActionButton
+//                   label="Add Student"
+//                   icon={UserPlus}
+//                   onClick={() => navigate("/add-users-with-club")}
+//                   bgColor="rgba(59, 130, 246, 0.1)"
+//                   iconColor="#3B82F6"
+//                 />
+//                 <BigActionButton
+//                   label="Club Association"
+//                   icon={Building2}
+//                   onClick={() => navigate("/remove-users-from-any-club")}
+//                   bgColor="rgba(6, 182, 212, 0.1)"
+//                   iconColor="#06B6D4"
+//                 />
+//                 <NotificationActionButton />
+//               </div>
+//             </section>
+//           </div>
+//         </main>
+
+//         {/* Profile Form Modal */}
+//         {showProfileForm && (
+//           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+//             <div className="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4"
+//               style={{ background: BG_CARD, border: `1px solid ${BORDER_COLOR}` }}
+//             >
+//               {/* Header */}
+//               <div
+//                 className="p-6 text-white flex items-center justify-between"
+//                 style={{ background: PRIMARY_GRADIENT }}
+//               >
+//                 <h2 className="text-xl font-bold">
+//                   {userProfile ? "Edit Profile" : "Complete Profile"}
+//                 </h2>
+//                 <button
+//                   onClick={() => {
+//                     setShowProfileForm(false);
+//                     setMessage({ text: "", type: "" });
+//                   }}
+//                   className="p-1 hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+//                 >
+//                   <X size={24} />
+//                 </button>
+//               </div>
+
+//               {/* Form Body */}
+//               <form onSubmit={handleSubmitProfile} className="p-6 space-y-5">
+//                 {/* Photo Upload */}
+//                 <div className="text-center mb-6">
+//                   <div className="relative inline-block group">
+//                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 shadow-md transition-transform group-hover:scale-105"
+//                       style={{ borderColor: PRIMARY_LIGHT }}
+//                     >
+//                       <img
+//                         src={
+//                           imagePreview ||
+//                           `https://ui-avatars.com/api/?name=${
+//                             encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+//                           }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+//                         }
+//                         alt="Profile"
+//                         onError={(e) => {
+//                           e.target.onerror = null;
+//                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+//                         }}
+//                         className="w-full h-full object-cover"
+//                       />
+//                     </div>
+//                     <label
+//                       className="absolute bottom-0 right-0 p-2 rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
+//                       style={{ background: PRIMARY_COLOR, color: 'white' }}
+//                       title="Change photo"
+//                     >
+//                       <Camera size={16} />
+//                       <input
+//                         type="file"
+//                         accept="image/*"
+//                         onChange={handleImageChange}
+//                         className="hidden"
+//                       />
+//                     </label>
+//                   </div>
+//                   <p className="text-xs mt-2" style={{ color: TEXT_MUTED }}>Upload photo</p>
+//                 </div>
+
+//                 {/* PRN Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: TEXT_SECONDARY }}>PRN</label>
+//                   <input
+//                     type="text"
+//                     value={profileData.prn}
+//                     readOnly
+//                     className="w-full px-3 py-2 rounded-lg text-sm cursor-not-allowed"
+//                     style={{ 
+//                       background: ACCENT_SOFT,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_SECONDARY
+//                     }}
+//                   />
+//                 </div>
+
+//                 {/* Full Name Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: TEXT_SECONDARY }}>Full Name *</label>
+//                   <input
+//                     type="text"
+//                     name="fullName"
+//                     value={profileData.fullName}
+//                     onChange={handleInputChange}
+//                     placeholder="Enter your name"
+//                     className="w-full px-3 py-2 rounded-lg text-sm transition-all"
+//                     style={{ 
+//                       background: BG_CARD,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_PRIMARY
+//                     }}
+//                     onFocus={(e) => {
+//                       e.target.style.borderColor = PRIMARY_COLOR;
+//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+//                     }}
+//                     onBlur={(e) => {
+//                       e.target.style.borderColor = BORDER_COLOR;
+//                       e.target.style.boxShadow = "none";
+//                     }}
+//                     required
+//                   />
+//                 </div>
+
+//                 {/* Phone Field */}
+//                 <div>
+//                   <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: TEXT_SECONDARY }}>Phone *</label>
+//                   <input
+//                     type="tel"
+//                     name="phoneNumber"
+//                     value={profileData.phoneNumber}
+//                     onChange={handleInputChange}
+//                     placeholder="9876543210"
+//                     className="w-full px-3 py-2 rounded-lg text-sm transition-all"
+//                     style={{ 
+//                       background: BG_CARD,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_PRIMARY
+//                     }}
+//                     onFocus={(e) => {
+//                       e.target.style.borderColor = PRIMARY_COLOR;
+//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+//                     }}
+//                     onBlur={(e) => {
+//                       e.target.style.borderColor = BORDER_COLOR;
+//                       e.target.style.boxShadow = "none";
+//                     }}
+//                     required
+//                   />
+//                 </div>
+
+//                 {/* Message */}
+//                 {message.text && (
+//                   <div
+//                     className={`p-3 rounded-lg text-sm font-medium border ${
+//                       message.type === "error"
+//                         ? "bg-red-50 text-red-700 border-red-200"
+//                         : "bg-green-50 text-green-700 border-green-200"
+//                     }`}
+//                   >
+//                     {message.text}
+//                   </div>
+//                 )}
+
+//                 {/* Buttons */}
+//                 <div className="flex gap-3 pt-2">
+//                   <button
+//                     type="button"
+//                     onClick={() => {
+//                       setShowProfileForm(false);
+//                       setMessage({ text: "", type: "" });
+//                     }}
+//                     className="flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
+//                     style={{ 
+//                       background: ACCENT_SOFT,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_SECONDARY
+//                     }}
+//                   >
+//                     Cancel
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     disabled={profileLoading}
+//                     className="flex-1 px-4 py-2 text-white rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+//                     style={{ background: profileLoading ? `${PRIMARY_COLOR}80` : PRIMARY_COLOR }}
+//                   >
+//                     {profileLoading ? "Saving..." : "Save"}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Department CRUD Modal */}
+//         {showDeptModal && (
+//           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 z-50">
+//             <div className="rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
+//               style={{ background: BG_CARD, border: `1px solid ${BORDER_COLOR}` }}
+//             >
+//               <div
+//                 className="p-5 sm:p-8 text-white flex justify-between items-center"
+//                 style={{ background: PRIMARY_GRADIENT }}
+//               >
+//                 <div className="flex-1 min-w-0">
+//                   <h3 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Department Management</h3>
+//                   <p className="text-white/80 text-xs sm:text-sm truncate">Add or remove academic departments</p>
+//                 </div>
+//                 <button
+//                   onClick={() => {
+//                     setShowDeptModal(false);
+//                     setEditingDept(null);
+//                     setDeptInput("");
+//                     setDeptMessage({ text: "", type: "" });
+//                   }}
+//                   className="bg-white/20 p-1.5 sm:p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer flex-shrink-0"
+//                 >
+//                   <X size={18} className="sm:w-5 sm:h-5" />
+//                 </button>
+//               </div>
+
+//               <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
+//                 {deptMessage.text && (
+//                   <div
+//                     className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl border ${
+//                       deptMessage.type === "error" 
+//                         ? "bg-red-50 text-red-700 border-red-200" 
+//                         : "bg-green-50 text-green-700 border-green-200"
+//                     }`}
+//                   >
+//                     <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+//                       {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
+//                     </p>
+//                   </div>
+//                 )}
+
+//                 <form onSubmit={handleDeptSubmit} className="mb-6 sm:mb-8">
+//                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+//                     <input
+//                       type="text"
+//                       placeholder="Enter department name..."
+//                       className="w-full px-4 py-3 rounded-xl transition-all text-sm sm:text-base"
+//                       style={{ 
+//                         background: BG_CARD,
+//                         border: `2px solid ${BORDER_COLOR}`,
+//                         color: TEXT_PRIMARY
+//                       }}
+//                       onFocus={(e) => {
+//                         e.target.style.borderColor = PRIMARY_COLOR;
+//                         e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`;
+//                       }}
+//                       onBlur={(e) => {
+//                         e.target.style.borderColor = BORDER_COLOR;
+//                         e.target.style.boxShadow = "";
+//                       }}
+//                       value={deptInput}
+//                       onChange={(e) => setDeptInput(e.target.value)}
+//                       required
+//                     />
+//                     <button
+//                       type="submit"
+//                       className="w-full sm:w-auto text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg cursor-pointer text-sm sm:text-base"
+//                       style={{
+//                         background: PRIMARY_GRADIENT,
+//                         boxShadow: `0 10px 15px -3px ${PRIMARY_COLOR}40`,
+//                       }}
+//                     >
+//                       {editingDept ? <Edit size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />}
+//                       {editingDept ? "Update" : "Add Dept"}
+//                     </button>
+//                   </div>
+//                   {editingDept && (
+//                     <div className="mt-2 text-xs sm:text-sm flex items-center gap-2" style={{ color: TEXT_SECONDARY }}>
+//                       <span className="truncate">
+//                         Editing: <span className="font-bold" style={{ color: PRIMARY_COLOR }}>{editingDept.name}</span>
+//                       </span>
+//                       <button
+//                         type="button"
+//                         onClick={() => {
+//                           setEditingDept(null);
+//                           setDeptInput("");
+//                         }}
+//                         className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer flex-shrink-0"
+//                       >
+//                         Cancel
+//                       </button>
+//                     </div>
+//                   )}
+//                 </form>
+
+//                 {deptLoading ? (
+//                   <div className="py-8 sm:py-10 text-center italic" style={{ color: TEXT_MUTED }}>
+//                     <div
+//                       className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 mx-auto mb-3 cursor-wait"
+//                       style={{ borderColor: PRIMARY_COLOR }}
+//                     ></div>
+//                     <p className="text-sm sm:text-base">Loading departments...</p>
+//                   </div>
+//                 ) : (
+//                   <div className="space-y-2 sm:space-y-3">
+//                     {departments.length > 0 ? (
+//                       departments.map((dept) => (
+//                         <div
+//                           key={dept.departmentId}
+//                           className="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all group cursor-pointer hover:scale-[1.01]"
+//                           style={{ 
+//                             background: ACCENT_SOFT,
+//                             border: `1px solid ${BORDER_COLOR}`,
+//                           }}
+//                         >
+//                           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+//                             <span className="font-bold text-sm sm:text-base truncate" style={{ color: TEXT_PRIMARY }}>{dept.name}</span>
+//                             <span
+//                               className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${
+//                                 dept.active 
+//                                   ? "bg-green-50 text-green-700" 
+//                                   : "bg-gray-100 text-gray-500"
+//                               }`}
+//                             >
+//                               {dept.active ? "Active" : "Inactive"}
+//                             </span>
+//                           </div>
+//                           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+//                             <button
+//                               onClick={(e) => {
+//                                 e.stopPropagation();
+//                                 setConfirmDialog({
+//                                   isOpen: true,
+//                                   title: "Delete Department",
+//                                   message:
+//                                     "Are you sure you want to delete this department? This action cannot be undone.",
+//                                   confirmText: "Delete",
+//                                   variant: "danger",
+//                                   onConfirm: () => {
+//                                     closeConfirm();
+//                                     deleteDepartment(dept.departmentId);
+//                                   },
+//                                 });
+//                               }}
+//                               className="p-1.5 sm:p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+//                               title="Delete"
+//                             >
+//                               <Trash2 size={14} className="sm:w-4 sm:h-4" />
+//                             </button>
+//                           </div>
+//                         </div>
+//                       ))
+//                     ) : (
+//                       <div className="text-center py-8 sm:py-10">
+//                         <Database className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3" style={{ color: TEXT_MUTED }} />
+//                         <p className="text-sm sm:text-base font-medium" style={{ color: TEXT_SECONDARY }}>No departments found in system.</p>
+//                         <p className="text-xs sm:text-sm mt-1" style={{ color: TEXT_MUTED }}>Add a department using the form above</p>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+
+//               <div className="px-4 sm:px-8 py-3 sm:py-4 border-t flex justify-between items-center" style={{ borderColor: BORDER_COLOR, background: ACCENT_SOFT }}>
+//                 <div className="text-xs sm:text-sm" style={{ color: TEXT_SECONDARY }}>
+//                   {departments.length} department{departments.length !== 1 ? "s" : ""}
+//                 </div>
+//                 <button
+//                   onClick={() => setShowDeptModal(false)}
+//                   className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
+//                   style={{ color: TEXT_SECONDARY }}
+//                 >
+//                   Close Manager
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Email Edit Modal */}
+//         {showEmailEditModal && (
+//           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+//             <div className="rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden"
+//               style={{ background: BG_CARD, border: `1px solid ${BORDER_COLOR}` }}
+//             >
+//               <div
+//                 className="p-6 text-white"
+//                 style={{ background: PRIMARY_GRADIENT }}
+//               >
+//                 <div className="flex justify-between items-center">
+//                   <div>
+//                     <h3 className="text-xl font-bold flex items-center gap-2">
+//                       <Mail size={20} />
+//                       Update Email Address
+//                     </h3>
+//                     <p className="text-white/80 text-sm mt-1">Enter your new email address</p>
+//                   </div>
+//                   <button
+//                     onClick={() => {
+//                       setShowEmailEditModal(false);
+//                       setEmailMessage({ text: "", type: "" });
+//                       setNewEmail("");
+//                     }}
+//                     className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
+//                   >
+//                     <X size={18} />
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div className="p-6 space-y-5">
+//                 <div>
+//                   <label className="block text-sm font-semibold mb-2" style={{ color: TEXT_SECONDARY }}>
+//                     Current Email
+//                   </label>
+//                   <input
+//                     type="email"
+//                     value={currentUser.email}
+//                     className="w-full px-4 py-3 rounded-xl cursor-not-allowed"
+//                     style={{ 
+//                       background: ACCENT_SOFT,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_SECONDARY
+//                     }}
+//                     disabled
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-semibold mb-2" style={{ color: TEXT_SECONDARY }}>
+//                     New Email <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="email"
+//                     value={newEmail}
+//                     onChange={(e) => setNewEmail(e.target.value)}
+//                     className="w-full px-4 py-3 rounded-xl transition-all"
+//                     style={{ 
+//                       background: BG_CARD,
+//                       border: `1px solid ${BORDER_COLOR}`,
+//                       color: TEXT_PRIMARY
+//                     }}
+//                     onFocus={(e) => {
+//                       e.target.style.borderColor = PRIMARY_COLOR;
+//                       e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`;
+//                     }}
+//                     onBlur={(e) => {
+//                       e.target.style.borderColor = BORDER_COLOR;
+//                       e.target.style.boxShadow = "";
+//                     }}
+//                     placeholder="Enter new email address"
+//                     required
+//                   />
+//                 </div>
+
+//                 {emailMessage.text && (
+//                   <div
+//                     className={`p-3 rounded-xl border ${
+//                       emailMessage.type === "error" 
+//                         ? "bg-red-50 text-red-700 border-red-200" 
+//                         : "bg-green-50 text-green-700 border-green-200"
+//                     }`}
+//                   >
+//                     <p className="text-sm font-semibold flex items-center gap-2">
+//                       {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
+//                     </p>
+//                   </div>
+//                 )}
+
+//                 <div className="pt-4">
+//                   <button
+//                     type="button"
+//                     onClick={handleEmailUpdate}
+//                     disabled={emailLoading || !newEmail || newEmail === currentUser.email}
+//                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+//                     style={{ background: PRIMARY_GRADIENT }}
+//                   >
+//                     {emailLoading ? (
+//                       <div className="flex items-center justify-center gap-2">
+//                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                         Updating...
+//                       </div>
+//                     ) : (
+//                       "Update Email"
+//                     )}
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <ConfirmDialog
+//         isOpen={confirmDialog.isOpen}
+//         title={confirmDialog.title}
+//         message={confirmDialog.message}
+//         confirmText={confirmDialog.confirmText}
+//         variant={confirmDialog.variant}
+//         onConfirm={confirmDialog.onConfirm}
+//         onCancel={closeConfirm}
+//       />
+//     </>
+//   );
+// }
+
+
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +2954,8 @@ import {
   CheckCircle,
   AlertCircle,
   Bell,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
@@ -34,12 +2963,46 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
 
-  const PRIMARY_COLOR = "#4CA1AF";
-  const PRIMARY_DARK = "#2d8391";
-  const PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
+  // Light mode colors (existing)
+  const LIGHT_PRIMARY_COLOR = "#4CA1AF";
+  const LIGHT_PRIMARY_DARK = "#2d8391";
+  const LIGHT_PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
+  const LIGHT_PRIMARY_GRADIENT = "linear-gradient(135deg, #4CA1AF 0%, #2c7a8a 100%)";
+  
+  const LIGHT_BG_MAIN = "#f5faff";
+  const LIGHT_BG_GRADIENT = "linear-gradient(135deg, #f5faff 0%, #f0f8ff 100%)";
+  const LIGHT_BG_SIDEBAR = "#ffffff";
+  const LIGHT_BG_CARD = "#ffffff";
+  const LIGHT_BORDER_COLOR = "#e9f0f9";
+  const LIGHT_BORDER_COLOR_HOVER = "#d9e6f5";
+  const LIGHT_TEXT_PRIMARY = "#1e293b";
+  const LIGHT_TEXT_SECONDARY = "#475569";
+  const LIGHT_TEXT_MUTED = "#64748b";
+  const LIGHT_ACCENT_SOFT = "#f8fcff";
+
+  // Dark mode colors - ChatGPT style
+  const DARK_PRIMARY_COLOR = "#10A37F"; // ChatGPT green accent
+  const DARK_PRIMARY_DARK = "#0E8C6D";
+  const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+  
+  const DARK_BG_MAIN = "#343541"; // ChatGPT main bg
+  const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
+  const DARK_BG_SIDEBAR = "#202123"; // ChatGPT sidebar
+  const DARK_BG_CARD = "#444654"; // ChatGPT card bg
+  const DARK_BORDER_COLOR = "#4D4F5E";
+  const DARK_BORDER_COLOR_HOVER = "#5E5F70";
+  const DARK_TEXT_PRIMARY = "#ECECF1"; // ChatGPT primary text
+  const DARK_TEXT_SECONDARY = "#C5C5D2"; // ChatGPT secondary text
+  const DARK_TEXT_MUTED = "#9B9CA9"; // ChatGPT muted text
+  const DARK_ACCENT_SOFT = "rgba(255, 255, 255, 0.05)";
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+
+  const [isDarkMode, setIsDarkMode] = useState(() => 
+    localStorage.getItem("superAdminDashboardTheme") === "dark"
+  );
 
   const [currentUser, setCurrentUser] = useState({
     username: user?.username || "admin_user",
@@ -97,8 +3060,33 @@ export default function SuperAdminDashboard() {
     confirmText: "Confirm",
     onConfirm: () => {},
   });
+
+  // Get current theme colors
+  const theme = {
+    primaryColor: isDarkMode ? DARK_PRIMARY_COLOR : LIGHT_PRIMARY_COLOR,
+    primaryDark: isDarkMode ? DARK_PRIMARY_DARK : LIGHT_PRIMARY_DARK,
+    primaryLight: isDarkMode ? DARK_PRIMARY_LIGHT : LIGHT_PRIMARY_LIGHT,
+    primaryGradient: isDarkMode ? DARK_PRIMARY_GRADIENT : LIGHT_PRIMARY_GRADIENT,
+    bgMain: isDarkMode ? DARK_BG_MAIN : LIGHT_BG_MAIN,
+    bgGradient: isDarkMode ? DARK_BG_GRADIENT : LIGHT_BG_GRADIENT,
+    bgSidebar: isDarkMode ? DARK_BG_SIDEBAR : LIGHT_BG_SIDEBAR,
+    bgCard: isDarkMode ? DARK_BG_CARD : LIGHT_BG_CARD,
+    borderColor: isDarkMode ? DARK_BORDER_COLOR : LIGHT_BORDER_COLOR,
+    borderColorHover: isDarkMode ? DARK_BORDER_COLOR_HOVER : LIGHT_BORDER_COLOR_HOVER,
+    textPrimary: isDarkMode ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY,
+    textSecondary: isDarkMode ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY,
+    textMuted: isDarkMode ? DARK_TEXT_MUTED : LIGHT_TEXT_MUTED,
+    accentSoft: isDarkMode ? DARK_ACCENT_SOFT : LIGHT_ACCENT_SOFT,
+    isDarkMode: isDarkMode,
+  };
+
   const closeConfirm = () =>
     setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+  // Save theme preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("superAdminDashboardTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   useEffect(() => {
     if(token){
@@ -531,18 +3519,25 @@ export default function SuperAdminDashboard() {
   };
 
   const StatCard = ({ title, count, icon: Icon, bgColor, iconColor }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group">
+    <div 
+      className="p-6 rounded-2xl flex items-center space-x-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
+      style={{ 
+        background: theme.bgCard,
+        border: `1px solid ${theme.borderColor}`,
+        boxShadow: isDarkMode ? 'none' : "0 4px 12px rgba(76, 161, 175, 0.05)"
+      }}
+    >
       <div
-        className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-        style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+        className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+        style={{ backgroundColor: isDarkMode ? theme.accentSoft : (bgColor || theme.primaryLight), color: iconColor || theme.primaryColor }}
       >
         <Icon className="w-7 h-7" />
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider truncate group-hover:text-gray-700 transition-colors">
+        <p className="text-sm font-semibold uppercase tracking-wider truncate" style={{ color: theme.textSecondary }}>
           {title}
         </p>
-        <p className="text-3xl font-bold text-gray-900">{count}</p>
+        <p className="text-3xl font-bold" style={{ color: theme.textPrimary }}>{count}</p>
       </div>
     </div>
   );
@@ -550,15 +3545,20 @@ export default function SuperAdminDashboard() {
   const BigActionButton = ({ label, icon: Icon, onClick, bgColor, iconColor }) => (
     <button
       onClick={onClick}
-      className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer"
+      className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 min-h-[160px] hover:-translate-y-2 hover:shadow-xl cursor-pointer w-full"
+      style={{ 
+        background: theme.bgCard,
+        border: `1px solid ${theme.borderColor}`,
+        boxShadow: isDarkMode ? 'none' : "0 4px 12px rgba(76, 161, 175, 0.03)"
+      }}
     >
       <div
-        className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
-        style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
+        className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+        style={{ backgroundColor: isDarkMode ? theme.accentSoft : (bgColor || theme.primaryLight), color: iconColor || theme.primaryColor }}
       >
         <Icon className="w-8 h-8" />
       </div>
-      <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
+      <span className="text-lg font-bold transition-colors text-center px-2" style={{ color: theme.textPrimary }}>
         {label}
       </span>
     </button>
@@ -567,20 +3567,25 @@ export default function SuperAdminDashboard() {
   const NotificationActionButton = () => (
     <button
       onClick={() => navigate("/notifications")}
-      className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer relative"
+      className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 min-h-[160px] hover:-translate-y-2 hover:shadow-xl cursor-pointer relative w-full"
+      style={{ 
+        background: theme.bgCard,
+        border: `1px solid ${theme.borderColor}`,
+        boxShadow: isDarkMode ? 'none' : "0 4px 12px rgba(76, 161, 175, 0.03)"
+      }}
     >
       <div
-        className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
-        style={{ backgroundColor: PRIMARY_LIGHT, color: PRIMARY_COLOR }}
+        className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+        style={{ backgroundColor: isDarkMode ? theme.accentSoft : theme.primaryLight, color: theme.primaryColor }}
       >
         <Bell className="w-8 h-8" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </div>
-      <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
+      <span className="text-lg font-bold transition-colors text-center px-2" style={{ color: theme.textPrimary }}>
         Notifications
       </span>
     </button>
@@ -588,13 +3593,16 @@ export default function SuperAdminDashboard() {
 
   if (loading || isLoadingProfile) {
     return (
-      <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center">
-        <div className="text-center">
+      <div 
+        className="min-h-screen flex items-center justify-center transition-colors duration-300"
+        style={{ background: theme.bgGradient }}
+      >
+        <div className="text-center p-8 rounded-2xl" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
           <div
             className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
-            style={{ borderColor: PRIMARY_DARK }}
+            style={{ borderColor: theme.primaryColor }}
           ></div>
-          <p className="text-gray-600 font-semibold">Loading dashboard...</p>
+          <p className="font-semibold" style={{ color: theme.textSecondary }}>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -602,52 +3610,79 @@ export default function SuperAdminDashboard() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#fcfcfd] flex relative">
+      <div 
+        className="min-h-screen flex relative transition-colors duration-300"
+        style={{ background: theme.bgGradient }}
+      >
+        {/* Decorative light elements - only show in light mode */}
+        {!isDarkMode && (
+          <div className="fixed inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-64 h-64 bg-white/40 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/40 rounded-full blur-3xl"></div>
+          </div>
+        )}
+
         {/* Mobile Header */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-50 px-4 py-4 flex items-center justify-between shadow-sm backdrop-blur-sm"
+          style={{ 
+            background: isDarkMode ? 'rgba(32, 33, 35, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            borderBottom: `1px solid ${theme.borderColor}`
+          }}
+        >
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
+            className="p-2 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer"
+            style={{ color: theme.textSecondary }}
           >
-            <Menu size={24} className="text-gray-700" />
+            <Menu size={24} />
           </button>
           <div className="flex items-center space-x-2">
             <div
               className="p-2 rounded-lg transition-transform hover:scale-105 cursor-pointer"
-              style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+              style={{ background: theme.primaryGradient }}
             >
               <LayoutDashboard className="text-white w-5 h-5" />
             </div>
-            <h2 className="text-xl font-black tracking-tight text-gray-800">
-              Super<span style={{ color: PRIMARY_COLOR }}>Admin</span>
+            <h2 className="text-xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
+              Super<span style={{ color: theme.primaryColor }}>Admin</span>
             </h2>
           </div>
-          <div
-            className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
-            style={{ borderColor: PRIMARY_LIGHT }}
-            onClick={() => setShowProfileForm(true)}
-          >
-            <img
-              src={
-                imagePreview ||
-                `https://ui-avatars.com/api/?name=${
-                  encodeURIComponent(profileData.fullName || currentUser.username || 'User')
-                }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
-              }
-              onError={(e) => {
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
-              }}
-              alt={profileData.fullName || currentUser.username || "Profile"}
-              className="w-full h-full object-cover"
-            />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="p-2 rounded-xl transition-colors cursor-pointer"
+              style={{ background: theme.accentSoft, color: theme.textSecondary }}
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <div
+              className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
+              style={{ borderColor: theme.primaryLight }}
+              onClick={() => setShowProfileForm(true)}
+            >
+              <img
+                src={
+                  imagePreview ||
+                  `https://ui-avatars.com/api/?name=${
+                    encodeURIComponent(profileData.fullName || currentUser.username || 'User')
+                  }&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`
+                }
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+                }}
+                alt={profileData.fullName || currentUser.username || "Profile"}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
 
         {/* Overlay for mobile sidebar */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+            className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -656,41 +3691,47 @@ export default function SuperAdminDashboard() {
         <aside
           className={`
             fixed lg:sticky top-0 left-0 h-screen
-            w-80 sm:w-96 bg-white border-r border-gray-100 
-            flex flex-col p-8 shadow-lg lg:shadow-sm
+            w-80 sm:w-96
+            flex flex-col p-8
             transition-transform duration-300 ease-in-out z-50
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
             overflow-y-auto
           `}
+          style={{ 
+            background: theme.bgSidebar,
+            borderRight: `1px solid ${theme.borderColor}`,
+            boxShadow: isDarkMode ? 'none' : "4px 0 20px rgba(76, 161, 175, 0.05)"
+          }}
         >
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+            className="lg:hidden absolute top-4 right-4 p-2 rounded-xl transition-all duration-200 hover:rotate-90 cursor-pointer"
+            style={{ color: theme.textSecondary }}
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} />
           </button>
 
           <div className="flex items-center space-x-3 mb-10 group cursor-pointer">
             <div
               className="p-2.5 rounded-xl shadow-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
               style={{
-                background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-                boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+                background: theme.primaryGradient,
+                boxShadow: `0 10px 15px -3px ${theme.primaryColor}30`,
               }}
             >
               <LayoutDashboard className="text-white" size={24} />
             </div>
-            <h2 className="text-2xl font-black tracking-tight text-gray-800">
-              Super<span style={{ color: PRIMARY_DARK }}>Admin</span>
+            <h2 className="text-2xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
+              Super<span style={{ color: theme.primaryColor }}>Admin</span>
             </h2>
           </div>
 
           <div className="flex flex-col items-center text-center mb-8">
             <div
-              className="relative p-1 border-2 rounded-3xl mb-4 transition-all duration-300 hover:shadow-lg cursor-pointer"
+              className="relative p-1 rounded-3xl mb-4 transition-all duration-300 hover:shadow-lg cursor-pointer"
               style={{
-                borderColor: PRIMARY_LIGHT,
-                boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.1)",
+                border: `2px solid ${theme.primaryLight}`,
+                boxShadow: `0 10px 15px -3px ${theme.primaryColor}20`,
               }}
             >
               <img
@@ -698,60 +3739,66 @@ export default function SuperAdminDashboard() {
                   imagePreview ||
                   `https://ui-avatars.com/api/?name=${
                     encodeURIComponent(profileData.fullName || currentUser.username || 'User')
-                  }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+                  }&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`
                 }
                 alt="Profile"
-                className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
+                className="w-32 h-32 rounded-[2rem] object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`;
                 }}
               />
               <button
                 onClick={() => setShowProfileForm(true)}
-                className="absolute -bottom-1 -right-1 bg-white p-2 rounded-xl shadow-lg border border-gray-50 transition-all duration-200 hover:scale-110 cursor-pointer"
-                style={{ color: PRIMARY_DARK }}
+                className="absolute -bottom-1 -right-1 p-2 rounded-xl shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                style={{ background: theme.primaryColor, color: 'white' }}
               >
                 <Edit size={16} />
               </button>
             </div>
-            <h3 className="font-bold text-gray-900 text-xl tracking-tight">
+            <h3 className="font-bold text-xl tracking-tight" style={{ color: theme.textPrimary }}>
               {profileData.fullName || currentUser.username}
             </h3>
             <p
               className="text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-[0.1em] transition-colors cursor-pointer"
-              style={{ color: PRIMARY_DARK, backgroundColor: PRIMARY_LIGHT }}
+              style={{ color: theme.primaryColor, backgroundColor: theme.primaryLight }}
             >
               {currentUser.role.replace("_", " ")}
             </p>
           </div>
 
           <nav className="space-y-2 flex-1 overflow-y-auto">
-            <div className="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 space-y-4 transition-all duration-300 hover:shadow-md hover:bg-gray-50">
+            <div 
+              className="p-6 rounded-2xl space-y-4 transition-all duration-300 hover:shadow-md"
+              style={{ 
+                background: theme.accentSoft,
+                border: `1px solid ${theme.borderColor}`,
+              }}
+            >
               <div className="flex flex-col group cursor-pointer">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: theme.textMuted }}>
                   Full Name
                 </span>
-                <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+                <span className="text-sm font-bold break-words transition-colors" style={{ color: theme.textPrimary }}>
                   {profileData.fullName || "Not set"}
                 </span>
               </div>
               <div className="flex flex-col group cursor-pointer">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: theme.textMuted }}>
                   Username
                 </span>
-                <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+                <span className="text-sm font-bold break-words transition-colors" style={{ color: theme.textPrimary }}>
                   {currentUser.username}
                 </span>
               </div>
 
               {/* Email field with both edit and verify buttons */}
               <div className="flex flex-col group cursor-pointer relative">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: theme.textMuted }}>
                   Email
                 </span>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-700 break-all group-hover:text-gray-900 transition-colors pr-2">
+                  <span className="text-sm font-bold break-all pr-2" style={{ color: theme.textPrimary }}>
                     {currentUser.email}
                   </span>
                   <div className="flex gap-1">
@@ -760,8 +3807,8 @@ export default function SuperAdminDashboard() {
                         setNewEmail(currentUser.email);
                         setShowEmailEditModal(true);
                       }}
-                      className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
-                      style={{ color: PRIMARY_COLOR }}
+                      className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
+                      style={{ color: theme.primaryColor, background: `${theme.primaryColor}10` }}
                       title="Edit email"
                     >
                       <Edit size={14} />
@@ -770,8 +3817,8 @@ export default function SuperAdminDashboard() {
                       onClick={handleVerificationRedirect}
                       className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer flex items-center gap-1 ${
                         verificationStatus
-                          ? "bg-green-50 text-green-600 hover:bg-green-100"
-                          : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                          ? "text-green-600 bg-green-50"
+                          : "text-amber-600 bg-amber-50"
                       }`}
                       title={verificationStatus ? "Verified" : "Click to verify"}
                     >
@@ -786,38 +3833,38 @@ export default function SuperAdminDashboard() {
               </div>
 
               <div className="flex flex-col group cursor-pointer">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: theme.textMuted }}>
                   Phone
                 </span>
-                <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
+                <span className="text-sm font-bold transition-colors" style={{ color: theme.textPrimary }}>
                   {profileData.phoneNumber || "Not set"}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col group cursor-pointer">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
+                  <span className="text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors" style={{ color: theme.textMuted }}>
                     PRN
                   </span>
-                  <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
+                  <span className="text-sm font-bold break-words transition-colors" style={{ color: theme.textPrimary }}>
                     {profileData.prn || "Not set"}
                   </span>
                 </div>
               </div>
-              <div className="pt-2 border-t border-gray-100 flex items-center justify-between group cursor-pointer">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest transition-colors group-hover:text-[#4CA1AF]">
+              <div className="pt-2 border-t flex items-center justify-between group cursor-pointer" style={{ borderColor: theme.borderColor }}>
+                <span className="text-[10px] font-bold uppercase tracking-widest transition-colors" style={{ color: theme.textMuted }}>
                   Status
                 </span>
                 <span
                   className={`flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md group-hover:scale-105 transition-all duration-200 cursor-pointer ${
                     currentUser.verified
-                      ? "text-emerald-600 bg-emerald-50 group-hover:bg-emerald-100"
-                      : "text-amber-600 bg-amber-50 group-hover:bg-amber-100"
+                      ? "text-emerald-600 bg-emerald-50"
+                      : "text-amber-600 bg-amber-50"
                   }`}
                 >
                   <div
                     className={`w-1.5 h-1.5 rounded-full mr-1.5 ${currentUser.verified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
                   ></div>
-                  {currentUser.verified ? "ACTIVE" : "PENDING VERIFICATION"}
+                  {currentUser.verified ? "ACTIVE" : "PENDING"}
                 </span>
               </div>
             </div>
@@ -837,7 +3884,12 @@ export default function SuperAdminDashboard() {
                 },
               })
             }
-            className="mt-6 flex items-center justify-center space-x-3 w-full py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 font-bold text-sm border border-transparent hover:border-red-100 hover:shadow-md hover:shadow-red-100/50 cursor-pointer"
+            className="mt-6 flex items-center justify-center space-x-3 w-full py-4 rounded-2xl transition-all duration-200 font-bold text-sm border hover:shadow-md hover:scale-[1.02] cursor-pointer"
+            style={{ 
+              color: '#ef4444',
+              background: theme.bgCard,
+              borderColor: theme.borderColor,
+            }}
           >
             <LogOut size={20} />
             <span>Sign Out</span>
@@ -845,26 +3897,46 @@ export default function SuperAdminDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 w-full pt-20 lg:pt-0 px-6 lg:px-10 pb-10">
+        <main className="flex-1 w-full pt-20 lg:pt-0 px-6 lg:px-10 pb-10 relative z-10">
           <div className="max-w-7xl mx-auto">
             <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-12 pt-10">
               <div>
-                <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+                <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: theme.textPrimary }}>
                   Dashboard
                 </h1>
-                <p className="text-base text-gray-500 font-medium">
+                <p className="text-base font-medium" style={{ color: theme.textSecondary }}>
                   Welcome back,{" "}
-                  <span className="font-bold" style={{ color: PRIMARY_COLOR }}>
+                  <span className="font-bold" style={{ color: theme.primaryColor }}>
                     {currentUser.username}
                   </span>
                   . System is healthy.
                 </p>
               </div>
-              <div className="flex items-center space-x-3 bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm shadow-emerald-50 self-start transition-all duration-300 hover:bg-emerald-100 hover:shadow-md hover:shadow-emerald-100/50 hover:-translate-y-0.5 cursor-pointer">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-black uppercase tracking-wider">
-                  All Systems Live
-                </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsDarkMode((prev) => !prev)}
+                  className="px-3 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer"
+                  style={{ 
+                    background: theme.accentSoft,
+                    color: theme.textSecondary,
+                    border: `1px solid ${theme.borderColor}`
+                  }}
+                >
+                  {isDarkMode ? "Light" : "Dark"}
+                </button>
+                <div
+                  className="flex items-center space-x-3 px-5 py-2.5 rounded-2xl border shadow-sm self-start transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                  style={{ 
+                    background: isDarkMode ? theme.accentSoft : '#ecfdf5',
+                    borderColor: isDarkMode ? theme.borderColor : '#bbf7d0',
+                    color: isDarkMode ? theme.textSecondary : '#059669'
+                  }}
+                >
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-black uppercase tracking-wider">
+                    All Systems Live
+                  </span>
+                </div>
               </div>
             </header>
 
@@ -874,8 +3946,8 @@ export default function SuperAdminDashboard() {
                 title="Total Users"
                 count={users.length}
                 icon={Users}
-                bgColor={PRIMARY_LIGHT}
-                iconColor={PRIMARY_COLOR}
+                bgColor={theme.primaryLight}
+                iconColor={theme.primaryColor}
               />
               <StatCard
                 title="Faculty"
@@ -903,13 +3975,13 @@ export default function SuperAdminDashboard() {
             {/* Control Center */}
             <section>
               <div className="flex items-center space-x-4 mb-8">
-                <h3 className="text-2xl font-black text-gray-800 tracking-tight whitespace-nowrap">
+                <h3 className="text-2xl font-black tracking-tight whitespace-nowrap" style={{ color: theme.textPrimary }}>
                   Control Center
                 </h3>
                 <div
-                  className="flex-1 h-[2px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 rounded-full"
+                  className="flex-1 h-[2px] rounded-full"
                   style={{
-                    backgroundImage: `linear-gradient(to right, #e5e7eb, ${PRIMARY_COLOR}, #e5e7eb)`,
+                    background: `linear-gradient(to right, ${theme.borderColor}, ${theme.primaryColor}, ${theme.borderColor})`,
                   }}
                 ></div>
               </div>
@@ -919,8 +3991,8 @@ export default function SuperAdminDashboard() {
                   label="Manage Users"
                   icon={Users}
                   onClick={() => navigate("/manage-users")}
-                  bgColor={PRIMARY_LIGHT}
-                  iconColor={PRIMARY_COLOR}
+                  bgColor={theme.primaryLight}
+                  iconColor={theme.primaryColor}
                 />
                 <BigActionButton
                   label="Events"
@@ -975,12 +4047,14 @@ export default function SuperAdminDashboard() {
 
         {/* Profile Form Modal */}
         {showProfileForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4"
+              style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}
+            >
               {/* Header */}
               <div
                 className="p-6 text-white flex items-center justify-between"
-                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #2d8391)` }}
+                style={{ background: theme.primaryGradient }}
               >
                 <h2 className="text-xl font-bold">
                   {userProfile ? "Edit Profile" : "Complete Profile"}
@@ -1001,25 +4075,27 @@ export default function SuperAdminDashboard() {
                 {/* Photo Upload */}
                 <div className="text-center mb-6">
                   <div className="relative inline-block group">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 shadow-md transition-transform group-hover:scale-105"
+                      style={{ borderColor: theme.primaryLight }}
+                    >
                       <img
                         src={
                           imagePreview ||
                           `https://ui-avatars.com/api/?name=${
                             encodeURIComponent(profileData.fullName || currentUser.username || 'User')
-                          }&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`
+                          }&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`
                         }
                         alt="Profile"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=4CA1AF&color=fff&size=128&bold=true&length=2&font-size=0.50`;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=${isDarkMode ? '10A37F' : '4CA1AF'}&color=fff&size=128&bold=true&length=2&font-size=0.50`;
                         }}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <label
-                      className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
-                      style={{ color: PRIMARY_COLOR }}
+                      className="absolute bottom-0 right-0 p-2 rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
+                      style={{ background: theme.primaryColor, color: 'white' }}
                       title="Change photo"
                     >
                       <Camera size={16} />
@@ -1031,39 +4107,46 @@ export default function SuperAdminDashboard() {
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Upload photo</p>
+                  <p className="text-xs mt-2" style={{ color: theme.textMuted }}>Upload photo</p>
                 </div>
 
                 {/* PRN Field */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">PRN</label>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: theme.textSecondary }}>PRN</label>
                   <input
                     type="text"
                     value={profileData.prn}
                     readOnly
-                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
+                    className="w-full px-3 py-2 rounded-lg text-sm cursor-not-allowed"
+                    style={{ 
+                      background: theme.accentSoft,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textSecondary
+                    }}
                   />
                 </div>
 
                 {/* Full Name Field */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Full Name *</label>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: theme.textSecondary }}>Full Name *</label>
                   <input
                     type="text"
                     name="fullName"
                     value={profileData.fullName}
                     onChange={handleInputChange}
                     placeholder="Enter your name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
-                    style={{
-                      "--tw-ring-color": PRIMARY_COLOR
+                    className="w-full px-3 py-2 rounded-lg text-sm transition-all"
+                    style={{ 
+                      background: theme.bgCard,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textPrimary
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = PRIMARY_COLOR;
-                      e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+                      e.target.style.borderColor = theme.primaryColor;
+                      e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`;
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = "rgb(209, 213, 219)";
+                      e.target.style.borderColor = theme.borderColor;
                       e.target.style.boxShadow = "none";
                     }}
                     required
@@ -1072,20 +4155,25 @@ export default function SuperAdminDashboard() {
 
                 {/* Phone Field */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Phone *</label>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase" style={{ color: theme.textSecondary }}>Phone *</label>
                   <input
                     type="tel"
                     name="phoneNumber"
                     value={profileData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="9876543210"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
+                    className="w-full px-3 py-2 rounded-lg text-sm transition-all"
+                    style={{ 
+                      background: theme.bgCard,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textPrimary
+                    }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = PRIMARY_COLOR;
-                      e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
+                      e.target.style.borderColor = theme.primaryColor;
+                      e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`;
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = "rgb(209, 213, 219)";
+                      e.target.style.borderColor = theme.borderColor;
                       e.target.style.boxShadow = "none";
                     }}
                     required
@@ -1095,10 +4183,10 @@ export default function SuperAdminDashboard() {
                 {/* Message */}
                 {message.text && (
                   <div
-                    className={`p-3 rounded-lg text-sm font-medium ${
+                    className={`p-3 rounded-lg text-sm font-medium border ${
                       message.type === "error"
-                        ? "bg-red-100 text-red-700 border border-red-300"
-                        : "bg-green-100 text-green-700 border border-green-300"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-green-50 text-green-700 border-green-200"
                     }`}
                   >
                     {message.text}
@@ -1113,7 +4201,12 @@ export default function SuperAdminDashboard() {
                       setShowProfileForm(false);
                       setMessage({ text: "", type: "" });
                     }}
-                    className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
+                    className="flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
+                    style={{ 
+                      background: theme.accentSoft,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textSecondary
+                    }}
                   >
                     Cancel
                   </button>
@@ -1121,7 +4214,7 @@ export default function SuperAdminDashboard() {
                     type="submit"
                     disabled={profileLoading}
                     className="flex-1 px-4 py-2 text-white rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: profileLoading ? `${PRIMARY_COLOR}80` : PRIMARY_COLOR }}
+                    style={{ background: profileLoading ? `${theme.primaryColor}80` : theme.primaryColor }}
                   >
                     {profileLoading ? "Saving..." : "Save"}
                   </button>
@@ -1133,11 +4226,13 @@ export default function SuperAdminDashboard() {
 
         {/* Department CRUD Modal */}
         {showDeptModal && (
-          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50">
-            <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden border border-white flex flex-col">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 z-50">
+            <div className="rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
+              style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}
+            >
               <div
                 className="p-5 sm:p-8 text-white flex justify-between items-center"
-                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                style={{ background: theme.primaryGradient }}
               >
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Department Management</h3>
@@ -1159,7 +4254,11 @@ export default function SuperAdminDashboard() {
               <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
                 {deptMessage.text && (
                   <div
-                    className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+                    className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl border ${
+                      deptMessage.type === "error" 
+                        ? "bg-red-50 text-red-700 border-red-200" 
+                        : "bg-green-50 text-green-700 border-green-200"
+                    }`}
                   >
                     <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                       {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
@@ -1172,9 +4271,20 @@ export default function SuperAdminDashboard() {
                     <input
                       type="text"
                       placeholder="Enter department name..."
-                      className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all text-sm sm:text-base"
-                      onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-                      onBlur={(e) => (e.target.style.boxShadow = "")}
+                      className="w-full px-4 py-3 rounded-xl transition-all text-sm sm:text-base"
+                      style={{ 
+                        background: theme.bgCard,
+                        border: `2px solid ${theme.borderColor}`,
+                        color: theme.textPrimary
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = theme.primaryColor;
+                        e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = theme.borderColor;
+                        e.target.style.boxShadow = "";
+                      }}
                       value={deptInput}
                       onChange={(e) => setDeptInput(e.target.value)}
                       required
@@ -1183,8 +4293,8 @@ export default function SuperAdminDashboard() {
                       type="submit"
                       className="w-full sm:w-auto text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg cursor-pointer text-sm sm:text-base"
                       style={{
-                        background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-                        boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
+                        background: theme.primaryGradient,
+                        boxShadow: `0 10px 15px -3px ${theme.primaryColor}40`,
                       }}
                     >
                       {editingDept ? <Edit size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />}
@@ -1192,9 +4302,9 @@ export default function SuperAdminDashboard() {
                     </button>
                   </div>
                   {editingDept && (
-                    <div className="mt-2 text-xs sm:text-sm text-gray-500 flex items-center gap-2">
+                    <div className="mt-2 text-xs sm:text-sm flex items-center gap-2" style={{ color: theme.textSecondary }}>
                       <span className="truncate">
-                        Editing: <span className="font-bold">{editingDept.name}</span>
+                        Editing: <span className="font-bold" style={{ color: theme.primaryColor }}>{editingDept.name}</span>
                       </span>
                       <button
                         type="button"
@@ -1211,10 +4321,10 @@ export default function SuperAdminDashboard() {
                 </form>
 
                 {deptLoading ? (
-                  <div className="py-8 sm:py-10 text-center text-gray-500 italic">
+                  <div className="py-8 sm:py-10 text-center italic" style={{ color: theme.textMuted }}>
                     <div
                       className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 mx-auto mb-3 cursor-wait"
-                      style={{ borderColor: PRIMARY_COLOR }}
+                      style={{ borderColor: theme.primaryColor }}
                     ></div>
                     <p className="text-sm sm:text-base">Loading departments...</p>
                   </div>
@@ -1224,12 +4334,20 @@ export default function SuperAdminDashboard() {
                       departments.map((dept) => (
                         <div
                           key={dept.departmentId}
-                          className="flex items-center justify-between p-3 sm:p-4 bg-gray-50/50 rounded-xl sm:rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
+                          className="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all group cursor-pointer hover:scale-[1.01]"
+                          style={{ 
+                            background: theme.accentSoft,
+                            border: `1px solid ${theme.borderColor}`,
+                          }}
                         >
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <span className="font-bold text-gray-700 text-sm sm:text-base truncate">{dept.name}</span>
+                            <span className="font-bold text-sm sm:text-base truncate" style={{ color: theme.textPrimary }}>{dept.name}</span>
                             <span
-                              className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
+                              className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${
+                                dept.active 
+                                  ? "bg-green-50 text-green-700" 
+                                  : "bg-gray-100 text-gray-500"
+                              }`}
                             >
                               {dept.active ? "Active" : "Inactive"}
                             </span>
@@ -1261,22 +4379,23 @@ export default function SuperAdminDashboard() {
                       ))
                     ) : (
                       <div className="text-center py-8 sm:py-10">
-                        <Database className="w-10 h-10 sm:w-12 sm:h-12 text-gray-200 mx-auto mb-2 sm:mb-3" />
-                        <p className="text-sm sm:text-base text-gray-400 font-medium">No departments found in system.</p>
-                        <p className="text-xs sm:text-sm text-gray-300 mt-1">Add a department using the form above</p>
+                        <Database className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3" style={{ color: theme.textMuted }} />
+                        <p className="text-sm sm:text-base font-medium" style={{ color: theme.textSecondary }}>No departments found in system.</p>
+                        <p className="text-xs sm:text-sm mt-1" style={{ color: theme.textMuted }}>Add a department using the form above</p>
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              <div className="px-4 sm:px-8 py-3 sm:py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-                <div className="text-xs sm:text-sm text-gray-500">
+              <div className="px-4 sm:px-8 py-3 sm:py-4 border-t flex justify-between items-center" style={{ borderColor: theme.borderColor, background: theme.accentSoft }}>
+                <div className="text-xs sm:text-sm" style={{ color: theme.textSecondary }}>
                   {departments.length} department{departments.length !== 1 ? "s" : ""}
                 </div>
                 <button
                   onClick={() => setShowDeptModal(false)}
-                  className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer"
+                  className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
+                  style={{ color: theme.textSecondary }}
                 >
                   Close Manager
                 </button>
@@ -1287,11 +4406,13 @@ export default function SuperAdminDashboard() {
 
         {/* Email Edit Modal */}
         {showEmailEditModal && (
-          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+            <div className="rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden"
+              style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}
+            >
               <div
                 className="p-6 text-white"
-                style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                style={{ background: theme.primaryGradient }}
               >
                 <div className="flex justify-between items-center">
                   <div>
@@ -1316,28 +4437,44 @@ export default function SuperAdminDashboard() {
 
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold mb-2" style={{ color: theme.textSecondary }}>
                     Current Email
                   </label>
                   <input
                     type="email"
                     value={currentUser.email}
-                    className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                    className="w-full px-4 py-3 rounded-xl cursor-not-allowed"
+                    style={{ 
+                      background: theme.accentSoft,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textSecondary
+                    }}
                     disabled
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold mb-2" style={{ color: theme.textSecondary }}>
                     New Email <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
-                    onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-                    onBlur={(e) => (e.target.style.boxShadow = "")}
+                    className="w-full px-4 py-3 rounded-xl transition-all"
+                    style={{ 
+                      background: theme.bgCard,
+                      border: `1px solid ${theme.borderColor}`,
+                      color: theme.textPrimary
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = theme.primaryColor;
+                      e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = theme.borderColor;
+                      e.target.style.boxShadow = "";
+                    }}
                     placeholder="Enter new email address"
                     required
                   />
@@ -1345,7 +4482,11 @@ export default function SuperAdminDashboard() {
 
                 {emailMessage.text && (
                   <div
-                    className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+                    className={`p-3 rounded-xl border ${
+                      emailMessage.type === "error" 
+                        ? "bg-red-50 text-red-700 border-red-200" 
+                        : "bg-green-50 text-green-700 border-green-200"
+                    }`}
                   >
                     <p className="text-sm font-semibold flex items-center gap-2">
                       {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
@@ -1359,7 +4500,7 @@ export default function SuperAdminDashboard() {
                     onClick={handleEmailUpdate}
                     disabled={emailLoading || !newEmail || newEmail === currentUser.email}
                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
+                    style={{ background: theme.primaryGradient }}
                   >
                     {emailLoading ? (
                       <div className="flex items-center justify-center gap-2">
@@ -1389,1551 +4530,3 @@ export default function SuperAdminDashboard() {
     </>
   );
 }
-
-
-// import { useState, useEffect } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-// import ConfirmDialog from "../../components/ConfirmDialog";
-// import {
-//   User,
-//   Upload,
-//   X,
-//   CalendarDays,
-//   Edit,
-//   Users,
-//   Briefcase,
-//   ShieldCheck,
-//   Settings,
-//   Database,
-//   LogOut,
-//   LayoutDashboard,
-//   UserPlus,
-//   ShieldAlert,
-//   Menu,
-//   Camera,
-//   Trash2,
-//   Plus,
-//   Building2,
-//   CalendarPlus,
-//   Mail,
-//   CheckCircle,
-//   AlertCircle,
-//   Bell,
-// } from "lucide-react";
-
-// const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
-
-// export default function SuperAdminDashboard() {
-//   const navigate = useNavigate();
-
-//   const PRIMARY_COLOR = "#4CA1AF";
-//   const PRIMARY_DARK = "#2d8391";
-//   const PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
-
-//   const user = JSON.parse(localStorage.getItem("user"));
-//   const token = localStorage.getItem("token");
-
-//   const [currentUser, setCurrentUser] = useState({
-//     username: user?.username || "admin_user",
-//     email: user?.email || "admin@college.edu",
-//     role: user?.role || "SUPER_ADMIN",
-//     prn: user?.prn || "2021BCS001",
-//     verified: user?.verified || false,
-//   });
-
-//   // Email update states
-//   const [showEmailEditModal, setShowEmailEditModal] = useState(false);
-//   const [newEmail, setNewEmail] = useState("");
-//   const [emailLoading, setEmailLoading] = useState(false);
-//   const [emailMessage, setEmailMessage] = useState({ text: "", type: "" });
-
-//   // Verification state
-//   const [verificationStatus, setVerificationStatus] = useState(currentUser.verified);
-
-//   const [users, setUsers] = useState([]);
-//   const [stats, setStats] = useState({});
-//   const [clubAdmins, setCount] = useState(0);
-//   const [unreadCount, setUnreadCount] = useState(0);
-//   const [loading, setLoading] = useState(true);
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-//   // Profile states
-//   const [showProfileForm, setShowProfileForm] = useState(false);
-//   const [profileData, setProfileData] = useState({
-//     prn: user?.prn || "",
-//     fullName: "",
-//     department: "",
-//     year: "",
-//     phoneNumber: "",
-//     departmentId: "",
-//   });
-//   const [selectedImage, setSelectedImage] = useState(null);
-//   const [imagePreview, setImagePreview] = useState(null);
-//   const [profileLoading, setProfileLoading] = useState(false);
-//   const [message, setMessage] = useState({ text: "", type: "" });
-//   const [userProfile, setUserProfile] = useState(null);
-//   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-
-//   // Department CRUD States
-//   const [showDeptModal, setShowDeptModal] = useState(false);
-//   const [departments, setDepartments] = useState([]);
-//   const [deptLoading, setDeptLoading] = useState(false);
-//   const [editingDept, setEditingDept] = useState(null);
-//   const [deptInput, setDeptInput] = useState("");
-//   const [deptMessage, setDeptMessage] = useState({ text: "", type: "" });
-//   const [confirmDialog, setConfirmDialog] = useState({
-//     isOpen: false,
-//     title: "",
-//     message: "",
-//     variant: "primary",
-//     confirmText: "Confirm",
-//     onConfirm: () => {},
-//   });
-//   const closeConfirm = () =>
-//     setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
-
-//   // useEffect(() => {
-//   //   fetchUserCount();
-//   //   fetchAllData();
-//   //   fetchUserProfile();
-//   // }, []);
-
-//   useEffect(() => {
-//   if(token){
-//     fetchUserCount();
-//     fetchAllData();
-//     fetchUserProfile();
-//       fetchUnread();
-//   }
-// }, [token]);
-
-//     useEffect(() => {
-//       const handleFocus = () => {
-//         fetchUnread();
-//       };
-
-//       window.addEventListener("focus", handleFocus);
-//       return () => window.removeEventListener("focus", handleFocus);
-//     }, [token]);
-
-//   const fetchUserCount = async () => {
-//     try {
-//       const response = await axios.get(
-//         `${BASE_URL}/api/user-clubs/getAllByRole/CLUB_ADMIN`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             "Content-Type": "application/json",
-//           },
-//         },
-//       );
-//       setCount(response.data.data.length);
-//     } catch (error) {
-//       console.error("Error fetching club admin count:", error);
-//     }
-//   };
-
-//   const fetchUnread = async () => {
-//     if (!token) {
-//       setUnreadCount(0);
-//       return;
-//     }
-
-//     try {
-//       const res = await axios.get(
-//         `${BASE_URL}/api/notification/me/unread-count`,
-//         {
-//           headers: { Authorization: `Bearer ${token}` },
-//         },
-//       );
-
-//       const count =
-//         typeof res.data === "number"
-//           ? res.data
-//           : (res.data?.data ?? res.data?.count ?? 0);
-
-//       setUnreadCount(Number(count) || 0);
-//     } catch {
-//       setUnreadCount(0);
-//     }
-//   };
-
-//   const fetchAllData = async () => {
-//     try {
-//       const usersResponse = await axios.get(`${BASE_URL}/api/users/`, {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": "application/json",
-//         },
-//       });
-
-//       setUsers(usersResponse.data);
-
-//       const userStats = usersResponse.data.reduce((acc, user) => {
-//         acc[user.role] = (acc[user.role] || 0) + 1;
-//         return acc;
-//       }, {});
-
-//       setStats(userStats);
-//       setLoading(false);
-//     } catch (error) {
-//       console.error("Error fetching data:", error);
-//       setLoading(false);
-//     }
-//   };
-
-//   const fetchDepartments = async () => {
-//     setDeptLoading(true);
-//     setDeptMessage({ text: "", type: "" });
-//     try {
-//       const response = await axios.get(`${BASE_URL}/api/department`, {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": "application/json",
-//         },
-//       });
-
-//       if (response.data.success && response.data.data) {
-//         setDepartments(response.data.data);
-//       } else {
-//         setDepartments([]);
-//         setDeptMessage({
-//           text: response.data.message || "No departments found",
-//           type: "error",
-//         });
-//       }
-//     } catch (error) {
-//       console.error("Error fetching departments:", error);
-//       setDepartments([]);
-//       setDeptMessage({ text: "Error fetching departments", type: "error" });
-//     } finally {
-//       setDeptLoading(false);
-//     }
-//   };
-
-//   const handleDeptSubmit = async (e) => {
-//     e.preventDefault();
-//     if (!deptInput.trim()) {
-//       setDeptMessage({ text: "Please enter a department name", type: "error" });
-//       return;
-//     }
-
-//     try {
-//       if (editingDept) {
-//         const response = await axios.put(
-//           `${BASE_URL}/api/department/${editingDept.departmentId}`,
-//           { name: deptInput, active: true },
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//               "Content-Type": "application/json",
-//             },
-//           },
-//         );
-
-//         if (response.data.success) {
-//           setDeptMessage({ text: "Department updated successfully!", type: "success" });
-//         } else {
-//           setDeptMessage({
-//             text: response.data.message || "Failed to update department",
-//             type: "error",
-//           });
-//           return;
-//         }
-//       } else {
-//         const response = await axios.post(
-//           `${BASE_URL}/api/department/${deptInput}`,
-//           null,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//               "Content-Type": "application/json",
-//             },
-//           },
-//         );
-
-//         if (response.data.success) {
-//           setDeptMessage({ text: "Department added successfully!", type: "success" });
-//         } else {
-//           setDeptMessage({
-//             text: response.data.message || "Failed to add department",
-//             type: "error",
-//           });
-//           return;
-//         }
-//       }
-
-//       setDeptInput("");
-//       setEditingDept(null);
-//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
-//       fetchDepartments();
-//     } catch (error) {
-//       console.error("Error saving department:", error);
-//       setDeptMessage({
-//         text: error.response?.data?.message || "Error saving department",
-//         type: "error",
-//       });
-//     }
-//   };
-
-//   const deleteDepartment = async (departmentId) => {
-//     try {
-//       const response = await axios.delete(
-//         `${BASE_URL}/api/department/${departmentId}`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             "Content-Type": "application/json",
-//           },
-//         },
-//       );
-
-//       if (response.data.success) {
-//         setDeptMessage({ text: "Department deleted successfully!", type: "success" });
-//         fetchDepartments();
-//       } else {
-//         setDeptMessage({
-//           text: response.data.message || "Failed to delete department",
-//           type: "error",
-//         });
-//       }
-
-//       setTimeout(() => setDeptMessage({ text: "", type: "" }), 3000);
-//     } catch (error) {
-//       console.error("Error deleting department:", error);
-//       setDeptMessage({
-//         text: error.response?.data?.message || "Error deleting department",
-//         type: "error",
-//       });
-//     }
-//   };
-
-//   const fetchUserProfile = async () => {
-//     try {
-//       setIsLoadingProfile(true);
-//       const response = await axios.get(
-//         `${BASE_URL}/api/profiles/prn/${user?.prn}`,
-//         { headers: { Authorization: `Bearer ${token}` } },
-//       );
-
-//       if (response.data) {
-//         setUserProfile(response.data);
-//         setProfileData({
-//           prn: response.data.data.prn || user?.prn || "",
-//           fullName: response.data.data.fullName || "",
-//           department: response.data.data.department || "",
-//           year: response.data.data.year || "",
-//           phoneNumber: response.data.data.phoneNumber || "",
-//           departmentId: response.data.data.departmentId || "",
-//         });
-//         fetchProfileImage();
-//       }
-//     } catch (error) {
-//       console.error("Error fetching profile:", error);
-//       setUserProfile(null);
-//       setProfileData((prev) => ({ ...prev, prn: user?.prn || "" }));
-//     } finally {
-//       setIsLoadingProfile(false);
-//     }
-//   };
-
-//   // const fetchProfileImage = async () => {
-//   //   try {
-//   //     const response = await axios.get(
-//   //       `${BASE_URL}/api/profiles/${user?.prn}/image`,
-//   //       {
-//   //         headers: { Authorization: `Bearer ${token}` },
-//   //         responseType: "blob",
-//   //       },
-//   //     );
-//   //     if (response.data) {
-//   //       setImagePreview(URL.createObjectURL(response.data));
-//   //     }
-//   //   } catch (error) {
-//   //     console.error("Error fetching profile image:", error);
-//   //     setImagePreview(null);
-//   //   }
-//   // };
-//   const fetchProfileImage = async () => {
-//   if (!token || !user?.prn) return;
-
-//   try {
-//     const response = await axios.get(
-//       `${BASE_URL}/api/profiles/${user.prn}/image`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//         responseType: "blob",
-//       }
-//     );
-
-//     if (response.status === 200) {
-//       const imageUrl = URL.createObjectURL(response.data);
-//       setImagePreview(imageUrl);
-//     }
-
-//   } catch (error) {
-//     if (error.response?.status === 404) {
-//       console.log("No profile image uploaded yet");
-//     } else if (error.response?.status === 401) {
-//       console.log("Unauthorized request. Token missing or expired.");
-//     } else {
-//       console.error("Error fetching profile image:", error);
-//     }
-
-//     setImagePreview(null);
-//   }
-// };
-//   const handleVerificationRedirect = () => {
-//     localStorage.setItem("verificationEmail", currentUser.email);
-//     localStorage.setItem("verificationPRN", currentUser.prn);
-//     navigate("/verifyotp");
-//   };
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("user");
-//     localStorage.removeItem("token");
-//     navigate("/login");
-//   };
-
-//   const handleInputChange = (e) => {
-//     setProfileData({ ...profileData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleImageChange = (e) => {
-//     const file = e.target.files[0];
-//     if (file) {
-//       setSelectedImage(file);
-//       const reader = new FileReader();
-//       reader.onloadend = () => setImagePreview(reader.result);
-//       reader.readAsDataURL(file);
-//     }
-//   };
-
-//   const handleSubmitProfile = async (e) => {
-//     e.preventDefault();
-//     setProfileLoading(true);
-//     try {
-//       const requestData = {
-//         fullName: profileData.fullName,
-//         departmentId: parseInt(profileData.departmentId),
-//         phoneNumber: profileData.phoneNumber,
-//       };
-
-//       if (userProfile) {
-//         await axios.put(
-//           `${BASE_URL}/api/profiles/${profileData.prn}`,
-//           requestData,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//               "Content-Type": "application/json",
-//             },
-//           },
-//         );
-//       } else {
-//         await axios.post(
-//           `${BASE_URL}/api/profiles`,
-//           { ...requestData, prn: profileData.prn },
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//               "Content-Type": "application/json",
-//             },
-//           },
-//         );
-//       }
-
-//       if (selectedImage) {
-//         const formData = new FormData();
-//         formData.append("image", selectedImage);
-//         await axios.post(
-//           `${BASE_URL}/api/profiles/${profileData.prn}/image`,
-//           formData,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//               "Content-Type": "multipart/form-data",
-//             },
-//           },
-//         );
-//       }
-
-//       fetchUserProfile();
-//       setShowProfileForm(false);
-//     } catch (error) {
-//       setMessage({ text: "Error saving profile.", type: "error" });
-//     } finally {
-//       setProfileLoading(false);
-//     }
-//   };
-
-//   // Clean single API call for email change
-//   const handleEmailUpdate = async () => {
-//     if (!newEmail.trim()) {
-//       setEmailMessage({ text: "Please enter a valid email", type: "error" });
-//       return;
-//     }
-
-//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//     if (!emailRegex.test(newEmail)) {
-//       setEmailMessage({ text: "Please enter a valid email address", type: "error" });
-//       return;
-//     }
-
-//     setEmailLoading(true);
-//     setEmailMessage({ text: "", type: "" });
-
-//     try {
-//       const response = await axios.put(
-//         `${BASE_URL}/api/users/changeEmail/${currentUser.prn}/${encodeURIComponent(newEmail)}`,
-//         {},
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             "Content-Type": "application/json",
-//           },
-//         }
-//       );
-
-//       if (response.data) {
-//         const updatedUser = { ...currentUser, email: newEmail, verified: false };
-//         localStorage.setItem("user", JSON.stringify(updatedUser));
-//         setCurrentUser(updatedUser);
-//         setVerificationStatus(false);
-
-//         setEmailMessage({ text: "Email updated! OTP sent to your new email...", type: "success" });
-
-//         localStorage.setItem("verificationEmail", newEmail);
-//         localStorage.setItem("verificationOldEmail", currentUser.email);
-//         localStorage.setItem("verificationPRN", currentUser.prn);
-//         localStorage.setItem("verificationMode", "email_change");
-//         localStorage.setItem("verificationReturnUrl", "/dashboard");
-
-//         setTimeout(() => {
-//           setShowEmailEditModal(false);
-//           setEmailMessage({ text: "", type: "" });
-//           setNewEmail("");
-//           navigate("/verifyotp");
-//         }, 1500);
-//       }
-//     } catch (error) {
-//       console.error("Error changing email:", error);
-//       setEmailMessage({
-//         text: error.response?.data?.message || "Failed to update email. Please try again.",
-//         type: "error",
-//       });
-//     } finally {
-//       setEmailLoading(false);
-//     }
-//   };
-
-//   const StatCard = ({ title, count, icon: Icon, bgColor, iconColor }) => (
-//     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group">
-//       <div
-//         className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
-//       >
-//         <Icon className="w-7 h-7" />
-//       </div>
-//       <div className="min-w-0">
-//         <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider truncate group-hover:text-gray-700 transition-colors">
-//           {title}
-//         </p>
-//         <p className="text-3xl font-bold text-gray-900">{count}</p>
-//       </div>
-//     </div>
-//   );
-
-//   const BigActionButton = ({ label, icon: Icon, onClick, bgColor, iconColor }) => (
-//     <button
-//       onClick={onClick}
-//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer"
-//     >
-//       <div
-//         className="p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
-//         style={{ backgroundColor: bgColor || PRIMARY_LIGHT, color: iconColor || PRIMARY_COLOR }}
-//       >
-//         <Icon className="w-8 h-8" />
-//       </div>
-//       <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
-//         {label}
-//       </span>
-//     </button>
-//   );
-
-//   const NotificationActionButton = () => (
-//     <button
-//       onClick={() => navigate("/notifications")}
-//       className="group flex flex-col items-center justify-center p-8 rounded-3xl transition-all duration-300 bg-white border-2 border-gray-100 hover:shadow-xl min-h-[160px] hover:-translate-y-2 cursor-pointer relative"
-//     >
-//       <div
-//         className="relative p-5 rounded-2xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm"
-//         style={{ backgroundColor: PRIMARY_LIGHT, color: PRIMARY_COLOR }}
-//       >
-//         <Bell className="w-8 h-8" />
-//         {unreadCount > 0 && (
-//           <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
-//             {unreadCount > 9 ? "9+" : unreadCount}
-//           </span>
-//         )}
-//       </div>
-//       <span className="text-lg font-bold text-gray-700 transition-colors text-center px-2">
-//         Notifications
-//       </span>
-//     </button>
-//   );
-
-//   if (loading || isLoadingProfile) {
-//     return (
-//       <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center">
-//         <div className="text-center">
-//           <div
-//             className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
-//             style={{ borderColor: PRIMARY_DARK }}
-//           ></div>
-//           <p className="text-gray-600 font-semibold">Loading dashboard...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <>
-//       <div className="min-h-screen bg-[#fcfcfd] flex relative">
-//         {/* Mobile Header */}
-//         <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between z-50 shadow-sm">
-//           <button
-//             onClick={() => setSidebarOpen(!sidebarOpen)}
-//             className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 cursor-pointer"
-//           >
-//             <Menu size={24} className="text-gray-700" />
-//           </button>
-//           <div className="flex items-center space-x-2">
-//             <div
-//               className="p-2 rounded-lg transition-transform hover:scale-105 cursor-pointer"
-//               style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
-//             >
-//               <LayoutDashboard className="text-white w-5 h-5" />
-//             </div>
-//             <h2 className="text-xl font-black tracking-tight text-gray-800">
-//               Super<span style={{ color: PRIMARY_COLOR }}>Admin</span>
-//             </h2>
-//           </div>
-//           <div
-//             className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
-//             style={{ borderColor: PRIMARY_LIGHT }}
-//           >
-//             {/* <img
-//               src={
-//                 imagePreview ||
-//                 `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
-//               }
-//               alt="Profile"
-//               className="w-full h-full object-cover"
-//             /> */}
-//             <img
-//   src={
-//     imagePreview ||
-//     `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
-//   }
-//   onError={(e)=>{
-//     e.target.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4CA1AF&color=fff`;
-//   }}
-//   alt="Profile"
-//   className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
-// />
-//           </div>
-//         </div>
-
-//         {/* Overlay for mobile sidebar */}
-//         {sidebarOpen && (
-//           <div
-//             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
-//             onClick={() => setSidebarOpen(false)}
-//           />
-//         )}
-
-//         {/* Sidebar */}
-//         <aside
-//           className={`
-//             fixed lg:sticky top-0 left-0 h-screen
-//             w-80 sm:w-96 bg-white border-r border-gray-100 
-//             flex flex-col p-8 shadow-lg lg:shadow-sm
-//             transition-transform duration-300 ease-in-out z-50
-//             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-//             overflow-y-auto
-//           `}
-//         >
-//           <button
-//             onClick={() => setSidebarOpen(false)}
-//             className="lg:hidden absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
-//           >
-//             <X size={20} className="text-gray-500" />
-//           </button>
-
-//           <div className="flex items-center space-x-3 mb-10 group cursor-pointer">
-//             <div
-//               className="p-2.5 rounded-xl shadow-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
-//               style={{
-//                 background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-//                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
-//               }}
-//             >
-//               <LayoutDashboard className="text-white" size={24} />
-//             </div>
-//             <h2 className="text-2xl font-black tracking-tight text-gray-800">
-//               Super<span style={{ color: PRIMARY_DARK }}>Admin</span>
-//             </h2>
-//           </div>
-
-//           <div className="flex flex-col items-center text-center mb-8">
-//             <div
-//               className="relative p-1 border-2 rounded-3xl mb-4 transition-all duration-300 hover:shadow-lg cursor-pointer"
-//               style={{
-//                 borderColor: PRIMARY_LIGHT,
-//                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.1)",
-//               }}
-//             >
-//               <img
-//                 src={
-//                   imagePreview ||
-//                   `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
-//                 }
-//                 alt="Profile"
-//                 className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
-//               />
-//               <button
-//                 onClick={() => setShowProfileForm(true)}
-//                 className="absolute -bottom-1 -right-1 bg-white p-2 rounded-xl shadow-lg border border-gray-50 transition-all duration-200 hover:scale-110 cursor-pointer"
-//                 style={{ color: PRIMARY_DARK }}
-//               >
-//                 <Edit size={16} />
-//               </button>
-//             </div>
-//             <h3 className="font-bold text-gray-900 text-xl tracking-tight">
-//               {profileData.fullName || currentUser.username}
-//             </h3>
-//             <p
-//               className="text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-[0.1em] transition-colors cursor-pointer"
-//               style={{ color: PRIMARY_DARK, backgroundColor: PRIMARY_LIGHT }}
-//             >
-//               {currentUser.role.replace("_", " ")}
-//             </p>
-//           </div>
-
-//           <nav className="space-y-2 flex-1 overflow-y-auto">
-//             <div className="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 space-y-4 transition-all duration-300 hover:shadow-md hover:bg-gray-50">
-//               <div className="flex flex-col group cursor-pointer">
-//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
-//                   Full Name
-//                 </span>
-//                 <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
-//                   {profileData.fullName || "Not set"}
-//                 </span>
-//               </div>
-//               <div className="flex flex-col group cursor-pointer">
-//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
-//                   Username
-//                 </span>
-//                 <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
-//                   {currentUser.username}
-//                 </span>
-//               </div>
-
-//               {/* Email field with both edit and verify buttons */}
-//               <div className="flex flex-col group cursor-pointer relative">
-//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
-//                   Email
-//                 </span>
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm font-bold text-gray-700 break-all group-hover:text-gray-900 transition-colors pr-2">
-//                     {currentUser.email}
-//                   </span>
-//                   <div className="flex gap-1">
-//                     <button
-//                       onClick={() => {
-//                         setNewEmail(currentUser.email);
-//                         setShowEmailEditModal(true);
-//                       }}
-//                       className="p-1.5 rounded-lg hover:bg-gray-200 transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer"
-//                       style={{ color: PRIMARY_COLOR }}
-//                       title="Edit email"
-//                     >
-//                       <Edit size={14} />
-//                     </button>
-//                     <button
-//                       onClick={handleVerificationRedirect}
-//                       className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer flex items-center gap-1 ${
-//                         verificationStatus
-//                           ? "bg-green-50 text-green-600 hover:bg-green-100"
-//                           : "bg-amber-50 text-amber-600 hover:bg-amber-100"
-//                       }`}
-//                       title={verificationStatus ? "Verified" : "Click to verify"}
-//                     >
-//                       {verificationStatus ? (
-//                         <CheckCircle size={14} />
-//                       ) : (
-//                         <AlertCircle size={14} />
-//                       )}
-//                     </button>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               <div className="flex flex-col group cursor-pointer">
-//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
-//                   Phone
-//                 </span>
-//                 <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
-//                   {profileData.phoneNumber || "Not set"}
-//                 </span>
-//               </div>
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="flex flex-col group cursor-pointer">
-//                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 transition-colors group-hover:text-[#4CA1AF]">
-//                     PRN
-//                   </span>
-//                   <span className="text-sm font-bold text-gray-700 break-words group-hover:text-gray-900 transition-colors">
-//                     {profileData.prn || "Not set"}
-//                   </span>
-//                 </div>
-//               </div>
-//               <div className="pt-2 border-t border-gray-100 flex items-center justify-between group cursor-pointer">
-//                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest transition-colors group-hover:text-[#4CA1AF]">
-//                   Status
-//                 </span>
-//                 <span
-//                   className={`flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md group-hover:scale-105 transition-all duration-200 cursor-pointer ${
-//                     currentUser.verified
-//                       ? "text-emerald-600 bg-emerald-50 group-hover:bg-emerald-100"
-//                       : "text-amber-600 bg-amber-50 group-hover:bg-amber-100"
-//                   }`}
-//                 >
-//                   <div
-//                     className={`w-1.5 h-1.5 rounded-full mr-1.5 ${currentUser.verified ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}
-//                   ></div>
-//                   {currentUser.verified ? "ACTIVE" : "PENDING VERIFICATION"}
-//                 </span>
-//               </div>
-//             </div>
-//           </nav>
-
-//           <button
-//             onClick={() =>
-//               setConfirmDialog({
-//                 isOpen: true,
-//                 title: "Sign Out",
-//                 message: "Are you sure you want to sign out?",
-//                 confirmText: "Sign Out",
-//                 variant: "danger",
-//                 onConfirm: () => {
-//                   closeConfirm();
-//                   handleLogout();
-//                 },
-//               })
-//             }
-//             className="mt-6 flex items-center justify-center space-x-3 w-full py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 font-bold text-sm border border-transparent hover:border-red-100 hover:shadow-md hover:shadow-red-100/50 cursor-pointer"
-//           >
-//             <LogOut size={20} />
-//             <span>Sign Out</span>
-//           </button>
-//         </aside>
-
-//         {/* Main Content */}
-//         <main className="flex-1 w-full pt-20 lg:pt-0 px-6 lg:px-10 pb-10">
-//           <div className="max-w-7xl mx-auto">
-//             <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-12 pt-10">
-//               <div>
-//                 <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
-//                   Dashboard
-//                 </h1>
-//                 <p className="text-base text-gray-500 font-medium">
-//                   Welcome back,{" "}
-//                   <span className="font-bold" style={{ color: PRIMARY_COLOR }}>
-//                     {currentUser.username}
-//                   </span>
-//                   . System is healthy.
-//                 </p>
-//               </div>
-//               <div className="flex items-center space-x-3 bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm shadow-emerald-50 self-start transition-all duration-300 hover:bg-emerald-100 hover:shadow-md hover:shadow-emerald-100/50 hover:-translate-y-0.5 cursor-pointer">
-//                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-//                 <span className="text-sm font-black uppercase tracking-wider">
-//                   All Systems Live
-//                 </span>
-//               </div>
-//             </header>
-
-//             {/* Stats Grid */}
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-16">
-//               <StatCard
-//                 title="Total Users"
-//                 count={users.length}
-//                 icon={Users}
-//                 bgColor={PRIMARY_LIGHT}
-//                 iconColor={PRIMARY_COLOR}
-//               />
-//               <StatCard
-//                 title="Faculty"
-//                 count={stats.TEACHERS || 0}
-//                 icon={Briefcase}
-//                 bgColor="rgba(59, 130, 246, 0.1)"
-//                 iconColor="#3B82F6"
-//               />
-//               <StatCard
-//                 title="Club Admins"
-//                 count={clubAdmins || 0}
-//                 icon={ShieldCheck}
-//                 bgColor="rgba(16, 185, 129, 0.1)"
-//                 iconColor="#10B981"
-//               />
-//               <StatCard
-//                 title="Regular"
-//                 count={stats.USERS || 0}
-//                 icon={User}
-//                 bgColor="rgba(249, 115, 22, 0.1)"
-//                 iconColor="#F97316"
-//               />
-//             </div>
-
-//             {/* Control Center */}
-//             <section>
-//               <div className="flex items-center space-x-4 mb-8">
-//                 <h3 className="text-2xl font-black text-gray-800 tracking-tight whitespace-nowrap">
-//                   Control Center
-//                 </h3>
-//                 <div
-//                   className="flex-1 h-[2px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 rounded-full"
-//                   style={{
-//                     backgroundImage: `linear-gradient(to right, #e5e7eb, ${PRIMARY_COLOR}, #e5e7eb)`,
-//                   }}
-//                 ></div>
-//               </div>
-
-//               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-//                 <BigActionButton
-//                   label="Manage Users"
-//                   icon={Users}
-//                   onClick={() => navigate("/manage-users")}
-//                   bgColor={PRIMARY_LIGHT}
-//                   iconColor={PRIMARY_COLOR}
-//                 />
-//                 <BigActionButton
-//                   label="Events"
-//                   icon={CalendarDays}
-//                   onClick={() => navigate("/events-superadmin")}
-//                   bgColor="rgba(16, 185, 129, 0.1)"
-//                   iconColor="#10B981"
-//                 />
-//                 <BigActionButton
-//                   label="Departments"
-//                   icon={Database}
-//                   onClick={() => {
-//                     fetchDepartments();
-//                     setShowDeptModal(true);
-//                   }}
-//                   bgColor="rgba(236, 72, 153, 0.1)"
-//                   iconColor="#EC4899"
-//                 />
-//                 <BigActionButton
-//                   label="Manage Clubs"
-//                   icon={Database}
-//                   onClick={() => navigate("/manage-clubs")}
-//                   bgColor="rgba(6, 182, 212, 0.1)"
-//                   iconColor="#06B6D4"
-//                 />
-//                 <BigActionButton
-//                   label="Club Admins"
-//                   icon={ShieldCheck}
-//                   onClick={() => navigate("/club-admins")}
-//                   bgColor="rgba(249, 115, 22, 0.1)"
-//                   iconColor="#F97316"
-//                 />
-//                 <BigActionButton
-//                   label="Add Student"
-//                   icon={UserPlus}
-//                   onClick={() => navigate("/add-users-with-club")}
-//                   bgColor="rgba(59, 130, 246, 0.1)"
-//                   iconColor="#3B82F6"
-//                 />
-//                 <BigActionButton
-//                   label="Club Association"
-//                   icon={Building2}
-//                   onClick={() => navigate("/remove-users-from-any-club")}
-//                   bgColor="rgba(6, 182, 212, 0.1)"
-//                   iconColor="#06B6D4"
-//                 />
-//                 <NotificationActionButton />
-//               </div>
-//             </section>
-//           </div>
-//         </main>
-
-//         {/* Profile Form Modal */}
-//         {showProfileForm && (
-//           <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-//             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4">
-//               {/* Header */}
-//               <div
-//                 className="p-6 text-white flex items-center justify-between"
-//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #2d8391)` }}
-//               >
-//                 <h2 className="text-xl font-bold">
-//                   {userProfile ? "Edit Profile" : "Complete Profile"}
-//                 </h2>
-//                 <button
-//                   onClick={() => {
-//                     setShowProfileForm(false);
-//                     setMessage({ text: "", type: "" });
-//                   }}
-//                   className="p-1 hover:bg-white/20 rounded-lg transition-all cursor-pointer"
-//                 >
-//                   <X size={24} />
-//                 </button>
-//               </div>
-
-//               {/* Form Body */}
-//               <form onSubmit={handleSubmitProfile} className="p-6 space-y-5">
-//                 {/* Photo Upload */}
-//                 <div className="text-center mb-6">
-//                   <div className="relative inline-block group">
-//                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 shadow-md transition-transform group-hover:scale-105">
-//                       <img
-//                         src={
-//                           imagePreview ||
-//                           `https://ui-avatars.com/api/?name=${profileData.fullName || currentUser.username}&background=4CA1AF&color=fff`
-//                         }
-//                         alt="Profile"
-//                         onError={(e) => {
-//                           e.target.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4CA1AF&color=fff`;
-//                         }}
-//                         className="w-full h-full object-cover"
-//                       />
-//                     </div>
-//                     <label
-//                       className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all"
-//                       style={{ color: PRIMARY_COLOR }}
-//                       title="Change photo"
-//                     >
-//                       <Camera size={16} />
-//                       <input
-//                         type="file"
-//                         accept="image/*"
-//                         onChange={handleImageChange}
-//                         className="hidden"
-//                       />
-//                     </label>
-//                   </div>
-//                   <p className="text-xs text-gray-500 mt-2">Upload photo</p>
-//                 </div>
-
-//                 {/* PRN Field */}
-//                 <div>
-//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">PRN</label>
-//                   <input
-//                     type="text"
-//                     value={profileData.prn}
-//                     readOnly
-//                     className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 text-sm cursor-not-allowed"
-//                   />
-//                 </div>
-
-//                 {/* Full Name Field */}
-//                 <div>
-//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Full Name *</label>
-//                   <input
-//                     type="text"
-//                     name="fullName"
-//                     value={profileData.fullName}
-//                     onChange={handleInputChange}
-//                     placeholder="Enter your name"
-//                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
-//                     style={{
-//                       "--tw-ring-color": PRIMARY_COLOR
-//                     }}
-//                     onFocus={(e) => {
-//                       e.target.style.borderColor = PRIMARY_COLOR;
-//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
-//                     }}
-//                     onBlur={(e) => {
-//                       e.target.style.borderColor = "rgb(209, 213, 219)";
-//                       e.target.style.boxShadow = "none";
-//                     }}
-//                     required
-//                   />
-//                 </div>
-
-//                 {/* Phone Field */}
-//                 <div>
-//                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Phone *</label>
-//                   <input
-//                     type="tel"
-//                     name="phoneNumber"
-//                     value={profileData.phoneNumber}
-//                     onChange={handleInputChange}
-//                     placeholder="9876543210"
-//                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all"
-//                     onFocus={(e) => {
-//                       e.target.style.borderColor = PRIMARY_COLOR;
-//                       e.target.style.boxShadow = `0 0 0 3px ${PRIMARY_COLOR}20`;
-//                     }}
-//                     onBlur={(e) => {
-//                       e.target.style.borderColor = "rgb(209, 213, 219)";
-//                       e.target.style.boxShadow = "none";
-//                     }}
-//                     required
-//                   />
-//                 </div>
-
-//                 {/* Message */}
-//                 {message.text && (
-//                   <div
-//                     className={`p-3 rounded-lg text-sm font-medium ${
-//                       message.type === "error"
-//                         ? "bg-red-100 text-red-700 border border-red-300"
-//                         : "bg-green-100 text-green-700 border border-green-300"
-//                     }`}
-//                   >
-//                     {message.text}
-//                   </div>
-//                 )}
-
-//                 {/* Buttons */}
-//                 <div className="flex gap-3 pt-2">
-//                   <button
-//                     type="button"
-//                     onClick={() => {
-//                       setShowProfileForm(false);
-//                       setMessage({ text: "", type: "" });
-//                     }}
-//                     className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-sm transition-colors cursor-pointer"
-//                   >
-//                     Cancel
-//                   </button>
-//                   <button
-//                     type="submit"
-//                     disabled={profileLoading}
-//                     className="flex-1 px-4 py-2 text-white rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-//                     style={{ backgroundColor: profileLoading ? `${PRIMARY_COLOR}80` : PRIMARY_COLOR }}
-//                   >
-//                     {profileLoading ? "Saving..." : "Save"}
-//                   </button>
-//                 </div>
-//               </form>
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Department CRUD Modal */}
-//         {/* {showDeptModal && (
-//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
-//             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-white flex flex-col">
-//               <div
-//                 className="p-8 text-white flex justify-between items-center"
-//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
-//               >
-//                 <div>
-//                   <h3 className="text-2xl font-bold tracking-tight">Department Management</h3>
-//                   <p className="text-white/80 text-sm">Add or remove academic departments</p>
-//                 </div>
-//                 <button
-//                   onClick={() => {
-//                     setShowDeptModal(false);
-//                     setEditingDept(null);
-//                     setDeptInput("");
-//                     setDeptMessage({ text: "", type: "" });
-//                   }}
-//                   className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
-//                 >
-//                   <X size={20} />
-//                 </button>
-//               </div>
-
-//               <div className="p-8 flex-1 overflow-y-auto">
-//                 {deptMessage.text && (
-//                   <div
-//                     className={`mb-6 p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
-//                   >
-//                     <p className="text-sm font-semibold flex items-center gap-2">
-//                       {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
-//                     </p>
-//                   </div>
-//                 )}
-
-//                 <form onSubmit={handleDeptSubmit} className="mb-8">
-//                   <div className="flex gap-3">
-//                     <input
-//                       type="text"
-//                       placeholder="Enter department name..."
-//                       className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all"
-//                       onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-//                       onBlur={(e) => (e.target.style.boxShadow = "")}
-//                       value={deptInput}
-//                       onChange={(e) => setDeptInput(e.target.value)}
-//                       required
-//                     />
-//                     <button
-//                       type="submit"
-//                       className="text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg cursor-pointer"
-//                       style={{
-//                         background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-//                         boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
-//                       }}
-//                     >
-//                       {editingDept ? <Edit size={18} /> : <Plus size={18} />}
-//                       {editingDept ? "Update Dept" : "Add Dept"}
-//                     </button>
-//                   </div>
-//                   {editingDept && (
-//                     <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-//                       <span>
-//                         Editing: <span className="font-bold">{editingDept.name}</span>
-//                       </span>
-//                       <button
-//                         type="button"
-//                         onClick={() => {
-//                           setEditingDept(null);
-//                           setDeptInput("");
-//                         }}
-//                         className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer"
-//                       >
-//                         Cancel
-//                       </button>
-//                     </div>
-//                   )}
-//                 </form>
-
-//                 {deptLoading ? (
-//                   <div className="py-10 text-center text-gray-500 italic">
-//                     <div
-//                       className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3 cursor-wait"
-//                       style={{ borderColor: PRIMARY_COLOR }}
-//                     ></div>
-//                     Loading departments...
-//                   </div>
-//                 ) : (
-//                   <div className="space-y-3">
-//                     {departments.length > 0 ? (
-//                       departments.map((dept) => (
-//                         <div
-//                           key={dept.departmentId}
-//                           className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
-//                         >
-//                           <div className="flex items-center gap-3">
-//                             <span className="font-bold text-gray-700">{dept.name}</span>
-//                             <span
-//                               className={`text-xs font-bold px-2 py-1 rounded-full ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
-//                             >
-//                               {dept.active ? "Active" : "Inactive"}
-//                             </span>
-//                           </div>
-//                           <div className="flex gap-2">
-//                             <button
-//                               onClick={(e) => {
-//                                 e.stopPropagation();
-//                                 setConfirmDialog({
-//                                   isOpen: true,
-//                                   title: "Delete Department",
-//                                   message:
-//                                     "Are you sure you want to delete this department? This action cannot be undone.",
-//                                   confirmText: "Delete",
-//                                   variant: "danger",
-//                                   onConfirm: () => {
-//                                     closeConfirm();
-//                                     deleteDepartment(dept.departmentId);
-//                                   },
-//                                 });
-//                               }}
-//                               className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
-//                               title="Delete"
-//                             >
-//                               <Trash2 size={16} />
-//                             </button>
-//                           </div>
-//                         </div>
-//                       ))
-//                     ) : (
-//                       <div className="text-center py-10">
-//                         <Database className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-//                         <p className="text-gray-400 font-medium">No departments found in system.</p>
-//                         <p className="text-sm text-gray-300 mt-1">Add a department using the form above</p>
-//                       </div>
-//                     )}
-//                   </div>
-//                 )}
-//               </div>
-
-//               <div className="px-8 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-//                 <div className="text-sm text-gray-500">
-//                   {departments.length} department{departments.length !== 1 ? "s" : ""}
-//                 </div>
-//                 <button
-//                   onClick={() => setShowDeptModal(false)}
-//                   className="text-sm font-bold text-gray-500 hover:text-gray-700 px-4 py-2 cursor-pointer"
-//                 >
-//                   Close Manager
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         )} */}
-// {showDeptModal && (
-//   <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50">
-//     <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[85vh] overflow-hidden border border-white flex flex-col">
-//       <div
-//         className="p-5 sm:p-8 text-white flex justify-between items-center"
-//         style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
-//       >
-//         <div className="flex-1 min-w-0">
-//           <h3 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Department Management</h3>
-//           <p className="text-white/80 text-xs sm:text-sm truncate">Add or remove academic departments</p>
-//         </div>
-//         <button
-//           onClick={() => {
-//             setShowDeptModal(false);
-//             setEditingDept(null);
-//             setDeptInput("");
-//             setDeptMessage({ text: "", type: "" });
-//           }}
-//           className="bg-white/20 p-1.5 sm:p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer flex-shrink-0"
-//         >
-//           <X size={18} className="sm:w-5 sm:h-5" />
-//         </button>
-//       </div>
-
-//       <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
-//         {deptMessage.text && (
-//           <div
-//             className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl ${deptMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
-//           >
-//             <p className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-//               {deptMessage.type === "success" ? "✓" : "⚠"} {deptMessage.text}
-//             </p>
-//           </div>
-//         )}
-
-//         <form onSubmit={handleDeptSubmit} className="mb-6 sm:mb-8">
-//           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-//             <input
-//               type="text"
-//               placeholder="Enter department name..."
-//               className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none transition-all text-sm sm:text-base"
-//               onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-//               onBlur={(e) => (e.target.style.boxShadow = "")}
-//               value={deptInput}
-//               onChange={(e) => setDeptInput(e.target.value)}
-//               required
-//             />
-//             <button
-//               type="submit"
-//               className="w-full sm:w-auto text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg cursor-pointer text-sm sm:text-base"
-//               style={{
-//                 background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)`,
-//                 boxShadow: "0 10px 15px -3px rgba(76, 161, 175, 0.2)",
-//               }}
-//             >
-//               {editingDept ? <Edit size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />}
-//               {editingDept ? "Update" : "Add Dept"}
-//             </button>
-//           </div>
-//           {editingDept && (
-//             <div className="mt-2 text-xs sm:text-sm text-gray-500 flex items-center gap-2">
-//               <span className="truncate">
-//                 Editing: <span className="font-bold">{editingDept.name}</span>
-//               </span>
-//               <button
-//                 type="button"
-//                 onClick={() => {
-//                   setEditingDept(null);
-//                   setDeptInput("");
-//                 }}
-//                 className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer flex-shrink-0"
-//               >
-//                 Cancel
-//               </button>
-//             </div>
-//           )}
-//         </form>
-
-//         {deptLoading ? (
-//           <div className="py-8 sm:py-10 text-center text-gray-500 italic">
-//             <div
-//               className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 mx-auto mb-3 cursor-wait"
-//               style={{ borderColor: PRIMARY_COLOR }}
-//             ></div>
-//             <p className="text-sm sm:text-base">Loading departments...</p>
-//           </div>
-//         ) : (
-//           <div className="space-y-2 sm:space-y-3">
-//             {departments.length > 0 ? (
-//               departments.map((dept) => (
-//                 <div
-//                   key={dept.departmentId}
-//                   className="flex items-center justify-between p-3 sm:p-4 bg-gray-50/50 rounded-xl sm:rounded-2xl border border-gray-100 transition-all group cursor-pointer hover:border-[#4CA1AF]"
-//                 >
-//                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-//                     <span className="font-bold text-gray-700 text-sm sm:text-base truncate">{dept.name}</span>
-//                     <span
-//                       className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${dept.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
-//                     >
-//                       {dept.active ? "Active" : "Inactive"}
-//                     </span>
-//                   </div>
-//                   <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-//                     <button
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         setConfirmDialog({
-//                           isOpen: true,
-//                           title: "Delete Department",
-//                           message:
-//                             "Are you sure you want to delete this department? This action cannot be undone.",
-//                           confirmText: "Delete",
-//                           variant: "danger",
-//                           onConfirm: () => {
-//                             closeConfirm();
-//                             deleteDepartment(dept.departmentId);
-//                           },
-//                         });
-//                       }}
-//                       className="p-1.5 sm:p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
-//                       title="Delete"
-//                     >
-//                       <Trash2 size={14} className="sm:w-4 sm:h-4" />
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <div className="text-center py-8 sm:py-10">
-//                 <Database className="w-10 h-10 sm:w-12 sm:h-12 text-gray-200 mx-auto mb-2 sm:mb-3" />
-//                 <p className="text-sm sm:text-base text-gray-400 font-medium">No departments found in system.</p>
-//                 <p className="text-xs sm:text-sm text-gray-300 mt-1">Add a department using the form above</p>
-//               </div>
-//             )}
-//           </div>
-//         )}
-//       </div>
-
-//       <div className="px-4 sm:px-8 py-3 sm:py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-//         <div className="text-xs sm:text-sm text-gray-500">
-//           {departments.length} department{departments.length !== 1 ? "s" : ""}
-//         </div>
-//         <button
-//           onClick={() => setShowDeptModal(false)}
-//           className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 cursor-pointer"
-//         >
-//           Close Manager
-//         </button>
-//       </div>
-//     </div>
-//   </div>
-// )}
-
-
-//         {/* Email Edit Modal */}
-//         {showEmailEditModal && (
-//           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 z-50">
-//             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden border border-white">
-//               <div
-//                 className="p-6 text-white"
-//                 style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
-//               >
-//                 <div className="flex justify-between items-center">
-//                   <div>
-//                     <h3 className="text-xl font-bold flex items-center gap-2">
-//                       <Mail size={20} />
-//                       Update Email Address
-//                     </h3>
-//                     <p className="text-white/80 text-sm mt-1">Enter your new email address</p>
-//                   </div>
-//                   <button
-//                     onClick={() => {
-//                       setShowEmailEditModal(false);
-//                       setEmailMessage({ text: "", type: "" });
-//                       setNewEmail("");
-//                     }}
-//                     className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-all duration-200 hover:rotate-90 cursor-pointer"
-//                   >
-//                     <X size={18} />
-//                   </button>
-//                 </div>
-//               </div>
-
-//               <div className="p-6 space-y-5">
-//                 <div>
-//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-//                     Current Email
-//                   </label>
-//                   <input
-//                     type="email"
-//                     value={currentUser.email}
-//                     className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
-//                     disabled
-//                   />
-//                 </div>
-
-//                 <div>
-//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-//                     New Email <span className="text-red-500">*</span>
-//                   </label>
-//                   <input
-//                     type="email"
-//                     value={newEmail}
-//                     onChange={(e) => setNewEmail(e.target.value)}
-//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none transition-all"
-//                     onFocus={(e) => (e.target.style.boxShadow = `0 0 0 2px ${PRIMARY_COLOR}20`)}
-//                     onBlur={(e) => (e.target.style.boxShadow = "")}
-//                     placeholder="Enter new email address"
-//                     required
-//                   />
-//                 </div>
-
-//                 {emailMessage.text && (
-//                   <div
-//                     className={`p-3 rounded-xl ${emailMessage.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
-//                   >
-//                     <p className="text-sm font-semibold flex items-center gap-2">
-//                       {emailMessage.type === "success" ? "✓" : "⚠"} {emailMessage.text}
-//                     </p>
-//                   </div>
-//                 )}
-
-//                 <div className="pt-4">
-//                   <button
-//                     type="button"
-//                     onClick={handleEmailUpdate}
-//                     disabled={emailLoading || !newEmail || newEmail === currentUser.email}
-//                     className="w-full text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-//                     style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #315169)` }}
-//                   >
-//                     {emailLoading ? (
-//                       <div className="flex items-center justify-center gap-2">
-//                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-//                         Updating...
-//                       </div>
-//                     ) : (
-//                       "Update Email"
-//                     )}
-//                   </button>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         )}
-//       </div>
-
-//       <ConfirmDialog
-//         isOpen={confirmDialog.isOpen}
-//         title={confirmDialog.title}
-//         message={confirmDialog.message}
-//         confirmText={confirmDialog.confirmText}
-//         variant={confirmDialog.variant}
-//         onConfirm={confirmDialog.onConfirm}
-//         onCancel={closeConfirm}
-//       />
-//     </>
-//   );
-// }

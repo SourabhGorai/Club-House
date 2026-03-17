@@ -1467,19 +1467,7 @@ export default function ClubDetails() {
                 </div>
               </div>
             </div>
-
-            {clubDetails.isActive && isTeacher && (
-              <button
-                onClick={() =>
-                  navigate(
-                    `/create-event?clubId=${clubDetails.clubId}&clubName=${encodeURIComponent(clubDetails.clubName)}`
-                  )
-                }
-                className="px-5 py-2.5 bg-[#4CA1AF] text-white rounded-xl font-semibold hover:bg-[#3d8a98] transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <Plus size={18} /> Add Event
-              </button>
-            )}
+            
           </div>
         </div>
 

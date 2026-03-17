@@ -1,3 +1,9 @@
+
+
+
+
+
+
 // import { useState, useEffect, useRef } from "react";
 // import axios from "axios";
 // import { useNavigate, useSearchParams } from "react-router-dom";
@@ -30,6 +36,7 @@
 //   Sparkles,
 //   Bell,
 //   Gift,
+//   Home,
 // } from "lucide-react";
 
 // import "leaflet/dist/leaflet.css";
@@ -46,6 +53,17 @@
 // });
 
 // const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
+// // Responsive container classes
+// const responsiveClasses = {
+//   container: "w-full px-3 sm:px-4 md:px-6 lg:px-8",
+//   grid: "grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6",
+//   input: "w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base",
+//   button: "px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base",
+//   heading: "text-xl sm:text-2xl md:text-3xl font-bold",
+//   subheading: "text-base sm:text-lg md:text-xl font-semibold",
+//   card: "bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 md:p-6",
+// };
 
 // export default function CreateEvent() {
 //   const navigate = useNavigate();
@@ -78,11 +96,7 @@
 //     enrollmentDeadline: "",
 //     enrollmentStatus: "OPEN",
 //     contactEmail: user?.email || "",
-
-//     // ── NEW: notification type override ──
 //     notificationType: "",
-
-//     // Attendance fields
 //     latitude: "18.5204",
 //     longitude: "73.8567",
 //     radiusInMeters: 50,
@@ -103,6 +117,20 @@
 //   const [enableAttendance, setEnableAttendance] = useState(false);
 //   const [searchQuery, setSearchQuery] = useState("");
 //   const [searchingLocation, setSearchingLocation] = useState(false);
+//   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+//   // Handle resize events
+//   useEffect(() => {
+//     const handleResize = () => {
+//       setIsMobile(window.innerWidth < 768);
+//       if (mapRef.current && enableAttendance) {
+//         setTimeout(() => mapRef.current.invalidateSize(), 100);
+//       }
+//     };
+
+//     window.addEventListener('resize', handleResize);
+//     return () => window.removeEventListener('resize', handleResize);
+//   }, [enableAttendance]);
 
 //   useEffect(() => {
 //     if (preSelectedClubId && preSelectedClubName) {
@@ -162,7 +190,12 @@
 //         updateCoordinates(lat, lng);
 //       });
 
-//       setTimeout(() => { if (mapRef.current) mapRef.current.invalidateSize(); }, 100);
+//       setTimeout(() => { 
+//         if (mapRef.current) {
+//           mapRef.current.invalidateSize();
+//         }
+//       }, 200);
+      
 //       mapInitializedRef.current = true;
 //     } catch (error) {
 //       console.error("Error initializing map:", error);
@@ -178,12 +211,6 @@
 //       circleRef.current.setRadius(parseInt(formData.radiusInMeters));
 //     }
 //   }, [formData.radiusInMeters]);
-
-//   useEffect(() => {
-//     const handleResize = () => { if (mapRef.current && enableAttendance) mapRef.current.invalidateSize(); };
-//     window.addEventListener("resize", handleResize);
-//     return () => window.removeEventListener("resize", handleResize);
-//   }, [enableAttendance]);
 
 //   const searchLocation = async () => {
 //     if (!searchQuery.trim()) return;
@@ -372,7 +399,6 @@
 //     return Object.keys(errors).length === 0;
 //   };
 
-//   // ── Auto-send notification after event creation ──────────────────────────
 //   const sendEventNotification = async (eventId, eventTitle) => {
 //     try {
 //       const autoTypeMap = {
@@ -381,7 +407,6 @@
 //         DEPARTMENT: "DEPARTMENT_SPECIFIC",
 //       };
 
-//       // Use manual override if set, otherwise auto-detect from target
 //       const resolvedType =
 //         formData.notificationType ||
 //         autoTypeMap[formData.target] ||
@@ -417,7 +442,6 @@
 
 //       console.log("Event notification sent:", resolvedType);
 //     } catch (err) {
-//       // Non-blocking — event was already created successfully
 //       console.warn("Notification send failed (non-blocking):", err);
 //     }
 //   };
@@ -468,7 +492,6 @@
 //       });
 
 //       if (response.data.success) {
-//         // Send notification (non-blocking)
 //         const createdEventId =
 //           response.data.data?.eventId ||
 //           response.data.data?.id ||
@@ -528,140 +551,87 @@
 
 //   return (
 //     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-//       {/* Animated Background */}
+//       {/* Animated Background - Optimized for mobile */}
 //       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-//         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+//         <div className="absolute -top-40 -right-40 w-64 sm:w-80 h-64 sm:h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
 //         <div
-//           className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
+//           className="absolute -bottom-40 -left-40 w-64 sm:w-80 h-64 sm:h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
 //           style={{ backgroundColor: "#4CA1AF" }}
 //         ></div>
-//         <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+//         <div className="absolute top-40 left-40 w-64 sm:w-80 h-64 sm:h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
 //       </div>
 
-//       {/* Header */}
-//       {/* <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="flex justify-between items-center h-16">
+//       {/* Responsive Header */}
+//       <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+//         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+//           <div className="flex justify-between items-center h-14 sm:h-16">
+//             {/* Back to Dashboard button */}
 //             <button
-//               onClick={() => navigate(-1)}
-//               className="group flex items-center gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2.5 px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-//               style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", color: "#4CA1AF" }}
+//               onClick={() => navigate("/dashboard")}
+//               className="group flex items-center gap-1.5 sm:gap-2 border border-white/20 hover:border-white/40 font-medium rounded-full py-1.5 sm:py-2 px-3 sm:px-4 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+//               style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)", color: "white" }}
 //             >
-//               <div
-//                 className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 group-hover:scale-110"
-//                 style={{ backgroundColor: "rgba(76, 161, 175, 0.1)" }}
-//               >
-//                 <svg className="w-3.5 h-3.5" style={{ color: "#4CA1AF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-//                 </svg>
-//               </div>
+//               <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+//               {/* <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span> */}
 //             </button>
-//             <div className="flex items-center gap-2">
-//               <CalendarPlus className="w-5 h-5" style={{ color: "#4CA1AF" }} />
-//               <span className="font-semibold text-gray-900">Create New Event</span>
+
+//             {/* Create New Event title */}
+//             <div className="flex items-center gap-1.5 sm:gap-2">
+//               <CalendarPlus className="w-3.5 h-3.5 sm:w-5 sm:h-5" style={{ color: "#4CA1AF" }} />
+//               <span className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 truncate max-w-[150px] sm:max-w-none">
+//                 {isMobile ? "New Event" : "Create New Event"}
+//               </span>
 //             </div>
 //           </div>
 //         </div>
-//       </div> */}
-//       <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-//   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//     <div className="flex justify-between items-center h-16">
-//       {/* Left section - Back to Dashboard button with Home icon */}
-//       {/* <button
-//         onClick={() => navigate("/dashboard")}
-//         className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-//         style={{ background: "var(--primary-gradient)", color: "white" }}
-//       >
-//         <svg
-//           className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
-//           fill="none"
-//           viewBox="0 0 24 24"
-//           stroke="currentColor"
-//         >
-//           <path
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//             strokeWidth={2.5}
-//             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-//           />
-//         </svg>
-//         <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
-//       </button> */}
-//             <button
-//         onClick={() => navigate("/dashboard")}
-//         className="group flex items-center gap-2 sm:gap-3 border border-white/20 hover:border-white/40 font-medium rounded-full py-2 sm:py-2.5 px-4 sm:px-5 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-//         style={{ background: "var(--primary-gradient)", color: "white" }}
-//       >
-//         <svg
-//           className="w-4 sm:w-5 h-4 sm:h-5 text-white transform group-hover:scale-110 transition-transform"
-//           fill="none"
-//           viewBox="0 0 24 24"
-//           stroke="currentColor"
-//         >
-//           <path
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//             strokeWidth={2.5}
-//             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-//           />
-//         </svg>
-//         <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
-//       </button>
-
-//       {/* Right section - Create New Event */}
-//       <div className="flex items-center gap-2">
-//         <CalendarPlus className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#4CA1AF" }} />
-//         <span className="text-sm sm:text-base font-semibold text-gray-900">Create New Event</span>
 //       </div>
-//     </div>
-//   </div>
-// </div>
 
 //       {/* Main Content */}
-//       <div className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-//         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden">
+//       <div className="relative max-w-7xl mx-auto py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8">
+//         <div className="bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg sm:shadow-xl border border-white/20 overflow-hidden">
 
-//           {/* Form Header */}
+//           {/* Responsive Form Header */}
 //           <div
-//             className="px-8 py-6 border-b border-gray-700/50"
+//             className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-b border-gray-700/50"
 //             style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
 //           >
-//             <h1 className="text-2xl font-semibold text-white">Event Details</h1>
-//             <p className="text-sm text-white/90 mt-1">
-//               Fill in the information below to create your event
+//             <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">Event Details</h1>
+//             <p className="text-xs sm:text-sm text-white/90 mt-0.5 sm:mt-1">
+//               {isMobile ? "Fill in the information below" : "Fill in the information below to create your event"}
 //             </p>
 //             {preSelectedClubName && (
-//               <p className="text-sm mt-2 text-white/80">
+//               <p className="text-xs sm:text-sm mt-1 sm:mt-2 text-white/80">
 //                 Creating event for:{" "}
-//                 <span className="font-semibold text-white">{preSelectedClubName}</span>
+//                 <span className="font-semibold text-white break-words">{preSelectedClubName}</span>
 //               </p>
 //             )}
 //           </div>
 
-//           {/* Status Message */}
+//           {/* Status Message - Responsive */}
 //           {message.text && (
 //             <div
-//               className={`mx-8 mt-6 p-4 rounded-lg flex items-center gap-2 ${
+//               className={`mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-4 sm:mt-5 md:mt-6 p-3 sm:p-4 rounded-lg flex items-center gap-2 ${
 //                 message.type === "error"
 //                   ? "bg-red-50 text-red-700 border border-red-200"
 //                   : "bg-green-50 text-green-700 border border-green-200"
 //               }`}
 //             >
 //               {message.type === "error" ? (
-//                 <AlertCircle className="w-5 h-5" />
+//                 <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
 //               ) : (
-//                 <CheckCircle className="w-5 h-5" />
+//                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
 //               )}
-//               <span className="text-sm font-medium">{message.text}</span>
+//               <span className="text-xs sm:text-sm font-medium break-words">{message.text}</span>
 //             </div>
 //           )}
 
-//           <form onSubmit={handleSubmit} className="p-8 space-y-8">
+//           <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
 
-//             {/* Row 1: Title & Speaker */}
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             {/* Responsive Grid Layout */}
+//             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+//               {/* Title Field */}
 //               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                   Event Title <span className="text-red-500">*</span>
 //                 </label>
 //                 <input
@@ -669,18 +639,19 @@
 //                   name="title"
 //                   value={formData.title}
 //                   onChange={handleInputChange}
-//                   placeholder="e.g., Annual Tech Symposium"
-//                   className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
+//                   placeholder={isMobile ? "e.g., Tech Symposium" : "e.g., Annual Tech Symposium"}
+//                   className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
 //                     formErrors.title ? "border-red-300 bg-red-50" : "border-gray-300"
 //                   }`}
 //                 />
 //                 {formErrors.title && (
-//                   <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.title}</p>
 //                 )}
 //               </div>
 
+//               {/* Speaker Name Field */}
 //               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                   Speaker Name
 //                 </label>
 //                 <input
@@ -688,29 +659,29 @@
 //                   name="speakerName"
 //                   value={formData.speakerName}
 //                   onChange={handleInputChange}
-//                   placeholder="e.g., Dr. John Smith"
-//                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm"
+//                   placeholder={isMobile ? "e.g., Dr. Smith" : "e.g., Dr. John Smith"}
+//                   className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm"
 //                 />
 //               </div>
 //             </div>
 
-//             {/* Row 2: Description */}
+//             {/* Description Field - Full Width */}
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                 Description
 //               </label>
 //               <textarea
 //                 name="description"
 //                 value={formData.description}
 //                 onChange={handleInputChange}
-//                 rows="3"
-//                 placeholder="Provide a detailed description of your event..."
-//                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors resize-none cursor-text bg-white/50 backdrop-blur-sm"
+//                 rows={isMobile ? "2" : "3"}
+//                 placeholder={isMobile ? "Brief description..." : "Provide a detailed description of your event..."}
+//                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors resize-none cursor-text bg-white/50 backdrop-blur-sm"
 //               />
 //             </div>
 
-//             {/* Row 3: Event Date & Enrollment Deadline */}
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             {/* Event Date & Enrollment Deadline */}
+//             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
 //               <div>
 //                 <DateTimePicker
 //                   label="Event Date & Time"
@@ -721,7 +692,7 @@
 //                   placeholder="Select event date & time"
 //                 />
 //                 {formErrors.eventDate && (
-//                   <p className="mt-1 text-xs text-red-600">{formErrors.eventDate}</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.eventDate}</p>
 //                 )}
 //               </div>
 
@@ -736,20 +707,20 @@
 //                   placeholder="Select enrollment deadline"
 //                 />
 //                 {formErrors.enrollmentDeadline && (
-//                   <p className="mt-1 text-xs text-red-600">{formErrors.enrollmentDeadline}</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.enrollmentDeadline}</p>
 //                 )}
 //               </div>
 //             </div>
 
-//             {/* Row 4: Venue & Max Enrollments */}
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             {/* Venue & Max Enrollments */}
+//             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
 //               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                   Venue <span className="text-red-500">*</span>
 //                 </label>
 //                 <div className="relative">
 //                   <MapPin
-//                     className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+//                     className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 z-10 pointer-events-none"
 //                     style={{ color: "#4CA1AF" }}
 //                   />
 //                   <input
@@ -757,19 +728,19 @@
 //                     name="venue"
 //                     value={formData.venue}
 //                     onChange={handleInputChange}
-//                     placeholder="e.g., Main Auditorium"
-//                     className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
+//                     placeholder={isMobile ? "e.g., Main Hall" : "e.g., Main Auditorium"}
+//                     className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
 //                       formErrors.venue ? "border-red-300 bg-red-50" : "border-gray-300"
 //                     }`}
 //                   />
 //                 </div>
 //                 {formErrors.venue && (
-//                   <p className="mt-1 text-xs text-red-600">{formErrors.venue}</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.venue}</p>
 //                 )}
 //               </div>
 
 //               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                   Maximum Enrollments
 //                 </label>
 //                 <input
@@ -779,24 +750,24 @@
 //                   onChange={handleInputChange}
 //                   placeholder="Unlimited"
 //                   min="1"
-//                   className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
+//                   className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
 //                     formErrors.maxEnrollments ? "border-red-300 bg-red-50" : "border-gray-300"
 //                   }`}
 //                 />
 //                 {formErrors.maxEnrollments && (
-//                   <p className="mt-1 text-xs text-red-600">{formErrors.maxEnrollments}</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.maxEnrollments}</p>
 //                 )}
 //               </div>
 //             </div>
 
-//             {/* Row 5: Contact Email */}
+//             {/* Contact Email */}
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                 Contact Email <span className="text-red-500">*</span>
 //               </label>
 //               <div className="relative">
 //                 <Mail
-//                   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 z-10 pointer-events-none"
+//                   className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 z-10 pointer-events-none"
 //                   style={{ color: "#4CA1AF" }}
 //                 />
 //                 <input
@@ -804,20 +775,20 @@
 //                   name="contactEmail"
 //                   value={formData.contactEmail}
 //                   onChange={handleInputChange}
-//                   placeholder="e.g., organizer@college.edu"
-//                   className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
+//                   placeholder={isMobile ? "e.g., organizer@college.edu" : "e.g., organizer@college.edu"}
+//                   className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
 //                     formErrors.contactEmail ? "border-red-300 bg-red-50" : "border-gray-300"
 //                   }`}
 //                 />
 //               </div>
 //               {formErrors.contactEmail && (
-//                 <p className="mt-1 text-xs text-red-600">{formErrors.contactEmail}</p>
+//                 <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.contactEmail}</p>
 //               )}
 //             </div>
 
-//             {/* Row 5b: Organizer */}
+//             {/* Organizer */}
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
 //                 Organizer <span className="text-red-500">*</span>
 //               </label>
 //               <CustomSelect
@@ -839,26 +810,26 @@
 //                 ]}
 //               />
 //               {formErrors.organizer && (
-//                 <p className="mt-1 text-xs text-red-600">{formErrors.organizer}</p>
+//                 <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.organizer}</p>
 //               )}
 //             </div>
 
-//             {/* Row 6: Target Audience */}
+//             {/* Target Audience - Responsive buttons */}
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-3">
+//               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
 //                 Target Audience <span className="text-red-500">*</span>
 //               </label>
-//               <div className="flex flex-wrap gap-3">
+//               <div className="flex flex-col xs:flex-row flex-wrap gap-2 sm:gap-3">
 //                 {[
-//                   { value: "GLOBAL",     icon: <Globe className="w-4 h-4" />,     label: "Global (Everyone)" },
-//                   { value: "CLUB",       icon: <Users className="w-4 h-4" />,     label: "Specific Clubs" },
-//                   { value: "DEPARTMENT", icon: <Building2 className="w-4 h-4" />, label: "Specific Departments" },
+//                   { value: "GLOBAL",     icon: <Globe className="w-3 h-3 sm:w-4 sm:h-4" />,     label: isMobile ? "Global" : "Global (Everyone)" },
+//                   { value: "CLUB",       icon: <Users className="w-3 h-3 sm:w-4 sm:h-4" />,     label: isMobile ? "Clubs" : "Specific Clubs" },
+//                   { value: "DEPARTMENT", icon: <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />, label: isMobile ? "Depts" : "Specific Departments" },
 //                 ].map(({ value, icon, label }) => (
 //                   <button
 //                     key={value}
 //                     type="button"
 //                     onClick={() => handleTargetTypeChange(value)}
-//                     className={`px-5 py-2.5 rounded-lg border transition-colors flex items-center gap-2 cursor-pointer bg-white/50 backdrop-blur-sm ${
+//                     className={`px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg border transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer bg-white/50 backdrop-blur-sm text-xs sm:text-sm ${
 //                       formData.target === value
 //                         ? "border-[#4CA1AF] text-[#4CA1AF]"
 //                         : "border-gray-300 hover:border-[#4CA1AF] hover:bg-[#4CA1AF]/5"
@@ -868,37 +839,37 @@
 //                     {icon}
 //                     <span className="font-medium">{label}</span>
 //                     {formData.target === value && (
-//                       <Check className="w-4 h-4 ml-1" style={{ color: "#4CA1AF" }} />
+//                       <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5 sm:ml-1" style={{ color: "#4CA1AF" }} />
 //                     )}
 //                   </button>
 //                 ))}
 //               </div>
 //             </div>
 
-//             {/* Row 7: Target Selection */}
+//             {/* Target Selection */}
 //             {formData.target !== "GLOBAL" && (
 //               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
 //                   Select {formData.target === "CLUB" ? "Clubs" : "Departments"}{" "}
 //                   <span className="text-red-500">*</span>
 //                 </label>
 
 //                 {selectedTargets.length > 0 && (
-//                   <div className="mb-3 flex flex-wrap gap-2">
+//                   <div className="mb-2 sm:mb-3 flex flex-wrap gap-1.5 sm:gap-2">
 //                     {selectedTargets.map((target) => (
 //                       <span
 //                         key={target.id}
-//                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm"
+//                         className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm"
 //                         style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
 //                       >
-//                         {target.name}
+//                         <span className="max-w-[100px] sm:max-w-[150px] truncate">{target.name}</span>
 //                         <button
 //                           type="button"
 //                           onClick={() => removeTarget(target.id)}
-//                           className="hover:opacity-80 cursor-pointer"
+//                           className="hover:opacity-80 cursor-pointer flex-shrink-0"
 //                           style={{ color: "#4CA1AF" }}
 //                         >
-//                           <X size={14} />
+//                           <X size={isMobile ? 12 : 14} />
 //                         </button>
 //                       </span>
 //                     ))}
@@ -906,13 +877,13 @@
 //                 )}
 
 //                 {loadingOptions ? (
-//                   <div className="flex items-center justify-center py-8 text-gray-500 bg-white/50 backdrop-blur-sm rounded-lg">
-//                     <Loader className="w-5 h-5 animate-spin mr-2" style={{ color: "#4CA1AF" }} />
-//                     <span>Loading...</span>
+//                   <div className="flex items-center justify-center py-4 sm:py-6 md:py-8 text-gray-500 bg-white/50 backdrop-blur-sm rounded-lg">
+//                     <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" style={{ color: "#4CA1AF" }} />
+//                     <span className="text-xs sm:text-sm">Loading...</span>
 //                   </div>
 //                 ) : (
 //                   <div className="border border-gray-200 rounded-lg overflow-hidden bg-white/50 backdrop-blur-sm">
-//                     <div className="max-h-60 overflow-y-auto">
+//                     <div className="max-h-48 sm:max-h-60 overflow-y-auto">
 //                       {targetOptions.length > 0 ? (
 //                         targetOptions.map((item) => {
 //                           const isSelected = selectedTargets.some((t) => t.id === item.id);
@@ -920,16 +891,16 @@
 //                             <div
 //                               key={item.id}
 //                               onClick={() => toggleTargetSelection(item)}
-//                               className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-0 cursor-pointer transition-colors"
+//                               className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 last:border-0 cursor-pointer transition-colors"
 //                               style={isSelected ? { backgroundColor: "rgba(76, 161, 175, 0.1)" } : {}}
 //                             >
-//                               <span className="text-sm font-medium text-gray-700">{item.name}</span>
-//                               {isSelected && <Check className="w-4 h-4" style={{ color: "#4CA1AF" }} />}
+//                               <span className="text-xs sm:text-sm font-medium text-gray-700 truncate pr-2">{item.name}</span>
+//                               {isSelected && <Check className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: "#4CA1AF" }} />}
 //                             </div>
 //                           );
 //                         })
 //                       ) : (
-//                         <div className="px-4 py-8 text-center text-gray-400">
+//                         <div className="px-3 sm:px-4 py-4 sm:py-6 md:py-8 text-center text-gray-400 text-xs sm:text-sm">
 //                           No {formData.target === "CLUB" ? "clubs" : "departments"} available
 //                         </div>
 //                       )}
@@ -938,31 +909,31 @@
 //                 )}
 
 //                 {formErrors.targetIds && (
-//                   <p className="mt-2 text-xs text-red-600">{formErrors.targetIds}</p>
+//                   <p className="mt-1.5 sm:mt-2 text-xs text-red-600">{formErrors.targetIds}</p>
 //                 )}
 //               </div>
 //             )}
 
-//             {/* ── NEW: Notification Type ───────────────────────────────────────── */}
-//             <div className="border border-gray-200 rounded-xl p-5 bg-white/60 backdrop-blur-sm">
-//               <div className="flex items-center gap-2 mb-1">
-//                 <Bell className="w-4 h-4" style={{ color: "#4CA1AF" }} />
-//                 <label className="block text-sm font-medium text-gray-700">
+//             {/* Notification Type - Responsive */}
+//             <div className="border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 bg-white/60 backdrop-blur-sm">
+//               <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+//                 <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#4CA1AF" }} />
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700">
 //                   Notification Type
 //                 </label>
 //               </div>
-//               <p className="text-xs text-gray-400 mb-3">
-//                 Leave as <span className="font-semibold">Auto</span> to detect from the target audience above,
-//                 or manually override the notification type sent to users.
+//               <p className="text-xs text-gray-400 mb-2 sm:mb-3">
+//                 {isMobile 
+//                   ? "Leave as Auto to detect from target audience"
+//                   : "Leave as Auto to detect from the target audience above, or manually override the notification type"}
 //               </p>
 
-//               {/* Auto-detect preview badge */}
 //               {!formData.notificationType && (
 //                 <div
-//                   className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full mb-3"
+//                   className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full mb-2 sm:mb-3"
 //                   style={{ backgroundColor: "rgba(76,161,175,0.1)", color: "#4CA1AF" }}
 //                 >
-//                   <Check className="w-3 h-3" />
+//                   <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
 //                   Auto →{" "}
 //                   {{
 //                     GLOBAL:     "GLOBAL",
@@ -989,10 +960,10 @@
 //               />
 //             </div>
 
-//             {/* Row 8: Attendance Tracking Toggle */}
-//             <div className="border-t border-gray-200 pt-6">
-//               <label className="flex items-center gap-3 cursor-pointer">
-//                 <div className="relative">
+//             {/* Attendance Tracking Toggle */}
+//             <div className="border-t border-gray-200 pt-4 sm:pt-5 md:pt-6">
+//               <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+//                 <div className="relative flex-shrink-0">
 //                   <input
 //                     type="checkbox"
 //                     checked={enableAttendance}
@@ -1008,80 +979,82 @@
 //                     }}
 //                     className="sr-only"
 //                   />
-//                   <div className={`w-10 h-6 rounded-full transition-colors ${enableAttendance ? "bg-[#4CA1AF]" : "bg-gray-300"}`}>
-//                     <div className={`w-4 h-4 rounded-full bg-white transform transition-transform absolute top-1 ${enableAttendance ? "translate-x-5" : "translate-x-1"}`} />
+//                   <div className={`w-8 sm:w-10 h-4 sm:h-6 rounded-full transition-colors ${enableAttendance ? "bg-[#4CA1AF]" : "bg-gray-300"}`}>
+//                     <div className={`w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-white transform transition-transform absolute top-0.5 sm:top-1 ${enableAttendance ? "translate-x-4 sm:translate-x-5" : "translate-x-1 sm:translate-x-1"}`} />
 //                   </div>
 //                 </div>
-//                 <span className="text-sm font-medium text-gray-700">
+//                 <span className="text-xs sm:text-sm font-medium text-gray-700">
 //                   Enable Attendance Tracking with Geofencing
 //                 </span>
 //               </label>
-//               <p className="mt-1 text-xs text-gray-500 ml-13">
+//               <p className="mt-0.5 sm:mt-1 text-xs text-gray-500 ml-8 sm:ml-13">
 //                 Set up location-based attendance using map selection
 //               </p>
 //             </div>
 
-//             {/* Row 9: Map and Attendance Fields */}
+//             {/* Map and Attendance Fields */}
 //             {enableAttendance && (
-//               <div className="space-y-6 p-6 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200">
-//                 <h3 className="text-sm font-semibold text-gray-900">
+//               <div className="space-y-4 sm:space-y-5 md:space-y-6 p-3 sm:p-4 md:p-5 lg:p-6 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200">
+//                 <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
 //                   📍 Select Event Location on Map
 //                 </h3>
 
-//                 {/* Map Controls */}
-//                 <div className="flex gap-3 mb-4">
+//                 {/* Map Controls - Responsive */}
+//                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-4">
 //                   <div className="flex-1 relative">
 //                     <input
 //                       type="text"
 //                       value={searchQuery}
 //                       onChange={(e) => setSearchQuery(e.target.value)}
 //                       onKeyPress={(e) => e.key === "Enter" && searchLocation()}
-//                       placeholder="Search for a location (e.g. Bharati Vidyapeeth, Pune)..."
-//                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+//                       placeholder={isMobile ? "Search location..." : "Search for a location (e.g. Bharati Vidyapeeth, Pune)..."}
+//                       className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
 //                     />
 //                   </div>
-//                   <button
-//                     type="button"
-//                     onClick={searchLocation}
-//                     disabled={searchingLocation}
-//                     className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60"
-//                     style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
-//                   >
-//                     {searchingLocation ? <Loader className="w-4 h-4 animate-spin" /> : <MapIcon className="w-4 h-4" />}
-//                     Search
-//                   </button>
-//                   <button
-//                     type="button"
-//                     onClick={getCurrentLocation}
-//                     className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 cursor-pointer"
-//                     style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
-//                   >
-//                     <Crosshair className="w-4 h-4" />
-//                     My Location
-//                   </button>
+//                   <div className="flex gap-2">
+//                     <button
+//                       type="button"
+//                       onClick={searchLocation}
+//                       disabled={searchingLocation}
+//                       className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-1 sm:gap-2 cursor-pointer disabled:opacity-60"
+//                       style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+//                     >
+//                       {searchingLocation ? <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" /> : <MapIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
+//                       <span className="hidden xs:inline">Search</span>
+//                     </button>
+//                     <button
+//                       type="button"
+//                       onClick={getCurrentLocation}
+//                       className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-1 sm:gap-2 cursor-pointer"
+//                       style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+//                     >
+//                       <Crosshair className="w-3 h-3 sm:w-4 sm:h-4" />
+//                       <span className="hidden xs:inline">My Location</span>
+//                     </button>
+//                   </div>
 //                 </div>
 
-//                 {/* Map Container */}
+//                 {/* Map Container - Responsive height */}
 //                 <div
 //                   ref={mapContainerRef}
 //                   className="w-full rounded-lg border-2 border-gray-300 z-0"
-//                   style={{ height: "400px" }}
+//                   style={{ height: isMobile ? "250px" : "400px" }}
 //                 />
 
-//                 {/* Coordinates Display */}
-//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+//                 {/* Coordinates Display - Responsive grid */}
+//                 <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4">
 //                   <div>
-//                     <label className="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
+//                     <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Latitude</label>
 //                     <input type="text" value={formData.latitude} readOnly
-//                       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-mono cursor-default" />
+//                       className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg text-xs sm:text-sm font-mono cursor-default" />
 //                   </div>
 //                   <div>
-//                     <label className="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
+//                     <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Longitude</label>
 //                     <input type="text" value={formData.longitude} readOnly
-//                       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-mono cursor-default" />
+//                       className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg text-xs sm:text-sm font-mono cursor-default" />
 //                   </div>
-//                   <div>
-//                     <label className="block text-xs font-medium text-gray-700 mb-1">Radius (meters)</label>
+//                   <div className="xs:col-span-2 sm:col-span-1">
+//                     <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Radius (meters)</label>
 //                     <input
 //                       type="number"
 //                       name="radiusInMeters"
@@ -1089,14 +1062,14 @@
 //                       onChange={handleInputChange}
 //                       min="10"
 //                       max="1000"
-//                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+//                       className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
 //                     />
 //                   </div>
 //                 </div>
-//                 {formErrors.radius && <p className="text-xs text-red-600">{formErrors.radius}</p>}
+//                 {formErrors.radius && <p className="text-xs text-red-600 mt-1">{formErrors.radius}</p>}
 
-//                 {/* Attendance Window */}
-//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 {/* Attendance Window - Responsive */}
+//                 <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
 //                   <div>
 //                     <DateTimePicker
 //                       label="Attendance Window Start"
@@ -1122,7 +1095,7 @@
 
 //                 {/* QR Settings */}
 //                 <div>
-//                   <label className="block text-xs font-medium text-gray-700 mb-1">
+//                   <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
 //                     QR Refresh Interval (seconds)
 //                   </label>
 //                   <input
@@ -1132,21 +1105,22 @@
 //                     onChange={handleInputChange}
 //                     min="30"
 //                     max="300"
-//                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+//                     className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
 //                   />
-//                   <p className="mt-1 text-xs text-gray-500">Default: 120 seconds (2 minutes)</p>
+//                   <p className="mt-0.5 sm:mt-1 text-xs text-gray-500">Default: 120 seconds (2 minutes)</p>
 //                 </div>
 
 //                 {/* Map Instructions */}
 //                 <div
-//                   className="rounded-lg p-3"
+//                   className="rounded-lg p-2 sm:p-3"
 //                   style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", borderColor: "#4CA1AF", borderWidth: "1px" }}
 //                 >
-//                   <p className="text-xs flex items-center gap-2" style={{ color: "#4CA1AF" }}>
-//                     <Layers className="w-4 h-4" />
-//                     <span>
-//                       Click on the map to set the event location. Drag the marker to adjust.
-//                       The circle shows the geofencing radius.
+//                   <p className="text-xs flex items-center gap-1.5 sm:gap-2" style={{ color: "#4CA1AF" }}>
+//                     <Layers className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+//                     <span className="text-xs">
+//                       {isMobile 
+//                         ? "Click on map to set location. Drag marker to adjust."
+//                         : "Click on the map to set the event location. Drag the marker to adjust. The circle shows the geofencing radius."}
 //                     </span>
 //                   </p>
 //                 </div>
@@ -1154,30 +1128,30 @@
 //               </div>
 //             )}
 
-//             {/* Form Actions */}
-//             <div className="flex gap-4 pt-6 border-t border-gray-200">
+//             {/* Form Actions - Responsive */}
+//             <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 md:gap-4 pt-4 sm:pt-5 md:pt-6 border-t border-gray-200">
 //               <button
 //                 type="button"
 //                 onClick={() => navigate(-1)}
-//                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer bg-white/50 backdrop-blur-sm"
+//                 className="w-full xs:flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
 //               >
 //                 Cancel
 //               </button>
 //               <button
 //                 type="submit"
 //                 disabled={loading}
-//                 className="flex-1 px-4 py-3 text-white rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+//                 className="w-full xs:flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-white rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer text-xs sm:text-sm"
 //                 style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
 //               >
 //                 {loading ? (
 //                   <>
-//                     <Loader className="w-4 h-4 animate-spin" />
-//                     Creating Event...
+//                     <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+//                     <span>Creating...</span>
 //                   </>
 //                 ) : (
 //                   <>
-//                     <CalendarPlus className="w-4 h-4" />
-//                     Create Event
+//                     <CalendarPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+//                     <span>Create Event</span>
 //                   </>
 //                 )}
 //               </button>
@@ -1189,16 +1163,17 @@
 //           </form>
 //         </div>
 
-//         {/* Footer */}
-//         <div className="mt-8 text-center">
-//           <div className="inline-flex items-center space-x-2 text-gray-500 text-sm">
-//             <Bell className="w-4 h-4" />
-//             <span>Create an amazing event for your community!</span>
-//             <Gift className="w-4 h-4" />
+//         {/* Footer - Responsive */}
+//         <div className="mt-4 sm:mt-6 md:mt-8 text-center">
+//           <div className="inline-flex items-center space-x-1.5 sm:space-x-2 text-gray-500 text-xs sm:text-sm">
+//             <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
+//             <span>{isMobile ? "Create amazing events!" : "Create an amazing event for your community!"}</span>
+//             <Gift className="w-3 h-3 sm:w-4 sm:h-4" />
 //           </div>
 //         </div>
 //       </div>
 
+//       {/* Responsive Animations */}
 //       <style jsx>{`
 //         @keyframes blob {
 //           0%   { transform: translate(0px, 0px) scale(1); }
@@ -1209,6 +1184,21 @@
 //         .animate-blob { animation: blob 7s infinite; }
 //         .animation-delay-2000 { animation-delay: 2s; }
 //         .animation-delay-4000 { animation-delay: 4s; }
+        
+//         /* Responsive breakpoints */
+//         @media (max-width: 480px) {
+//           .xs\\:inline { display: inline; }
+//           .xs\\:hidden { display: none; }
+//           .xs\\:flex-row { flex-direction: row; }
+//           .xs\\:flex-1 { flex: 1 1 0%; }
+//           .xs\\:col-span-2 { grid-column: span 2 / span 2; }
+//         }
+//         @media (min-width: 481px) {
+//           .xs\\:inline { display: inline; }
+//           .xs\\:flex-row { flex-direction: row; }
+//           .xs\\:flex-1 { flex: 1 1 0%; }
+//           .xs\\:col-span-2 { grid-column: span 2 / span 2; }
+//         }
 //       `}</style>
 //     </div>
 //   );
@@ -1247,6 +1237,8 @@ import {
   Bell,
   Gift,
   Home,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 import "leaflet/dist/leaflet.css";
@@ -1264,6 +1256,38 @@ L.Icon.Default.mergeOptions({
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
+// ─── THEME CONFIGURATION ─────────────────────────────────────────────────────
+const LIGHT_PRIMARY_COLOR = "#4CA1AF";
+const LIGHT_PRIMARY_DARK = "#2d8391";
+const LIGHT_PRIMARY_LIGHT = "rgba(76, 161, 175, 0.1)";
+const LIGHT_PRIMARY_GRADIENT = "linear-gradient(135deg, #4CA1AF 0%, #2c7a8a 100%)";
+
+const LIGHT_BG_MAIN = "#f5faff";
+const LIGHT_BG_GRADIENT = "linear-gradient(135deg, #f5faff 0%, #f0f8ff 100%)";
+const LIGHT_BG_CARD = "#ffffff";
+const LIGHT_BORDER_COLOR = "#e9f0f9";
+const LIGHT_BORDER_COLOR_HOVER = "#d9e6f5";
+const LIGHT_TEXT_PRIMARY = "#1e293b";
+const LIGHT_TEXT_SECONDARY = "#475569";
+const LIGHT_TEXT_MUTED = "#64748b";
+const LIGHT_ACCENT_SOFT = "#f8fcff";
+
+// Dark mode colors - ChatGPT style
+const DARK_PRIMARY_COLOR = "#10A37F";
+const DARK_PRIMARY_DARK = "#0E8C6D";
+const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
+const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+
+const DARK_BG_MAIN = "#343541";
+const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
+const DARK_BG_CARD = "#444654";
+const DARK_BORDER_COLOR = "#4D4F5E";
+const DARK_BORDER_COLOR_HOVER = "#5E5F70";
+const DARK_TEXT_PRIMARY = "#ECECF1";
+const DARK_TEXT_SECONDARY = "#C5C5D2";
+const DARK_TEXT_MUTED = "#9B9CA9";
+const DARK_ACCENT_SOFT = "rgba(255, 255, 255, 0.05)";
+
 // Responsive container classes
 const responsiveClasses = {
   container: "w-full px-3 sm:px-4 md:px-6 lg:px-8",
@@ -1272,7 +1296,7 @@ const responsiveClasses = {
   button: "px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base",
   heading: "text-xl sm:text-2xl md:text-3xl font-bold",
   subheading: "text-base sm:text-lg md:text-xl font-semibold",
-  card: "bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 md:p-6",
+  card: "backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 md:p-6",
 };
 
 export default function CreateEvent() {
@@ -1280,6 +1304,34 @@ export default function CreateEvent() {
   const [searchParams] = useSearchParams();
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+
+  // ── Theme state ───────────────────────────────────────────────────────────
+  const [isDarkMode, setIsDarkMode] = useState(() =>
+    localStorage.getItem("createEventTheme") === "dark"
+  );
+
+  // Get current theme colors
+  const theme = {
+    primaryColor: isDarkMode ? DARK_PRIMARY_COLOR : LIGHT_PRIMARY_COLOR,
+    primaryDark: isDarkMode ? DARK_PRIMARY_DARK : LIGHT_PRIMARY_DARK,
+    primaryLight: isDarkMode ? DARK_PRIMARY_LIGHT : LIGHT_PRIMARY_LIGHT,
+    primaryGradient: isDarkMode ? DARK_PRIMARY_GRADIENT : LIGHT_PRIMARY_GRADIENT,
+    bgMain: isDarkMode ? DARK_BG_MAIN : LIGHT_BG_MAIN,
+    bgGradient: isDarkMode ? DARK_BG_GRADIENT : LIGHT_BG_GRADIENT,
+    bgCard: isDarkMode ? DARK_BG_CARD : LIGHT_BG_CARD,
+    borderColor: isDarkMode ? DARK_BORDER_COLOR : LIGHT_BORDER_COLOR,
+    borderColorHover: isDarkMode ? DARK_BORDER_COLOR_HOVER : LIGHT_BORDER_COLOR_HOVER,
+    textPrimary: isDarkMode ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY,
+    textSecondary: isDarkMode ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY,
+    textMuted: isDarkMode ? DARK_TEXT_MUTED : LIGHT_TEXT_MUTED,
+    accentSoft: isDarkMode ? DARK_ACCENT_SOFT : LIGHT_ACCENT_SOFT,
+    isDarkMode: isDarkMode,
+  };
+
+  // Save theme preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("createEventTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   const preSelectedClubId = searchParams.get("clubId");
   const preSelectedClubName = searchParams.get("clubName");
@@ -1381,8 +1433,8 @@ export default function CreateEvent() {
 
       circleRef.current = L.circle([defaultLat, defaultLng], {
         radius: formData.radiusInMeters,
-        color: "#4CA1AF",
-        fillColor: "#4CA1AF",
+        color: theme.primaryColor,
+        fillColor: theme.primaryColor,
         fillOpacity: 0.2,
         weight: 2,
       }).addTo(mapRef.current);
@@ -1760,50 +1812,79 @@ export default function CreateEvent() {
   const targetOptions = getTargetOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Animated Background - Optimized for mobile */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-64 sm:w-80 h-64 sm:h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div
-          className="absolute -bottom-40 -left-40 w-64 sm:w-80 h-64 sm:h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
-          style={{ backgroundColor: "#4CA1AF" }}
-        ></div>
-        <div className="absolute top-40 left-40 w-64 sm:w-80 h-64 sm:h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+    <div 
+      className="min-h-screen transition-colors duration-300"
+      style={{ background: theme.bgGradient }}
+    >
+      {/* Animated Background - only show in light mode */}
+      {!isDarkMode && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-64 sm:w-80 h-64 sm:h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-64 sm:w-80 h-64 sm:h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
+            style={{ backgroundColor: theme.primaryColor }}
+          ></div>
+          <div className="absolute top-40 left-40 w-64 sm:w-80 h-64 sm:h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+      )}
 
       {/* Responsive Header */}
-      <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      <div 
+        className="sticky top-0 z-10 backdrop-blur-sm border-b transition-colors duration-300"
+        style={{ 
+          background: isDarkMode ? 'rgba(32, 33, 35, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          borderColor: theme.borderColor
+        }}
+      >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Back to Dashboard button */}
             <button
               onClick={() => navigate("/dashboard")}
-              className="group flex items-center gap-1.5 sm:gap-2 border border-white/20 hover:border-white/40 font-medium rounded-full py-1.5 sm:py-2 px-3 sm:px-4 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-              style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)", color: "white" }}
+              className="group flex items-center gap-1.5 sm:gap-2 font-medium rounded-full py-1.5 sm:py-2 px-3 sm:px-4 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+              style={{ background: theme.primaryGradient, color: "white" }}
             >
               <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              {/* <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span> */}
             </button>
 
             {/* Create New Event title */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <CalendarPlus className="w-3.5 h-3.5 sm:w-5 sm:h-5" style={{ color: "#4CA1AF" }} />
-              <span className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 truncate max-w-[150px] sm:max-w-none">
+              <CalendarPlus className="w-3.5 h-3.5 sm:w-5 sm:h-5" style={{ color: theme.primaryColor }} />
+              <span className="text-xs sm:text-sm md:text-base font-semibold truncate max-w-[150px] sm:max-w-none" style={{ color: theme.textPrimary }}>
                 {isMobile ? "New Event" : "Create New Event"}
               </span>
             </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="p-1.5 sm:p-2 rounded-xl transition-colors cursor-pointer"
+              style={{ background: theme.accentSoft, color: theme.textSecondary }}
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <Sun size={isMobile ? 16 : 18} /> : <Moon size={isMobile ? 16 : 18} />}
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg sm:shadow-xl border border-white/20 overflow-hidden">
+        <div 
+          className="backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg sm:shadow-xl border overflow-hidden transition-colors duration-300"
+          style={{ 
+            background: theme.bgCard, 
+            borderColor: theme.borderColor 
+          }}
+        >
 
           {/* Responsive Form Header */}
           <div
-            className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-b border-gray-700/50"
-            style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+            className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-b"
+            style={{ 
+              background: theme.primaryGradient,
+              borderColor: theme.borderColor 
+            }}
           >
             <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">Event Details</h1>
             <p className="text-xs sm:text-sm text-white/90 mt-0.5 sm:mt-1">
@@ -1841,7 +1922,7 @@ export default function CreateEvent() {
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               {/* Title Field */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                   Event Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1850,9 +1931,24 @@ export default function CreateEvent() {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder={isMobile ? "e.g., Tech Symposium" : "e.g., Annual Tech Symposium"}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
-                    formErrors.title ? "border-red-300 bg-red-50" : "border-gray-300"
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text ${
+                    formErrors.title ? "border-red-300 bg-red-50" : ""
                   }`}
+                  style={{ 
+                    background: theme.accentSoft,
+                    borderColor: formErrors.title ? '#fca5a5' : theme.borderColor,
+                    color: theme.textPrimary
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = theme.primaryColor;
+                    e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                  }}
+                  onBlur={(e) => {
+                    if (!formErrors.title) {
+                      e.target.style.borderColor = theme.borderColor;
+                    }
+                    e.target.style.boxShadow = "";
+                  }}
                 />
                 {formErrors.title && (
                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.title}</p>
@@ -1861,7 +1957,7 @@ export default function CreateEvent() {
 
               {/* Speaker Name Field */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                   Speaker Name
                 </label>
                 <input
@@ -1870,14 +1966,27 @@ export default function CreateEvent() {
                   value={formData.speakerName}
                   onChange={handleInputChange}
                   placeholder={isMobile ? "e.g., Dr. Smith" : "e.g., Dr. John Smith"}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text"
+                  style={{ 
+                    background: theme.accentSoft,
+                    borderColor: theme.borderColor,
+                    color: theme.textPrimary
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = theme.primaryColor;
+                    e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = theme.borderColor;
+                    e.target.style.boxShadow = "";
+                  }}
                 />
               </div>
             </div>
 
             {/* Description Field - Full Width */}
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                 Description
               </label>
               <textarea
@@ -1886,7 +1995,20 @@ export default function CreateEvent() {
                 onChange={handleInputChange}
                 rows={isMobile ? "2" : "3"}
                 placeholder={isMobile ? "Brief description..." : "Provide a detailed description of your event..."}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors resize-none cursor-text bg-white/50 backdrop-blur-sm"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors resize-none cursor-text"
+                style={{ 
+                  background: theme.accentSoft,
+                  borderColor: theme.borderColor,
+                  color: theme.textPrimary
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = theme.primaryColor;
+                  e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = theme.borderColor;
+                  e.target.style.boxShadow = "";
+                }}
               />
             </div>
 
@@ -1900,6 +2022,7 @@ export default function CreateEvent() {
                   onChange={handleDateTimeChange("eventDate")}
                   minValue={getMinDateTime()}
                   placeholder="Select event date & time"
+                  theme={theme}
                 />
                 {formErrors.eventDate && (
                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.eventDate}</p>
@@ -1915,6 +2038,7 @@ export default function CreateEvent() {
                   minValue={getNowDateTime()}
                   maxValue={formData.eventDate || undefined}
                   placeholder="Select enrollment deadline"
+                  theme={theme}
                 />
                 {formErrors.enrollmentDeadline && (
                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.enrollmentDeadline}</p>
@@ -1925,13 +2049,13 @@ export default function CreateEvent() {
             {/* Venue & Max Enrollments */}
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                   Venue <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <MapPin
                     className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 z-10 pointer-events-none"
-                    style={{ color: "#4CA1AF" }}
+                    style={{ color: theme.primaryColor }}
                   />
                   <input
                     type="text"
@@ -1939,9 +2063,24 @@ export default function CreateEvent() {
                     value={formData.venue}
                     onChange={handleInputChange}
                     placeholder={isMobile ? "e.g., Main Hall" : "e.g., Main Auditorium"}
-                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
-                      formErrors.venue ? "border-red-300 bg-red-50" : "border-gray-300"
+                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text ${
+                      formErrors.venue ? "border-red-300 bg-red-50" : ""
                     }`}
+                    style={{ 
+                      background: theme.accentSoft,
+                      borderColor: formErrors.venue ? '#fca5a5' : theme.borderColor,
+                      color: theme.textPrimary
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = theme.primaryColor;
+                      e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                    }}
+                    onBlur={(e) => {
+                      if (!formErrors.venue) {
+                        e.target.style.borderColor = theme.borderColor;
+                      }
+                      e.target.style.boxShadow = "";
+                    }}
                   />
                 </div>
                 {formErrors.venue && (
@@ -1950,7 +2089,7 @@ export default function CreateEvent() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                   Maximum Enrollments
                 </label>
                 <input
@@ -1960,9 +2099,24 @@ export default function CreateEvent() {
                   onChange={handleInputChange}
                   placeholder="Unlimited"
                   min="1"
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
-                    formErrors.maxEnrollments ? "border-red-300 bg-red-50" : "border-gray-300"
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text ${
+                    formErrors.maxEnrollments ? "border-red-300 bg-red-50" : ""
                   }`}
+                  style={{ 
+                    background: theme.accentSoft,
+                    borderColor: formErrors.maxEnrollments ? '#fca5a5' : theme.borderColor,
+                    color: theme.textPrimary
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = theme.primaryColor;
+                    e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                  }}
+                  onBlur={(e) => {
+                    if (!formErrors.maxEnrollments) {
+                      e.target.style.borderColor = theme.borderColor;
+                    }
+                    e.target.style.boxShadow = "";
+                  }}
                 />
                 {formErrors.maxEnrollments && (
                   <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.maxEnrollments}</p>
@@ -1972,13 +2126,13 @@ export default function CreateEvent() {
 
             {/* Contact Email */}
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                 Contact Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail
                   className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 z-10 pointer-events-none"
-                  style={{ color: "#4CA1AF" }}
+                  style={{ color: theme.primaryColor }}
                 />
                 <input
                   type="email"
@@ -1986,9 +2140,24 @@ export default function CreateEvent() {
                   value={formData.contactEmail}
                   onChange={handleInputChange}
                   placeholder={isMobile ? "e.g., organizer@college.edu" : "e.g., organizer@college.edu"}
-                  className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text bg-white/50 backdrop-blur-sm ${
-                    formErrors.contactEmail ? "border-red-300 bg-red-50" : "border-gray-300"
+                  className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:border-transparent transition-colors cursor-text ${
+                    formErrors.contactEmail ? "border-red-300 bg-red-50" : ""
                   }`}
+                  style={{ 
+                    background: theme.accentSoft,
+                    borderColor: formErrors.contactEmail ? '#fca5a5' : theme.borderColor,
+                    color: theme.textPrimary
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = theme.primaryColor;
+                    e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                  }}
+                  onBlur={(e) => {
+                    if (!formErrors.contactEmail) {
+                      e.target.style.borderColor = theme.borderColor;
+                    }
+                    e.target.style.boxShadow = "";
+                  }}
                 />
               </div>
               {formErrors.contactEmail && (
@@ -1998,7 +2167,7 @@ export default function CreateEvent() {
 
             {/* Organizer */}
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>
                 Organizer <span className="text-red-500">*</span>
               </label>
               <CustomSelect
@@ -2018,6 +2187,7 @@ export default function CreateEvent() {
                     label: `Club: ${club.clubName || club.name}`,
                   })),
                 ]}
+                theme={theme}
               />
               {formErrors.organizer && (
                 <p className="mt-0.5 sm:mt-1 text-xs text-red-600">{formErrors.organizer}</p>
@@ -2026,7 +2196,7 @@ export default function CreateEvent() {
 
             {/* Target Audience - Responsive buttons */}
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+              <label className="block text-xs sm:text-sm font-medium mb-2 sm:mb-3" style={{ color: theme.textSecondary }}>
                 Target Audience <span className="text-red-500">*</span>
               </label>
               <div className="flex flex-col xs:flex-row flex-wrap gap-2 sm:gap-3">
@@ -2039,17 +2209,21 @@ export default function CreateEvent() {
                     key={value}
                     type="button"
                     onClick={() => handleTargetTypeChange(value)}
-                    className={`px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg border transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer bg-white/50 backdrop-blur-sm text-xs sm:text-sm ${
+                    className={`px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg border transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer text-xs sm:text-sm ${
                       formData.target === value
-                        ? "border-[#4CA1AF] text-[#4CA1AF]"
-                        : "border-gray-300 hover:border-[#4CA1AF] hover:bg-[#4CA1AF]/5"
+                        ? "border-[#4CA1AF]"
+                        : "hover:border-[#4CA1AF]"
                     }`}
-                    style={formData.target === value ? { backgroundColor: "rgba(76, 161, 175, 0.1)" } : {}}
+                    style={{ 
+                      borderColor: formData.target === value ? theme.primaryColor : theme.borderColor,
+                      backgroundColor: formData.target === value ? theme.primaryLight : theme.accentSoft,
+                      color: formData.target === value ? theme.primaryColor : theme.textSecondary
+                    }}
                   >
                     {icon}
                     <span className="font-medium">{label}</span>
                     {formData.target === value && (
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5 sm:ml-1" style={{ color: "#4CA1AF" }} />
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5 sm:ml-1" style={{ color: theme.primaryColor }} />
                     )}
                   </button>
                 ))}
@@ -2059,7 +2233,7 @@ export default function CreateEvent() {
             {/* Target Selection */}
             {formData.target !== "GLOBAL" && (
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2" style={{ color: theme.textSecondary }}>
                   Select {formData.target === "CLUB" ? "Clubs" : "Departments"}{" "}
                   <span className="text-red-500">*</span>
                 </label>
@@ -2070,14 +2244,14 @@ export default function CreateEvent() {
                       <span
                         key={target.id}
                         className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm"
-                        style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", color: "#4CA1AF" }}
+                        style={{ backgroundColor: theme.primaryLight, color: theme.primaryColor }}
                       >
                         <span className="max-w-[100px] sm:max-w-[150px] truncate">{target.name}</span>
                         <button
                           type="button"
                           onClick={() => removeTarget(target.id)}
                           className="hover:opacity-80 cursor-pointer flex-shrink-0"
-                          style={{ color: "#4CA1AF" }}
+                          style={{ color: theme.primaryColor }}
                         >
                           <X size={isMobile ? 12 : 14} />
                         </button>
@@ -2087,12 +2261,15 @@ export default function CreateEvent() {
                 )}
 
                 {loadingOptions ? (
-                  <div className="flex items-center justify-center py-4 sm:py-6 md:py-8 text-gray-500 bg-white/50 backdrop-blur-sm rounded-lg">
-                    <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" style={{ color: "#4CA1AF" }} />
-                    <span className="text-xs sm:text-sm">Loading...</span>
+                  <div className="flex items-center justify-center py-4 sm:py-6 md:py-8 rounded-lg" style={{ background: theme.accentSoft }}>
+                    <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" style={{ color: theme.primaryColor }} />
+                    <span className="text-xs sm:text-sm" style={{ color: theme.textSecondary }}>Loading...</span>
                   </div>
                 ) : (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-white/50 backdrop-blur-sm">
+                  <div 
+                    className="border rounded-lg overflow-hidden"
+                    style={{ borderColor: theme.borderColor, background: theme.accentSoft }}
+                  >
                     <div className="max-h-48 sm:max-h-60 overflow-y-auto">
                       {targetOptions.length > 0 ? (
                         targetOptions.map((item) => {
@@ -2101,16 +2278,19 @@ export default function CreateEvent() {
                             <div
                               key={item.id}
                               onClick={() => toggleTargetSelection(item)}
-                              className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 last:border-0 cursor-pointer transition-colors"
-                              style={isSelected ? { backgroundColor: "rgba(76, 161, 175, 0.1)" } : {}}
+                              className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b last:border-0 cursor-pointer transition-colors"
+                              style={{ 
+                                borderColor: theme.borderColor,
+                                backgroundColor: isSelected ? theme.primaryLight : 'transparent'
+                              }}
                             >
-                              <span className="text-xs sm:text-sm font-medium text-gray-700 truncate pr-2">{item.name}</span>
-                              {isSelected && <Check className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: "#4CA1AF" }} />}
+                              <span className="text-xs sm:text-sm font-medium truncate pr-2" style={{ color: theme.textPrimary }}>{item.name}</span>
+                              {isSelected && <Check className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: theme.primaryColor }} />}
                             </div>
                           );
                         })
                       ) : (
-                        <div className="px-3 sm:px-4 py-4 sm:py-6 md:py-8 text-center text-gray-400 text-xs sm:text-sm">
+                        <div className="px-3 sm:px-4 py-4 sm:py-6 md:py-8 text-center text-xs sm:text-sm" style={{ color: theme.textMuted }}>
                           No {formData.target === "CLUB" ? "clubs" : "departments"} available
                         </div>
                       )}
@@ -2125,14 +2305,17 @@ export default function CreateEvent() {
             )}
 
             {/* Notification Type - Responsive */}
-            <div className="border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 bg-white/60 backdrop-blur-sm">
+            <div 
+              className="border rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 transition-colors duration-300"
+              style={{ borderColor: theme.borderColor, background: theme.accentSoft }}
+            >
               <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#4CA1AF" }} />
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: theme.primaryColor }} />
+                <label className="block text-xs sm:text-sm font-medium" style={{ color: theme.textSecondary }}>
                   Notification Type
                 </label>
               </div>
-              <p className="text-xs text-gray-400 mb-2 sm:mb-3">
+              <p className="text-xs mb-2 sm:mb-3" style={{ color: theme.textMuted }}>
                 {isMobile 
                   ? "Leave as Auto to detect from target audience"
                   : "Leave as Auto to detect from the target audience above, or manually override the notification type"}
@@ -2141,7 +2324,7 @@ export default function CreateEvent() {
               {!formData.notificationType && (
                 <div
                   className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full mb-2 sm:mb-3"
-                  style={{ backgroundColor: "rgba(76,161,175,0.1)", color: "#4CA1AF" }}
+                  style={{ backgroundColor: theme.primaryLight, color: theme.primaryColor }}
                 >
                   <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   Auto →{" "}
@@ -2167,11 +2350,12 @@ export default function CreateEvent() {
                   { value: "REMINDER",            label: "Reminder" },
                   { value: "EVENT_SPECIFIC",      label: "Event Specific" },
                 ]}
+                theme={theme}
               />
             </div>
 
             {/* Attendance Tracking Toggle */}
-            <div className="border-t border-gray-200 pt-4 sm:pt-5 md:pt-6">
+            <div className="border-t pt-4 sm:pt-5 md:pt-6" style={{ borderColor: theme.borderColor }}>
               <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
                 <div className="relative flex-shrink-0">
                   <input
@@ -2189,23 +2373,27 @@ export default function CreateEvent() {
                     }}
                     className="sr-only"
                   />
-                  <div className={`w-8 sm:w-10 h-4 sm:h-6 rounded-full transition-colors ${enableAttendance ? "bg-[#4CA1AF]" : "bg-gray-300"}`}>
+                  <div className={`w-8 sm:w-10 h-4 sm:h-6 rounded-full transition-colors ${enableAttendance ? "" : "bg-gray-300"}`}
+                    style={{ backgroundColor: enableAttendance ? theme.primaryColor : (isDarkMode ? '#4B5563' : '#D1D5DB') }}>
                     <div className={`w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-white transform transition-transform absolute top-0.5 sm:top-1 ${enableAttendance ? "translate-x-4 sm:translate-x-5" : "translate-x-1 sm:translate-x-1"}`} />
                   </div>
                 </div>
-                <span className="text-xs sm:text-sm font-medium text-gray-700">
+                <span className="text-xs sm:text-sm font-medium" style={{ color: theme.textSecondary }}>
                   Enable Attendance Tracking with Geofencing
                 </span>
               </label>
-              <p className="mt-0.5 sm:mt-1 text-xs text-gray-500 ml-8 sm:ml-13">
+              <p className="mt-0.5 sm:mt-1 text-xs ml-8 sm:ml-13" style={{ color: theme.textMuted }}>
                 Set up location-based attendance using map selection
               </p>
             </div>
 
             {/* Map and Attendance Fields */}
             {enableAttendance && (
-              <div className="space-y-4 sm:space-y-5 md:space-y-6 p-3 sm:p-4 md:p-5 lg:p-6 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200">
-                <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+              <div 
+                className="space-y-4 sm:space-y-5 md:space-y-6 p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border transition-colors duration-300"
+                style={{ background: theme.accentSoft, borderColor: theme.borderColor }}
+              >
+                <h3 className="text-xs sm:text-sm font-semibold" style={{ color: theme.textPrimary }}>
                   📍 Select Event Location on Map
                 </h3>
 
@@ -2218,7 +2406,20 @@ export default function CreateEvent() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyPress={(e) => e.key === "Enter" && searchLocation()}
                       placeholder={isMobile ? "Search location..." : "Search for a location (e.g. Bharati Vidyapeeth, Pune)..."}
-                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent cursor-text"
+                      style={{ 
+                        background: theme.accentSoft,
+                        borderColor: theme.borderColor,
+                        color: theme.textPrimary
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = theme.primaryColor;
+                        e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = theme.borderColor;
+                        e.target.style.boxShadow = "";
+                      }}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -2227,7 +2428,7 @@ export default function CreateEvent() {
                       onClick={searchLocation}
                       disabled={searchingLocation}
                       className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-1 sm:gap-2 cursor-pointer disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                      style={{ background: theme.primaryGradient }}
                     >
                       {searchingLocation ? <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" /> : <MapIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
                       <span className="hidden xs:inline">Search</span>
@@ -2236,7 +2437,7 @@ export default function CreateEvent() {
                       type="button"
                       onClick={getCurrentLocation}
                       className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-1 sm:gap-2 cursor-pointer"
-                      style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                      style={{ background: theme.primaryGradient }}
                     >
                       <Crosshair className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden xs:inline">My Location</span>
@@ -2247,24 +2448,45 @@ export default function CreateEvent() {
                 {/* Map Container - Responsive height */}
                 <div
                   ref={mapContainerRef}
-                  className="w-full rounded-lg border-2 border-gray-300 z-0"
-                  style={{ height: isMobile ? "250px" : "400px" }}
+                  className="w-full rounded-lg border-2 z-0"
+                  style={{ 
+                    height: isMobile ? "250px" : "400px",
+                    borderColor: theme.borderColor 
+                  }}
                 />
 
                 {/* Coordinates Display - Responsive grid */}
                 <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Latitude</label>
-                    <input type="text" value={formData.latitude} readOnly
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg text-xs sm:text-sm font-mono cursor-default" />
+                    <label className="block text-xs font-medium mb-0.5 sm:mb-1" style={{ color: theme.textSecondary }}>Latitude</label>
+                    <input 
+                      type="text" 
+                      value={formData.latitude} 
+                      readOnly
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm font-mono cursor-default"
+                      style={{ 
+                        background: theme.accentSoft,
+                        borderColor: theme.borderColor,
+                        color: theme.textPrimary
+                      }} 
+                    />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Longitude</label>
-                    <input type="text" value={formData.longitude} readOnly
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg text-xs sm:text-sm font-mono cursor-default" />
+                    <label className="block text-xs font-medium mb-0.5 sm:mb-1" style={{ color: theme.textSecondary }}>Longitude</label>
+                    <input 
+                      type="text" 
+                      value={formData.longitude} 
+                      readOnly
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm font-mono cursor-default"
+                      style={{ 
+                        background: theme.accentSoft,
+                        borderColor: theme.borderColor,
+                        color: theme.textPrimary
+                      }} 
+                    />
                   </div>
                   <div className="xs:col-span-2 sm:col-span-1">
-                    <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">Radius (meters)</label>
+                    <label className="block text-xs font-medium mb-0.5 sm:mb-1" style={{ color: theme.textSecondary }}>Radius (meters)</label>
                     <input
                       type="number"
                       name="radiusInMeters"
@@ -2272,7 +2494,20 @@ export default function CreateEvent() {
                       onChange={handleInputChange}
                       min="10"
                       max="1000"
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text"
+                      style={{ 
+                        background: theme.accentSoft,
+                        borderColor: theme.borderColor,
+                        color: theme.textPrimary
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = theme.primaryColor;
+                        e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = theme.borderColor;
+                        e.target.style.boxShadow = "";
+                      }}
                     />
                   </div>
                 </div>
@@ -2287,6 +2522,7 @@ export default function CreateEvent() {
                       onChange={handleDateTimeChange("attendanceWindowStart")}
                       minValue={formData.eventDate || undefined}
                       placeholder="Select start time"
+                      theme={theme}
                     />
                   </div>
                   <div>
@@ -2296,6 +2532,7 @@ export default function CreateEvent() {
                       onChange={handleDateTimeChange("attendanceWindowEnd")}
                       minValue={formData.attendanceWindowStart || formData.eventDate || undefined}
                       placeholder="Select end time"
+                      theme={theme}
                     />
                   </div>
                 </div>
@@ -2305,7 +2542,7 @@ export default function CreateEvent() {
 
                 {/* QR Settings */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-0.5 sm:mb-1">
+                  <label className="block text-xs font-medium mb-0.5 sm:mb-1" style={{ color: theme.textSecondary }}>
                     QR Refresh Interval (seconds)
                   </label>
                   <input
@@ -2315,17 +2552,30 @@ export default function CreateEvent() {
                     onChange={handleInputChange}
                     min="30"
                     max="300"
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text bg-white/50 backdrop-blur-sm"
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:border-transparent cursor-text"
+                    style={{ 
+                      background: theme.accentSoft,
+                      borderColor: theme.borderColor,
+                      color: theme.textPrimary
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = theme.primaryColor;
+                      e.target.style.boxShadow = `0 0 0 2px ${theme.primaryColor}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = theme.borderColor;
+                      e.target.style.boxShadow = "";
+                    }}
                   />
-                  <p className="mt-0.5 sm:mt-1 text-xs text-gray-500">Default: 120 seconds (2 minutes)</p>
+                  <p className="mt-0.5 sm:mt-1 text-xs" style={{ color: theme.textMuted }}>Default: 120 seconds (2 minutes)</p>
                 </div>
 
                 {/* Map Instructions */}
                 <div
                   className="rounded-lg p-2 sm:p-3"
-                  style={{ backgroundColor: "rgba(76, 161, 175, 0.1)", borderColor: "#4CA1AF", borderWidth: "1px" }}
+                  style={{ backgroundColor: theme.primaryLight, borderColor: theme.primaryColor, borderWidth: "1px" }}
                 >
-                  <p className="text-xs flex items-center gap-1.5 sm:gap-2" style={{ color: "#4CA1AF" }}>
+                  <p className="text-xs flex items-center gap-1.5 sm:gap-2" style={{ color: theme.primaryColor }}>
                     <Layers className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span className="text-xs">
                       {isMobile 
@@ -2339,11 +2589,16 @@ export default function CreateEvent() {
             )}
 
             {/* Form Actions - Responsive */}
-            <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 md:gap-4 pt-4 sm:pt-5 md:pt-6 border-t border-gray-200">
+            <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 md:gap-4 pt-4 sm:pt-5 md:pt-6 border-t" style={{ borderColor: theme.borderColor }}>
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="w-full xs:flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer bg-white/50 backdrop-blur-sm text-xs sm:text-sm"
+                className="w-full xs:flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border rounded-lg font-medium hover:bg-opacity-80 transition-colors cursor-pointer text-xs sm:text-sm"
+                style={{ 
+                  borderColor: theme.borderColor,
+                  color: theme.textSecondary,
+                  background: theme.accentSoft
+                }}
               >
                 Cancel
               </button>
@@ -2351,7 +2606,7 @@ export default function CreateEvent() {
                 type="submit"
                 disabled={loading}
                 className="w-full xs:flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-white rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer text-xs sm:text-sm"
-                style={{ background: "linear-gradient(135deg, #4CA1AF, #315169)" }}
+                style={{ background: theme.primaryGradient }}
               >
                 {loading ? (
                   <>
@@ -2367,7 +2622,7 @@ export default function CreateEvent() {
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-center" style={{ color: theme.textMuted }}>
               Fields marked with <span className="text-red-500">*</span> are required
             </p>
           </form>
@@ -2375,7 +2630,7 @@ export default function CreateEvent() {
 
         {/* Footer - Responsive */}
         <div className="mt-4 sm:mt-6 md:mt-8 text-center">
-          <div className="inline-flex items-center space-x-1.5 sm:space-x-2 text-gray-500 text-xs sm:text-sm">
+          <div className="inline-flex items-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm" style={{ color: theme.textMuted }}>
             <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>{isMobile ? "Create amazing events!" : "Create an amazing event for your community!"}</span>
             <Gift className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -2384,7 +2639,7 @@ export default function CreateEvent() {
       </div>
 
       {/* Responsive Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0%   { transform: translate(0px, 0px) scale(1); }
           33%  { transform: translate(30px, -50px) scale(1.1); }
