@@ -1204,6 +1204,7 @@
 //   );
 // }
 
+
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -2012,7 +2013,7 @@ export default function CreateEvent() {
               />
             </div>
 
-            {/* Event Date & Enrollment Deadline */}
+            {/* Event Date & Enrollment Deadline - FIXED: DateTimePicker now receives theme */}
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div>
                 <DateTimePicker
