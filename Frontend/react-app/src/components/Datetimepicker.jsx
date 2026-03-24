@@ -918,6 +918,8 @@ const ScrollWheel = ({ items, selected, onSelect, format, theme }) => {
         style={{
           height:           ITEM_H * VISIBLE,
           overflowY:        "scroll",
+          scrollbarWidth:   "none",
+          msOverflowStyle:  "none",
           boxSizing:        "border-box",
           paddingTop:       OFFSET,
           paddingBottom:    OFFSET,
@@ -949,7 +951,10 @@ const ScrollWheel = ({ items, selected, onSelect, format, theme }) => {
         ))}
       </div>
 
-      <style>{`.dtp-wheel::-webkit-scrollbar { display: none; }`}</style>
+      <style>{`
+        .dtp-wheel { scrollbar-width: none; -ms-overflow-style: none; }
+        .dtp-wheel::-webkit-scrollbar { width: 0; height: 0; display: none; }
+      `}</style>
     </div>
   );
 };
