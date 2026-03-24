@@ -1,5 +1,5 @@
 import React from "react";
-import TeacherEvents from "../Dashboards/Teachers/Teacherevents";
+import TeacherEvents from "../Dashboards/Teachers/TeacherEvents";
 import StudentEvents from "../Dashboards/Users/Studentevents";
 
 /**

@@ -955,6 +955,7 @@ export default function Login() {
 
       <ConfirmDialog
         isOpen={dialog.isOpen}
+        isDarkMode={false}
         title={dialog.title}
         message={dialog.message}
         variant={dialog.variant}

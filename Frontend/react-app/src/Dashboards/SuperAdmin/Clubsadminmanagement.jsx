@@ -767,6 +767,7 @@ import {
   Sun,
 } from "lucide-react";
 import CustomSelect from "../../components/CustomSelect"; // ← adjust path as needed
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 
 // ─── THEME CONFIGURATION ─────────────────────────────────────────────────────
 const LIGHT_PRIMARY_COLOR = "#4CA1AF";
@@ -784,11 +785,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1276,30 +1277,43 @@ const ClubAdminsManagement = () => {
   // ----------------------------------------------------------------
   if (loading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center transition-colors duration-300"
-        style={{ background: theme.bgGradient }}
-      >
-        <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-        <div className="text-center p-8 rounded-xl shadow-lg" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
-          <div
-            className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
-            style={{ borderColor: theme.primaryColor }}
-          />
-          <p className="mt-6 font-medium" style={{ color: theme.textSecondary }}>
-            Loading club admins...
-          </p>
+      <>
+        <ThemedScrollbarStyles
+          isDarkMode={isDarkMode}
+          className="theme-scrollbar"
+          includePageScrollbar
+        />
+        <div 
+          className="min-h-screen flex items-center justify-center transition-colors duration-300"
+          style={{ background: theme.bgGradient }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+          <div className="text-center p-8 rounded-xl shadow-lg" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
+            <div
+              className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait"
+              style={{ borderColor: theme.primaryColor }}
+            />
+            <p className="mt-6 font-medium" style={{ color: theme.textSecondary }}>
+              Loading club admins...
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen font-sans relative transition-colors duration-300"
-      style={{ background: theme.bgGradient }}
-    >
-      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+    <>
+      <ThemedScrollbarStyles
+        isDarkMode={isDarkMode}
+        className="theme-scrollbar"
+        includePageScrollbar
+      />
+      <div 
+        className="min-h-screen font-sans relative transition-colors duration-300"
+        style={{ background: theme.bgGradient }}
+      >
+        <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* Animated Background Blobs - only show in light mode */}
       {!isDarkMode && (
@@ -1572,7 +1586,14 @@ const ClubAdminsManagement = () => {
                       </div>
 
                       {/* Back */}
-                      <div className="card-face card-back text-white p-6 flex flex-col justify-between">
+                      <div
+                        className="card-face card-back text-white p-6 flex flex-col justify-between"
+                        style={{
+                          background: isDarkMode
+                            ? "linear-gradient(135deg, #701A75, #3B0764)"
+                            : "linear-gradient(135deg, #4CA1AF, #315169)",
+                        }}
+                      >
                         <div>
                           <div className="flex items-center gap-3 mb-4">
                             <User className="w-6 h-6" />
@@ -1615,7 +1636,8 @@ const ClubAdminsManagement = () => {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

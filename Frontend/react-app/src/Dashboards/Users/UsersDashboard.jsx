@@ -4720,6 +4720,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -4743,11 +4744,11 @@ export default function UsersDashboard() {
   const LIGHT_TEXT_MUTED = "#64748b";
   const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-  // Dark mode colors - ChatGPT style (matching SuperAdmin)
-  const DARK_PRIMARY_COLOR = "#10A37F"; // ChatGPT green accent
-  const DARK_PRIMARY_DARK = "#0E8C6D";
-  const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+  // Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
   
   const DARK_BG_MAIN = "#343541"; // ChatGPT main bg
   const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -5253,6 +5254,8 @@ export default function UsersDashboard() {
 
   return (
     <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" />
+
       <div 
         className="min-h-screen flex relative transition-colors duration-300"
         style={{ background: theme.bgGradient }}
@@ -5335,7 +5338,7 @@ export default function UsersDashboard() {
             flex flex-col p-8
             transition-transform duration-300 ease-in-out z-50
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-            overflow-y-auto
+            overflow-y-auto theme-scrollbar
           `}
           style={{ 
             background: theme.bgSidebar,
@@ -5406,7 +5409,7 @@ export default function UsersDashboard() {
           </div>
 
           {/* Info Boxes - Matching SuperAdmin style */}
-          <nav className="space-y-2 flex-1 overflow-y-auto">
+          <nav className="space-y-2 flex-1 overflow-y-auto theme-scrollbar">
             <div 
               className="p-6 rounded-2xl space-y-4 transition-all duration-300 hover:shadow-md"
               style={{ 
@@ -5556,7 +5559,7 @@ export default function UsersDashboard() {
         </aside>
 
         {/* MAIN CONTENT AREA */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-h-screen mt-16 lg:mt-0">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-h-screen mt-16 lg:mt-0 theme-scrollbar">
           {/* ── PROFILE INCOMPLETE / DELETION WARNING BANNER ── */}
           {profileDeletionDaysRemaining !== null && (
             <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm">
@@ -6268,6 +6271,7 @@ export default function UsersDashboard() {
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
+        isDarkMode={isDarkMode}
         title={confirmDialog.title}
         message={confirmDialog.message}
         confirmText={confirmDialog.confirmText}

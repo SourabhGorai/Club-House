@@ -11,12 +11,13 @@ const PaginationControls = ({
   onPageChange,
   onPageSizeChange,
   loading,
+  showPageSizeSelector = true,
 }) => {
   const pageSizeOptions = [
     { value: "8",  label: "8 / page"  },
+    { value: "9",  label: "9 / page"  },
     { value: "12", label: "12 / page" },
-    { value: "20", label: "20 / page" },
-    { value: "40", label: "40 / page" },
+    { value: "15", label: "15 / page" },
   ];
 
   const getPageNumbers = () => {
@@ -104,15 +105,17 @@ const PaginationControls = ({
       </div>
 
       {/* Right: page size */}
-      <div className="w-36">
-        <CustomSelect
-          name="pageSize"
-          value={String(pageSize)}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          options={pageSizeOptions}
-          placeholder="Per page"
-        />
-      </div>
+      {showPageSizeSelector && (
+        <div className="w-36">
+          <CustomSelect
+            name="pageSize"
+            value={String(pageSize)}
+            onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
+            options={pageSizeOptions}
+            placeholder="Per page"
+          />
+        </div>
+      )}
     </div>
   );
 };

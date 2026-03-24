@@ -785,6 +785,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import { Moon, Sun } from "lucide-react";
 
 // ─── THEME CONFIGURATION ─────────────────────────────────────────────────────
@@ -803,11 +804,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -847,7 +848,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName, profileImag
         </div>
 
         {/* SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto px-8">
+        <div className="flex-1 overflow-y-auto px-8 theme-scrollbar">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: theme.primaryColor }}></div>
@@ -1501,15 +1502,18 @@ export default function ManageClubs() {
   });
 
   if (loading) return (
-    <div 
-      className="min-h-screen flex items-center justify-center transition-colors duration-300"
-      style={{ background: theme.bgGradient }}
-    >
-      <div className="text-center p-8 rounded-2xl" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait" style={{ borderColor: theme.primaryColor }}></div>
-        <p className="font-semibold" style={{ color: theme.textSecondary }}>Loading Dashboard...</p>
+    <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+      <div 
+        className="min-h-screen flex items-center justify-center transition-colors duration-300"
+        style={{ background: theme.bgGradient }}
+      >
+        <div className="text-center p-8 rounded-2xl" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait" style={{ borderColor: theme.primaryColor }}></div>
+          <p className="font-semibold" style={{ color: theme.textSecondary }}>Loading Dashboard...</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 
   return (
@@ -1517,6 +1521,7 @@ export default function ManageClubs() {
       className="min-h-screen relative transition-colors duration-300"
       style={{ background: theme.bgGradient }}
     >
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* Animated Background Blobs - only show in light mode */}
@@ -1731,7 +1736,7 @@ export default function ManageClubs() {
             {/* LEFT PANEL */}
             <div className="hidden lg:flex lg:w-1/3 border-r flex-col p-6" style={{ borderColor: theme.borderColor, background: theme.accentSoft }}>
               <h2 className="font-display text-2xl font-bold mb-2 px-2" style={{ color: theme.primaryColor }}>Your Clubs</h2>
-              <div className="overflow-y-auto max-h-[600px] space-y-2 pr-2">
+              <div className="overflow-y-auto max-h-[600px] space-y-2 pr-2 theme-scrollbar">
                 {clubs.map((club) => (
                   <div 
                     key={club.clubId} 

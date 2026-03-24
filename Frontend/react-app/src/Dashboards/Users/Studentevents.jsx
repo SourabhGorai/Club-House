@@ -1560,6 +1560,7 @@ import CustomSelect from "../../components/CustomSelect";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import MarkAttendancePopup from "../../components/MarkAttendancePopup";
 import PaginationControls from "../../components/Paginationcontrols";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import {
   getTargetTypeIcon,
   getTargetTypeColor,
@@ -1614,11 +1615,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+  // Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1720,6 +1721,7 @@ const StudentEvents = () => {
     primaryDark: isDarkMode ? DARK_PRIMARY_DARK : LIGHT_PRIMARY_DARK,
     primaryLight: isDarkMode ? DARK_PRIMARY_LIGHT : LIGHT_PRIMARY_LIGHT,
     primaryGradient: isDarkMode ? DARK_PRIMARY_GRADIENT : LIGHT_PRIMARY_GRADIENT,
+    cardHeaderGradient: isDarkMode ? "linear-gradient(135deg, #A21CAF 0%, #701A75 100%)" : LIGHT_PRIMARY_GRADIENT,
     bgMain: isDarkMode ? DARK_BG_MAIN : LIGHT_BG_MAIN,
     bgGradient: isDarkMode ? DARK_BG_GRADIENT : LIGHT_BG_GRADIENT,
     bgCard: isDarkMode ? DARK_BG_CARD : LIGHT_BG_CARD,
@@ -1939,6 +1941,35 @@ const StudentEvents = () => {
     setCurrentPage(data.pageNumber ?? 0);
   };
 
+  // For endpoints where visibility is enforced client-side, compute totals
+  // from only events the current student can actually see.
+  const getVisibleTotalForPagedEndpoint = async (url, headers, currentPrn, pageSizeForCount = 200) => {
+    let page = 0;
+    let totalPagesFromApi = 1;
+    let visibleTotal = 0;
+
+    while (page < totalPagesFromApi) {
+      const response = await axios.get(url, {
+        headers,
+        params: { page, size: pageSizeForCount },
+      });
+
+      if (!response.data?.success) break;
+
+      const data = response.data.data;
+      const content = data?.content || [];
+
+      visibleTotal += content.filter((event) =>
+        isEventVisibleToUser(event, deptId, userClubs, currentPrn, false),
+      ).length;
+
+      totalPagesFromApi = data?.totalPages ?? 1;
+      page += 1;
+    }
+
+    return visibleTotal;
+  };
+
   // ── Core paginated fetcher ─────────────────────────────────────
   const fetchEventsPaged = async (token, filter = "GLOBAL", targetId = null, page = 0, size = pageSize) => {
     try {
@@ -1987,8 +2018,9 @@ const StudentEvents = () => {
       const user       = JSON.parse(localStorage.getItem("user"));
       const currentPrn = user?.prn || userPrn;
       const headers    = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      const endpoint   = `${BASE_URL}/api/events/endEvent/${completed}/paged`;
       const response   = await axios.get(
-        `${BASE_URL}/api/events/endEvent/${completed}/paged`,
+        endpoint,
         { headers, params: { page, size } },
       );
       if (response.data.success) {
@@ -2000,7 +2032,11 @@ const StudentEvents = () => {
         );
         setEvents(fetched);
         setAllEvents(fetched);
-        applyPageResponse(pageData);
+
+        const visibleTotal = await getVisibleTotalForPagedEndpoint(endpoint, headers, currentPrn);
+        setTotalElements(visibleTotal);
+        setTotalPages(Math.ceil(visibleTotal / size));
+        setCurrentPage(pageData.pageNumber ?? 0);
       }
     } catch (err) {
       console.error("Error fetching events by completed status:", err);
@@ -2017,8 +2053,9 @@ const StudentEvents = () => {
       const user       = JSON.parse(localStorage.getItem("user"));
       const currentPrn = user?.prn || userPrn;
       const headers    = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      const endpoint   = `${BASE_URL}/api/events/enrollment/${status}/paged`;
       const response   = await axios.get(
-        `${BASE_URL}/api/events/enrollment/${status}/paged`,
+        endpoint,
         { headers, params: { page, size } },
       );
       if (response.data.success) {
@@ -2030,7 +2067,11 @@ const StudentEvents = () => {
         );
         setEvents(fetched);
         setAllEvents(fetched);
-        applyPageResponse(pageData);
+
+        const visibleTotal = await getVisibleTotalForPagedEndpoint(endpoint, headers, currentPrn);
+        setTotalElements(visibleTotal);
+        setTotalPages(Math.ceil(visibleTotal / size));
+        setCurrentPage(pageData.pageNumber ?? 0);
       }
     } catch (err) {
       console.error("Error fetching events by deadline:", err);
@@ -2505,6 +2546,11 @@ const StudentEvents = () => {
   // ── Render ─────────────────────────────────────────────────────
   return (
     <>
+      <ThemedScrollbarStyles
+        isDarkMode={isDarkMode}
+        className="theme-scrollbar"
+        includePageScrollbar
+      />
       <div 
         className="min-h-screen relative transition-colors duration-300"
         style={{ background: theme.bgGradient }}
@@ -2853,7 +2899,7 @@ const StudentEvents = () => {
           ) : (
             <>
               <div className="flex justify-center">
-                <div className={`grid gap-4 w-full ${filteredEvents.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : filteredEvents.length === 2 ? "grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"}`}>
+                <div className={`grid gap-4 w-full ${filteredEvents.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : filteredEvents.length === 2 ? "grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"}`}>
                   {filteredEvents.map((event, index) => {
                     const daysUntil       = getDaysUntil(event.dateTime);
                     const targetTypeColor = getTargetTypeColor(event.targetType);
@@ -2878,7 +2924,7 @@ const StudentEvents = () => {
                               borderColor: theme.borderColor 
                             }}
                           >
-                            <div className="relative h-32 p-3 overflow-hidden" style={{ background: theme.primaryGradient }}>
+                            <div className="relative h-32 p-3 overflow-hidden" style={{ background: isDarkMode ? theme.cardHeaderGradient : theme.primaryGradient }}>
                               <div className="absolute inset-0 opacity-10">
                                 <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full"></div>
                                 <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full"></div>
@@ -2975,7 +3021,7 @@ const StudentEvents = () => {
                           </div>
 
                           {/* ── BACK ── */}
-                          <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3" style={{ background: theme.primaryGradient }}>
+                          <div className="card-face card-back rounded-xl shadow-md overflow-hidden p-3" style={{ background: isDarkMode ? theme.cardHeaderGradient : theme.primaryGradient }}>
                             <div className="h-full flex flex-col">
                               <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-sm font-bold text-white line-clamp-1 flex-1">{event.title}</h3>
@@ -2991,7 +3037,7 @@ const StudentEvents = () => {
                                 )}
                               </div>
 
-                              <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
+                              <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 theme-scrollbar text-xs">
                                 <div className="grid grid-cols-2 gap-1">
                                   <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
                                     <div className="flex items-center mb-0.5"><Calendar className="w-3 h-3 mr-1 text-white/80" /><p className="text-[10px] text-white/80">Date</p></div>
@@ -3208,6 +3254,7 @@ const StudentEvents = () => {
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
+        isDarkMode={isDarkMode}
         title={confirmDialog.title}
         message={confirmDialog.message}
         confirmText={confirmDialog.confirmText}

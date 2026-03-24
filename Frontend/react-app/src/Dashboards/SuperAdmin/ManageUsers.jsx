@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import {
   User, Mail, Phone, BookOpen, Calendar, Trash2,
   Briefcase, Filter, X, ArrowLeft, ChevronLeft, ChevronRight,
@@ -82,11 +83,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -690,42 +691,50 @@ const UserManagement = () => {
   // ── Loading / error screens ────────────────────────────────────
   if (loading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center transition-colors duration-300"
-        style={{ background: theme.bgGradient }}
-      >
-        <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-        <div className="text-center p-8 rounded-xl shadow-lg" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait" style={{ borderColor: theme.primaryColor }} />
-          <p className="font-medium" style={{ color: theme.textSecondary }}>Loading user profiles...</p>
+      <>
+        <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+        <div 
+          className="min-h-screen flex items-center justify-center transition-colors duration-300"
+          style={{ background: theme.bgGradient }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+          <div className="text-center p-8 rounded-xl shadow-lg" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4 cursor-wait" style={{ borderColor: theme.primaryColor }} />
+            <p className="font-medium" style={{ color: theme.textSecondary }}>Loading user profiles...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center transition-colors duration-300"
-        style={{ background: theme.bgGradient }}
-      >
-        <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-        <div className="text-center p-8 rounded-xl shadow-lg max-w-md" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
-          <p className="text-red-600 font-medium mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-gradient px-6 py-2">Retry</button>
+      <>
+        <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+        <div 
+          className="min-h-screen flex items-center justify-center transition-colors duration-300"
+          style={{ background: theme.bgGradient }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+          <div className="text-center p-8 rounded-xl shadow-lg max-w-md" style={{ background: theme.bgCard, border: `1px solid ${theme.borderColor}` }}>
+            <p className="text-red-600 font-medium mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="btn-gradient px-6 py-2">Retry</button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // ── Main render ────────────────────────────────────────────────
   return (
-    <div 
-      className="min-h-screen font-sans transition-colors duration-300"
-      style={{ 
-        background: theme.bgGradient,
-      }}
-    >
+    <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+      <div 
+        className="min-h-screen font-sans transition-colors duration-300"
+        style={{ 
+          background: theme.bgGradient,
+        }}
+      >
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
       {/* Animated background - only show in light mode */}
@@ -825,7 +834,15 @@ const UserManagement = () => {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="font-display text-4xl font-extrabold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent mb-2">
+            <h1
+              className="font-display text-4xl font-extrabold tracking-tight mb-2"
+              style={{
+                backgroundImage: theme.primaryGradient,
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
               User Directory & Access Control
             </h1>
             <p className="text-lg" style={{ color: theme.textSecondary }}>Manage all staff, teachers, and club administrators.</p>
@@ -877,7 +894,14 @@ const UserManagement = () => {
                   </span>
                 )}
 
-                <button onClick={() => setIsFilterModalOpen(true)} className="btn-gradient flex items-center px-4 py-2.5 rounded-xl">
+                <button
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="flex items-center px-4 py-2.5 rounded-xl text-white font-medium shadow-md transition-all cursor-pointer"
+                  style={{
+                    background: theme.primaryGradient,
+                    boxShadow: isDarkMode ? "0 8px 20px rgba(217, 70, 239, 0.28)" : "0 8px 20px rgba(76, 161, 175, 0.28)",
+                  }}
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   Filter
                   {activeFilterCount > 0 && (
@@ -986,7 +1010,14 @@ const UserManagement = () => {
                           </div>
 
                           {/* Card back */}
-                          <div className="card-face card-back text-white p-6 flex flex-col justify-between">
+                          <div
+                            className="card-face card-back text-white p-6 flex flex-col justify-between"
+                            style={{
+                              background: isDarkMode
+                                ? "linear-gradient(135deg, #701A75, #3B0764)"
+                                : "linear-gradient(135deg, #4CA1AF, #315169)",
+                            }}
+                          >
                             <div>
                               <div className="flex items-center gap-3 mb-4">
                                 <User className="w-6 h-6" />
@@ -1025,7 +1056,11 @@ const UserManagement = () => {
                                     setSelectedNewRole(userItem.role);
                                     setIsRoleModalOpen(true);
                                   }}
-                                  className="px-3 py-2 bg-[#4CA1AF] text-white rounded-full text-sm font-medium hover:bg-[#3d8a97] transition flex items-center shadow-md shadow-[#4CA1AF]/30 min-w-[100px] justify-center cursor-pointer"
+                                  className="px-3 py-2 text-white rounded-full text-sm font-medium transition flex items-center min-w-[100px] justify-center cursor-pointer"
+                                  style={{
+                                    background: theme.primaryGradient,
+                                    boxShadow: isDarkMode ? "0 8px 18px rgba(217, 70, 239, 0.26)" : "0 8px 18px rgba(76, 161, 175, 0.26)",
+                                  }}
                                 >
                                   <User className="w-4 h-4 mr-1" /> Edit Role
                                 </button>
@@ -1119,7 +1154,8 @@ const UserManagement = () => {
 
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

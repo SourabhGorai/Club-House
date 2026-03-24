@@ -23,7 +23,33 @@ export const getTargetTypeIcon = (type) => {
   }
 };
 
-export const getTargetTypeColor = (type) => {
+export const getTargetTypeColor = (type, isDarkMode = false) => {
+  // Returns color schemes for both light and dark modes
+  // Now returns an object with background and text colors for better theme support
+  const colorMap = {
+    global: isDarkMode
+      ? { bg: "linear-gradient(135deg, #3B82F6, #1E40AF)", text: "#93C5FD" }      // Dark blue gradient
+      : { bg: "#dbeafe", text: "#1e40af" },                                        // Light blue
+    club: isDarkMode
+      ? { bg: "linear-gradient(135deg, #A855F7, #6D28D9)", text: "#D8B4FE" }      // Dark purple gradient
+      : { bg: "#f3e8ff", text: "#6d28d9" },                                        // Light purple
+    department: isDarkMode
+      ? { bg: "linear-gradient(135deg, #10B981, #047857)", text: "#6EE7B7" }      // Dark emerald gradient
+      : { bg: "#ccfbf1", text: "#047857" },                                        // Light emerald
+    default: isDarkMode
+      ? { bg: "linear-gradient(135deg, #6B7280, #374151)", text: "#D1D5DB" }      // Dark gray gradient
+      : { bg: "#f3f4f6", text: "#374151" },                                        // Light gray
+  };
+
+  const scheme = colorMap[type?.toLowerCase()] || colorMap.default;
+  
+  // For backward compatibility with existing code expecting className strings,
+  // return className for light mode, but for dark mode we'll use the object directly in TeacherEvents.jsx
+  if (isDarkMode) {
+    return scheme;
+  }
+  
+  // Return Tailwind classes for light mode (backward compatible)
   switch (type?.toLowerCase()) {
     case "global":     return "bg-blue-100 text-blue-700";
     case "club":       return "bg-purple-100 text-purple-700";

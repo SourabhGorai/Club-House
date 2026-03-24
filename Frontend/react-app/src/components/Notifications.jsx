@@ -1401,6 +1401,8 @@ import { useNavigate } from "react-router-dom";
 import CustomSelect from "./CustomSelect";
 import DateTimePicker from "./Datetimepicker";
 import ConfirmDialog from "./ConfirmDialog";
+import ThemedScrollbarStyles from "./ThemedScrollbarStyles";
+// import ThemedScrollbarStyles from "./ThemedScrollbarStyles";
 import {
   Bell,
   BellOff,
@@ -1452,11 +1454,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1782,7 +1784,7 @@ const MultiSelectPicker = ({ options, selectedIds, onToggle, loading, placeholde
           className="w-full pl-9 pr-4 py-2.5 text-sm font-medium focus:outline-none"
           style={{ backgroundColor: theme.bgCard, color: theme.textPrimary }} />
       </div>
-      <div className="max-h-40 overflow-y-auto">
+      <div className="max-h-40 overflow-y-auto theme-scrollbar">
         {loading ? (
           <div className="flex items-center justify-center py-6 text-xs font-bold gap-2" style={{ color: theme.textMuted }}>
             <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `${theme.primaryColor}20`, borderTopColor: theme.primaryColor }} />Loading…
@@ -1916,7 +1918,7 @@ const NotificationFormModal = ({ initial, onClose, onSubmit, saving, token, them
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-7 py-5">
+        <div className="flex-1 overflow-y-auto px-7 py-5 theme-scrollbar">
           <form id="notif-form" onSubmit={handleSubmit} className="space-y-4">
             <FormField label="Title *" theme={theme}>
               <input required value={form.notificationTitle} onChange={e => set("notificationTitle", e.target.value)}
@@ -2555,24 +2557,27 @@ const UserNotifications = ({ theme, isDarkMode }) => {
   };
 
   return (
-    <PageShell title="Notifications" subtitle="Stay updated with announcements, reminders, and club activity"
-      icon={<User size={12} />} roleLabel="Student" theme={theme} isDarkMode={isDarkMode}
-      headerRight={unreadCount > 0 && (
-        <button onClick={markAllRead}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer shadow-md hover:opacity-90 transition-all"
-          style={{ background: theme.primaryGradient }}>
-          <CheckCheck size={15} /> Mark all read ({unreadCount})
-        </button>
-      )}>
-      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} theme={theme} />}
-      <MyNotificationsPanel
-        token={token}
-        onMarkRead={markRead}
-        onMarkAllRead={markAllRead}
-        refreshSignal={refreshSignal}
-        theme={theme}
-      />
-    </PageShell>
+    <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+      <PageShell title="Notifications" subtitle="Stay updated with announcements, reminders, and club activity"
+        icon={<User size={12} />} roleLabel="Student" theme={theme} isDarkMode={isDarkMode}
+        headerRight={unreadCount > 0 && (
+          <button onClick={markAllRead}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer shadow-md hover:opacity-90 transition-all"
+            style={{ background: theme.primaryGradient }}>
+            <CheckCheck size={15} /> Mark all read ({unreadCount})
+          </button>
+        )}>
+        {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} theme={theme} />}
+        <MyNotificationsPanel
+          token={token}
+          onMarkRead={markRead}
+          onMarkAllRead={markAllRead}
+          refreshSignal={refreshSignal}
+          theme={theme}
+        />
+      </PageShell>
+    </>
   );
 };
 
@@ -2660,27 +2665,29 @@ const TeacherNotifications = ({ theme, isDarkMode }) => {
   const askTrigger = (notif) => setConfirmDialog({ isOpen: true, title: "Trigger Notification", message: "This will immediately trigger this notification.", confirmText: "Trigger", variant: "primary", onConfirm: async () => { closeConfirm(); await triggerNotif(notif); } });
 
   return (
-    <PageShell title="Notifications" subtitle="View your notifications and manage club announcements"
-      icon={<GraduationCap size={12} />} roleLabel="Teacher" theme={theme} isDarkMode={isDarkMode}
-      headerRight={
-        <div className="flex gap-2">
-          {tab === "manage" && (
-            <button onClick={() => { setEditNotif(null); setShowForm(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer shadow-md hover:opacity-90 transition-all"
-              style={{ background: theme.primaryGradient }}>
-              <Plus size={15} /> New Notification
-            </button>
-          )}
-        </div>
-      }>
+    <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+      <PageShell title="Notifications" subtitle="View your notifications and manage club announcements"
+        icon={<GraduationCap size={12} />} roleLabel="Teacher" theme={theme} isDarkMode={isDarkMode}
+        headerRight={
+          <div className="flex gap-2">
+            {tab === "manage" && (
+              <button onClick={() => { setEditNotif(null); setShowForm(true); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer shadow-md hover:opacity-90 transition-all"
+                style={{ background: theme.primaryGradient }}>
+                <Plus size={15} /> New Notification
+              </button>
+            )}
+          </div>
+        }>
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} theme={theme} />}
       {(showForm || editNotif) && (
         <NotificationFormModal initial={editNotif} onClose={() => { setShowForm(false); setEditNotif(null); }}
           onSubmit={createOrUpdate} saving={saving} token={token} theme={theme} />
       )}
-      <ConfirmDialog isOpen={confirmDialog.isOpen} title={confirmDialog.title} message={confirmDialog.message}
+      <ConfirmDialog isOpen={confirmDialog.isOpen} isDarkMode={isDarkMode} title={confirmDialog.title} message={confirmDialog.message}
         confirmText={confirmDialog.confirmText} variant={confirmDialog.variant}
-        onConfirm={confirmDialog.onConfirm} onCancel={closeConfirm} theme={theme} />
+        onConfirm={confirmDialog.onConfirm} onCancel={closeConfirm} />
 
       <TabBar active={tab} onChange={t => setTab(t)} tabs={[
         { id: "my",     icon: <Bell size={14} />, label: "My Notifications", badge: unreadCount },
@@ -2703,6 +2710,7 @@ const TeacherNotifications = ({ theme, isDarkMode }) => {
           theme={theme} />
       )}
     </PageShell>
+    </>
   );
 };
 
@@ -2790,16 +2798,18 @@ const SuperAdminNotifications = ({ theme, isDarkMode }) => {
   const askTrigger = (notif) => setConfirmDialog({ isOpen: true, title: "Trigger Notification", message: "This will immediately trigger this notification.", confirmText: "Trigger", variant: "primary", onConfirm: async () => { closeConfirm(); await triggerNotif(notif); } });
 
   return (
-    <PageShell title="Notification Management" icon={<ShieldCheck size={12} />} roleLabel="Super Admin" theme={theme} isDarkMode={isDarkMode}
-      headerRight={
-        <div className="flex gap-2">
-          <button onClick={() => setRefreshSignal(s => s + 1)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer"
-            style={{ borderColor: theme.borderColor, backgroundColor: theme.accentSoft, color: theme.textSecondary }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primaryColor; e.currentTarget.style.color = theme.primaryColor; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = theme.borderColor; e.currentTarget.style.color = theme.textSecondary; }}>
-            <RefreshCw size={14} /> Refresh
-          </button>
+    <>
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+      <PageShell title="Notification Management" icon={<ShieldCheck size={12} />} roleLabel="Super Admin" theme={theme} isDarkMode={isDarkMode}
+        headerRight={
+          <div className="flex gap-2">
+            <button onClick={() => setRefreshSignal(s => s + 1)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer"
+              style={{ borderColor: theme.borderColor, backgroundColor: theme.accentSoft, color: theme.textSecondary }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primaryColor; e.currentTarget.style.color = theme.primaryColor; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = theme.borderColor; e.currentTarget.style.color = theme.textSecondary; }}>
+              <RefreshCw size={14} /> Refresh
+            </button>
           {tab !== "my" && (
             <button onClick={() => { setEditNotif(null); setShowForm(true); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white cursor-pointer shadow-md hover:opacity-90 transition-all"
@@ -2814,9 +2824,9 @@ const SuperAdminNotifications = ({ theme, isDarkMode }) => {
         <NotificationFormModal initial={editNotif} onClose={() => { setShowForm(false); setEditNotif(null); }}
           onSubmit={createOrUpdate} saving={saving} token={token} theme={theme} />
       )}
-      <ConfirmDialog isOpen={confirmDialog.isOpen} title={confirmDialog.title} message={confirmDialog.message}
+      <ConfirmDialog isOpen={confirmDialog.isOpen} isDarkMode={isDarkMode} title={confirmDialog.title} message={confirmDialog.message}
         confirmText={confirmDialog.confirmText} variant={confirmDialog.variant}
-        onConfirm={confirmDialog.onConfirm} onCancel={closeConfirm} theme={theme} />
+        onConfirm={confirmDialog.onConfirm} onCancel={closeConfirm} />
 
       <TabBar active={tab} onChange={t => setTab(t)} tabs={[
         { id: "my",     icon: <Bell size={14} />, label: "My Notifications", badge: unreadCount },
@@ -2839,6 +2849,7 @@ const SuperAdminNotifications = ({ theme, isDarkMode }) => {
           theme={theme} />
       )}
     </PageShell>
+    </>
   );
 };
 

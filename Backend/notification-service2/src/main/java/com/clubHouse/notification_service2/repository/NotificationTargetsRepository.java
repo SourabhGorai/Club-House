@@ -28,21 +28,21 @@ public interface NotificationTargetsRepository extends JpaRepository<Notificatio
     // Make sure it looks exactly like this — fully typed return
     List<NotificationTargets> findByNotification_NotificationIdIn(List<Long> notificationIds);
 
-    @Query("""
-        SELECT nt.notification FROM NotificationTargets nt
-        WHERE nt.notification.isActive = true
-        AND (nt.notification.validUntil IS NULL 
-             OR nt.notification.validUntil >= CURRENT_TIMESTAMP)
-        AND (
-              nt.targetType = 'GLOBAL'
-           OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
-           OR (nt.targetType = 'CLUB' AND nt.targetId IN :clubIds)
-        )
-    """)
-    List<Notification> findTargetedNotifications(
-            Long deptId,
-            List<Long> clubIds
-    );
+//    @Query("""
+//                SELECT nt.notification FROM NotificationTargets nt
+//                WHERE nt.notification.isActive = true
+//                AND (nt.notification.validUntil IS NULL
+//                     OR nt.notification.validUntil >= CURRENT_TIMESTAMP)
+//                AND (
+//                      nt.targetType = 'GLOBAL'
+//                   OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
+//                   OR (nt.targetType = 'CLUB' AND nt.targetId IN :clubIds)
+//                )
+//            """)
+//    List<Notification> findTargetedNotifications(
+//            Long deptId,
+//            List<Long> clubIds
+//    );
 
     @Modifying
     @Query("DELETE FROM NotificationTargets nt WHERE nt.notification.notificationId = :notificationId")
@@ -53,15 +53,20 @@ public interface NotificationTargetsRepository extends JpaRepository<Notificatio
     void deleteByNotificationIds(@Param("notificationIds") List<Long> notificationIds);
 
     @Query("""
-            SELECT DISTINCT n FROM notification_table n
-            LEFT JOIN NotificationTargets nt ON nt.notification.notificationId = n.notificationId
-            WHERE
-                n.targetType = 'GLOBAL'
-                OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
-                OR (nt.targetType = 'CLUB'       AND nt.targetId IN :clubIds)
-                OR (nt.targetType = 'YEAR'        AND nt.targetId = :year)
+                SELECT DISTINCT n FROM notification_table n
+                LEFT JOIN NotificationTargets nt 
+                    ON nt.notification.notificationId = n.notificationId
+                WHERE
+                    n.isActive = true
+                    AND (n.validUntil IS NULL OR n.validUntil >= CURRENT_TIMESTAMP)
+                    AND (
+                        n.targetType = 'GLOBAL'
+                        OR (nt.targetType = 'DEPARTMENT' AND nt.targetId = :deptId)
+                        OR (nt.targetType = 'CLUB'       AND nt.targetId IN :clubIds)
+                        OR (:year IS NOT NULL AND nt.targetType = 'YEAR' AND nt.targetId = :year)
+                    )
             """)
-    List<com.clubHouse.notification_service2.model.Notification> findTargetedNotifications(
+    List<Notification> findTargetedNotifications(
             @Param("deptId") Long deptId,
             @Param("clubIds") List<Long> clubIds,
             @Param("year") Integer year

@@ -144,6 +144,7 @@ export default function ClubAdminDashboard() {
 
     <ConfirmDialog
       isOpen={confirmDialog.isOpen}
+      isDarkMode={false}
       title={confirmDialog.title}
       message={confirmDialog.message}
       confirmText={confirmDialog.confirmText}

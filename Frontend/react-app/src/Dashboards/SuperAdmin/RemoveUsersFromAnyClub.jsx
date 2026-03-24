@@ -765,6 +765,7 @@ import {
 } from "lucide-react";
 import CustomSelect from "../../components/CustomSelect";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 
 // ─── THEME CONFIGURATION ─────────────────────────────────────────────────────
 const LIGHT_PRIMARY_COLOR = "#4CA1AF";
@@ -782,11 +783,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1101,23 +1102,27 @@ const RemoveUsersFromAnyClub = () => {
 
   if (loading) {
     return (
-      <div 
-        className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300"
-        style={{ background: theme.bgGradient }}
-      >
-        <div
-          className="w-16 h-16 border-4 rounded-full animate-spin"
-          style={{ borderColor: `${theme.primaryColor}20`, borderTopColor: theme.primaryColor }}
-        ></div>
-        <p className="mt-4 font-medium animate-pulse tracking-wide" style={{ color: theme.textMuted }}>
-          Synchronizing database...
-        </p>
-      </div>
+      <>
+        <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
+        <div 
+          className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300"
+          style={{ background: theme.bgGradient }}
+        >
+          <div
+            className="w-16 h-16 border-4 rounded-full animate-spin"
+            style={{ borderColor: `${theme.primaryColor}20`, borderTopColor: theme.primaryColor }}
+          ></div>
+          <p className="mt-4 font-medium animate-pulse tracking-wide" style={{ color: theme.textMuted }}>
+            Synchronizing database...
+          </p>
+        </div>
+      </>
     );
   }
 
   return (
     <>
+    <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
     <div 
       className="min-h-screen relative font-sans antialiased transition-colors duration-300"
       style={{ background: theme.bgGradient }}
@@ -1312,7 +1317,7 @@ const RemoveUsersFromAnyClub = () => {
             boxShadow: isDarkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
           }}
         >
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto theme-scrollbar">
             {filteredUsers.length === 0 ? (
               <div className="py-24 text-center">
                 <div 
@@ -1371,6 +1376,8 @@ const RemoveUsersFromAnyClub = () => {
                                   style={
                                     user.role === "CLUB_ADMIN"
                                       ? { backgroundColor: theme.primaryLight, borderColor: theme.borderColor, color: theme.primaryColor }
+                                      : user.role.toUpperCase().includes("TEACHER")
+                                      ? { backgroundColor: "rgba(245, 158, 11, 0.14)", borderColor: theme.borderColor, color: "#D97706" }
                                       : { backgroundColor: "rgba(59, 130, 246, 0.1)", borderColor: theme.borderColor, color: "#3B82F6" }
                                   }
                                 >
@@ -1497,6 +1504,8 @@ const RemoveUsersFromAnyClub = () => {
                                   style={
                                     user.role === "CLUB_ADMIN"
                                       ? { backgroundColor: theme.primaryLight, borderColor: theme.borderColor, color: theme.primaryColor }
+                                      : user.role.toUpperCase().includes("TEACHER")
+                                      ? { backgroundColor: "rgba(245, 158, 11, 0.14)", borderColor: theme.borderColor, color: "#D97706" }
                                       : { backgroundColor: "rgba(59, 130, 246, 0.1)", borderColor: theme.borderColor, color: "#3B82F6" }
                                   }
                                 >
@@ -1689,13 +1698,13 @@ const RemoveUsersFromAnyClub = () => {
 
     <ConfirmDialog
       isOpen={confirmDialog.isOpen}
+      isDarkMode={isDarkMode}
       title={confirmDialog.title}
       message={confirmDialog.message}
       confirmText={confirmDialog.confirmText}
       variant={confirmDialog.variant}
       onConfirm={confirmDialog.onConfirm}
       onCancel={closeConfirm}
-      theme={theme}
     />
     </>
   );

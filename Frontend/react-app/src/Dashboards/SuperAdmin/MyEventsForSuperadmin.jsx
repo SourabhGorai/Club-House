@@ -1330,6 +1330,7 @@ import CustomSelect from "../../components/CustomSelect";
 import StartAttendancePopup from "../../components/StartAttendencePopup";
 import EditEvent from "../../components/EditEvent";
 import DateTimePicker from "../../components/Datetimepicker";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -1370,11 +1371,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1495,6 +1496,7 @@ const MyEventsForSuperadmin = () => {
     primaryDark: isDarkMode ? DARK_PRIMARY_DARK : LIGHT_PRIMARY_DARK,
     primaryLight: isDarkMode ? DARK_PRIMARY_LIGHT : LIGHT_PRIMARY_LIGHT,
     primaryGradient: isDarkMode ? DARK_PRIMARY_GRADIENT : LIGHT_PRIMARY_GRADIENT,
+    cardHeaderGradient: isDarkMode ? "linear-gradient(135deg, #A21CAF 0%, #701A75 100%)" : LIGHT_PRIMARY_GRADIENT,
     bgMain: isDarkMode ? DARK_BG_MAIN : LIGHT_BG_MAIN,
     bgGradient: isDarkMode ? DARK_BG_GRADIENT : LIGHT_BG_GRADIENT,
     bgCard: isDarkMode ? DARK_BG_CARD : LIGHT_BG_CARD,
@@ -1860,6 +1862,11 @@ const MyEventsForSuperadmin = () => {
     <>
       {/* Global styles - moved outside the main div to ensure they're always applied */}
       <style>{animationStyles}</style>
+      <ThemedScrollbarStyles
+        isDarkMode={isDarkMode}
+        className="theme-scrollbar"
+        includePageScrollbar
+      />
 
       <div
         className="min-h-screen transition-colors duration-300"
@@ -2288,7 +2295,7 @@ const MyEventsForSuperadmin = () => {
                             borderColor: theme.borderColor
                           }}
                         >
-                          <div className="relative h-32 p-3 overflow-hidden" style={{ background: theme.primaryGradient }}>
+                          <div className="relative h-32 p-3 overflow-hidden" style={{ background: isDarkMode ? theme.cardHeaderGradient : theme.primaryGradient }}>
                             <div className="absolute inset-0 opacity-10">
                               <div className="absolute -top-12 -right-12 w-24 h-24 bg-white rounded-full" />
                               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white rounded-full" />
@@ -2376,12 +2383,12 @@ const MyEventsForSuperadmin = () => {
                         {/* Back */}
                         <div
                           className="card-face card-back rounded-xl shadow-md overflow-hidden p-3"
-                          style={{ background: theme.primaryGradient }}
+                          style={{ background: isDarkMode ? theme.cardHeaderGradient : theme.primaryGradient }}
                         >
                           <div className="h-full flex flex-col">
                             <h3 className="text-sm font-bold mb-2 line-clamp-1 text-white">{event.title}</h3>
 
-                            <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar text-xs">
+                            <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 theme-scrollbar text-xs">
                               <div className="grid grid-cols-2 gap-1">
                                 <div className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
                                   <div className="flex items-center mb-0.5"><Calendar className="w-3 h-3 mr-1 text-white/80" /><p className="text-[10px] text-white/80">Date</p></div>
@@ -2616,13 +2623,13 @@ const MyEventsForSuperadmin = () => {
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
+        isDarkMode={isDarkMode}
         title={confirmDialog.title}
         message={confirmDialog.message}
         confirmText={confirmDialog.confirmText}
         variant={confirmDialog.variant}
         onConfirm={confirmDialog.onConfirm}
         onCancel={closeConfirm}
-        theme={theme}
       />
 
       <StartAttendancePopup

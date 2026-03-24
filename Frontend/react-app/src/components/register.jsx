@@ -892,6 +892,7 @@ export default function Register() {
 
       <ConfirmDialog
         isOpen={dialog.isOpen}
+        isDarkMode={false}
         title={dialog.title}
         message={dialog.message}
         variant={dialog.variant}

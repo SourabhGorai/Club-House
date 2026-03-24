@@ -1419,6 +1419,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
 import CustomSelect from "../../components/CustomSelect";
+import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import { Moon, Sun } from "lucide-react";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
@@ -1439,11 +1440,11 @@ const LIGHT_TEXT_SECONDARY = "#475569";
 const LIGHT_TEXT_MUTED = "#64748b";
 const LIGHT_ACCENT_SOFT = "#f8fcff";
 
-// Dark mode colors - ChatGPT style
-const DARK_PRIMARY_COLOR = "#10A37F";
-const DARK_PRIMARY_DARK = "#0E8C6D";
-const DARK_PRIMARY_LIGHT = "rgba(16, 163, 127, 0.15)";
-const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #10A37F 0%, #0E8C6D 100%)";
+// Dark mode colors - Fuchsia theme
+  const DARK_PRIMARY_COLOR = "#D946EF"; // Vibrant fuchsia
+  const DARK_PRIMARY_DARK = "#A21CAF";
+  const DARK_PRIMARY_LIGHT = "rgba(217, 70, 239, 0.15)";
+  const DARK_PRIMARY_GRADIENT = "linear-gradient(135deg, #D946EF 0%, #A21CAF 100%)";
 
 const DARK_BG_MAIN = "#343541";
 const DARK_BG_GRADIENT = "linear-gradient(135deg, #343541 0%, #2A2B36 100%)";
@@ -1866,6 +1867,7 @@ export default function AddStudent() {
       className="min-h-screen w-full relative transition-colors duration-300"
       style={{ background: theme.bgGradient }}
     >
+      <ThemedScrollbarStyles isDarkMode={isDarkMode} className="theme-scrollbar" includePageScrollbar />
       <style>{`
         @keyframes blob {
           0% {
