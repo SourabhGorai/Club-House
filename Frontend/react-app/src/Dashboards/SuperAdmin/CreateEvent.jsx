@@ -1203,6 +1203,7 @@ import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CustomSelect from "../../components/CustomSelect";
 import DateTimePicker from "../../components/Datetimepicker";
+import { useTheme } from "../../contexts/ThemeContext";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import {
   Calendar,
@@ -1303,9 +1304,7 @@ export default function CreateEvent() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => localStorage.getItem("createEventTheme") === "dark",
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -1329,10 +1328,7 @@ export default function CreateEvent() {
     isDarkMode: isDarkMode,
   };
 
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("createEventTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+
 
   const preSelectedClubId = searchParams.get("clubId");
   const preSelectedClubName = searchParams.get("clubName");
@@ -1939,24 +1935,7 @@ export default function CreateEvent() {
               </span>
             </div>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-1.5 sm:p-2 rounded-xl transition-colors cursor-pointer"
-              style={{
-                background: theme.accentSoft,
-                color: theme.textSecondary,
-              }}
-              title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-            >
-              {isDarkMode ? (
-                <Sun size={isMobile ? 16 : 18} />
-              ) : (
-                <Moon size={isMobile ? 16 : 18} />
-              )}
-            </button>
+
           </div>
         </div>
       </div>

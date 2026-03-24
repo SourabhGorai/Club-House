@@ -784,6 +784,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 import CustomSelect from "../../components/CustomSelect";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import { Moon, Sun } from "lucide-react";
@@ -1179,9 +1180,7 @@ export default function ManageClubs() {
   const navigate = useNavigate();
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(() =>
-    localStorage.getItem("manageClubsTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -1564,15 +1563,7 @@ export default function ManageClubs() {
               <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
             </button>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{ background: theme.accentSoft, color: theme.textSecondary }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
           </div>
         </div>
       </div>
@@ -1695,9 +1686,9 @@ export default function ManageClubs() {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
               <div className="text-left">
                 <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
-                  ClubLink Stellar Dashboard
+                  Clubs Dashboard
                 </h1>
-                <p className="mt-2 text-base sm:text-lg font-light text-white/90">Manage all college clubs with ease and style.</p>
+                {/* <p className="mt-2 text-base sm:text-lg font-light text-white/90">Manage all college clubs with ease and style.</p> */}
               </div>
               {userRole === "SUPER_ADMIN" && (
                 <button 

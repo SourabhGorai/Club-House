@@ -4721,6 +4721,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
+import ThemeToggle from "../../components/ThemeToggle";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -4764,9 +4766,7 @@ export default function UsersDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
-  const [isDarkMode, setIsDarkMode] = useState(() => 
-    localStorage.getItem("userDashboardTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -5294,14 +5294,7 @@ export default function UsersDashboard() {
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{ background: theme.accentSoft, color: theme.textSecondary }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+            <ThemeToggle />
             <div
               className="w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer"
               style={{ borderColor: theme.primaryLight }}
@@ -5458,12 +5451,13 @@ export default function UsersDashboard() {
                     </button>
                     <button
                       onClick={handleVerificationRedirect}
-                      className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer ${
+                      disabled={isVerified}
+                      className={`p-1.5 rounded-lg transition-all duration-200 flex-shrink-0 ${
                         isVerified
-                          ? "text-green-600 bg-green-50"
-                          : "text-amber-600 bg-amber-50"
+                          ? "text-green-600 bg-green-50 cursor-not-allowed opacity-70"
+                          : "text-amber-600 bg-amber-50 hover:scale-110 cursor-pointer"
                       }`}
-                      title={isVerified ? "Verified" : "Click to verify"}
+                      title={isVerified ? "Already verified" : "Click to verify"}
                     >
                       {isVerified ? (
                         <CheckCircle size={14} />
@@ -5637,17 +5631,7 @@ export default function UsersDashboard() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className="px-3 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer"
-                style={{ 
-                  background: theme.accentSoft,
-                  color: theme.textSecondary,
-                  border: `1px solid ${theme.borderColor}`
-                }}
-              >
-                {isDarkMode ? "Light" : "Dark"}
-              </button>
+              <ThemeToggle />
               <div
                 className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full border ${
                   isVerified
@@ -5745,7 +5729,7 @@ export default function UsersDashboard() {
                     disabled={!isVerified}
                     theme={theme}
                   />
-                  <ActionCard
+                  {/* <ActionCard
                     icon={<Settings size={24} />}
                     label="Settings"
                     color="purple"
@@ -5756,7 +5740,7 @@ export default function UsersDashboard() {
                   }
                   disabled={!isVerified}
                   theme={theme}
-                />
+                /> */}
                   <button
                     onClick={() =>
                       handleRestrictedAction(() => navigate("/notifications"))

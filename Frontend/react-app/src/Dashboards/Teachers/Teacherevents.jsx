@@ -1723,6 +1723,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CustomSelect from "../../components/CustomSelect";
 import StartAttendancePopup from "../../components/StartAttendencePopup";
@@ -2079,9 +2080,7 @@ const TeacherEvents = () => {
   const navigate = useNavigate();
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(() =>
-    localStorage.getItem("teacherEventsTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -2846,15 +2845,7 @@ const TeacherEvents = () => {
                 <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
               </button>
 
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className="p-2 rounded-xl transition-colors cursor-pointer"
-                style={{ background: theme.accentSoft, color: theme.textSecondary }}
-                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+
             </div>
           </div>
         </div>

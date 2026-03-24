@@ -837,6 +837,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import ThemedScrollbarStyles from "./ThemedScrollbarStyles";
 import {
   Trophy,
@@ -1462,9 +1463,7 @@ export default function ClubDetails() {
   const userRole = user?.role || location.state?.userRole || "USER";
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => localStorage.getItem("clubDetailsTheme") === "dark",
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -1488,10 +1487,7 @@ export default function ClubDetails() {
     isDarkMode: isDarkMode,
   };
 
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("clubDetailsTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+
 
   const [clubDetails, setClubDetails] = useState(null);
   const [clubMembers, setClubMembers] = useState([]);
@@ -1897,20 +1893,7 @@ export default function ClubDetails() {
               </span>
             </button>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{
-                background: theme.accentSoft,
-                color: theme.textSecondary,
-              }}
-              title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
           </div>
         </div>
       </div>

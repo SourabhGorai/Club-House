@@ -744,6 +744,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 import {
   Users,
   Search,
@@ -900,9 +901,7 @@ const RemoveUsersFromAnyClub = () => {
   const navigate = useNavigate();
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(() =>
-    localStorage.getItem("removeUsersAnyClubTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -921,11 +920,6 @@ const RemoveUsersFromAnyClub = () => {
     accentSoft: isDarkMode ? DARK_ACCENT_SOFT : LIGHT_ACCENT_SOFT,
     isDarkMode: isDarkMode,
   };
-
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("removeUsersAnyClubTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
 
   const [userClubs, setUserClubs] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -1191,15 +1185,7 @@ const RemoveUsersFromAnyClub = () => {
               <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
             </button>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{ background: theme.accentSoft, color: theme.textSecondary }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
           </div>
         </div>
       </div>

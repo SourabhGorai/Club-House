@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 import CustomSelect from "../../components/CustomSelect";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
 import {
@@ -487,9 +488,7 @@ const UserManagement = () => {
   const token = localStorage.getItem("token");
 
   // ── Theme state ────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(() => 
-    localStorage.getItem("userManagementTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -508,11 +507,6 @@ const UserManagement = () => {
     accentSoft: isDarkMode ? DARK_ACCENT_SOFT : LIGHT_ACCENT_SOFT,
     isDarkMode: isDarkMode,
   };
-
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("userManagementTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
 
   // ── Core data ─────────────────────────────────────────────────
   const [allUsers, setAllUsers]           = useState([]);  // full user list
@@ -777,15 +771,7 @@ const UserManagement = () => {
               <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
             </button>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{ background: theme.accentSoft, color: theme.textSecondary }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
           </div>
         </div>
       </div>

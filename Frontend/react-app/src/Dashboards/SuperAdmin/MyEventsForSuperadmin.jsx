@@ -1325,6 +1325,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CustomSelect from "../../components/CustomSelect";
 import StartAttendancePopup from "../../components/StartAttendencePopup";
@@ -1347,7 +1348,6 @@ import {
   Trophy, Star, BookOpen, Coffee, Music, Code, Camera, Heart,
   Filter, ChevronDown, Search, Settings, Edit, Trash2,
   Share2, Plus, Briefcase, X, ArrowLeft, ChevronLeft, ChevronRight,
-  Moon, Sun,
 } from "lucide-react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -1486,9 +1486,7 @@ const MyEventsForSuperadmin = () => {
   const token = localStorage.getItem("token");
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(() =>
-    localStorage.getItem("eventsSuperAdminTheme") === "dark"
-  );
+  const { isDarkMode } = useTheme();
 
   // Get current theme colors
   const theme = {
@@ -1508,11 +1506,6 @@ const MyEventsForSuperadmin = () => {
     accentSoft: isDarkMode ? DARK_ACCENT_SOFT : LIGHT_ACCENT_SOFT,
     isDarkMode: isDarkMode,
   };
-
-  // Save theme preference to localStorage
-  useEffect(() => {
-    localStorage.setItem("eventsSuperAdminTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
 
   // ── Server data ────────────────────────────────────────────────────────────
   const [pageData, setPageData] = useState({ content: [], pageNumber: 0, totalElements: 0, totalPages: 0, last: true });
@@ -1912,15 +1905,7 @@ const MyEventsForSuperadmin = () => {
                 <span className="text-xs sm:text-sm hidden xs:inline">Dashboard</span>
               </button>
 
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className="p-2 rounded-xl transition-colors cursor-pointer"
-                style={{ background: theme.accentSoft, color: theme.textSecondary }}
-                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+
             </div>
           </div>
         </div>

@@ -23,10 +23,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "../../contexts/ThemeContext";
 import axios from "axios";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CustomSelect from "../../components/CustomSelect";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
+import ThemeToggle from "../../components/ThemeToggle";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
@@ -107,7 +109,7 @@ export default function TeachersDashboard() {
   const [showAllClubs, setShowAllClubs] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [eventsManagedCount, setEventsManagedCount] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("teacherDashboardTheme") === "dark");
+  const { isDarkMode } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [formMessage, setFormMessage] = useState({ text: "", type: "" });
   const [confirmDialog, setConfirmDialog] = useState({
@@ -150,10 +152,6 @@ export default function TeachersDashboard() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("teacherDashboardTheme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
 
   useEffect(() => {
     fetchUserProfile();
@@ -480,14 +478,7 @@ export default function TeachersDashboard() {
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="p-2 rounded-xl transition-colors cursor-pointer"
-              style={{ background: theme.accentSoft, color: theme.textSecondary }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+            <ThemeToggle />
             <div
               className="w-10 h-10 rounded-full overflow-hidden border-2 cursor-pointer"
               style={{ borderColor: theme.primaryLight }}
@@ -637,12 +628,13 @@ export default function TeachersDashboard() {
                     </button>
                     <button
                       onClick={handleVerificationRedirect}
-                      className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0 cursor-pointer ${
+                      disabled={currentUser.verified}
+                      className={`p-1.5 rounded-lg transition-all duration-200 flex-shrink-0 ${
                         currentUser.verified
-                          ? "text-green-600 bg-green-50"
-                          : "text-amber-600 bg-amber-50"
+                          ? "text-green-600 bg-green-50 cursor-not-allowed opacity-70"
+                          : "text-amber-600 bg-amber-50 hover:scale-110 cursor-pointer"
                       }`}
-                      title={currentUser.verified ? "Verified" : "Click to verify"}
+                      title={currentUser.verified ? "Already verified" : "Click to verify"}
                     >
                       {currentUser.verified ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
                     </button>
@@ -801,17 +793,7 @@ export default function TeachersDashboard() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className="px-3 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer"
-                style={{ 
-                  background: theme.accentSoft,
-                  color: theme.textSecondary,
-                  border: `1px solid ${theme.borderColor}`
-                }}
-              >
-                {isDarkMode ? "Light" : "Dark"}
-              </button>
+              <ThemeToggle />
               <div
                 className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full border"
                 style={{
