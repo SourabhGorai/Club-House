@@ -53,6 +53,7 @@ public class EventCleanupScheduler {
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS,          allEntries = true),
             @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT,       allEntries = true),
             @CacheEvict(value = CacheConfig.TARGET_TYPES,                allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENT_COUNT_BY_CLUB,         allEntries = true)
     })
     public void cleanupEventsOfExpiredProfiles() {
         log.info("Starting scheduled job: Cleanup events for expired/deactivated profiles");
@@ -125,6 +126,7 @@ public class EventCleanupScheduler {
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS,          allEntries = true),
             @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT,       allEntries = true),
             @CacheEvict(value = CacheConfig.TARGET_TYPES,                allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENT_COUNT_BY_CLUB,         allEntries = true)
     })
     public void cleanupOldEvents() {
         log.info("Starting scheduled job: Cleanup events older than 3 years");

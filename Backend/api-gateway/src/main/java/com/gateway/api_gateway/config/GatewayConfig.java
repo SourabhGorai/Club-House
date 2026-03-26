@@ -394,7 +394,8 @@ public class GatewayConfig {
                                 "/api/events/getByTargetType/{targetType}",
                                 "/api/events/getByTargetType/{targetType}/paged",
                                 "/api/events/enrollment/{status}/paged",
-                                "/api/events/enrollment/{status}"
+                                "/api/events/enrollment/{status}",
+                                "/api/events/getEventCountForClub"
                         )
                         .and()
                         .method("GET")

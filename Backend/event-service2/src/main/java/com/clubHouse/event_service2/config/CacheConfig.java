@@ -28,6 +28,8 @@ public class CacheConfig {
     public static final String MY_ENROLLED_EVENTS = "myEnrolledEvents";
     public static final String ENROLLMENTS_FOR_EVENT = "enrollmentsForEvent";
 
+    public static final String EVENT_COUNT_BY_CLUB = "eventCountByClub";
+
     @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
@@ -44,7 +46,8 @@ public class CacheConfig {
                 TARGET_TYPES,
                 MY_ENROLLMENTS,
                 MY_ENROLLED_EVENTS,
-                ENROLLMENTS_FOR_EVENT
+                ENROLLMENTS_FOR_EVENT,
+                EVENT_COUNT_BY_CLUB
         );
     }
 }

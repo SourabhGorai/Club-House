@@ -44,4 +44,7 @@ public interface EventRepository extends JpaRepository<Events, Long> {
     );
 
     List<Events> findByIsCompletedAndEventDateBefore(boolean b, LocalDateTime now);
+
+    @Query("SELECT e.organizer, COUNT(e) FROM Events e GROUP BY e.organizer")
+    List<Object[]> countEventsByOrganizer();
 }

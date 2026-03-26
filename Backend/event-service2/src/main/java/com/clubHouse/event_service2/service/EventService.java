@@ -1,9 +1,11 @@
 package com.clubHouse.event_service2.service;
 
+import com.clubHouse.event_service2.client.ClubServiceClient;
 import com.clubHouse.event_service2.client.ProfileManagementServiceClient;
 import com.clubHouse.event_service2.config.CacheConfig;
 import com.clubHouse.event_service2.dto.request.EventRequest;
 import com.clubHouse.event_service2.dto.request.RestartEnrollmentRequest;
+import com.clubHouse.event_service2.dto.response.ClubResponse;
 import com.clubHouse.event_service2.dto.response.EventResponse;
 import com.clubHouse.event_service2.dto.response.PageResponse;
 import com.clubHouse.event_service2.dto.response.ProfileResponse;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,6 +50,7 @@ public class EventService {
     private final RatingsRepository ratingsRepository;
     private final TargetDataRepository targetDataRepository;
     private final EventEnrollmentRepository eventEnrollmentRepository;
+    private final ClubServiceClient clubServiceClient;
 
     // ── Create ──────────────────────────────────────────────────────────────────
 
@@ -59,7 +63,8 @@ public class EventService {
             @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
             @CacheEvict(value = CacheConfig.EVENTS_BY_TARGET_DATA, allEntries = true),
             @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
-            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENT_COUNT_BY_CLUB, allEntries = true)
     })
     public EventResponse createEvent(EventRequest req, String prn) {
 
@@ -393,7 +398,8 @@ public class EventService {
             @CacheEvict(value = CacheConfig.EVENTS_BY_CREATOR, allEntries = true),
             @CacheEvict(value = CacheConfig.EVENTS_BY_ORGANIZER, allEntries = true),
             @CacheEvict(value = CacheConfig.EVENTS_BY_STATUS, allEntries = true),
-            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true)
+            @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
+            @CacheEvict(value = CacheConfig.EVENT_COUNT_BY_CLUB, allEntries = true)
     })
     public EventResponse updateEvent(Long eventId, UpdateEventRequest request, String prn, String role) {
         log.info("Attempting to update event with ID: {} by {}", eventId, prn);
@@ -458,7 +464,8 @@ public class EventService {
             @CacheEvict(value = CacheConfig.EVENTS_BY_ENROLLMENT_STATUS, allEntries = true),
             @CacheEvict(value = CacheConfig.MY_ENROLLMENTS, allEntries = true),
             @CacheEvict(value = CacheConfig.MY_ENROLLED_EVENTS, allEntries = true),
-            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId")
+            @CacheEvict(value = CacheConfig.ENROLLMENTS_FOR_EVENT, key = "#eventId"),
+            @CacheEvict(value = CacheConfig.EVENT_COUNT_BY_CLUB, allEntries = true)
     })
     public void deleteById(Long eventId) {
         log.info("Attempting to delete event with ID: {}", eventId);
@@ -501,9 +508,33 @@ public class EventService {
         eventRepository.save(event);
     }
 
-//    public Map<Long, Integer> getEventCountForClub() {
-//
-//    }
+    @Cacheable(value = CacheConfig.EVENT_COUNT_BY_CLUB, key = "'all'")
+    public Map<Long, Integer> getEventCountForClub() {
+        log.info("Fetching event count per club - Cache miss, loading from DB");
+
+        List<ClubResponse> clubResponses = clubServiceClient.getAllClubs();
+
+        // Single aggregated DB query — no full table scan
+        Map<String, Integer> countByOrganizerName = eventRepository
+                .countEventsByOrganizer()
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> ((String) row[0]),
+                        row -> ((Long) row[1]).intValue(),
+                        Integer::sum
+                ));
+
+        Map<Long, Integer> eventCountByClub = new HashMap<>();
+
+        clubResponses.forEach(club -> {
+            eventCountByClub.put(
+                    club.getClubId(),
+                    countByOrganizerName.getOrDefault(club.getClubName(), 0)
+            );
+        });
+
+        return eventCountByClub;
+    }
 
     // ── Private Helpers ─────────────────────────────────────────────────────────
 
@@ -531,29 +562,46 @@ public class EventService {
         if (events.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, eventsPage.getTotalElements());
         }
+
         List<String> creatorPrns = events.stream()
                 .map(Events::getEventCreator)
                 .distinct()
                 .collect(Collectors.toList());
+
         Map<String, ProfileResponse> profileMap = fetchProfilesMap(creatorPrns);
+
         List<Long> eventIds = events.stream()
                 .map(Events::getEventId)
                 .collect(Collectors.toList());
+
         List<TargetData> allTargetData = targetDataRepository.findByEvents_EventIdIn(eventIds);
+
         Map<Long, List<Long>> targetIdsMap = allTargetData.stream()
                 .collect(Collectors.groupingBy(
                         td -> td.getEvents().getEventId(),
                         Collectors.mapping(TargetData::getTargetId, Collectors.toList())
                 ));
+
+        // ── Batch fetch ratings (fixes N+1) ────────────────────────────────────
+        List<Ratings> ratingsList = ratingsRepository.findByEvent_EventIdIn(eventIds);
+
+        Map<Long, Ratings> ratingByEventId = ratingsList.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getEvent().getEventId(),
+                        Function.identity()
+                ));
+        // ───────────────────────────────────────────────────────────────────────
+
         List<EventResponse> responses = events.stream()
                 .map(event -> {
                     ProfileResponse profile = profileMap.get(event.getEventCreator());
                     String creatorName = profile != null ? profile.getFullName() : event.getEventCreator();
                     List<Long> targetIds = targetIdsMap.getOrDefault(event.getEventId(), List.of());
-                    Ratings ratings = ratingsRepository.findByEvent(event);
+                    Ratings ratings = ratingByEventId.get(event.getEventId()); // batch lookup
                     return EventMapper.toResponse(event, event.getEventCreator(), creatorName, targetIds, ratings);
                 })
                 .collect(Collectors.toList());
+
         return new PageImpl<>(responses, pageable, eventsPage.getTotalElements());
     }
 

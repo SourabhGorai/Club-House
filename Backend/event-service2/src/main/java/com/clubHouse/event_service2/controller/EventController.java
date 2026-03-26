@@ -439,6 +439,5 @@ public class EventController {
                 String.format("Successfully fetched events for all clubs %d", mapCount.size()),
                 mapCount
         ));
-
     }
 }
