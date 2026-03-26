@@ -6,7 +6,7 @@ package com.gateway.api_gateway.enums;
  */
 public enum Role {
     USERS("USERS"),           // Regular students
-    TEACHERS("TEACHERS"),     // Faculty members
+    FACULTY("FACULTY"),     // Faculty members
     SUPER_ADMIN("SUPER_ADMIN"); // System administrators
 
     private final String value;

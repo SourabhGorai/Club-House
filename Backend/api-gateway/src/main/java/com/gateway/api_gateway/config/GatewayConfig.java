@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * <p>
  * Available Roles:
  * - USERS: Regular students
- * - TEACHERS: Faculty members
+ * - FACULTY: Faculty members
  * - SUPER_ADMIN: System administrators
  */
 @Configuration
@@ -123,7 +123,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://USER-SERVICE"))
 
                 // ==================== PROFILE MANAGEMENT SERVICE ====================
@@ -136,7 +136,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
                 // Bulk operations - SUPER_ADMIN only
@@ -173,16 +173,16 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
-                // Statistics - TEACHERS and SUPER_ADMIN only
+                // Statistics - FACULTY and SUPER_ADMIN only
                 .route("profile-statistics", r -> r
                         .path("/api/profiles/statistics/**")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
                 // Administrative operations - SUPER_ADMIN only
@@ -199,7 +199,7 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
-                // Get all profiles - TEACHERS and SUPER_ADMIN
+                // Get all profiles - FACULTY and SUPER_ADMIN
                 .route("profile-get-all", r -> r
                         .path("/api/profiles")
                         .and()
@@ -207,7 +207,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
                 // Update profile - User can modify their own, SUPER_ADMIN can modify all
@@ -218,7 +218,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
                 .route("profile-modify", r -> r
@@ -237,7 +237,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://PROFILE-MANAGEMENT-SERVICE"))
 
                 // Validation endpoint - all authenticated
@@ -261,7 +261,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://INDEPENDENT-SERVICES"))
 
                 // Create/Delete departments - SUPER_ADMIN only
@@ -295,7 +295,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("USERS", "TEACHERS", "SUPER_ADMIN"))))
+                                        new AuthorizationFilter.Config("USERS", "FACULTY", "SUPER_ADMIN"))))
                         .uri("lb://CLUB-SERVICE2"))
 
                 // ==================== USER-CLUB SERVICE ====================
@@ -325,7 +325,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY"))))
                         .uri("lb://CLUB-SERVICE2"))
 
                 .route("user-club-all", r -> r
@@ -341,7 +341,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://CLUB-SERVICE2"))
 
                 // ==================== EVENT-SERVICE ====================
@@ -359,7 +359,7 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN"))))
                         .uri("lb://EVENT-SERVICE2"))
 
-                .route("event-teachers", r -> r
+                .route("event-FACULTY", r -> r
                         .path(
                                 "/api/events/create",
                                 "/api/events/myEvents",
@@ -378,7 +378,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 .route("event-all", r -> r
@@ -402,7 +402,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 .route("enrollment-all", r -> r
@@ -414,12 +414,12 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 // *********** ATTENDANCE ***********
 
-                .route("attendance-teachers", r -> r
+                .route("attendance-FACULTY", r -> r
                         .path(
                                 "/api/attendance/start/**",
                                 "/api/attendance/qr-code/**",
@@ -431,7 +431,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 .route("attendance-all", r -> r
@@ -445,7 +445,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 // ----------------------- RATINGS -----------------------
@@ -459,12 +459,12 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://EVENT-SERVICE2"))
 
                 // ==================== NOTIFICATION-SERVICE ====================
 
-                .route("notification-teachers", r -> r
+                .route("notification-FACULTY", r -> r
                         .path(
                                 "/api/notification/admin/**"
                         )
@@ -476,7 +476,7 @@ public class GatewayConfig {
                                         new AuthorizationFilter.Config("SUPER_ADMIN"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
-                .route("notification-teachers", r -> r
+                .route("notification-FACULTY", r -> r
                         .path(
                                 "/api/notification",
                                 "/api/notification/paged",
@@ -488,10 +488,10 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
-                .route("notification-teachers", r -> r
+                .route("notification-FACULTY", r -> r
                         .path(
                                 "/api/notification/{notificationId}",
                                 "/api/notification/{notificationId}/reactivate",
@@ -502,7 +502,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
                 .route("notification-all", r -> r
@@ -521,7 +521,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
                 .route("notification-all", r -> r
@@ -536,7 +536,7 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
-                                        new AuthorizationFilter.Config("SUPER_ADMIN", "TEACHERS", "USERS"))))
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
 

@@ -81,7 +81,7 @@ export const useFilteredUsersCount = () => {
             ? DARK_PRIMARY_COLOR
             : LIGHT_PRIMARY_COLOR;
 
-        if (user?.role === "TEACHERS") {
+        if (user?.role === "FACULTY") {
           const clubsResponse = await axios.get(
             `${BASE_URL}/api/user-clubs/user/${user.prn}`,
             { headers: { Authorization: `Bearer ${token}` } },
@@ -89,7 +89,7 @@ export const useFilteredUsersCount = () => {
 
           if (clubsResponse.data.success) {
             const teacherRoleClubs = clubsResponse.data.data.filter((club) =>
-              ["TEACHER", "TEACHERS"].includes(club.role.toUpperCase()),
+              ["TEACHER", "FACULTY"].includes(club.role.toUpperCase()),
             );
 
             let totalStudents = 0;
@@ -113,7 +113,7 @@ export const useFilteredUsersCount = () => {
           });
           if (response.data.success) {
             const nonTeacherUsers = response.data.data.filter(
-              (u) => u.role.toUpperCase() !== "TEACHERS",
+              (u) => u.role.toUpperCase() !== "FACULTY",
             );
             setCount(nonTeacherUsers.length);
           }
@@ -296,7 +296,7 @@ const UserRemoveFromClub = () => {
   const [selectedClub, setSelectedClub] = useState("");
   const [teacherPrn, setTeacherPrn] = useState("");
   const [teacherClubs, setTeacherClubs] = useState([]);
-  const [teacherStudents, setTeacherStudents] = useState([]);
+  const [FACULTYtudents, setFACULTYtudents] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
 
   // Edit role state
@@ -351,7 +351,7 @@ const UserRemoveFromClub = () => {
         if (res.data?.success) {
           // Filter out teacher roles so only student-level roles are shown
           const roles = (res.data.data || []).filter(
-            (r) => !["TEACHER", "TEACHERS"].includes(r.toUpperCase()),
+            (r) => !["TEACHER", "FACULTY"].includes(r.toUpperCase()),
           );
           setAvailableRoles(roles);
         }
@@ -408,7 +408,7 @@ const UserRemoveFromClub = () => {
       );
       if (response.data.success) {
         const teacherRoleClubs = response.data.data.filter((club) =>
-          ["TEACHER", "TEACHERS"].includes(club.role.toUpperCase()),
+          ["TEACHER", "FACULTY"].includes(club.role.toUpperCase()),
         );
         setTeacherClubs(teacherRoleClubs);
         fetchStudentsFromClubs(teacherRoleClubs);
@@ -437,11 +437,11 @@ const UserRemoveFromClub = () => {
           allStudents.push(...students);
         }
       }
-      setTeacherStudents(allStudents);
+      setFACULTYtudents(allStudents);
       await fetchProfileImages(allStudents);
     } catch (err) {
       console.error("Error fetching club students:", err);
-      setTeacherStudents([]);
+      setFACULTYtudents([]);
     }
   };
 
@@ -451,7 +451,7 @@ const UserRemoveFromClub = () => {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem("user"));
 
-      if (user?.role === "TEACHERS") {
+      if (user?.role === "FACULTY") {
         await fetchTeacherClubs(user.prn);
         setLoading(false);
         return;
@@ -462,7 +462,7 @@ const UserRemoveFromClub = () => {
       });
       if (response.data.success) {
         const nonTeacherUsers = response.data.data.filter(
-          (u) => u.role.toUpperCase() !== "TEACHERS",
+          (u) => u.role.toUpperCase() !== "FACULTY",
         );
         setUserClubs(nonTeacherUsers);
         setFilteredUsers(nonTeacherUsers);
@@ -480,7 +480,7 @@ const UserRemoveFromClub = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = teacherStudents.length > 0 ? teacherStudents : userClubs;
+    let filtered = FACULTYtudents.length > 0 ? FACULTYtudents : userClubs;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -502,12 +502,12 @@ const UserRemoveFromClub = () => {
       });
     }
     setFilteredUsers(filtered);
-  }, [searchTerm, selectedClub, userClubs, teacherStudents]);
+  }, [searchTerm, selectedClub, userClubs, FACULTYtudents]);
 
   // Reset to first page whenever filters change
   useEffect(() => {
     setCurrentPage(0);
-  }, [searchTerm, selectedClub, userClubs, teacherStudents]);
+  }, [searchTerm, selectedClub, userClubs, FACULTYtudents]);
 
   useEffect(() => {
     setExpandedMobileCard(null);

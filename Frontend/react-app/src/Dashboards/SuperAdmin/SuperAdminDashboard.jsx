@@ -1015,7 +1015,7 @@ export default function SuperAdminDashboard() {
               />
               <StatCard
                 title="Faculty"
-                count={stats.TEACHERS || 0}
+                count={stats.FACULTY || 0}
                 icon={Briefcase}
                 bgColor="rgba(59, 130, 246, 0.1)"
                 iconColor="#3B82F6"

@@ -79,7 +79,7 @@ public class UserClubController {
 
     // ── Original endpoints (untouched) ───────────────────────────────────────────
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/user/{prn}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserClubResponse>>> getUserClubs(
             @PathVariable @NotBlank(message = "PRN is required") String prn,
@@ -97,7 +97,7 @@ public class UserClubController {
         );
     }
 
-    // TEACHERS, SUPER_ADMIN
+    // FACULTY, SUPER_ADMIN
     @GetMapping("/user/{prn}/club-names")
     public ResponseEntity<ApiResponse<List<String>>> getUserClubNames(
             @PathVariable @NotBlank(message = "PRN is required") String prn) {

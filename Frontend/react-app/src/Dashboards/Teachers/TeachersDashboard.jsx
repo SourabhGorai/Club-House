@@ -32,7 +32,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
 
-export default function TeachersDashboard() {
+export default function FACULTYDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const navigate = useNavigate();

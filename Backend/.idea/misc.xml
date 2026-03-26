@@ -15,6 +15,7 @@
         <option value="$PROJECT_DIR$/user-service/pom.xml" />
         <option value="$PROJECT_DIR$/notification-service2/pom.xml" />
         <option value="$PROJECT_DIR$/event-service2/pom.xml" />
+        <option value="$PROJECT_DIR$/tnp/pom.xml" />
       </list>
     </option>
   </component>

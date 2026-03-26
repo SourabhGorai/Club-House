@@ -43,7 +43,7 @@ public class EventController {
 
     // ── Create ───────────────────────────────────────────────────────────────────
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @RequestBody EventRequest req,
@@ -71,7 +71,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/myEvents")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getMyEvents(
             HttpServletRequest request
@@ -111,7 +111,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/targetTypes")
     public ResponseEntity<ApiResponse<List<String>>> getTargetTypes() {
         log.info("REST received to fetch all the target types");
@@ -122,7 +122,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/getByTargetType/{targetType}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByTargetType(
             @PathVariable String targetType
@@ -136,7 +136,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/getByEventCreator/{prn}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByEventCreator(
             @PathVariable String prn
@@ -162,7 +162,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @GetMapping("/ratings/{rating}")
     public ResponseEntity<ApiResponse<List<EventResponse>>> getByRatings(
             @PathVariable int rating
@@ -235,7 +235,7 @@ public class EventController {
         ));
     }
 
-    // 2. SUPER_ADMIN, TEACHERS — GET /api/events/myEvents/paged?page=0&size=20
+    // 2. SUPER_ADMIN, FACULTY — GET /api/events/myEvents/paged?page=0&size=20
     @GetMapping("/myEvents/paged")
     public ResponseEntity<ApiResponse<PageResponse<EventResponse>>> getMyEventsPaged(
             HttpServletRequest request,
@@ -252,7 +252,7 @@ public class EventController {
         ));
     }
 
-    // 3. SUPER_ADMIN, TEACHERS — GET /api/events/getByTargetType/{targetType}/paged?page=0&size=20
+    // 3. SUPER_ADMIN, FACULTY — GET /api/events/getByTargetType/{targetType}/paged?page=0&size=20
     @GetMapping("/getByTargetType/{targetType}/paged")
     public ResponseEntity<ApiResponse<PageResponse<EventResponse>>> getByTargetTypePaged(
             @PathVariable String targetType,
@@ -269,7 +269,7 @@ public class EventController {
         ));
     }
 
-    // 4. SUPER_ADMIN, TEACHERS — GET /api/events/getByEventCreator/{prn}/paged?page=0&size=20
+    // 4. SUPER_ADMIN, FACULTY — GET /api/events/getByEventCreator/{prn}/paged?page=0&size=20
     @GetMapping("/getByEventCreator/{prn}/paged")
     public ResponseEntity<ApiResponse<PageResponse<EventResponse>>> getByEventCreatorPaged(
             @PathVariable String prn,
@@ -301,7 +301,7 @@ public class EventController {
         ));
     }
 
-    // 6. SUPER_ADMIN, TEACHERS — GET /api/events/ratings/{rating}/paged?page=0&size=20
+    // 6. SUPER_ADMIN, FACULTY — GET /api/events/ratings/{rating}/paged?page=0&size=20
     @GetMapping("/ratings/{rating}/paged")
     public ResponseEntity<ApiResponse<PageResponse<EventResponse>>> getByRatingsPaged(
             @PathVariable int rating,
@@ -369,7 +369,7 @@ public class EventController {
 
     // ── Write ─────────────────────────────────────────────────────────────────────
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @PostMapping("/completeEvent/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> markEventComplete(
             @PathVariable Long eventId,
@@ -385,7 +385,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS
+    // SUPER_ADMIN, FACULTY
     @DeleteMapping("/deleteEvent/{eventId}")
     public ResponseEntity<ApiResponse<String>> deleteEvent(@PathVariable Long eventId) {
         log.info("Request received to delete event with ID: {}", eventId);
@@ -396,7 +396,7 @@ public class EventController {
         ));
     }
 
-    // SUPER_ADMIN, TEACHERS (only event creator or admin)
+    // SUPER_ADMIN, FACULTY (only event creator or admin)
     @PutMapping("/updateEvent/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> updateEvent(
             @PathVariable Long eventId,

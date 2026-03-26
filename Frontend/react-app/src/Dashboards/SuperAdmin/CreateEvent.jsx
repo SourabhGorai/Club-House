@@ -1205,6 +1205,7 @@ import CustomSelect from "../../components/CustomSelect";
 import DateTimePicker from "../../components/Datetimepicker";
 import { useTheme } from "../../contexts/ThemeContext";
 import ThemedScrollbarStyles from "../../components/ThemedScrollbarStyles";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   Calendar,
   Clock,
@@ -1373,10 +1374,22 @@ export default function CreateEvent() {
   const [message, setMessage] = useState({ text: "", type: "" });
   const [selectedTargets, setSelectedTargets] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "primary",
+    confirmText: "OK",
+    cancelText: "Close",
+    onConfirm: () => {},
+  });
   const [enableAttendance, setEnableAttendance] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchingLocation, setSearchingLocation] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  const closeConfirm = () =>
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
 
   // Handle resize events
   useEffect(() => {
@@ -1719,7 +1732,38 @@ export default function CreateEvent() {
     }
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    return errors;
+  };
+
+  const getFieldLabel = (fieldKey) => {
+    const labels = {
+      title: "Event Title",
+      organizer: "Organizer",
+      eventDate: "Event Date & Time",
+      venue: "Venue",
+      enrollmentDeadline: "Enrollment Deadline",
+      contactEmail: "Contact Email",
+      targetIds: "Target Audience Selection",
+      attendanceWindow: "Attendance Window",
+      location: "Attendance Location",
+      radius: "Attendance Radius",
+      maxEnrollments: "Maximum Enrollments",
+    };
+    return labels[fieldKey] || fieldKey;
+  };
+
+  const getValidationSummaryMessage = (errors) => {
+    const requiredFieldKeys = Object.keys(errors).filter((key) => {
+      const msg = (errors[key] || "").toLowerCase();
+      return msg.includes("required") || msg.includes("please select at least one");
+    });
+
+    if (requiredFieldKeys.length > 0) {
+      const requiredFieldLabels = requiredFieldKeys.map(getFieldLabel);
+      return `Please fill the mandatory fields: ${requiredFieldLabels.join(", ")}.`;
+    }
+
+    return "Please fix the highlighted fields before creating the event.";
   };
 
   const sendEventNotification = async (eventId, eventTitle) => {
@@ -1774,8 +1818,28 @@ export default function CreateEvent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      setMessage({ text: "Please fill all required fields", type: "error" });
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      const validationMessage = getValidationSummaryMessage(errors);
+      setMessage({ text: validationMessage, type: "error" });
+
+      setConfirmDialog({
+        isOpen: true,
+        title: "Mandatory Fields Missing",
+        message: validationMessage,
+        confirmText: "OK",
+        cancelText: "Close",
+        variant: "primary",
+        onConfirm: closeConfirm,
+      });
+
+      const firstErrorKey = Object.keys(errors)[0];
+      const firstErrorField = document.querySelector(`[name="${firstErrorKey}"]`);
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstErrorField.focus();
+      }
+
       return;
     }
 
@@ -2956,6 +3020,18 @@ export default function CreateEvent() {
       </div>
 
       {/* Responsive Animations */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        isDarkMode={isDarkMode}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        cancelText={confirmDialog.cancelText}
+        variant={confirmDialog.variant}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={closeConfirm}
+      />
+
       <style>{`
         @keyframes blob {
           0%   { transform: translate(0px, 0px) scale(1); }

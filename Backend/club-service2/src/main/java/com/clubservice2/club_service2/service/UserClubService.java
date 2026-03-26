@@ -475,7 +475,7 @@ public class UserClubService {
                     return new UserClubNotFoundException(prn, sanitizedName);
                 });
         if (!requesterRole.equals("SUPER_ADMIN")
-                && !requesterRole.equals("TEACHERS")
+                && !requesterRole.equals("FACULTY")
                 && !ofThisClub(requesterPrn, userClub.getClub().getClubId())) {
             throw new RuntimeException("You are not authorized to delete members of this club.");
         }
@@ -589,7 +589,7 @@ public class UserClubService {
         UserClub user = userClubRepository.findByPrnAndClub_ClubId(prn, clubId);
         if (user == null) return false;
         String clubRole = user.getRole();
-        return clubRole.equals("TEACHERS") || clubRole.equals("CLUB_ADMIN");
+        return clubRole.equals("FACULTY") || clubRole.equals("CLUB_ADMIN");
     }
 
     private boolean ofThisClub(String prn, Long clubId) {
@@ -597,7 +597,7 @@ public class UserClubService {
         if (user == null) return false;
         String clubRole = user.getRole();
         return clubRole.equals("CLUB_ADMIN")
-                || clubRole.equals("TEACHERS")
+                || clubRole.equals("FACULTY")
                 || clubRole.equals("TEAM_MEMBERS");
     }
 

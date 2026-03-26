@@ -1,5 +1,5 @@
 import SuperAdminDashboard from "../Dashboards/SuperAdmin/SuperAdminDashboard";
-import TeachersDashboard from "../Dashboards/Teachers/TeachersDashboard";
+import FACULTYDashboard from "../Dashboards/Teachers/TeachersDashboard";
 import ClubAdminDashboard from "../Dashboards/ClubAdmin/ClubAdminDashboard";
 import UsersDashboard from "../Dashboards/Users/UsersDashboard";
 
@@ -16,8 +16,8 @@ export default function Dashboard() {
     switch (user.role) {
       case 'SUPER_ADMIN':
         return <SuperAdminDashboard />;
-      case 'TEACHERS':
-        return <TeachersDashboard />;
+      case 'FACULTY':
+        return <FACULTYDashboard />;
       case 'CLUB_ADMIN':
         return <ClubAdminDashboard />;
       case 'USERS':

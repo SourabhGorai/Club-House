@@ -123,7 +123,7 @@ const MembersModal = ({ isOpen, onClose, members, loading, clubName, profileImag
                         <span className={`text-xs font-bold uppercase ${
                           member.role === "CLUB_ADMIN"
                             ? "text-[#4CA1AF]"
-                            : member.role === "TEACHERS"
+                            : member.role === "FACULTY"
                             ? "text-green-600"
                             : "text-blue-600"
                         }`}>
@@ -218,7 +218,7 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel, isLoad
   );
 };
 
-const AssignTeacherModal = ({ isOpen, onClose, onAssign, teacherPrn, setTeacherPrn, teacherSearchResult, onSearchTeacher, teacherSearchLoading, assignTeacherLoading, theme }) => {
+const AssignTeacherModal = ({ isOpen, onClose, onAssign, teacherPrn, setTeacherPrn, FACULTYearchResult, onSearchTeacher, FACULTYearchLoading, assignTeacherLoading, theme }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all duration-300">
@@ -252,22 +252,22 @@ const AssignTeacherModal = ({ isOpen, onClose, onAssign, teacherPrn, setTeacherP
             />
             <button 
               onClick={onSearchTeacher} 
-              disabled={teacherSearchLoading || !teacherPrn.trim()} 
+              disabled={FACULTYearchLoading || !teacherPrn.trim()} 
               className="px-6 py-2.5 text-white font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
               style={{ background: theme.primaryGradient }}
             >
-              {teacherSearchLoading ? "..." : "Verify"}
+              {FACULTYearchLoading ? "..." : "Verify"}
             </button>
           </div>
         </div>
-        {teacherSearchResult && (
+        {FACULTYearchResult && (
           <div 
-            className={`mb-6 p-4 rounded-xl border ${teacherSearchResult.role === "TEACHERS" ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}
+            className={`mb-6 p-4 rounded-xl border ${FACULTYearchResult.role === "FACULTY" ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}
           >
-            <p className="font-bold text-gray-800">{teacherSearchResult.username || teacherSearchResult.name}</p>
-            <p className="text-xs text-gray-500 mb-2">{teacherSearchResult.email}</p>
-            <p className={`text-xs font-black uppercase tracking-wider ${teacherSearchResult.role === "TEACHERS" ? "text-green-600" : "text-red-600"}`}>
-              {teacherSearchResult.role} {teacherSearchResult.role !== "TEACHERS" && " (No Teacher with this prn)"}
+            <p className="font-bold text-gray-800">{FACULTYearchResult.username || FACULTYearchResult.name}</p>
+            <p className="text-xs text-gray-500 mb-2">{FACULTYearchResult.email}</p>
+            <p className={`text-xs font-black uppercase tracking-wider ${FACULTYearchResult.role === "FACULTY" ? "text-green-600" : "text-red-600"}`}>
+              {FACULTYearchResult.role} {FACULTYearchResult.role !== "FACULTY" && " (No Teacher with this prn)"}
             </p>
           </div>
         )}
@@ -286,11 +286,11 @@ const AssignTeacherModal = ({ isOpen, onClose, onAssign, teacherPrn, setTeacherP
           </button>
           <button 
             onClick={onAssign} 
-            disabled={!teacherSearchResult || teacherSearchResult.role !== "TEACHERS" || assignTeacherLoading} 
+            disabled={!FACULTYearchResult || FACULTYearchResult.role !== "FACULTY" || assignTeacherLoading} 
             className="px-8 py-2.5 text-sm font-bold text-white rounded-full transition-all shadow-lg cursor-pointer"
             style={{ 
               background: theme.primaryGradient,
-              opacity: (!teacherSearchResult || teacherSearchResult.role !== "TEACHERS" || assignTeacherLoading) ? 0.5 : 1 
+              opacity: (!FACULTYearchResult || FACULTYearchResult.role !== "FACULTY" || assignTeacherLoading) ? 0.5 : 1 
             }}
           >
             {assignTeacherLoading ? "Assigning..." : "Assign Teacher"}
@@ -433,8 +433,8 @@ export default function ManageClubs() {
   const [clubToDelete, setClubToDelete] = useState(null);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [teacherPrn, setTeacherPrn] = useState("");
-  const [teacherSearchResult, setTeacherSearchResult] = useState(null);
-  const [teacherSearchLoading, setTeacherSearchLoading] = useState(false);
+  const [FACULTYearchResult, setFACULTYearchResult] = useState(null);
+  const [FACULTYearchLoading, setFACULTYearchLoading] = useState(false);
   const [assignTeacherLoading, setAssignTeacherLoading] = useState(false);
   const [showAddClubModal, setShowAddClubModal] = useState(false);
   const [newClub, setNewClub] = useState({ name: "", clubDesc: "" });
@@ -645,26 +645,26 @@ export default function ManageClubs() {
   useEffect(() => { fetchClubs(); }, []);
 
   // ── Teacher ──
-  const handleOpenTeacherModal = () => { setShowTeacherModal(true); setTeacherPrn(""); setTeacherSearchResult(null); };
+  const handleOpenTeacherModal = () => { setShowTeacherModal(true); setTeacherPrn(""); setFACULTYearchResult(null); };
 
   const handleSearchTeacher = async () => {
     if (!teacherPrn.trim()) return;
-    setTeacherSearchLoading(true);
+    setFACULTYearchLoading(true);
     try {
       const response = await axios.get(`${BASE_URL}/api/users/${teacherPrn}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (response?.data && response.data.prn) { setTeacherSearchResult(response.data); }
-      else { setTeacherSearchResult({ notFound: true, message: "No such teacher found" }); }
+      if (response?.data && response.data.prn) { setFACULTYearchResult(response.data); }
+      else { setFACULTYearchResult({ notFound: true, message: "No such teacher found" }); }
     } catch (err) {
-      setTeacherSearchResult({ notFound: true, message: err.response?.status === 404 ? "No such teacher found" : "Error searching for teacher" });
-    } finally { setTeacherSearchLoading(false); }
+      setFACULTYearchResult({ notFound: true, message: err.response?.status === 404 ? "No such teacher found" : "Error searching for teacher" });
+    } finally { setFACULTYearchLoading(false); }
   };
 
   const handleAssignTeacher = async () => {
-    if (!teacherSearchResult || !selectedClub || teacherSearchResult.role !== "TEACHERS") return;
+    if (!FACULTYearchResult || !selectedClub || FACULTYearchResult.role !== "FACULTY") return;
     setAssignTeacherLoading(true);
     try {
       const currentYear = new Date().getFullYear();
-      const response = await axios.post(`${BASE_URL}/api/user-clubs`, { prn: teacherPrn, clubId: selectedClub.clubId, role: "TEACHERS", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${BASE_URL}/api/user-clubs`, { prn: teacherPrn, clubId: selectedClub.clubId, role: "FACULTY", tenure: `${currentYear}-${currentYear + 1}` }, { headers: { Authorization: `Bearer ${token}` } });
       if (response?.data?.success) { alert("Teacher assigned successfully!"); fetchAdminData(selectedClub.clubId); setShowTeacherModal(false); }
       else { alert("Failed to assign teacher."); }
     } catch (err) { alert("Error during assignment."); }
@@ -885,9 +885,9 @@ export default function ManageClubs() {
         onAssign={handleAssignTeacher} 
         teacherPrn={teacherPrn} 
         setTeacherPrn={setTeacherPrn} 
-        teacherSearchResult={teacherSearchResult} 
+        FACULTYearchResult={FACULTYearchResult} 
         onSearchTeacher={handleSearchTeacher} 
-        teacherSearchLoading={teacherSearchLoading} 
+        FACULTYearchLoading={FACULTYearchLoading} 
         assignTeacherLoading={assignTeacherLoading} 
         theme={theme}
       />

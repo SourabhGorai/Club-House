@@ -101,7 +101,7 @@
 //   catch { return "USER"; }
 // };
 // const isSuperAdmin = (r) => r === "SUPER_ADMIN";
-// const isTeacher    = (r) => ["TEACHER", "TEACHERS"].includes(r?.toUpperCase());
+// const isTeacher    = (r) => ["TEACHER", "FACULTY"].includes(r?.toUpperCase());
 
 // // ─────────────────────────────────────────────
 // // Shared sub-components
@@ -1216,7 +1216,7 @@
 //               <Plus size={15} /> New Notification
 //             </button>
 //           )}
-//           {/* Mark all read button lives inside MyNotificationsPanel for teachers */}
+//           {/* Mark all read button lives inside MyNotificationsPanel for FACULTY */}
 //         </div>
 //       }>
 //       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
@@ -1535,7 +1535,7 @@ const getRole = () => {
   catch { return "USER"; }
 };
 const isSuperAdmin = (r) => r === "SUPER_ADMIN";
-const isTeacher    = (r) => ["TEACHER", "TEACHERS"].includes(r?.toUpperCase());
+const isTeacher    = (r) => ["TEACHER", "FACULTY"].includes(r?.toUpperCase());
 
 // ─────────────────────────────────────────────
 // Shared sub-components with theme support

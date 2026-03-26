@@ -147,7 +147,7 @@ const RoleEditModal = ({ isOpen, onClose, user, currentRole, onSave, isUpdating,
   
   const roleOptions = [
     { value: "USERS", label: "User", bgClass: "bg-blue-400" },
-    { value: "TEACHERS", label: "Teacher", bgClass: "bg-teal-400" },
+    { value: "FACULTY", label: "Teacher", bgClass: "bg-teal-400" },
   ];
 
   useEffect(() => {
@@ -237,7 +237,7 @@ const FilterModal = ({ isOpen, onClose, departments, selectedDept, selectedYear,
   if (!isOpen) return null;
   const roles = [
     { label: "Users", value: "USERS" },
-    { label: "Teachers", value: "TEACHERS" },
+    { label: "FACULTY", value: "FACULTY" },
     { label: "Super Admin", value: "SUPER_ADMIN" },
   ];
   
@@ -474,7 +474,7 @@ const changeUserRole = async (prn, newRole, token) => {
 const getRoleBadgeClass = (role) => {
   switch (role) {
     case "SUPER_ADMIN": return "bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30";
-    case "TEACHERS":    return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
+    case "FACULTY":    return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
     case "USERS":       return "bg-blue-400 text-white font-bold shadow-md shadow-blue-400/30";
     default:            return "bg-gray-300 text-gray-700";
   }
@@ -831,7 +831,7 @@ const UserManagement = () => {
             >
               User Directory & Access Control
             </h1>
-            <p className="text-lg" style={{ color: theme.textSecondary }}>Manage all staff, teachers, and club administrators.</p>
+            <p className="text-lg" style={{ color: theme.textSecondary }}>Manage all staff, FACULTY, and club administrators.</p>
           </div>
 
           {/* Stats & filter bar */}
@@ -1243,7 +1243,7 @@ export default UserManagement;
   
 // //   const roleOptions = [
 // //     { value: "USERS", label: "User", bgClass: "bg-blue-400" },
-// //     { value: "TEACHERS", label: "Teacher", bgClass: "bg-teal-400" },
+// //     { value: "FACULTY", label: "Teacher", bgClass: "bg-teal-400" },
 // //     // { value: "SUPER_ADMIN", label: "Super Admin", color: "bg-purple-600", bgClass: "bg-purple-600" },
 // //   ];
 
@@ -1317,7 +1317,7 @@ export default UserManagement;
 //   // Filter out SUPER_ADMIN from role options
 //   const roleOptions = [
 //     { value: "USERS", label: "User", bgClass: "bg-blue-400" },
-//     { value: "TEACHERS", label: "Teacher", bgClass: "bg-teal-400" },
+//     { value: "FACULTY", label: "Teacher", bgClass: "bg-teal-400" },
 //   ];
 
 //   // Set the selected role when currentRole changes
@@ -1395,7 +1395,7 @@ export default UserManagement;
 //   if (!isOpen) return null;
 //   const roles = [
 //     { label: "Users", value: "USERS" },
-//     { label: "Teachers", value: "TEACHERS" },
+//     { label: "FACULTY", value: "FACULTY" },
 //     { label: "Super Admin", value: "SUPER_ADMIN" },
 //   ];
 //   return (
@@ -1581,7 +1581,7 @@ export default UserManagement;
 // const getRoleBadgeClass = (role) => {
 //   switch (role) {
 //     case "SUPER_ADMIN": return "bg-purple-600 text-white font-bold shadow-md shadow-purple-500/30";
-//     case "TEACHERS":    return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
+//     case "FACULTY":    return "bg-teal-400 text-white font-bold shadow-md shadow-teal-400/30";
 //     case "USERS":       return "bg-blue-400 text-white font-bold shadow-md shadow-blue-400/30";
 //     default:            return "bg-gray-300 text-gray-700";
 //   }
@@ -1881,7 +1881,7 @@ export default UserManagement;
 //             <h1 className="font-display text-4xl font-extrabold tracking-tight bg-gradient-to-r from-[#4CA1AF] to-[#315169] bg-clip-text text-transparent mb-2">
 //               User Directory & Access Control
 //             </h1>
-//             <p className="text-gray-500 text-lg">Manage all staff, teachers, and club administrators.</p>
+//             <p className="text-gray-500 text-lg">Manage all staff, FACULTY, and club administrators.</p>
 //           </div>
 
 //           {/* Stats & filter bar */}

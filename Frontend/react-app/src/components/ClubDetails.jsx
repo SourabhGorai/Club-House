@@ -93,7 +93,7 @@
 //                           className={`text-xs font-bold uppercase ${
 //                             member.role === "CLUB_ADMIN"
 //                               ? "text-[#4CA1AF]"
-//                               : member.role === "TEACHER" || member.role === "TEACHERS"
+//                               : member.role === "TEACHER" || member.role === "FACULTY"
 //                               ? "text-green-600"
 //                               : "text-blue-600"
 //                           }`}
@@ -378,7 +378,7 @@
 
 //   const isTeacher =
 //     userRole?.toUpperCase() === "TEACHER" ||
-//     userRole?.toUpperCase() === "TEACHERS";
+//     userRole?.toUpperCase() === "FACULTY";
 
 //   // Cleanup all blob URLs on unmount
 //   useEffect(() => {
@@ -1010,7 +1010,7 @@ const MembersModal = ({
                             member.role === "CLUB_ADMIN"
                               ? "text-[#4CA1AF]"
                               : member.role === "TEACHER" ||
-                                  member.role === "TEACHERS"
+                                  member.role === "FACULTY"
                                 ? "text-green-600"
                                 : "text-blue-600"
                           }`}
@@ -1506,7 +1506,7 @@ export default function ClubDetails() {
 
   const isTeacher =
     userRole?.toUpperCase() === "TEACHER" ||
-    userRole?.toUpperCase() === "TEACHERS";
+    userRole?.toUpperCase() === "FACULTY";
 
   // Cleanup all blob URLs on unmount
   useEffect(() => {

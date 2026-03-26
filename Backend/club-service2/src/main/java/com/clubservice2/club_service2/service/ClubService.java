@@ -179,17 +179,17 @@ public class ClubService {
 
         long totalCount = userClubRepository.countByClub_ClubId(clubId);
 
-        List<UserClub> teachers = userClubRepository.findByClubIdAndRole(clubId, "TEACHERS");
-        if (teachers.isEmpty()) {
-            teachers = userClubRepository.findByClubIdAndRole(clubId, "FACULTY");
+        List<UserClub> FACULTY = userClubRepository.findByClubIdAndRole(clubId, "FACULTY");
+        if (FACULTY.isEmpty()) {
+            FACULTY = userClubRepository.findByClubIdAndRole(clubId, "FACULTY");
         }
 
         String teacherPrn = null;
         String teacherName = "Not Assigned";
         String teacherDepartment = "No Department";
 
-        if (!teachers.isEmpty()) {
-            teacherPrn = teachers.get(0).getPrn();
+        if (!FACULTY.isEmpty()) {
+            teacherPrn = FACULTY.get(0).getPrn();
             log.debug("Found teacher with PRN: {}", teacherPrn);
             try {
                 ProfileSummaryResponse teacherProfile = profileServiceClient.getProfileSummary(teacherPrn);
