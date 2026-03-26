@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -427,4 +428,17 @@ public class EventController {
     }
 
     // need an endpoint to fetch total events for me (global, dept, club)
+    @GetMapping("/getEventCountForClub")
+    public ResponseEntity<ApiResponse<Map<Long, Integer>>> getEventCountForClub(){
+
+        log.info("Request received to fetch event counts for clubs");
+
+        Map<Long, Integer> mapCount = eventService.getEventCountForClub();
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Successfully fetched events for all clubs %d", mapCount.size()),
+                mapCount
+        ));
+
+    }
 }

@@ -501,6 +501,10 @@ public class EventService {
         eventRepository.save(event);
     }
 
+//    public Map<Long, Integer> getEventCountForClub() {
+//
+//    }
+
     // ── Private Helpers ─────────────────────────────────────────────────────────
 
     private Map<String, ProfileResponse> fetchProfilesMap(List<String> prns) {
