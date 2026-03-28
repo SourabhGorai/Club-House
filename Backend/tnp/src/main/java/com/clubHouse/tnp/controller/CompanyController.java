@@ -107,12 +107,15 @@ public class CompanyController {
     /**
      * GET /api/company/search/year?year=2025
      */
-    @GetMapping("/all/search/year")
+    @GetMapping("/all/search/session")
     public ResponseEntity<ApiResponse<List<CompanyResponse>>> getByVisitYear(
-            @RequestParam Integer year
+            @RequestParam String session
     ) {
-        log.info("Request received to fetch company records by visit year: {}", year);
-        return ResponseEntity.ok(ApiResponse.success("Records fetched successfully", companyService.getByAcademicSession(year)));
+        log.info("Request received to fetch company records by visit year: {}", session);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Records fetched successfully",
+                companyService.getByAcademicSession(session)
+        ));
     }
 
     /**
@@ -125,7 +128,10 @@ public class CompanyController {
             HttpServletRequest req
     ) {
         log.info("Request received to fetch company records by package range: {} - {}", min, max);
-        return ResponseEntity.ok(ApiResponse.success("Records fetched successfully", companyService.getByPackageRange(min, max)));
+        return ResponseEntity.ok(ApiResponse.success(
+                "Records fetched successfully",
+                companyService.getByPackageRange(min, max)
+        ));
     }
 
     /**
@@ -255,6 +261,20 @@ public class CompanyController {
         return ResponseEntity.ok(ApiResponse.success("Records fetched successfully",
                 companyService.combinedPackageResp(page, size, session)));
 
+    }
+
+    @GetMapping("/all/combinedPackage")
+    public ResponseEntity<ApiResponse<List<CombinedResponse>>> getAllCombinedPackages(
+            @RequestParam String session
+    ) {
+        log.info("Request received to fetch ALL combined company data for session: {}", session);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "All records fetched successfully",
+                        companyService.getAllCombinedPackages(session)
+                )
+        );
     }
 
     /**

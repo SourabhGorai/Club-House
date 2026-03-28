@@ -3575,6 +3575,7 @@ const TeacherEvents = () => {
               checkAllEventsAttendance();
             }}
             theme={theme}
+            isDarkMode={isDarkMode}
           />
         )}
 

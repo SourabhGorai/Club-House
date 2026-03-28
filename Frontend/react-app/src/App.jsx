@@ -196,6 +196,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
       </Routes>
     </div>
   );

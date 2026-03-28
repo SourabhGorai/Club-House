@@ -470,9 +470,15 @@ const MONTHS = [
 const parseValue = (v) => {
   if (!v || typeof v !== "string") return null;
   const [datePart, timePart] = v.split("T");
-  if (!datePart || !timePart) return null;
+  if (!datePart) return null;
   const [year, month, day] = datePart.split("-").map(Number);
-  const [hour, minute]     = timePart.split(":").map(Number);
+  let hour = 0;
+  let minute = 0;
+
+  if (timePart) {
+    [hour, minute] = timePart.split(":").map(Number);
+  }
+
   if ([year, month, day, hour, minute].some((x) => Number.isNaN(x))) return null;
   return { year, month, day, hour, minute };
 };
@@ -494,6 +500,7 @@ const DateTimePicker = ({
   minValue    = "",
   maxValue    = "",
   className   = "",
+  dateOnly    = false,
   theme, // ← theme prop
 }) => {
   const parsed    = parseValue(value);
@@ -570,6 +577,12 @@ const DateTimePicker = ({
       minute: pending != null ? pending.minute : 0,
     };
     setPending(next);
+    if (dateOnly) {
+      onChange?.(`${y}-${pad(m)}-${pad(d)}`);
+      setOpen(false);
+      setView("calendar");
+      return;
+    }
     setView("time");
   };
 
@@ -589,7 +602,9 @@ const DateTimePicker = ({
   };
 
   const displayText = parsed
-    ? `${MONTHS[parsed.month - 1].slice(0, 3)} ${pad(parsed.day)}, ${parsed.year}  ${pad(parsed.hour)}:${pad(parsed.minute)}`
+    ? dateOnly
+      ? `${MONTHS[parsed.month - 1].slice(0, 3)} ${pad(parsed.day)}, ${parsed.year}`
+      : `${MONTHS[parsed.month - 1].slice(0, 3)} ${pad(parsed.day)}, ${parsed.year}  ${pad(parsed.hour)}:${pad(parsed.minute)}`
     : "";
 
   const totalDays = daysInMonth(navYear, navMonth);
@@ -648,7 +663,7 @@ const DateTimePicker = ({
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-          <span className={`truncate ${displayText ? "" : "opacity-60"}`} style={{ color: displayText ? theme?.textPrimary : theme?.textMuted }}>
+          <span className={`truncate ${displayText ? "" : "opacity-60"}`} style={{ color: displayText ? theme?.textPrimary : theme?.textMuted, padding: "2px 6px" }}>
             {displayText || placeholder}
           </span>
         </div>
@@ -691,33 +706,35 @@ const DateTimePicker = ({
           }}
         >
           {/* Tab bar */}
-          <div className="flex border-b" style={{ borderColor: theme?.borderColor }}>
-            {[
-              { id: "calendar", icon: <Calendar className="w-3.5 h-3.5" />, label: "Date" },
-              { id: "time",     icon: <Clock     className="w-3.5 h-3.5" />, label: "Time" },
-            ].map(({ id, icon, label }) => (
-              <button key={id} type="button" onClick={() => setView(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-all duration-200 ${view === id ? "text-white" : ""}`}
-                style={view === id 
-                  ? { background: GRAD } 
-                  : { color: theme?.textSecondary, background: theme?.accentSoft }}
-                onMouseEnter={(e) => {
-                  if (view !== id) {
-                    e.currentTarget.style.background = theme?.accentSoft;
-                    e.currentTarget.style.color = theme?.textPrimary;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (view !== id) {
-                    e.currentTarget.style.background = theme?.accentSoft;
-                    e.currentTarget.style.color = theme?.textSecondary;
-                  }
-                }}
-              >
-                {icon}{label}
-              </button>
-            ))}
-          </div>
+          {!dateOnly && (
+            <div className="flex border-b" style={{ borderColor: theme?.borderColor }}>
+              {[
+                { id: "calendar", icon: <Calendar className="w-3.5 h-3.5" />, label: "Date" },
+                { id: "time",     icon: <Clock     className="w-3.5 h-3.5" />, label: "Time" },
+              ].map(({ id, icon, label }) => (
+                <button key={id} type="button" onClick={() => setView(id)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-all duration-200 ${view === id ? "text-white" : ""}`}
+                  style={view === id 
+                    ? { background: GRAD } 
+                    : { color: theme?.textSecondary, background: theme?.accentSoft }}
+                  onMouseEnter={(e) => {
+                    if (view !== id) {
+                      e.currentTarget.style.background = theme?.accentSoft;
+                      e.currentTarget.style.color = theme?.textPrimary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (view !== id) {
+                      e.currentTarget.style.background = theme?.accentSoft;
+                      e.currentTarget.style.color = theme?.textSecondary;
+                    }
+                  }}
+                >
+                  {icon}{label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Calendar view */}
           {view === "calendar" && (
@@ -773,21 +790,23 @@ const DateTimePicker = ({
                 })}
               </div>
 
-              <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor: theme?.borderColor }}>
-                <span className="text-xs" style={{ color: theme?.textMuted }}>
-                  {pending ? `${pad(pending.hour)}:${pad(pending.minute)} selected` : "Pick a date to continue"}
-                </span>
-                <button type="button" disabled={!pending} onClick={() => setView("time")}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
-                  style={{ background: GRAD }}>
-                  Set Time →
-                </button>
-              </div>
+              {!dateOnly && (
+                <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor: theme?.borderColor }}>
+                  <span className="text-xs" style={{ color: theme?.textMuted }}>
+                    {pending ? `${pad(pending.hour)}:${pad(pending.minute)} selected` : "Pick a date to continue"}
+                  </span>
+                  <button type="button" disabled={!pending} onClick={() => setView("time")}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
+                    style={{ background: GRAD }}>
+                    Set Time →
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {/* Time view */}
-          {view === "time" && (
+          {!dateOnly && view === "time" && (
             <div className="p-3">
               {pending && (
                 <div className="mb-3 px-3 py-2 rounded-xl text-center text-xs font-medium text-white" style={{ background: GRAD }}>

@@ -2602,6 +2602,7 @@ const MyEventsForSuperadmin = () => {
             onClose={() => { setShowEditModal(false); setEditingEvent(null); }}
             onSuccess={() => { loadPage(descriptorRef.current, currentPage); checkAllEventsAttendance(); }}
             theme={theme}
+            isDarkMode={isDarkMode}
           />
         )}
       </div>

@@ -31,10 +31,10 @@ public class Tnp implements Serializable {
     @Enumerated(EnumType.STRING)
     private TnpRoles role;
 
-    @NotBlank(message = "Start cannot be blank")
+    @NotNull(message = "Start cannot be blank")
     private LocalDateTime startDate;
 
-    @NotBlank(message = "End cannot be blank")
+    @NotNull(message = "End cannot be blank")
     private LocalDateTime endDate;
 
     @CreationTimestamp
@@ -43,6 +43,7 @@ public class Tnp implements Serializable {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     private boolean isActive = true;
 
     public void Activate(){

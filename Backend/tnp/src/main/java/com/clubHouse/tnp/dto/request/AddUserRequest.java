@@ -2,12 +2,12 @@ package com.clubHouse.tnp.dto.request;
 
 import com.clubHouse.tnp.model.TnpRoles;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -21,12 +21,12 @@ public class AddUserRequest {
     @Pattern(regexp = "^[A-Z0-9]+$", message = "PRN must contain only uppercase letters and numbers")
     private String prn;
 
-    @NotBlank(message = "Role is required")
+    @NotNull(message = "Role is required")
     private TnpRoles role;
 
-    @NotBlank(message = "startDate is required")
+    @NotNull(message = "startDate is required")
     private LocalDateTime startDate;
 
-    @NotBlank(message = "End Date is required")
+    @NotNull(message = "End Date is required")
     private LocalDateTime endDate;
 }

@@ -367,7 +367,9 @@ export default function CustomSelect({
           }
         }}
       >
-        <span className="truncate">{selected ? selected.label : placeholder}</span>
+        <span className="truncate" style={{ padding: "2px 6px" }}>
+          {selected ? selected.label : placeholder}
+        </span>
         <svg
           className={`w-4 h-4 flex-shrink-0 ml-2 transition-transform duration-200 ${
             open ? "rotate-180" : ""

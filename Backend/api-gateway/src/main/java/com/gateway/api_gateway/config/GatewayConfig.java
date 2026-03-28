@@ -587,7 +587,7 @@ public class GatewayConfig {
                                 "/api/visitYear/all/**"
                         )
                         .and()
-                        .method( "POST", "DELETE")
+                        .method( "POST", "DELETE", "GET")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
@@ -621,6 +621,22 @@ public class GatewayConfig {
                                 .filter(authorizationFilter.apply(
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://TNP"))
+
+                // ---------------------------- CompanyMaster ----------------------------
+
+                .route("placement-all", r -> r
+                        .path(
+                                "/api/companyMaster/all/**"
+                        )
+                        .and()
+                        .method( "GET", "POST", "DELETE", "PUT" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+
 
                 .build();
     }

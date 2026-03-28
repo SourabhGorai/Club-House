@@ -162,8 +162,9 @@ public class CompanyService {
                 .findByIndustry(resolveIndustry(sanitizedName)));
     }
 
-    public List<CompanyResponse> getByAcademicSession(Integer year) {
-        VisitYear academicSession = resolveAcademicSession(year);
+    public List<CompanyResponse> getByAcademicSession(String session) {
+//        VisitYear academicSession = resolveAcademicSession(year);
+        VisitYear academicSession = visitYearRepository.findByAcademicSession(session).orElseThrow();
         log.info("Fetching company records by visit year: {}", academicSession.getAcademicSession());
         return CompanyMapper.toResponseList(companyRepository.findByAcademicSession(academicSession));
     }
@@ -330,6 +331,31 @@ public class CompanyService {
                 .last(toIndex >= total)
                 .build();
     }
+
+
+    public List<CombinedResponse> getAllCombinedPackages(String session) {
+
+        log.info("Fetching ALL combined package data for session: {}", session);
+
+        VisitYear visitYear = resolveAcademicSession(
+                Integer.parseInt(session.split("-")[0])
+        );
+
+        List<Company> all = companyRepository.findByAcademicSession(visitYear);
+
+        Map<String, List<Company>> grouped = all.stream()
+                .collect(Collectors.groupingBy(c ->
+                        c.getName() + "||" +
+                                (c.getIndustry() != null ? c.getIndustry().getName() : "")
+                ));
+
+        return grouped.entrySet().stream()
+                .map(entry -> CompanyMapper.toCombinedResponse(entry.getKey(), entry.getValue()))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(CombinedResponse::getName))
+                .toList();
+    }
+
 
     public PagedResponse<CompanyResponse> getByNamePaged(String name, int page, int size) {
         log.info("Fetching company records by name: {} - page: {}, size: {}", name, page, size);

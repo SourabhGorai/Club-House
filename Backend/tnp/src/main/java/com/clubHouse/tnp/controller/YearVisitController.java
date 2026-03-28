@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +28,16 @@ public class YearVisitController {
         VisitYearResponse resp = yearVisitService.addYear(year);
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully added academic session",
+                resp
+        ));
+    }
+
+    @GetMapping("/all/getAllSessions")
+    public ResponseEntity<ApiResponse<List<VisitYearResponse>>> getAll(){
+        log.info("Request received to fetch all sessions");
+        List<VisitYearResponse> resp = yearVisitService.getAll();
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Fetched %d sessions", resp.size()),
                 resp
         ));
     }

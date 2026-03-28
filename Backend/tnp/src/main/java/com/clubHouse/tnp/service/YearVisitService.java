@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -48,6 +49,15 @@ public class YearVisitService {
     }
 
 
+    public List<VisitYearResponse> getAll() {
+
+        log.info("Attempting to fetch all sessions");
+        List<VisitYear> visits = visitYearRepository.findAll();
+        return VisitYearMapper.toResponseList(visits);
+
+    }
+
+
     public void delete(Long yearId, String prn, String role){
         log.info("Attempting to delete academic session with id: {}", yearId);
         if(!role.equals("SUPER_ADMIN") && !authorize(prn)){
@@ -74,5 +84,4 @@ public class YearVisitService {
                 user.getRole() == TnpRoles.PRESIDENT ||
                 user.getRole() == TnpRoles.VICE_PRESIDENT;
     }
-
 }
