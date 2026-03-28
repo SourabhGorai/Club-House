@@ -24,7 +24,7 @@ public class IndustryController {
     private String prn(HttpServletRequest r)  { return jwtService.extractPrnFromHeaders(r); }
     private String role(HttpServletRequest r) { return jwtService.extractRoleFromHeaders(r); }
 
-    @PostMapping("/add/{industry}")
+    @PostMapping("/all/add/{industry}")
     public ResponseEntity<ApiResponse<IndustryResponse>> add(@PathVariable String industry) {
 
         log.info("Request received to add new industry");
@@ -36,7 +36,7 @@ public class IndustryController {
 
     }
 
-    @PostMapping("/addBulk")
+    @PostMapping("/all/addBulk")
     public ResponseEntity<ApiResponse<List<IndustryResponse>>> addBulk(
             @RequestBody List<String> industries
     ) {
@@ -50,14 +50,15 @@ public class IndustryController {
 
     }
 
-    @PutMapping("/udpate/{industryId}/{name}")
+    @PutMapping("/all/udpate/{industryId}/{name}")
     public ResponseEntity<ApiResponse<IndustryResponse>> update(
             @PathVariable Long industryId,
-            @PathVariable String name
+            @PathVariable String name,
+            HttpServletRequest http
     ) {
 
         log.info("Request received to update industry with ID: {}", industryId);
-        IndustryResponse resp = industryService.update(industryId, name);
+        IndustryResponse resp = industryService.update(industryId, name, prn(http), role(http));
         return ResponseEntity.ok(ApiResponse.success(
                 "Successfully updated",
                 resp
@@ -65,7 +66,7 @@ public class IndustryController {
 
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/all/delete/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long id,
             HttpServletRequest request
@@ -79,7 +80,7 @@ public class IndustryController {
 
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all/getAll")
     public ResponseEntity<ApiResponse<List<IndustryResponse>>> getAll(){
 
         log.info("Request received to fetch all industry ");
@@ -91,7 +92,7 @@ public class IndustryController {
 
     }
 
-    @GetMapping("/id/{id}")
+    @GetMapping("/all/id/{id}")
     public ResponseEntity<ApiResponse<IndustryResponse>> getById(@PathVariable Long id){
 
         log.info("Request received to fetch industry by Id: {}", id);

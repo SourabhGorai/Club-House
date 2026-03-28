@@ -1039,6 +1039,16 @@ export default function UsersDashboard() {
                     disabled={!isVerified}
                     theme={theme}
                   />
+                  <ActionCard
+                    icon={<ShieldCheck size={20} className="sm:w-6 sm:h-6" />}
+                    label="TNP"
+                    color="orange"
+                    onClick={() =>
+                      handleRestrictedAction(() => navigate("/tnp"))
+                    }
+                    disabled={!isVerified}
+                    theme={theme}
+                  />
                   {/* <ActionCard
                     icon={<Settings size={24} />}
                     label="Settings"

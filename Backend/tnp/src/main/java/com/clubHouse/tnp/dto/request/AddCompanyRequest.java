@@ -21,9 +21,7 @@ public class AddCompanyRequest {
     @NotNull(message = "Package is required")
     private Double packageOffered;
 
-    @NotNull(message = "Visiting year is required")
-    private Integer visitYear; // 2025, 2026
-
+    @NotNull(message = "Session is required")
     private Integer academicSession; // 2025 - it will automatically do it to 2025 - 26
 
     private Integer studentsHired;

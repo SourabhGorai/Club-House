@@ -18,6 +18,7 @@ public class PlacementResponse {
     private String studentName;
     private String department;
     private Integer year;
+    private String imageUrl;
  
     // Company snapshot
     private Long companyId;

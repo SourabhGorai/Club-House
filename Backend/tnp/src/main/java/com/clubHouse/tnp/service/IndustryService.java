@@ -117,9 +117,15 @@ public class IndustryService {
     }
 
 
-    public IndustryResponse update(Long industryId, String name) {
+    public IndustryResponse update(
+            Long industryId, String name, String prn, String role
+    ) {
 
         log.info("Attempting to update industry with id: {}", industryId);
+        if(!role.equals("SUPER_ADMIN") && !authorize(prn)){
+            throw new UnauthorizedException("Not Authorized to delete Industry");
+        }
+
         Industry industry = industryRepository.findById(industryId).orElseThrow();
         industry.setName(IndustryMapper.sanitizeIndustry(name));
         try{

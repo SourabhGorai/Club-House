@@ -41,7 +41,8 @@ public class TnpController {
         return PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "id"));
     }
 
-    @PostMapping("/add")
+
+    @PostMapping("/all/add")
     public ResponseEntity<ApiResponse<UserTnpResponse>> addUserToTnp(
             @Valid @RequestBody AddUserRequest request,
             HttpServletRequest req
@@ -57,7 +58,8 @@ public class TnpController {
                 .body(ApiResponse.success("User added to club successfully", response));
     }
 
-    @PostMapping("/bulkAdd")
+
+    @PostMapping("/all/bulkAdd")
     public ResponseEntity<ApiResponse<BulkUserTnpResponse>> addUsersToTnpBulk(
             @Valid @RequestBody BulkUserTnpRequest request,
             HttpServletRequest req
@@ -76,7 +78,7 @@ public class TnpController {
 
     // ── Original endpoints (untouched) ───────────────────────────────────────────
 
-    @GetMapping("/getByPrn/{prn")
+    @GetMapping("/all/getByPrn/{prn}")
     public ResponseEntity<ApiResponse<ProfileEnrichedUserResponse>> getByPrn(
             @PathVariable String prn
     ) {
@@ -91,7 +93,7 @@ public class TnpController {
     }
 
     // SUPER_ADMIN
-    @GetMapping("/getAll/{activeStatus}")
+    @GetMapping("/all/getAll/{activeStatus}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserResponse>>> getAllTnpMembers(
             @PathVariable boolean activeStatus
     ) {
@@ -106,7 +108,7 @@ public class TnpController {
         );
     }
 
-    @GetMapping("/club/year/{year}")
+    @GetMapping("/all/club/year/{year}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserResponse>>> getClubMembersByYear(
             @PathVariable @NotNull(message = "Year is required") Integer year) {
         log.debug("Request received to fetch members filtered by year {}", year);
@@ -121,7 +123,7 @@ public class TnpController {
     }
 
     // SUPER_ADMIN
-    @DeleteMapping("/permanentlyDelete/{prn}")
+    @DeleteMapping("/tr/permanentlyDelete/{prn}")
     public void permanentlyDelete(
             @PathVariable String prn,
             HttpServletRequest req
@@ -132,7 +134,7 @@ public class TnpController {
         tnpService.permanentlyDelete(prn, requesterPrn, role);
     }
 
-    @GetMapping("/getAllByRole/{role}")
+    @GetMapping("/all/getAllByRole/{role}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserResponse>>> getAllByRole(
             @PathVariable String role
     ) {
@@ -146,8 +148,7 @@ public class TnpController {
 
     // ── Paginated endpoints (new — /paged suffix) ─────────────────────────────────
 
-    // 1. SUPER_ADMIN — GET /api/user-clubs/getAll/paged?page=0&size=20
-    @GetMapping("/getAll/paged")
+    @GetMapping("/all/getAll/paged")
     public ResponseEntity<ApiResponse<PageResponse<ProfileEnrichedUserResponse>>> getAllUserClubAssociationsPaged(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
@@ -165,7 +166,7 @@ public class TnpController {
     }
 
     // 2. GET /api/user-clubs/club/{clubName}/year/{year}/paged?page=0&size=20
-    @GetMapping("/year/{year}/paged")
+    @GetMapping("/all/year/{year}/paged")
     public ResponseEntity<ApiResponse<PageResponse<ProfileEnrichedUserResponse>>> getClubMembersByYearPaged(
             @PathVariable @NotNull(message = "Year is required") Integer year,
             @RequestParam(defaultValue = "0") int page,
@@ -187,7 +188,7 @@ public class TnpController {
 
     // *******************************************************************************
 
-    @GetMapping("/getAllClubRoles")
+    @GetMapping("/all/getAllClubRoles")
     public ResponseEntity<ApiResponse<List<String>>> getAllClubRoles(){
         log.debug("Request received to fetch all the club roles");
         List<String> roles = tnpService.getAllClubRoles();
@@ -197,7 +198,7 @@ public class TnpController {
         ));
     }
 
-    @PutMapping("/changeClubRole")
+    @PutMapping("/tr/changeClubRole")
     public ResponseEntity<ApiResponse<Void>> changeRoleTenure(
             @Valid @RequestBody RoleTenureChangeRequest req,
             HttpServletRequest httpReq

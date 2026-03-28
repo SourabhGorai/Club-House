@@ -92,4 +92,11 @@ public interface PlacementRepository extends JpaRepository<Placement, Long> {
             WHERE s.academicSession = :session
             """)
     Double maxPackageByAcademicSession(@Param("session") String academicSession);
+
+    @Query("""
+    SELECT p.company.companyId, COUNT(p)
+    FROM Placement p
+    GROUP BY p.company.companyId
+""")
+    List<Object[]> countStudentsGroupedByCompany();
 }

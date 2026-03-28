@@ -21,6 +21,7 @@ import PreviousEvents from "./Dashboards/Users/PreviousEvents";
 import MyEventsForSuperadmin from "./Dashboards/SuperAdmin/MyEventsForSuperadmin";
 import SuperAdminDashboard from "./Dashboards/SuperAdmin/SuperAdminDashboard"; // Add this import
 import CreateEvent from "./Dashboards/SuperAdmin/CreateEvent";
+import Tnp from "./components/Tnp";
 
 export default function App() {
   return (
@@ -183,6 +184,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <PreviousEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tnp"
+          element={
+            <ProtectedRoute>
+              <Tnp />
             </ProtectedRoute>
           }
         />

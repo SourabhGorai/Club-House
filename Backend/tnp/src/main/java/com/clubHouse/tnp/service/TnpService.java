@@ -301,6 +301,13 @@ public class TnpService {
 
         log.info("Attempting to change the role & tenure of the user with prn: {}", req.getPrn());
 
+        if(req.getNewRole() == TnpRoles.TNP_HEAD && !role.equals("SUPER_ADMIN")){
+            throw new UnauthorizedException(
+                    String.format("Only SUPER_ADMIN can assign TNP_HEAD. Your role: %s",
+                            role)
+            );
+        }
+
         if (!role.equals("SUPER_ADMIN")) {
             Tnp requester = tnpRepository.findByPrn(prn);
             if (requester == null) {

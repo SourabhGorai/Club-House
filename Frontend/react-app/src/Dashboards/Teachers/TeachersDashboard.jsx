@@ -2,6 +2,7 @@ import { useFilteredUsersCount } from "./UserRemoveFromClub";
 import {
   Calendar,
   Trophy,
+  Briefcase,
   Users,
   User,
   Upload,
@@ -902,6 +903,13 @@ export default function FACULTYDashboard() {
                     label="Clubs" 
                     color="teal" 
                     onClick={() => navigate("/manage-clubs")} 
+                    theme={theme}
+                  />
+                  <ActionCard
+                    icon={<Briefcase size={20} className="sm:w-6 sm:h-6" />}
+                    label="TNP"
+                    color="orange"
+                    onClick={() => navigate("/tnp")}
                     theme={theme}
                   />
                   <button

@@ -131,4 +131,6 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
             @Param("minHired") Integer minHired,
             Pageable pageable
     );
+
+    List<Company> findByAcademicSession_AcademicSession(String session);
 }

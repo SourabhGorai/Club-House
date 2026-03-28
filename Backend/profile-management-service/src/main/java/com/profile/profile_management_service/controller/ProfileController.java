@@ -43,7 +43,7 @@ public class ProfileController {
      * Create a new user profile
      * POST /api/profiles
      */
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<ProfileResponse>> createProfile(
             @Valid @RequestBody ProfileCreateRequest request) {
 

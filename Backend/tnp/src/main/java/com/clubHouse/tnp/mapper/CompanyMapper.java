@@ -1,11 +1,13 @@
 package com.clubHouse.tnp.mapper;
 
+import com.clubHouse.tnp.dto.response.CombinedResponse;
 import com.clubHouse.tnp.dto.response.CompanyResponse;
 import com.clubHouse.tnp.model.Company;
 
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CompanyMapper {
@@ -81,6 +83,35 @@ public class CompanyMapper {
                 .academicSession(company.getAcademicSession() != null ?
                         company.getAcademicSession().getAcademicSession() : null)
                 .studentsHired(company.getStudentsHired())
+                .build();
+    }
+
+    public static CombinedResponse toCombinedResponse(String name, List<Company> companies) {
+        if (companies == null || companies.isEmpty()) return null;
+
+        Company first = companies.get(0);
+
+        List<Double> packages = companies.stream()
+                .map(Company::getPackageOffered)
+                .distinct()
+                .sorted()
+                .toList();
+
+        // Sum up students hired across all entries for this company
+        Integer totalHired = companies.stream()
+                .map(Company::getStudentsHired)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        return CombinedResponse.builder()
+                .companyId(first.getCompanyId())
+                .name(first.getName())
+                .industry(first.getIndustry() != null ? first.getIndustry().getName() : null)
+                .packageOffered(packages)
+                .academicSession(first.getAcademicSession() != null ?
+                        first.getAcademicSession().getAcademicSession() : null)
+                .studentsHired(totalHired)
                 .build();
     }
 }

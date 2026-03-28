@@ -531,14 +531,96 @@ public class GatewayConfig {
 
                         )
                         .and()
-                        .method("PATCH" +
-                                "")
+                        .method("PATCH")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(authorizationFilter.apply(
                                         new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
                         .uri("lb://NOTIFICATION-SERVICE2"))
 
+                // ==================== TRAINING & PLACEMENT CELL ====================
+
+                // ------------------------------- TNP -------------------------------
+
+                .route("TNP-teacher", r -> r
+                        .path(
+                                "/api/tnp/tr**"
+                        )
+                        .and()
+                        .method("DELETE", "PUT" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+                .route("TNP-all", r -> r
+                        .path(
+                                "/api/tnp/all/**"
+                        )
+                        .and()
+                        .method( "GET", "POST" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+                // ---------------------------- INDUSTRY ----------------------------
+
+                .route("industry-all", r -> r
+                        .path(
+                                "/api/industry/all/**"
+                        )
+                        .and()
+                        .method( "GET", "POST", "DELETE", "PUT" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+                // ---------------------------- Visit Year ----------------------------
+
+                .route("visitYear-all", r -> r
+                        .path(
+                                "/api/visitYear/all/**"
+                        )
+                        .and()
+                        .method( "POST", "DELETE")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+                // ---------------------------- Company ----------------------------
+
+                .route("company-all", r -> r
+                        .path(
+                                "/api/company/all/**"
+                        )
+                        .and()
+                        .method( "GET", "POST", "DELETE", "PUT" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
+
+                // ---------------------------- Placement ----------------------------
+
+                .route("placement-all", r -> r
+                        .path(
+                                "/api/placements/all/**"
+                        )
+                        .and()
+                        .method( "GET", "POST", "DELETE", "PUT" )
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(authorizationFilter.apply(
+                                        new AuthorizationFilter.Config("SUPER_ADMIN", "FACULTY", "USERS"))))
+                        .uri("lb://TNP"))
 
                 .build();
     }

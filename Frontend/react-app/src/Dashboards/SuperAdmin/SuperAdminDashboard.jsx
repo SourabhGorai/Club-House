@@ -1103,6 +1103,13 @@ export default function SuperAdminDashboard() {
                   bgColor="rgba(6, 182, 212, 0.1)"
                   iconColor="#06B6D4"
                 />
+                <BigActionButton
+                  label="TNP"
+                  icon={Briefcase}
+                  onClick={() => navigate("/tnp")}
+                  bgColor="rgba(217, 119, 6, 0.1)"
+                  iconColor="#D97706"
+                />
                 <NotificationActionButton />
               </div>
             </section>

@@ -27,4 +27,6 @@ public interface TnpRepository extends JpaRepository<Tnp, Long> {
     );
 
     List<Tnp> findAllByIsActiveFalseAndEndDateBefore(LocalDateTime oneYearAgo);
+
+    Tnp findByPrnAndIsActiveTrue(String prn);
 }

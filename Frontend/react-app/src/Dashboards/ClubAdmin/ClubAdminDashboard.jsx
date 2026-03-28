@@ -1,4 +1,4 @@
-import {Users,CalendarRange,Calendar} from 'lucide-react';
+import {Users,CalendarRange,Calendar,Briefcase} from 'lucide-react';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -123,6 +123,24 @@ export default function ClubAdminDashboard() {
             </div>
             <p className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style={{ color: isDarkMode ? "#a855f7" : "#6b21a8" }}></p>
             <p className="text-xs sm:text-sm" style={{ color: theme.textSecondary }}></p>
+          </div>
+
+          {/* TNP */}
+          <div
+            onClick={() => navigate("/tnp")}
+            className="rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 md:p-6 transition-colors duration-300 cursor-pointer hover:opacity-90"
+            style={{ background: theme.bgCard, borderColor: theme.borderColor, border: `1px solid ${theme.borderColor}` }}
+          >
+            <div className="flex items-center mb-3 sm:mb-4">
+              <div
+                className="p-2 sm:p-3 rounded-lg mr-2 sm:mr-3 md:mr-4 transition-colors duration-300"
+                style={{ background: isDarkMode ? "rgba(249, 115, 22, 0.2)" : "rgba(249, 115, 22, 0.12)" }}
+              >
+                <Briefcase className="w-5 sm:w-6 h-5 sm:h-6" style={{ color: "#f97316" }} />
+              </div>
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold" style={{ color: "#f97316" }}>TNP Portal</h3>
+            </div>
+            <p className="text-xs sm:text-sm" style={{ color: theme.textSecondary }}>Open Training and Placement portal</p>
           </div>
 
           {/* Club Management */}
