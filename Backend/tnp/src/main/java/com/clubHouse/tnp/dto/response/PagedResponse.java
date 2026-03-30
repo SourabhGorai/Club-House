@@ -4,11 +4,12 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
-public class PagedResponse<T> {
+public class PagedResponse<T> implements Serializable {
 
     private List<T> content;
     private int page;           // current page (0-indexed)

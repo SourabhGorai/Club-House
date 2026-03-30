@@ -2,10 +2,7 @@ package com.clubHouse.tnp.service;
 
 import com.clubHouse.tnp.dto.request.AddCompanyRequest;
 import com.clubHouse.tnp.dto.request.UpdateCompanyRequest;
-import com.clubHouse.tnp.dto.response.BulkCompanyResponse;
-import com.clubHouse.tnp.dto.response.CombinedResponse;
-import com.clubHouse.tnp.dto.response.CompanyResponse;
-import com.clubHouse.tnp.dto.response.PagedResponse;
+import com.clubHouse.tnp.dto.response.*;
 import com.clubHouse.tnp.exception.ResourceNotFoundException;
 import com.clubHouse.tnp.exception.ServiceException;
 import com.clubHouse.tnp.exception.UnauthorizedException;
@@ -33,6 +30,8 @@ public class CompanyService {
     private final VisitYearRepository visitYearRepository;
     private final TnpRepository tnpRepository;
     private final PlacementRepository placementRepository;
+    private final CompanyMasterRepository companyMasterRepository;
+    private final PlacementService placementService;
 
     // ── Private resolvers ─────────────────────────────────────────────────────
     // Keep all FK lookups in one place so every method stays clean
@@ -56,6 +55,7 @@ public class CompanyService {
 
     public CompanyResponse addNewRecord(AddCompanyRequest req, String prn, String role) {
         log.info("Attempting to add new record for company: {}", req.getName());
+        log.info("{}", req);
 
         Industry industry = resolveIndustry(req.getIndustry());
         VisitYear academicSession = resolveAcademicSession(req.getAcademicSession());
@@ -278,6 +278,8 @@ public class CompanyService {
         }
 
         try {
+            Company company = companyRepository.findById(id).orElseThrow();
+            placementService.deletePlacementForCompany(company, prn, role);
             companyRepository.deleteById(id);
             log.info("Record deleted successfully for id: {}", id);
         } catch (Exception e) {
@@ -496,13 +498,27 @@ public class CompanyService {
         }
     }
 
+    public CompanyStatsDto getOverallStats() {
+        Double avgPackage = companyRepository.findOverallWeightedAveragePackage();
+        Long totalPlaced = companyRepository.findTotalStudentsPlaced();
+        Long totalVisited = companyMasterRepository.count();
+        Double highestPackage = companyRepository.findHighestPackage();
+
+        return CompanyStatsDto.builder()
+                .averagePackage(avgPackage != null ? Math.round(avgPackage * 100.0) / 100.0 : 0.0)
+                .totalStudentsPlaced(totalPlaced != null ? totalPlaced : 0L)
+                .totalCompaniesVisited(totalVisited)
+                .highestPackage(highestPackage != null ? highestPackage : 0.0)
+                .build();
+    }
+
     // ---------------------------------------------------------------------------
 
     public boolean authorize(String prn) {
 
         log.info("Checking authorization for prn: {}", prn);
 
-        Tnp user = tnpRepository.findByPrn(prn);
+        Tnp user = tnpRepository.findByPrnAndIsActiveTrue(prn);
         if (user == null) return false;
 
         return user.getRole() == TnpRoles.TNP_HEAD ||

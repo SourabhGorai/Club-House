@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BulkUserTnpResponse {
+public class BulkUserTnpResponse implements Serializable{
 
     private int successCount;
     private int failedCount;
@@ -26,7 +26,7 @@ public class BulkUserTnpResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class FailedEntry {
+    public static class FailedEntry implements Serializable{
         private String prn;
         private String role;
         private LocalDateTime startDate;

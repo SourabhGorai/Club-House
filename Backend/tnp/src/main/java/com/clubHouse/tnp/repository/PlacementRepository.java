@@ -1,5 +1,6 @@
 package com.clubHouse.tnp.repository;
 
+import com.clubHouse.tnp.model.Company;
 import com.clubHouse.tnp.model.Placement;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -99,4 +100,6 @@ public interface PlacementRepository extends JpaRepository<Placement, Long> {
     GROUP BY p.company.companyId
 """)
     List<Object[]> countStudentsGroupedByCompany();
+
+    List<Long> findByCompany(Company company);
 }

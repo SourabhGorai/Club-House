@@ -23,7 +23,7 @@ export default function TnpTopNav({
           <span style={{ fontFamily: "var(--font-display)", fontSize: "18px", color: "white", lineHeight: 1 }}>T</span>
         </div>
         <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", letterSpacing: "0.05em" }}>
-          TNP <span style={{ color: "var(--orange)" }}>CELL</span>
+          T&P <span style={{ color: "var(--orange)" }}>CELL</span>
         </span>
       </div>
 
@@ -42,7 +42,7 @@ export default function TnpTopNav({
         </OrangeBtn>
         {canAccess(globalRole, tnpRole, "enter_portal") && (
           <OrangeBtn small onClick={() => setView(view === "portal" ? "landing" : "portal")}>
-            {view === "portal" ? "← Back" : "TNP Portal →"}
+            {view === "portal" ? "← Back" : "T&P Portal →"}
           </OrangeBtn>
         )}
         <div style={{

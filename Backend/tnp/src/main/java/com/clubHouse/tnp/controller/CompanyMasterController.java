@@ -9,6 +9,7 @@ import com.clubHouse.tnp.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,20 @@ public class CompanyMasterController {
 
         List<CompanyMasterResponse> resp =
                 companyMasterService.getAllCompanies();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Fetched all companies", resp)
+        );
+    }
+
+    @GetMapping("/all/getAllPaged")
+    public ResponseEntity<ApiResponse<Page<CompanyMasterResponse>>> getAllCompanies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Page<CompanyMasterResponse> resp =
+                companyMasterService.getAllCompanies(page, size);
 
         return ResponseEntity.ok(
                 ApiResponse.success("Fetched all companies", resp)

@@ -7,10 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CompanyResponse {
+public class CompanyResponse implements Serializable {
 
     private Long companyId;
     private String name;

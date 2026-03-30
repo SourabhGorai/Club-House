@@ -3,13 +3,14 @@ package com.clubHouse.tnp.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
- 
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
  
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PlacementResponse {
+public class PlacementResponse implements Serializable {
  
     private Long placementId;
     private String studentPrn;

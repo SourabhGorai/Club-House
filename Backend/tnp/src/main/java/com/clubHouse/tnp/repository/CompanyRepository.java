@@ -133,4 +133,14 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     );
 
     List<Company> findByAcademicSession_AcademicSession(String session);
+
+    @Query("SELECT SUM(c.packageOffered * c.studentsHired) / SUM(c.studentsHired) " +
+            "FROM Company c WHERE c.studentsHired IS NOT NULL AND c.studentsHired > 0")
+    Double findOverallWeightedAveragePackage();
+
+    @Query("SELECT SUM(c.studentsHired) FROM Company c WHERE c.studentsHired IS NOT NULL")
+    Long findTotalStudentsPlaced();
+
+    @Query("SELECT MAX(c.packageOffered) FROM Company c")
+    Double findHighestPackage();
 }

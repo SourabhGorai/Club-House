@@ -77,7 +77,7 @@ public class YearVisitService {
 
         log.info("Checking authorization for prn: {}", prn);
 
-        Tnp user = tnpRepository.findByPrn(prn);
+        Tnp user = tnpRepository.findByPrnAndIsActiveTrue(prn);
         if (user == null) return false;
 
         return user.getRole() == TnpRoles.TNP_HEAD ||

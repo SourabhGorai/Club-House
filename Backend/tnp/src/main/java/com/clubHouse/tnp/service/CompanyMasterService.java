@@ -5,19 +5,19 @@ import com.clubHouse.tnp.dto.response.BulkCompanyMasterResponse;
 import com.clubHouse.tnp.dto.response.CompanyMasterResponse;
 import com.clubHouse.tnp.exception.ServiceException;
 import com.clubHouse.tnp.exception.UnauthorizedException;
-import com.clubHouse.tnp.mapper.CompanyMapper;
 import com.clubHouse.tnp.mapper.CompanyMasterMapper;
-import com.clubHouse.tnp.model.CompanyMaster;
-import com.clubHouse.tnp.model.Industry;
-import com.clubHouse.tnp.model.Tnp;
-import com.clubHouse.tnp.model.TnpRoles;
+import com.clubHouse.tnp.model.*;
 import com.clubHouse.tnp.repository.CompanyMasterRepository;
+import com.clubHouse.tnp.repository.CompanyRepository;
 import com.clubHouse.tnp.repository.IndustryRepository;
 import com.clubHouse.tnp.repository.TnpRepository;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +32,7 @@ public class CompanyMasterService {
     private final CompanyMasterRepository companyMasterRepository;
     private final TnpRepository tnpRepository;
     private final IndustryRepository industryRepository;
+    private final CompanyRepository companyRepository;
 
     // ── Private Methods ───────────────────────────────────────────────────────────
 
@@ -258,6 +259,18 @@ public class CompanyMasterService {
                 .toList();
     }
 
+    public Page<CompanyMasterResponse> getAllCompanies(int page, int size) {
+
+        log.info("Fetching all companies from master with pagination");
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+
+        Page<CompanyMaster> companies =
+                companyMasterRepository.findAll(pageable);
+
+        return companies.map(CompanyMasterMapper::toResponse);
+    }
+
     public CompanyMasterResponse updateCompany(
             Long companyId,
             CompanyMasterRequest req,
@@ -315,7 +328,7 @@ public class CompanyMasterService {
         return CompanyMasterMapper.toResponse(updated);
     }
 
-    public Void deleteCompany(Long companyId, String prn, String role) {
+    public void deleteCompany(Long companyId, String prn, String role) {
 
         log.info("Attempting to delete company with id: {}", companyId);
 
@@ -325,15 +338,19 @@ public class CompanyMasterService {
             );
         }
 
-        CompanyMaster company = companyMasterRepository.findById(companyId)
+        CompanyMaster companyMaster = companyMasterRepository.findById(companyId)
                 .orElseThrow(() ->
                         new NotFoundException("Company not found with id: " + companyId)
                 );
 
+        List<Company> company = companyRepository.findByName(companyMaster.getName());
+        if(!company.isEmpty()){
+            throw new ServiceException("You need to delete records from Company db first");
+        }
+
         try {
-            companyMasterRepository.delete(company);
+            companyMasterRepository.delete(companyMaster);
             log.info("Company deleted successfully");
-            return null;
 
         } catch (Exception e) {
             log.error("Failed to delete company", e);

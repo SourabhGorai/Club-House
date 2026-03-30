@@ -3,10 +3,7 @@ package com.clubHouse.tnp.controller;
 import com.clubHouse.tnp.dto.ApiResponse;
 import com.clubHouse.tnp.dto.request.AddCompanyRequest;
 import com.clubHouse.tnp.dto.request.UpdateCompanyRequest;
-import com.clubHouse.tnp.dto.response.BulkCompanyResponse;
-import com.clubHouse.tnp.dto.response.CombinedResponse;
-import com.clubHouse.tnp.dto.response.CompanyResponse;
-import com.clubHouse.tnp.dto.response.PagedResponse;
+import com.clubHouse.tnp.dto.response.*;
 import com.clubHouse.tnp.service.CompanyService;
 import com.clubHouse.tnp.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +41,7 @@ public class CompanyController {
             @RequestBody AddCompanyRequest req,
             HttpServletRequest httpReq
     ) {
-        log.info("Request received to add new company record");
+        log.info("Request received to add new company record {}", req);
         CompanyResponse resp = companyService.addNewRecord(req, prn(httpReq), role(httpReq));
         return ResponseEntity.ok(ApiResponse.success("Record added successfully", resp));
     }
@@ -417,5 +414,10 @@ public class CompanyController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Implemented successfully"
         ));
+    }
+
+    @GetMapping("/all/stats")
+    public ResponseEntity<CompanyStatsDto> getCompanyStats() {
+        return ResponseEntity.ok(companyService.getOverallStats());
     }
 }

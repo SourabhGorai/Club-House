@@ -225,6 +225,20 @@ public class PlacementService {
         log.info("Placement deleted: id={}", placementId);
     }
 
+    @Transactional
+    public void deletePlacementForCompany(
+            Company company, String prn, String role
+    ) {
+
+        List<Long> placementIds = placementRepository.findByCompany(company);
+        if(notOfTnp(prn, role)){
+            throw new UnauthorizedException("You are not a member of TNP");
+        }
+
+        placementRepository.deleteAllByIdInBatch(placementIds);
+        log.info("Placements deleted: ids={}", placementIds);
+    }
+
     // ── Read: single ─────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)

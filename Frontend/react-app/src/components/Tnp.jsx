@@ -1343,6 +1343,7 @@ const SessionCompanyInsightsSection = () => {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(getCurrentSession());
   const [rows, setRows] = useState([]);
+  const [sessionStats, setSessionStats] = useState(null);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState(null);
@@ -1387,24 +1388,37 @@ const SessionCompanyInsightsSection = () => {
   };
 
   const loadCombinedData = async (session) => {
-    if (!session) return;
+    if (!session) {
+      setRows([]);
+      setSessionStats(null);
+      return;
+    }
 
     setLoadingData(true);
     setError(null);
 
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/company/all/combinedPackage`,
-        {
+      const [combinedRes, statsRes] = await Promise.all([
+        axios.get(`${BASE_URL}/api/company/all/combinedPackage`, {
           headers: authHeaders(),
           params: { session },
-        },
-      );
+        }),
+        axios
+          .get(
+            `${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`,
+            {
+              headers: authHeaders(),
+            },
+          )
+          .catch(() => ({ data: null })),
+      ]);
 
-      const raw = res.data?.data ?? [];
+      const raw = combinedRes.data?.data ?? [];
       setRows(Array.isArray(raw) ? raw : []);
+      setSessionStats(statsRes.data?.data ?? null);
     } catch (err) {
       setRows([]);
+      setSessionStats(null);
       setError(
         err.response?.data?.message || "Failed to load company insights",
       );
@@ -1425,21 +1439,14 @@ const SessionCompanyInsightsSection = () => {
     (acc, row) => {
       acc.companyCount += 1;
       acc.totalStudents += Number(row?.studentsHired) || 0;
-
-      const pkg = Array.isArray(row?.packageOffered)
-        ? row.packageOffered
-            .map((v) => Number(v))
-            .filter((v) => Number.isFinite(v) && v > 0)
-        : [];
-
-      acc.packages.push(...pkg);
       return acc;
     },
-    { companyCount: 0, totalStudents: 0, packages: [] },
+    { companyCount: 0, totalStudents: 0 },
   );
 
-  const sessionAvg = summary.packages.length
-    ? summary.packages.reduce((acc, n) => acc + n, 0) / summary.packages.length
+  const sessionAvgRaw = Number(sessionStats?.averagePackage);
+  const sessionAvg = Number.isFinite(sessionAvgRaw) && sessionAvgRaw > 0
+    ? sessionAvgRaw
     : null;
 
   const packageAverage = (values = []) => {
@@ -2304,7 +2311,7 @@ const Footer = () => (
               letterSpacing: "0.05em",
             }}
           >
-            TNP CELL
+            T&P CELL
           </span>
         </div>
         <p
@@ -3038,6 +3045,13 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
       setFormMsg("Industry is required");
       return;
     }
+
+    const parsedSession = parseInt(form.sessionYear, 10);
+    if (!Number.isFinite(parsedSession)) {
+      setFormMsg("Session year is required");
+      return;
+    }
+
     setSaving(true);
     setFormMsg("");
     try {
@@ -3046,7 +3060,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
         industry: form.industry,
         packageOffered: parseFloat(form.packageOffered),
         studentsHired: form.studentsHired ? parseInt(form.studentsHired) : null,
-        academicSessionYear: parseInt(form.sessionYear),
+        academicSession: parsedSession,
       };
 
       if (editingId) {
@@ -3538,6 +3552,9 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [saving, setSaving] = useState(false);
   const [formMsg, setFormMsg] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -3545,6 +3562,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 
   const canWriteMaster = canAccess(globalRole, tnpRole, "write_company_master");
   const canDelete = canAccess(globalRole, tnpRole, "delete_records");
+  const companyMasterPageSize = 10;
 
   const resetForm = () => {
     setEditingId(null);
@@ -3552,13 +3570,14 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
     setFormMsg("");
   };
 
-  const load = async () => {
+  const load = async (page = 0) => {
     setLoading(true);
     setError(null);
     try {
       const [masterRes, industryRes] = await Promise.all([
-        axios.get(`${BASE_URL}/api/companyMaster/all/getAll`, {
+        axios.get(`${BASE_URL}/api/companyMaster/all/getAllPaged`, {
           headers: authHeaders(),
+          params: { page, size: companyMasterPageSize },
         }),
         axios.get(`${BASE_URL}/api/industry/all/getAll`, {
           headers: authHeaders(),
@@ -3573,6 +3592,18 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
         : Array.isArray(masterRaw?.content)
           ? masterRaw.content
           : [];
+      const nextTotalPages = Number(
+        masterRaw?.totalPages ?? (masterList.length ? 1 : 0),
+      );
+      const nextTotalElements = Number(
+        masterRaw?.totalElements ?? masterList.length,
+      );
+
+      if (nextTotalPages > 0 && page >= nextTotalPages) {
+        setCurrentPage(nextTotalPages - 1);
+        setLoading(false);
+        return;
+      }
 
       const industryList = Array.isArray(industryRaw)
         ? industryRaw
@@ -3581,6 +3612,8 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
           : [];
 
       setCompanyMasters(masterList);
+      setTotalPages(nextTotalPages);
+      setTotalElements(nextTotalElements);
       setIndustries(industryList);
     } catch {
       setError("Failed to load company master records");
@@ -3590,8 +3623,8 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    load(currentPage);
+  }, [currentPage]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -3626,7 +3659,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
       }
 
       resetForm();
-      load();
+      setCurrentPage(0);
     } catch (err) {
       setFormMsg(
         err.response?.data?.message || "Failed to save company master record",
@@ -3666,7 +3699,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
       await axios.delete(`${BASE_URL}/api/companyMaster/all/${id}`, {
         headers: authHeaders(),
       });
-      load();
+      load(currentPage);
     } catch (err) {
       alert(
         err.response?.data?.message || "Failed to delete company master record",
@@ -3701,7 +3734,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
               fontFamily: "var(--font-mono)",
             }}
           >
-            Master list of all companies that have visited college
+            {totalElements} records · {companyMasterPageSize} per page
           </p>
         </div>
       </div>
@@ -3860,169 +3893,236 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
           <Spinner size={40} />
         </div>
       ) : error ? (
-        <ErrorBox message={error} onRetry={load} />
+        <ErrorBox message={error} onRetry={() => load(currentPage)} />
       ) : (
-        <div
-          style={{
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "8px",
-            overflow: "hidden",
-          }}
-        >
-          <table
+        <>
+          <div
             style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "14px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "8px",
+              overflow: "hidden",
             }}
           >
-            <thead>
-              <tr
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                {[
-                  "Company",
-                  "Industry",
-                  "Logo",
-                  ...(canWriteMaster ? ["Edit"] : []),
-                  ...(canDelete ? ["Delete"] : []),
-                ].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontSize: "11px",
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--white-60)",
-                      letterSpacing: "0.06em",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {h.toUpperCase()}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {companyMasters.map((c) => (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "14px",
+              }}
+            >
+              <thead>
                 <tr
-                  key={c.companyMasterId}
                   style={{
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    transition: "background 0.15s",
+                    background: "rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background =
-                      "rgba(255,255,255,0.03)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
-                  <td style={{ padding: "14px 16px", fontWeight: 500 }}>
-                    {c.name}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {c.industry || "—"}
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    {c.logoUrl ? (
-                      <img
-                        src={resolveMediaUrl(c.logoUrl)}
-                        alt={`${c.name} logo`}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const fallback = e.currentTarget.nextSibling;
-                          if (fallback) fallback.style.display = "inline";
-                        }}
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "8px",
-                          objectFit: "cover",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          background: "rgba(255,255,255,0.04)",
-                        }}
-                      />
-                    ) : null}
-                    <span
+                  {[
+                    "Company",
+                    "Industry",
+                    "Logo",
+                    ...(canWriteMaster ? ["Edit"] : []),
+                    ...(canDelete ? ["Delete"] : []),
+                  ].map((h) => (
+                    <th
+                      key={h}
                       style={{
-                        display: c.logoUrl ? "none" : "inline",
-                        color: "var(--white-30)",
+                        padding: "12px 16px",
+                        textAlign: "left",
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--white-60)",
+                        letterSpacing: "0.06em",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {h.toUpperCase()}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {companyMasters.map((c) => (
+                  <tr
+                    key={c.companyMasterId}
+                    style={{
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(255,255,255,0.03)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <td style={{ padding: "14px 16px", fontWeight: 500 }}>
+                      {c.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "14px 16px",
+                        color: "var(--white-60)",
+                        fontFamily: "var(--font-mono)",
                         fontSize: "12px",
                       }}
                     >
-                      —
-                    </span>
-                  </td>
-                  {canWriteMaster && (
+                      {c.industry || "—"}
+                    </td>
                     <td style={{ padding: "14px 16px" }}>
-                      <button
-                        onClick={() => handleEdit(c)}
+                      {c.logoUrl ? (
+                        <img
+                          src={resolveMediaUrl(c.logoUrl)}
+                          alt={`${c.name} logo`}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget.nextSibling;
+                            if (fallback) fallback.style.display = "inline";
+                          }}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "8px",
+                            objectFit: "cover",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(255,255,255,0.04)",
+                          }}
+                        />
+                      ) : null}
+                      <span
                         style={{
-                          padding: "4px 10px",
-                          borderRadius: "4px",
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          color: "var(--white-60)",
+                          display: c.logoUrl ? "none" : "inline",
+                          color: "var(--white-30)",
                           fontSize: "12px",
-                          cursor: "pointer",
                         }}
                       >
-                        Edit
-                      </button>
+                        —
+                      </span>
                     </td>
-                  )}
-                  {canDelete && (
-                    <td style={{ padding: "14px 16px" }}>
-                      <button
-                        onClick={() => handleDelete(c.companyMasterId)}
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: "4px",
-                          background: "rgba(239,68,68,0.1)",
-                          border: "1px solid rgba(239,68,68,0.2)",
-                          color: "#ef4444",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Delete
-                      </button>
+                    {canWriteMaster && (
+                      <td style={{ padding: "14px 16px" }}>
+                        <button
+                          onClick={() => handleEdit(c)}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "4px",
+                            background: "rgba(255,255,255,0.06)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "var(--white-60)",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    )}
+                    {canDelete && (
+                      <td style={{ padding: "14px 16px" }}>
+                        <button
+                          onClick={() => handleDelete(c.companyMasterId)}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "4px",
+                            background: "rgba(239,68,68,0.1)",
+                            border: "1px solid rgba(239,68,68,0.2)",
+                            color: "#ef4444",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                {companyMasters.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={canWriteMaster || canDelete ? 5 : 3}
+                      style={{
+                        padding: "40px",
+                        textAlign: "center",
+                        color: "var(--white-30)",
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      No company master records found
                     </td>
-                  )}
-                </tr>
-              ))}
-              {companyMasters.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={canWriteMaster || canDelete ? 5 : 3}
-                    style={{
-                      padding: "40px",
-                      textAlign: "center",
-                      color: "var(--white-30)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    No company master records found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "12px",
+                marginTop: "14px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "var(--white-60)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {`Page ${currentPage + 1} of ${totalPages}`}
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
+                  disabled={currentPage === 0}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "transparent",
+                    color:
+                      currentPage === 0 ? "var(--white-30)" : "var(--white)",
+                    cursor: currentPage === 0 ? "not-allowed" : "pointer",
+                    fontSize: "12px",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages - 1))
+                  }
+                  disabled={currentPage >= totalPages - 1}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "transparent",
+                    color:
+                      currentPage >= totalPages - 1
+                        ? "var(--white-30)"
+                        : "var(--white)",
+                    cursor:
+                      currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
+                    fontSize: "12px",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {dialogNode}
@@ -5689,23 +5789,19 @@ export default function TNPPage() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [statsRes, compRes] = await Promise.all([
-          axios
-            .get(`${BASE_URL}/api/placements/all/stats/${currentSession}`, {
-              headers: authHeaders(),
-            })
-            .catch(() => ({ data: {} })),
-          axios
-            .get(`${BASE_URL}/api/company/all/getAll`, {
-              headers: authHeaders(),
-            })
-            .catch(() => ({ data: [] })),
-        ]);
-        const raw = compRes.data?.data ?? compRes.data;
-        const totalCompanies = Array.isArray(raw)
-          ? raw.length
-          : raw?.totalElements || 0;
-        setLandingStats({ ...statsRes.data?.data, totalCompanies });
+        const statsRes = await axios
+          .get(`${BASE_URL}/api/company/all/stats`, {
+            headers: authHeaders(),
+          })
+          .catch(() => ({ data: {} }));
+
+        const overall = statsRes.data?.data ?? statsRes.data ?? {};
+        setLandingStats({
+          totalCompanies: overall.totalCompaniesVisited,
+          totalPlacements: overall.totalStudentsPlaced,
+          highestPackage: overall.highestPackage,
+          averagePackage: overall.averagePackage,
+        });
       } catch {}
     };
     loadStats();
