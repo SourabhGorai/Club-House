@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import TnpTopNav from "./tnp/TnpTopNav";
@@ -157,6 +157,26 @@ const ROLE_RANK = {
 };
 const TNP_VIEW_STORAGE_KEY = "tnp:view";
 const TNP_PORTAL_TAB_STORAGE_KEY = "tnp:portalTab";
+const TNP_PREFETCH_STORAGE_KEY = "tnp:prefetch";
+const TNP_PREFETCH_MAX_AGE_MS = 5 * 60 * 1000;
+
+function readTnpPrefetch(prn) {
+  try {
+    const raw = sessionStorage.getItem(TNP_PREFETCH_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const isExpired = Date.now() - Number(parsed?.timestamp || 0) > TNP_PREFETCH_MAX_AGE_MS;
+    const isSameUser = (parsed?.userPrn || "") === (prn || "");
+    if (!isSameUser || isExpired) {
+      sessionStorage.removeItem(TNP_PREFETCH_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    sessionStorage.removeItem(TNP_PREFETCH_STORAGE_KEY);
+    return null;
+  }
+}
 
 // ── Tiny UI Components ────────────────────────────────────────────────────────
 const Badge = ({ children, variant = "default" }) => {
@@ -4550,27 +4570,33 @@ const PortalMembers = ({ user, globalRole, tnpRole, portalAction, clearPortalAct
 // ══════════════════════════════════════════════════════════════════════════════
 
 export default function TNPPage() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const globalRole = user?.role || "USER";
+  const currentSession = getCurrentSession();
+  const preloaded = useMemo(() => readTnpPrefetch(user?.prn), [user?.prn]);
+
   const [view, setView] = useState(() => {
     const savedView = localStorage.getItem(TNP_VIEW_STORAGE_KEY);
     return savedView === "portal" ? "portal" : "landing";
   });
-  const [tnpRole, setTnpRole] = useState(null);
-  const [tnpLoading, setTnpLoading] = useState(true);
-  const [landingStats, setLandingStats] = useState({});
-  const [profileDetails, setProfileDetails] = useState(null);
+  const [tnpRole, setTnpRole] = useState(preloaded?.tnpRole ?? null);
+  const [tnpLoading, setTnpLoading] = useState(() => {
+    if (!user?.prn) return false;
+    if (globalRole === "SUPER_ADMIN") return false;
+    return !preloaded?.tnpRole;
+  });
+  const [landingStats, setLandingStats] = useState(preloaded?.landingStats || {});
+  const [profileDetails, setProfileDetails] = useState(preloaded?.profileDetails || null);
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const profileImageBlobRef = useRef(null);
   const navigate = useNavigate();
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const globalRole = user?.role || "USER";
-  const currentSession = getCurrentSession();
   const profileUser = { ...user, ...(profileDetails || {}) };
 
   useEffect(() => {
     const checkTnpRole = async () => {
       if (!user?.prn) { setTnpLoading(false); return; }
       if (globalRole === "SUPER_ADMIN") { setTnpRole("SUPER_ADMIN"); setTnpLoading(false); return; }
+      if (preloaded?.tnpRole) { setTnpRole(preloaded.tnpRole); setTnpLoading(false); return; }
       try {
         const res = await axios.get(`${BASE_URL}/api/tnp/all/getByPrn/${user.prn}`, { headers: authHeaders() });
         if (res.data?.data?.role) setTnpRole(res.data.data.role);
@@ -4578,12 +4604,17 @@ export default function TNPPage() {
       setTnpLoading(false);
     };
     checkTnpRole();
-  }, [user?.prn]);
+  }, [user?.prn, globalRole, preloaded?.tnpRole]);
 
   useEffect(() => {
     let active = true;
 
     const loadProfileDetails = async () => {
+      if (preloaded?.profileDetails) {
+        setProfileDetails(preloaded.profileDetails);
+        return;
+      }
+
       if (!user?.prn) {
         setProfileDetails(null);
         return;
@@ -4610,7 +4641,7 @@ export default function TNPPage() {
     return () => {
       active = false;
     };
-  }, [user?.prn]);
+  }, [user?.prn, preloaded?.profileDetails]);
 
   useEffect(() => {
     let active = true;
@@ -4659,6 +4690,11 @@ export default function TNPPage() {
 
   useEffect(() => {
     const loadStats = async () => {
+      if (preloaded?.landingStats && Object.keys(preloaded.landingStats).length > 0) {
+        setLandingStats(preloaded.landingStats);
+        return;
+      }
+
       try {
         const statsRes = await axios.get(`${BASE_URL}/api/company/all/stats`, { headers: authHeaders() }).catch(() => ({ data: {} }));
         const overall = statsRes.data?.data ?? statsRes.data ?? {};
@@ -4671,7 +4707,7 @@ export default function TNPPage() {
       } catch {}
     };
     loadStats();
-  }, []);
+  }, [preloaded?.landingStats]);
 
   useEffect(() => {
     if (view === "landing") window.scrollTo({ top: 0, behavior: "smooth" });

@@ -1044,7 +1044,7 @@ export default function UsersDashboard() {
                     label="TNP"
                     color="orange"
                     onClick={() =>
-                      handleRestrictedAction(() => navigate("/tnp"))
+                      handleRestrictedAction(() => navigate("/tnp-loading"))
                     }
                     disabled={!isVerified}
                     theme={theme}

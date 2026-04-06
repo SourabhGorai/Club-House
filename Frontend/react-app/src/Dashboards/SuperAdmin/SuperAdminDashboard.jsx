@@ -1106,7 +1106,7 @@ export default function SuperAdminDashboard() {
                 <BigActionButton
                   label="TNP"
                   icon={Briefcase}
-                  onClick={() => navigate("/tnp")}
+                  onClick={() => navigate("/tnp-loading")}
                   bgColor="rgba(217, 119, 6, 0.1)"
                   iconColor="#D97706"
                 />

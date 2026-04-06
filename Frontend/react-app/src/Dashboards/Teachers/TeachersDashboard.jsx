@@ -909,7 +909,7 @@ export default function FACULTYDashboard() {
                     icon={<Briefcase size={20} className="sm:w-6 sm:h-6" />}
                     label="TNP"
                     color="orange"
-                    onClick={() => navigate("/tnp")}
+                    onClick={() => navigate("/tnp-loading")}
                     theme={theme}
                   />
                   <button
