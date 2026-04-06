@@ -1,5 +1,6 @@
 package com.clubHouse.tnp.service;
 
+import com.clubHouse.tnp.config.CacheConfig;
 import com.clubHouse.tnp.dto.request.CompanyMasterRequest;
 import com.clubHouse.tnp.dto.response.BulkCompanyMasterResponse;
 import com.clubHouse.tnp.dto.response.CompanyMasterResponse;
@@ -15,6 +16,9 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,31 +41,27 @@ public class CompanyMasterService {
     // ── Private Methods ───────────────────────────────────────────────────────────
 
     private boolean isAuthorize(String prn, String role) {
-
-        if(role.equals("SUPER_ADMIN")) return true;
-
+        if (role.equals("SUPER_ADMIN")) return true;
         Tnp user = tnpRepository.findByPrnAndIsActiveTrue(prn);
         return user != null;
     }
 
     private boolean canDelete(String prn, String role) {
-
         if (role.equals("SUPER_ADMIN")) return true;
-
         Tnp user = tnpRepository.findByPrnAndIsActiveTrue(prn);
-        if (user == null) {
-            return false;
-        }
+        if (user == null) return false;
         TnpRoles userRole = user.getRole();
-
         return userRole == TnpRoles.TNP_HEAD ||
                 userRole == TnpRoles.PRESIDENT ||
                 userRole == TnpRoles.VICE_PRESIDENT;
-
     }
 
     // ── Public Methods ───────────────────────────────────────────────────────────
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.ALL_COMPANY_MASTERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_MASTERS_BY_INDUSTRY, allEntries = true)
+    })
     @Transactional
     public CompanyMasterResponse addCompany(CompanyMasterRequest req, String prn, String role) {
 
@@ -101,10 +101,12 @@ public class CompanyMasterService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to save in db");
         }
-
     }
 
-
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.ALL_COMPANY_MASTERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_MASTERS_BY_INDUSTRY, allEntries = true)
+    })
     @Transactional
     public BulkCompanyMasterResponse addCompanyBulk(
             List<CompanyMasterRequest> requests,
@@ -114,7 +116,6 @@ public class CompanyMasterService {
 
         log.info("Attempting bulk insert into company master");
 
-        // ✅ Authorization
         if (!isAuthorize(prn, role)) {
             throw new UnauthorizedException(
                     "You are unauthorized to do this operation, please contact TNP Cell"
@@ -142,9 +143,7 @@ public class CompanyMasterService {
                 continue;
             }
 
-            String sanitized =
-                    CompanyMasterMapper.sanitizeCompanyName(req.getName());
-
+            String sanitized = CompanyMasterMapper.sanitizeCompanyName(req.getName());
             uniqueRequests.putIfAbsent(sanitized, req);
         }
 
@@ -182,18 +181,11 @@ public class CompanyMasterService {
             CompanyMasterRequest req = entry.getValue();
 
             try {
-
-                // 🔁 Already exists
                 if (existingMap.containsKey(sanitizedName)) {
-                    successList.add(
-                            CompanyMasterMapper.toResponse(
-                                    existingMap.get(sanitizedName)
-                            )
-                    );
+                    successList.add(CompanyMasterMapper.toResponse(existingMap.get(sanitizedName)));
                     continue;
                 }
 
-                // ❌ Industry validation
                 Industry industry = industryMap.get(req.getIndustryId());
                 if (industry == null) {
                     failedList.add(
@@ -205,7 +197,6 @@ public class CompanyMasterService {
                     continue;
                 }
 
-                // ✅ Prepare entity (DO NOT SAVE YET)
                 CompanyMaster company = CompanyMaster.builder()
                         .name(req.getName())
                         .industry(industry)
@@ -216,7 +207,6 @@ public class CompanyMasterService {
 
             } catch (Exception e) {
                 log.error("Failed to process company: {}", req.getName(), e);
-
                 failedList.add(
                         BulkCompanyMasterResponse.FailedCompany.builder()
                                 .name(req.getName())
@@ -228,9 +218,7 @@ public class CompanyMasterService {
 
         // ✅ 5. Batch save (single DB hit)
         if (!companiesToSave.isEmpty()) {
-            List<CompanyMaster> savedCompanies =
-                    companyMasterRepository.saveAll(companiesToSave);
-
+            List<CompanyMaster> savedCompanies = companyMasterRepository.saveAll(companiesToSave);
             successList.addAll(
                     savedCompanies.stream()
                             .map(CompanyMasterMapper::toResponse)
@@ -247,9 +235,10 @@ public class CompanyMasterService {
                 .build();
     }
 
+    @Cacheable(value = CacheConfig.ALL_COMPANY_MASTERS)
     public List<CompanyMasterResponse> getAllCompanies() {
 
-        log.info("Fetching all companies from master");
+        log.info("Fetching all companies from master - Cache miss, loading from DB");
 
         List<CompanyMaster> companies =
                 companyMasterRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
@@ -259,18 +248,25 @@ public class CompanyMasterService {
                 .toList();
     }
 
+    // NOTE: Pagination results are NOT cached — page/size params make key management complex
+    //       and pages go stale quickly. Cache the underlying data instead.
     public Page<CompanyMasterResponse> getAllCompanies(int page, int size) {
 
         log.info("Fetching all companies from master with pagination");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 
-        Page<CompanyMaster> companies =
-                companyMasterRepository.findAll(pageable);
+        Page<CompanyMaster> companies = companyMasterRepository.findAll(pageable);
 
         return companies.map(CompanyMasterMapper::toResponse);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.COMPANY_MASTER_BY_ID, key = "#companyId"),
+            @CacheEvict(value = CacheConfig.ALL_COMPANY_MASTERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_MASTERS_BY_INDUSTRY, allEntries = true)
+    })
+    @Transactional
     public CompanyMasterResponse updateCompany(
             Long companyId,
             CompanyMasterRequest req,
@@ -291,32 +287,20 @@ public class CompanyMasterService {
                         new NotFoundException("Company not found with id: " + companyId)
                 );
 
-        // ✅ Sanitize & check duplicate name
-        String sanitizedName =
-                CompanyMasterMapper.sanitizeCompanyName(req.getName());
-
-        CompanyMaster existing =
-                companyMasterRepository.findByName(sanitizedName);
+        String sanitizedName = CompanyMasterMapper.sanitizeCompanyName(req.getName());
+        CompanyMaster existing = companyMasterRepository.findByName(sanitizedName);
 
         if (existing != null && !existing.getCompanyMasterId().equals(companyId)) {
             throw new ServiceException("Company with same name already exists");
         }
 
-        // ✅ Update fields
-        if (req.getName() != null) {
-            company.setName(req.getName());
-        }
-
-        if (req.getLogoUrl() != null) {
-            company.setLogoUrl(req.getLogoUrl());
-        }
+        if (req.getName() != null) company.setName(req.getName());
+        if (req.getLogoUrl() != null) company.setLogoUrl(req.getLogoUrl());
 
         if (req.getIndustryId() != null) {
             Industry industry = industryRepository.findById(req.getIndustryId())
                     .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Industry not found: " + req.getIndustryId()
-                            )
+                            new NotFoundException("Industry not found: " + req.getIndustryId())
                     );
             company.setIndustry(industry);
         }
@@ -328,6 +312,12 @@ public class CompanyMasterService {
         return CompanyMasterMapper.toResponse(updated);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.COMPANY_MASTER_BY_ID, key = "#companyId"),
+            @CacheEvict(value = CacheConfig.ALL_COMPANY_MASTERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_MASTERS_BY_INDUSTRY, allEntries = true)
+    })
+    @Transactional
     public void deleteCompany(Long companyId, String prn, String role) {
 
         log.info("Attempting to delete company with id: {}", companyId);
@@ -344,7 +334,7 @@ public class CompanyMasterService {
                 );
 
         List<Company> company = companyRepository.findByName(companyMaster.getName());
-        if(!company.isEmpty()){
+        if (!company.isEmpty()) {
             throw new ServiceException("You need to delete records from Company db first");
         }
 
