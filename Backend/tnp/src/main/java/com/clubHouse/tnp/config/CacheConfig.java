@@ -27,6 +27,17 @@ public class CacheConfig {
     public static final String TNP_MEMBERS_BY_YEAR          = "tnpMembersByYear";
     public static final String TNP_ROLES                    = "tnpRoles";
 
+    // Company caches
+    public static final String ALL_COMPANIES                = "allCompanies";
+    public static final String COMPANY_BY_ID                = "companyById";
+    public static final String COMPANIES_BY_NAME            = "companiesByName";
+    public static final String COMPANIES_BY_INDUSTRY        = "companiesByIndustry";
+    public static final String COMPANIES_BY_SESSION         = "companiesBySession";
+    public static final String COMPANIES_BY_PACKAGE_RANGE   = "companiesByPackageRange";
+    public static final String COMPANIES_BY_MIN_HIRED       = "companiesByMinHired";
+    public static final String COMBINED_PACKAGES_BY_SESSION = "combinedPackagesBySession";
+    public static final String COMPANY_OVERALL_STATS        = "companyOverallStats";
+
     @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
@@ -40,7 +51,16 @@ public class CacheConfig {
                 TNP_ALL_INACTIVE_MEMBERS,
                 TNP_MEMBERS_BY_ROLE,
                 TNP_MEMBERS_BY_YEAR,
-                TNP_ROLES
+                TNP_ROLES,
+                ALL_COMPANIES,
+                COMPANY_BY_ID,
+                COMPANIES_BY_NAME,
+                COMPANIES_BY_INDUSTRY,
+                COMPANIES_BY_SESSION,
+                COMPANIES_BY_PACKAGE_RANGE,
+                COMPANIES_BY_MIN_HIRED,
+                COMBINED_PACKAGES_BY_SESSION,
+                COMPANY_OVERALL_STATS
         );
     }
 }
