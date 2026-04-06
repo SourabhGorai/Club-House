@@ -1,12 +1,14 @@
 package com.clubHouse.tnp.schedular;
 
-import com.clubHouse.tnp.repository.TnpRepository;
+import com.clubHouse.tnp.config.CacheConfig;
 import com.clubHouse.tnp.model.Tnp;
+import com.clubHouse.tnp.repository.TnpRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,8 +19,9 @@ import java.util.List;
 public class CleanupSchedular {
 
     private final TnpRepository tnpRepository;
+    private final CacheManager cacheManager;
 
-    // ── Runs every day at midnight ────────────────────────────────────────────────
+    // ── Runs every day at midnight ────────────────────────────────────────────
 
     /**
      * Marks isActive = false for all members whose endDate has passed.
@@ -42,6 +45,21 @@ public class CleanupSchedular {
         tnpRepository.saveAll(expiredMembers);
 
         log.info("Deactivated {} expired TNP memberships", expiredMembers.size());
+
+        // Members flipped from active → inactive: evict all TNP member caches.
+        // PLACEMENT_STATS and COMPANY caches are unaffected — deactivation is
+        // a membership-only change, not a data change.
+        evictCache(CacheConfig.TNP_ALL_ACTIVE_MEMBERS);
+        evictCache(CacheConfig.TNP_ALL_INACTIVE_MEMBERS);
+        evictCache(CacheConfig.TNP_MEMBERS_BY_ROLE);
+        evictCache(CacheConfig.TNP_MEMBERS_BY_YEAR);
+        // Per-PRN entries for each deactivated member
+        expiredMembers.forEach(member ->
+                evictCacheKey(CacheConfig.TNP_MEMBER_BY_PRN, member.getPrn())
+        );
+
+        log.info("Cache evicted after deactivating {} expired TNP memberships",
+                expiredMembers.size());
     }
 
     /**
@@ -67,5 +85,35 @@ public class CleanupSchedular {
         tnpRepository.deleteAll(staleMembers);
 
         log.info("Permanently deleted {} stale inactive TNP members", staleMembers.size());
+
+        // Hard-deleted members: evict all TNP caches including per-PRN entries.
+        evictCache(CacheConfig.TNP_ALL_ACTIVE_MEMBERS);
+        evictCache(CacheConfig.TNP_ALL_INACTIVE_MEMBERS);
+        evictCache(CacheConfig.TNP_MEMBERS_BY_ROLE);
+        evictCache(CacheConfig.TNP_MEMBERS_BY_YEAR);
+        staleMembers.forEach(member ->
+                evictCacheKey(CacheConfig.TNP_MEMBER_BY_PRN, member.getPrn())
+        );
+
+        log.info("Cache evicted after deleting {} stale inactive TNP members",
+                staleMembers.size());
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void evictCache(String cacheName) {
+        var cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            cache.clear();
+            log.debug("Evicted cache: {}", cacheName);
+        }
+    }
+
+    private void evictCacheKey(String cacheName, Object key) {
+        var cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            cache.evict(key);
+            log.debug("Evicted key '{}' from cache: {}", key, cacheName);
+        }
     }
 }

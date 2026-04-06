@@ -2286,6 +2286,7 @@ const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
     typeof window !== "undefined" ? window.innerWidth : 1280,
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [portalAction, setPortalAction] = useState(null);
   const globalRole = user?.role || "USER";
   const isMobilePortal = viewportWidth < 1024;
   const mobileTopOffset = 64;
@@ -2346,6 +2347,17 @@ const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     if (isMobilePortal) setIsSidebarOpen(false);
+  };
+
+  const handleQuickAction = (action) => {
+    if (!action?.tab) return;
+    setActiveTab(action.tab);
+    setPortalAction(action);
+    if (isMobilePortal) setIsSidebarOpen(false);
+  };
+
+  const clearPortalAction = () => {
+    setPortalAction(null);
   };
 
   return (
@@ -2581,10 +2593,10 @@ const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
         )}
 
         {activeTab === "dashboard" && (
-          <PortalDashboard user={user} globalRole={globalRole} tnpRole={tnpRole} />
+          <PortalDashboard user={user} globalRole={globalRole} tnpRole={tnpRole} onQuickAction={handleQuickAction} />
         )}
         {activeTab === "companies" && (
-          <PortalCompanies user={user} globalRole={globalRole} tnpRole={tnpRole} />
+          <PortalCompanies user={user} globalRole={globalRole} tnpRole={tnpRole} portalAction={portalAction} clearPortalAction={clearPortalAction} />
         )}
         {activeTab === "company-master" && (
           <PortalCompanyMaster user={user} globalRole={globalRole} tnpRole={tnpRole} />
@@ -2599,10 +2611,10 @@ const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
           />
         )}
         {activeTab === "placements" && (
-          <PortalPlacements user={user} globalRole={globalRole} tnpRole={tnpRole} />
+          <PortalPlacements user={user} globalRole={globalRole} tnpRole={tnpRole} portalAction={portalAction} clearPortalAction={clearPortalAction} />
         )}
         {activeTab === "members" && (
-          <PortalMembers user={user} globalRole={globalRole} tnpRole={tnpRole} />
+          <PortalMembers user={user} globalRole={globalRole} tnpRole={tnpRole} portalAction={portalAction} clearPortalAction={clearPortalAction} />
         )}
       </div>
     </div>
@@ -2610,10 +2622,12 @@ const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
 };
 
 // ── Portal Dashboard ──────────────────────────────────────────────────────────
-const PortalDashboard = ({ user, globalRole, tnpRole }) => {
+const PortalDashboard = ({ user, globalRole, tnpRole, onQuickAction }) => {
   const isMobile = useIsMobile(640);
+  const { notify, dialogNode } = useAppConfirmDialog();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const currentSession = getCurrentSession();
 
   useEffect(() => {
@@ -2642,6 +2656,29 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
     { label: "Highest Package", value: stats?.highestPackage ? `₹${stats.highestPackage} LPA` : "—", change: "This session" },
     { label: "Avg Package", value: stats?.averagePackage ? `₹${parseFloat(stats.averagePackage).toFixed(1)} LPA` : "—", change: currentSession },
   ];
+
+  const handleSyncHiredCount = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      await axios.get(`${BASE_URL}/api/company/all/countTotalStudents/${encodeURIComponent(currentSession)}`, {
+        headers: authHeaders(),
+      });
+      await notify({
+        title: "Sync completed",
+        message: `Hired student counts were recalculated successfully for ${currentSession}.`,
+        variant: "success",
+      });
+    } catch (err) {
+      await notify({
+        title: "Sync failed",
+        message: err.response?.data?.message || "Unable to sync hired student count right now.",
+        variant: "danger",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div style={{ animation: "tnpFadeUp 0.3s ease" }}>
@@ -2711,16 +2748,17 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
           }}
         >
           {[
-            { label: "Add Company Record", desc: "Log a new company visit", action: "write_company", icon: "⊕" },
-            { label: "Record Placement", desc: "Mark student as placed", action: "write_placement", icon: "◈" },
+            { label: "Add Company Record", desc: "Log a new company visit", action: "write_company", icon: "⊕", tab: "companies", type: "add-company" },
+            { label: "Record Placement", desc: "Mark student as placed", action: "write_placement", icon: "◈", tab: "placements", type: "add-placement" },
             // { label: "Bulk Import", desc: "Upload multiple records", action: "write_company", icon: "⊞" },
-            { label: "Manage Members", desc: "Add / update TNP team", action: "manage_members", icon: "◎" },
-            { label: "Change Role & Tenure", desc: "Reassign member roles", action: "change_roles", icon: "⟳" },
-            { label: "Sync Hired Count", desc: "Recalculate from placements", action: "write_company", icon: "⟲" },
+            { label: "Manage Members", desc: "Add / update TNP team", action: "manage_members", icon: "◎", tab: "members", type: "add-member" },
+            { label: "Change Role & Tenure", desc: "Reassign member roles", action: "change_roles", icon: "⟳", tab: "members", type: "change-role-tenure" },
+            { label: "Sync Hired Count", desc: "Recalculate from placements", action: "write_company", icon: "⟲", tab: "companies", type: "sync-hired" },
           ].map((a, i) => {
             const allowed = canAccess(globalRole, tnpRole, a.action);
             return (
-              <div
+              <button
+                type="button"
                 key={i}
                 style={{
                   padding: "16px",
@@ -2731,15 +2769,26 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
                   cursor: allowed ? "pointer" : "not-allowed",
                   transition: "all 0.15s",
                   touchAction: "manipulation",
+                  textAlign: "left",
                 }}
                 onMouseEnter={(e) => { if (allowed) e.currentTarget.style.background = "rgba(244,96,12,0.12)"; }}
                 onMouseLeave={(e) => { if (allowed) e.currentTarget.style.background = "rgba(244,96,12,0.06)"; }}
+                onClick={() => {
+                  if (!allowed) return;
+                  if (a.type === "sync-hired") {
+                    handleSyncHiredCount();
+                    return;
+                  }
+                  if (!onQuickAction) return;
+                  onQuickAction({ tab: a.tab, type: a.type });
+                }}
+                disabled={syncing && a.type === "sync-hired"}
               >
                 <div style={{ fontSize: isMobile ? "16px" : "20px", marginBottom: "6px", color: allowed ? "var(--orange)" : "var(--white-30)" }}>
-                  {a.icon}
+                  {syncing && a.type === "sync-hired" ? "…" : a.icon}
                 </div>
                 <div style={{ fontWeight: 600, fontSize: isMobile ? "12px" : "14px", marginBottom: "4px" }}>
-                  {a.label}
+                  {syncing && a.type === "sync-hired" ? "Syncing..." : a.label}
                 </div>
                 <div style={{ fontSize: isMobile ? "11px" : "12px", color: "var(--white-60)" }}>
                   {a.desc}
@@ -2749,17 +2798,18 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
                     Insufficient Role
                   </div>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
+      {dialogNode}
     </div>
   );
 };
 
 // ── Portal Companies ──────────────────────────────────────────────────────────
-const PortalCompanies = ({ user, globalRole, tnpRole }) => {
+const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalAction }) => {
   const isMobile = useIsMobile(640);
   const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [companies, setCompanies] = useState([]);
@@ -2900,6 +2950,26 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
       await notify({ title: "Sync Failed", message: "Unable to sync hired student count right now.", variant: "danger" });
     }
   };
+
+  useEffect(() => {
+    if (!portalAction) return;
+
+    if (portalAction.type === "add-company" && canWrite) {
+      setAdding(true);
+      setFormMsg("");
+      if (isMobile) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    if (portalAction.type === "sync-hired" && canWrite) {
+      handleSync();
+    }
+
+    if (portalAction.type === "add-company" || portalAction.type === "sync-hired") {
+      clearPortalAction?.();
+    }
+  }, [portalAction, canWrite]);
 
   return (
     <div style={{ animation: "tnpFadeUp 0.3s ease" }}>
@@ -3530,7 +3600,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 };
 
 // ── Portal Placements ─────────────────────────────────────────────────────────
-const PortalPlacements = ({ user, globalRole, tnpRole }) => {
+const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortalAction }) => {
   const isMobile = useIsMobile(640);
   const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [placements, setPlacements] = useState([]);
@@ -3680,6 +3750,22 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!portalAction) return;
+
+    if (portalAction.type === "add-placement" && canWrite) {
+      setAdding(true);
+      setFormMsg("");
+      if (isMobile) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    if (portalAction.type === "add-placement") {
+      clearPortalAction?.();
+    }
+  }, [portalAction, canWrite]);
 
   const handleDelete = async (id) => {
     if (!canDeletePlacement) return;
@@ -3988,7 +4074,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 };
 
 // ── Portal Members ────────────────────────────────────────────────────────────
-const PortalMembers = ({ user, globalRole, tnpRole }) => {
+const PortalMembers = ({ user, globalRole, tnpRole, portalAction, clearPortalAction }) => {
   const isMobile = useIsMobile(640);
   const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [members, setMembers] = useState([]);
@@ -4124,6 +4210,30 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
       setRoleSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!portalAction) return;
+
+    if (portalAction.type === "add-member" && canManage) {
+      setAdding(true);
+      setFormMsg("");
+      if (isMobile) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    if (portalAction.type === "change-role-tenure" && canChangeRoles) {
+      setChangingRole(true);
+      setRoleMsg("");
+      if (isMobile) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    if (portalAction.type === "add-member" || portalAction.type === "change-role-tenure") {
+      clearPortalAction?.();
+    }
+  }, [portalAction, canManage, canChangeRoles]);
 
   const getInitials = (name, prn) => {
     if (name) return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
