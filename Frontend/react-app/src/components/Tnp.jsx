@@ -49,6 +49,10 @@ const FontLoader = () => (
     .tnp-root ::-webkit-scrollbar-track { background: var(--black); }
     .tnp-root ::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 2px; }
 
+    /* ── Mobile-specific scrollbar hide ── */
+    .tnp-hide-scrollbar::-webkit-scrollbar { display: none; }
+    .tnp-hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     @keyframes tnpFadeUp {
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
@@ -73,11 +77,46 @@ const FontLoader = () => (
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+    @keyframes tnpSlideUp {
+      from { opacity: 0; transform: translateY(100%); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive table ── */
+    @media (max-width: 640px) {
+      .tnp-table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tnp-table-scroll table {
+        min-width: 520px;
+      }
+    }
+
+    /* ── Mobile input fixes ── */
+    @media (max-width: 768px) {
+      .tnp-root input, .tnp-root select, .tnp-root textarea {
+        font-size: 16px !important; /* prevent iOS zoom */
+      }
+    }
   `}</style>
 );
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const BASE_URL = import.meta.env.VITE_API_URL || "http://72.155.88.211:8080";
+
+// ── useIsMobile hook ──────────────────────────────────────────────────────────
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < breakpoint,
+  );
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 // ── Permissions (mirrors backend logic) ──────────────────────────────────────
 const canAccess = (globalRole, tnpRole, action) => {
@@ -142,6 +181,7 @@ const Badge = ({ children, variant = "default" }) => {
         background: s.bg,
         color: s.color,
         border: `1px solid ${s.color}30`,
+        whiteSpace: "nowrap",
       }}
     >
       {children}
@@ -156,6 +196,7 @@ const OrangeBtn = ({
   outline,
   disabled,
   type = "button",
+  fullWidth,
 }) => (
   <button
     type={type}
@@ -164,6 +205,7 @@ const OrangeBtn = ({
     style={{
       display: "inline-flex",
       alignItems: "center",
+      justifyContent: "center",
       gap: "8px",
       padding: small ? "8px 18px" : "12px 28px",
       fontSize: small ? "13px" : "15px",
@@ -176,6 +218,10 @@ const OrangeBtn = ({
       border: outline ? "1px solid var(--orange)" : "none",
       cursor: disabled ? "not-allowed" : "pointer",
       transition: "all 0.15s ease",
+      width: fullWidth ? "100%" : undefined,
+      whiteSpace: "nowrap",
+      touchAction: "manipulation",
+      WebkitTapHighlightColor: "transparent",
     }}
     onMouseEnter={(e) => {
       if (!disabled) e.currentTarget.style.opacity = "0.85";
@@ -201,6 +247,7 @@ const Spinner = ({ size = 32 }) => (
       border: `2px solid rgba(244,96,12,0.2)`,
       borderTopColor: "var(--orange)",
       animation: "tnpSpin 0.8s linear infinite",
+      flexShrink: 0,
     }}
   />
 );
@@ -263,7 +310,6 @@ function useApi(url, options = {}) {
 }
 
 // ── Academic session helper (year starts July 1) ──────────────────────────────
-// e.g. March 2026 → "2025-26", August 2025 → "2025-26"
 function getCurrentSession() {
   const now = new Date();
   const startYear =
@@ -281,6 +327,40 @@ function authHeaders() {
     "X-User-Role": user?.role || "USER",
     "Content-Type": "application/json",
   };
+}
+
+async function fetchAllTnpMembersPaged(pageSize = 20) {
+  const members = [];
+  let page = 0;
+
+  while (true) {
+    const res = await axios.get(`${BASE_URL}/api/tnp/all/getAll/paged`, {
+      headers: authHeaders(),
+      params: { page, size: pageSize },
+    });
+
+    const raw = res.data?.data ?? res.data;
+    if (Array.isArray(raw)) {
+      members.push(...raw);
+      break;
+    }
+
+    const content = Array.isArray(raw?.content) ? raw.content : [];
+    members.push(...content);
+
+    const totalPages = Number(raw?.totalPages ?? 0);
+    const isLast = raw?.last === true;
+    const shouldStop =
+      isLast ||
+      content.length === 0 ||
+      content.length < pageSize ||
+      (totalPages > 0 && page + 1 >= totalPages);
+
+    if (shouldStop) break;
+    page += 1;
+  }
+
+  return members;
 }
 
 function resolveMediaUrl(imageUrl) {
@@ -403,6 +483,7 @@ async function fetchProtectedImageBlobUrl(imageUrl) {
 
 // ── LANDING PAGE ──────────────────────────────────────────────────────────────
 const Hero = ({ user, tnpRole, stats, onEnterPortal }) => {
+  const isMobile = useIsMobile(768);
   const canEnter = canAccess(user?.role, tnpRole, "enter_portal");
 
   const statCards = [
@@ -430,6 +511,169 @@ const Hero = ({ user, tnpRole, stats, onEnterPortal }) => {
     },
   ];
 
+  if (isMobile) {
+    return (
+      <section
+        style={{
+          minHeight: "100svh",
+          display: "flex",
+          flexDirection: "column",
+          padding: "80px 20px 24px",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Background grid */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            backgroundImage: `
+              linear-gradient(rgba(244,96,12,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(244,96,12,0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: "40px 40px",
+          }}
+        />
+        {/* Glow */}
+        <div
+          style={{
+            position: "absolute",
+            top: "10%",
+            right: "-20%",
+            width: "300px",
+            height: "300px",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(244,96,12,0.15) 0%, transparent 70%)",
+            zIndex: 0,
+          }}
+        />
+
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          {/* Badge */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "5px 12px",
+              borderRadius: "99px",
+              border: "1px solid var(--orange-border)",
+              background: "var(--orange-dim)",
+              marginBottom: "24px",
+              alignSelf: "flex-start",
+            }}
+          >
+            <div
+              style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                background: "var(--orange)",
+                animation: "tnpPulse 2s infinite",
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontSize: "10px",
+                fontFamily: "var(--font-mono)",
+                color: "var(--orange)",
+                letterSpacing: "0.06em",
+                whiteSpace: "nowrap",
+              }}
+            >
+              PLACEMENT SEASON 2024–25 · ACTIVE
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(64px, 22vw, 96px)",
+              lineHeight: 0.88,
+              letterSpacing: "0.02em",
+              marginBottom: "28px",
+            }}
+          >
+            <span style={{ display: "block", color: "var(--white)" }}>TRAINING</span>
+            <span style={{ display: "block", color: "var(--orange)" }}>&</span>
+            <span style={{ display: "block", color: "var(--white)" }}>PLACEMENT</span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: "15px",
+              color: "var(--white-60)",
+              fontWeight: 300,
+              lineHeight: 1.7,
+              marginBottom: "32px",
+            }}
+          >
+            Connecting exceptional talent with industry leaders. The official placement cell — driving careers, building futures.
+          </p>
+        </div>
+
+        {/* Stats grid — 2x2 on mobile */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "12px",
+            overflow: "hidden",
+            marginTop: "8px",
+          }}
+        >
+          {statCards.map((s, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "16px 14px",
+                textAlign: "center",
+                borderRight: i % 2 === 0 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                animation: `tnpFadeUp 0.6s ease ${i * 0.1}s both`,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "26px",
+                  color: "var(--orange)",
+                  letterSpacing: "0.02em",
+                  lineHeight: 1,
+                  marginBottom: "4px",
+                }}
+              >
+                {s.value}
+                <span style={{ fontSize: "14px" }}>{s.suffix}</span>
+              </div>
+              <div
+                style={{
+                  fontSize: "9px",
+                  color: "var(--white-60)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // Desktop (unchanged)
   return (
     <section
       style={{
@@ -524,13 +768,9 @@ const Hero = ({ user, tnpRole, stats, onEnterPortal }) => {
             marginBottom: "32px",
           }}
         >
-          <span style={{ display: "block", color: "var(--white)" }}>
-            TRAINING
-          </span>
+          <span style={{ display: "block", color: "var(--white)" }}>TRAINING</span>
           <span style={{ display: "block", color: "var(--orange)" }}>&</span>
-          <span style={{ display: "block", color: "var(--white)" }}>
-            PLACEMENT
-          </span>
+          <span style={{ display: "block", color: "var(--white)" }}>PLACEMENT</span>
         </h1>
 
         <div
@@ -553,14 +793,6 @@ const Hero = ({ user, tnpRole, stats, onEnterPortal }) => {
             Connecting exceptional talent with industry leaders. The official
             placement cell — driving careers, building futures.
           </p>
-          {/* <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
-            {canEnter && (
-              <OrangeBtn onClick={onEnterPortal}>Enter TNP Portal →</OrangeBtn>
-            )}
-            <OrangeBtn outline onClick={() => document.getElementById("tnp-companies")?.scrollIntoView({ behavior: "smooth" })}>
-              Explore
-            </OrangeBtn>
-          </div> */}
         </div>
       </div>
 
@@ -615,6 +847,7 @@ const Hero = ({ user, tnpRole, stats, onEnterPortal }) => {
 
 // ── Companies Section ─────────────────────────────────────────────────────────
 const CompaniesSection = () => {
+  const isMobile = useIsMobile(768);
   const [filter, setFilter] = useState("All");
   const [companies, setCompanies] = useState([]);
   const [failedLogos, setFailedLogos] = useState({});
@@ -627,9 +860,7 @@ const CompaniesSection = () => {
     try {
       const compRes = await axios.get(
         `${BASE_URL}/api/companyMaster/all/getAll`,
-        {
-          headers: authHeaders(),
-        },
+        { headers: authHeaders() },
       );
       const raw = compRes.data?.data ?? compRes.data;
       setCompanies(Array.isArray(raw) ? raw : raw?.content || []);
@@ -655,35 +886,28 @@ const CompaniesSection = () => {
     ...Array.from(new Set(companies.map((c) => c.industry).filter(Boolean))),
   ];
 
-  // Color palette for companies
   const colors = [
-    "#4285F4",
-    "#00BCF2",
-    "#007CC5",
-    "#CC0001",
-    "#86BC25",
-    "#6495ED",
-    "#FF9900",
-    "#341F6A",
-    "#A100FF",
-    "#003087",
-    "#F74E30",
-    "#FC8019",
+    "#4285F4","#00BCF2","#007CC5","#CC0001","#86BC25",
+    "#6495ED","#FF9900","#341F6A","#A100FF","#003087","#F74E30","#FC8019",
   ];
   const getColor = (name) =>
     colors[name?.charCodeAt(0) % colors.length] || "#888";
 
+  const px = isMobile ? "20px" : "80px";
+
   return (
     <section
       id="tnp-companies"
-      style={{ padding: "100px 0", overflow: "hidden" }}
+      style={{ padding: isMobile ? "60px 0" : "100px 0", overflow: "hidden" }}
     >
-      <div style={{ padding: "0 80px", marginBottom: "60px" }}>
+      <div style={{ padding: `0 ${px}`, marginBottom: isMobile ? "32px" : "60px" }}>
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "flex-end",
             justifyContent: "space-between",
+            gap: isMobile ? "16px" : "0",
             marginBottom: "40px",
           }}
         >
@@ -702,7 +926,7 @@ const CompaniesSection = () => {
             <h2
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "64px",
+                fontSize: isMobile ? "48px" : "64px",
                 letterSpacing: "0.03em",
                 marginTop: "4px",
                 lineHeight: 1,
@@ -711,12 +935,17 @@ const CompaniesSection = () => {
               COMPANIES
             </h2>
           </div>
+          {/* Horizontal scrollable filter chips on mobile */}
           <div
+            className="tnp-hide-scrollbar"
             style={{
               display: "flex",
               gap: "8px",
-              flexWrap: "wrap",
-              justifyContent: "flex-end",
+              overflowX: isMobile ? "auto" : "visible",
+              flexWrap: isMobile ? "nowrap" : "wrap",
+              justifyContent: isMobile ? "flex-start" : "flex-end",
+              width: isMobile ? "100%" : "auto",
+              paddingBottom: isMobile ? "4px" : "0",
             }}
           >
             {sectors.map((s) => (
@@ -731,10 +960,12 @@ const CompaniesSection = () => {
                   letterSpacing: "0.03em",
                   background: filter === s ? "var(--orange)" : "transparent",
                   color: filter === s ? "white" : "var(--white-60)",
-                  border:
-                    filter === s ? "none" : "1px solid rgba(255,255,255,0.15)",
+                  border: filter === s ? "none" : "1px solid rgba(255,255,255,0.15)",
                   cursor: "pointer",
                   transition: "all 0.15s",
+                  flexShrink: 0,
+                  touchAction: "manipulation",
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 {s}
@@ -753,7 +984,7 @@ const CompaniesSection = () => {
             borderTop: "1px solid rgba(255,255,255,0.06)",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
             padding: "20px 0",
-            marginBottom: "60px",
+            marginBottom: isMobile ? "32px" : "60px",
           }}
         >
           <div
@@ -794,15 +1025,9 @@ const CompaniesSection = () => {
         </div>
       )}
 
-      <div style={{ padding: "0 80px" }}>
+      <div style={{ padding: `0 ${px}` }}>
         {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "60px",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
             <Spinner size={40} />
           </div>
         ) : error ? (
@@ -811,7 +1036,9 @@ const CompaniesSection = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gridTemplateColumns: isMobile
+                ? "repeat(auto-fill, minmax(150px, 1fr))"
+                : "repeat(auto-fill, minmax(220px, 1fr))",
               gap: "1px",
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -823,22 +1050,19 @@ const CompaniesSection = () => {
               const logoKey = c.companyMasterId || c.name || i;
               const cleanedLogoUrl =
                 typeof c.logoUrl === "string" ? c.logoUrl.trim() : "";
-              const logoSrc = cleanedLogoUrl
-                ? resolveMediaUrl(cleanedLogoUrl)
-                : null;
+              const logoSrc = cleanedLogoUrl ? resolveMediaUrl(cleanedLogoUrl) : null;
               const showLogo = logoSrc && !failedLogos[logoKey];
               return (
                 <div
                   key={c.companyMasterId || i}
                   style={{
                     background: "var(--black-soft)",
-                    padding: "28px 24px",
+                    padding: isMobile ? "16px 14px" : "28px 24px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "16px",
+                    gap: "10px",
                     transition: "background 0.2s",
                     animation: `tnpFadeUp 0.4s ease ${i * 0.03}s both`,
-                    cursor: "default",
                   }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.background = "var(--black-elevated)")
@@ -847,13 +1071,7 @@ const CompaniesSection = () => {
                     (e.currentTarget.style.background = "var(--black-soft)")
                   }
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "14px",
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "10px" : "14px" }}>
                     {showLogo ? (
                       <img
                         src={logoSrc}
@@ -861,15 +1079,12 @@ const CompaniesSection = () => {
                         referrerPolicy="no-referrer"
                         loading="lazy"
                         onError={() =>
-                          setFailedLogos((prev) => ({
-                            ...prev,
-                            [logoKey]: true,
-                          }))
+                          setFailedLogos((prev) => ({ ...prev, [logoKey]: true }))
                         }
                         style={{
-                          width: "52px",
-                          height: "52px",
-                          borderRadius: "10px",
+                          width: isMobile ? "36px" : "52px",
+                          height: isMobile ? "36px" : "52px",
+                          borderRadius: "8px",
                           objectFit: "cover",
                           flexShrink: 0,
                           border: "1px solid rgba(255,255,255,0.1)",
@@ -878,16 +1093,16 @@ const CompaniesSection = () => {
                     ) : (
                       <div
                         style={{
-                          width: "52px",
-                          height: "52px",
-                          borderRadius: "10px",
+                          width: isMobile ? "36px" : "52px",
+                          height: isMobile ? "36px" : "52px",
+                          borderRadius: "8px",
                           background: `${color}18`,
                           border: `1px solid ${color}30`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontFamily: "var(--font-display)",
-                          fontSize: "18px",
+                          fontSize: isMobile ? "14px" : "18px",
                           color,
                           letterSpacing: "0.02em",
                           flexShrink: 0,
@@ -896,15 +1111,26 @@ const CompaniesSection = () => {
                         {logo}
                       </div>
                     )}
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: "15px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: isMobile ? "13px" : "15px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {c.name}
                       </div>
                       <div
                         style={{
-                          fontSize: "11px",
+                          fontSize: "10px",
                           color: "var(--white-60)",
                           fontFamily: "var(--font-mono)",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {c.industry}
@@ -936,14 +1162,14 @@ const CompaniesSection = () => {
 
 // ── Placements Section ────────────────────────────────────────────────────────
 const PlacementsSection = () => {
+  const isMobile = useIsMobile(768);
   const [placements, setPlacements] = useState([]);
   const [placementImageMap, setPlacementImageMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const currentSession = getCurrentSession();
-
-  const perSlide = 6;
+  const perSlide = isMobile ? 4 : 6;
 
   const chunkPlacements = (items, size) => {
     if (!items.length) return [];
@@ -987,10 +1213,7 @@ const PlacementsSection = () => {
               ? page + 1 < totalPages
               : content.length === pageSize);
           page += 1;
-
-          if (content.length === 0) {
-            hasNext = false;
-          }
+          if (content.length === 0) hasNext = false;
         }
       }
 
@@ -1014,12 +1237,7 @@ const PlacementsSection = () => {
       const withImages = placements.filter(
         (s) => s?.imageUrl && (s?.placementId || s?.studentPrn),
       );
-
-      if (!withImages.length) {
-        setPlacementImageMap({});
-        return;
-      }
-
+      if (!withImages.length) { setPlacementImageMap({}); return; }
       const results = await Promise.all(
         withImages.map(async (s) => {
           const key = s.placementId || s.studentPrn;
@@ -1028,21 +1246,13 @@ const PlacementsSection = () => {
           return { key, blobUrl };
         }),
       );
-
-      if (!isActive) {
-        createdUrls.forEach((u) => URL.revokeObjectURL(u));
-        return;
-      }
-
+      if (!isActive) { createdUrls.forEach((u) => URL.revokeObjectURL(u)); return; }
       const nextMap = {};
-      results.forEach((r) => {
-        if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl;
-      });
+      results.forEach((r) => { if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl; });
       setPlacementImageMap(nextMap);
     };
 
     loadImages();
-
     return () => {
       isActive = false;
       createdUrls.forEach((u) => URL.revokeObjectURL(u));
@@ -1052,17 +1262,12 @@ const PlacementsSection = () => {
   const placementSlides = chunkPlacements(placements, perSlide);
   const totalSlides = placementSlides.length;
 
-  useEffect(() => {
-    setCurrentSlide(0);
-  }, [totalSlides]);
-
+  useEffect(() => { setCurrentSlide(0); }, [totalSlides]);
   useEffect(() => {
     if (totalSlides <= 1) return undefined;
-
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
     }, 5000);
-
     return () => clearInterval(timer);
   }, [totalSlides]);
 
@@ -1070,7 +1275,6 @@ const PlacementsSection = () => {
     if (totalSlides <= 1) return;
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
-
   const goNext = () => {
     if (totalSlides <= 1) return;
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -1078,40 +1282,34 @@ const PlacementsSection = () => {
 
   const getInitials = (name) => {
     if (!name) return "?";
-    return name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   };
 
+  const px = isMobile ? "20px" : "80px";
+
   return (
-    <section id="tnp-placements" style={{ padding: "100px 80px" }}>
+    <section
+      id="tnp-placements"
+      style={{ padding: isMobile ? "60px 20px" : "100px 80px" }}
+    >
       <div
         style={{
           display: "flex",
-          alignItems: "flex-end",
+          alignItems: isMobile ? "flex-start" : "flex-end",
           justifyContent: "space-between",
           marginBottom: "16px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "8px" : "0",
         }}
       >
         <div>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "12px",
-              color: "var(--orange)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-            }}
-          >
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--orange)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             Class of 2024
           </span>
           <h2
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "64px",
+              fontSize: isMobile ? "48px" : "64px",
               letterSpacing: "0.03em",
               lineHeight: 1,
             }}
@@ -1122,15 +1320,9 @@ const PlacementsSection = () => {
       </div>
       <Divider />
 
-      <div style={{ marginTop: "48px" }}>
+      <div style={{ marginTop: "32px" }}>
         {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "60px",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
             <Spinner size={40} />
           </div>
         ) : error ? (
@@ -1146,46 +1338,18 @@ const PlacementsSection = () => {
                   marginBottom: "12px",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--white-60)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
+                <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
                   {`Slide ${currentSlide + 1} / ${totalSlides}`}
                 </div>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     onClick={goPrev}
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      borderRadius: "50%",
-                      border: "1px solid rgba(255,255,255,0.18)",
-                      background: "transparent",
-                      color: "var(--white)",
-                      cursor: "pointer",
-                      fontSize: "16px",
-                    }}
-                  >
-                    ‹
-                  </button>
+                    style={{ width: "34px", height: "34px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "var(--white)", cursor: "pointer", fontSize: "16px", touchAction: "manipulation" }}
+                  >‹</button>
                   <button
                     onClick={goNext}
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      borderRadius: "50%",
-                      border: "1px solid rgba(255,255,255,0.18)",
-                      background: "transparent",
-                      color: "var(--white)",
-                      cursor: "pointer",
-                      fontSize: "16px",
-                    }}
-                  >
-                    ›
-                  </button>
+                    style={{ width: "34px", height: "34px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "var(--white)", cursor: "pointer", fontSize: "16px", touchAction: "manipulation" }}
+                  >›</button>
                 </div>
               </div>
             )}
@@ -1193,7 +1357,7 @@ const PlacementsSection = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(340px, 1fr))",
                 gap: "1px",
                 background: "rgba(255,255,255,0.06)",
               }}
@@ -1208,106 +1372,71 @@ const PlacementsSection = () => {
                       padding: "8px",
                       background: "var(--black-soft)",
                       display: "grid",
-                      gridTemplateColumns: "120px 1fr",
+                      gridTemplateColumns: isMobile ? "80px 1fr" : "120px 1fr",
                       alignItems: "stretch",
-                      minHeight: "132px",
+                      minHeight: isMobile ? "100px" : "132px",
                       overflow: "hidden",
-                      borderRadius: "14px",
+                      borderRadius: "10px",
                       transition: "background 0.2s",
                       animation: `tnpFadeUp 0.4s ease ${i * 0.06}s both`,
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "var(--black-elevated)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "var(--black-soft)")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--black-elevated)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "var(--black-soft)")}
                   >
                     {imageSrc ? (
                       <img
                         src={imageSrc}
                         alt={s.studentName}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          display: "block",
-                          borderRadius: "10px",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "8px" }}
                       />
                     ) : (
                       <div
                         style={{
                           width: "100%",
                           height: "100%",
-                          background:
-                            "linear-gradient(135deg, var(--orange), #c44d0a)",
+                          background: "linear-gradient(135deg, var(--orange), #c44d0a)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontWeight: 600,
-                          fontSize: "28px",
+                          fontSize: isMobile ? "22px" : "28px",
                           color: "white",
-                          borderRadius: "10px",
+                          borderRadius: "8px",
                         }}
                       >
                         {getInitials(s.studentName)}
                       </div>
                     )}
-                    <div style={{ minWidth: 0, padding: "20px" }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: "16px",
-                          marginBottom: "2px",
-                        }}
-                      >
+                    <div style={{ minWidth: 0, padding: isMobile ? "12px" : "20px" }}>
+                      <div style={{ fontWeight: 600, fontSize: isMobile ? "14px" : "16px", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {s.studentName || s.studentPrn}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--white-60)",
-                          fontFamily: "var(--font-mono)",
-                          marginBottom: "12px",
-                        }}
-                      >
+                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", marginBottom: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {s.department || "—"}
                         {s.year ? ` · Year ${s.year}` : ""}
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: "13px", fontWeight: 500 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: "13px", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {s.companyName}
                           </div>
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              color: "var(--white-60)",
-                              fontFamily: "var(--font-mono)",
-                            }}
-                          >
+                          <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {s.role}
                           </div>
                         </div>
                         <div
                           style={{
-                            padding: "4px 12px",
+                            padding: "3px 10px",
                             borderRadius: "4px",
                             background: "rgba(244,96,12,0.12)",
                             border: "1px solid var(--orange-border)",
-                            fontSize: "13px",
+                            fontSize: isMobile ? "12px" : "13px",
                             fontWeight: 600,
                             color: "var(--orange)",
                             fontFamily: "var(--font-display)",
                             letterSpacing: "0.04em",
+                            flexShrink: 0,
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {s.packageOffered ? `${s.packageOffered} LPA` : "—"}
@@ -1318,15 +1447,7 @@ const PlacementsSection = () => {
                 );
               })}
               {placements.length === 0 && (
-                <div
-                  style={{
-                    gridColumn: "1/-1",
-                    padding: "60px",
-                    textAlign: "center",
-                    color: "var(--white-30)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
+                <div style={{ gridColumn: "1/-1", padding: "60px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
                   No placements recorded yet
                 </div>
               )}
@@ -1340,28 +1461,25 @@ const PlacementsSection = () => {
 
 // ── Session Company Insights Section ─────────────────────────────────────────
 const SessionCompanyInsightsSection = () => {
+  const isMobile = useIsMobile(768);
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(getCurrentSession());
   const [rows, setRows] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [sessionStats, setSessionStats] = useState(null);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState(null);
+  const pageSize = 10;
 
   const loadSessions = async () => {
     setLoadingSessions(true);
-
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/visitYear/all/getAllSessions`,
-        {
-          headers: authHeaders(),
-        },
-      );
-
+      const res = await axios.get(`${BASE_URL}/api/visitYear/all/getAllSessions`, { headers: authHeaders() });
       const raw = res.data?.data ?? res.data;
       const list = Array.isArray(raw) ? raw : [];
-
       const sortedSessions = list
         .map((item) => item?.academicSession)
         .filter(Boolean)
@@ -1370,16 +1488,10 @@ const SessionCompanyInsightsSection = () => {
           const bYear = Number(String(b).split("-")[0]) || 0;
           return bYear - aYear;
         });
-
       const fallback = getCurrentSession();
-      if (!sortedSessions.includes(fallback)) {
-        sortedSessions.unshift(fallback);
-      }
-
+      if (!sortedSessions.includes(fallback)) sortedSessions.unshift(fallback);
       setSessions(sortedSessions);
-      if (!sortedSessions.includes(selectedSession)) {
-        setSelectedSession(sortedSessions[0] || fallback);
-      }
+      if (!sortedSessions.includes(selectedSession)) setSelectedSession(sortedSessions[0] || fallback);
     } catch {
       setSessions([getCurrentSession()]);
     } finally {
@@ -1387,53 +1499,49 @@ const SessionCompanyInsightsSection = () => {
     }
   };
 
-  const loadCombinedData = async (session) => {
-    if (!session) {
-      setRows([]);
-      setSessionStats(null);
-      return;
-    }
-
+  const loadCombinedData = async (session, page = 0) => {
+    if (!session) { setRows([]); setSessionStats(null); return; }
     setLoadingData(true);
     setError(null);
-
     try {
       const [combinedRes, statsRes] = await Promise.all([
-        axios.get(`${BASE_URL}/api/company/all/combinedPackage`, {
+        axios.get(`${BASE_URL}/api/company/all/paged/all/combinedPackage`, {
           headers: authHeaders(),
-          params: { session },
+          params: { session, page, size: pageSize },
         }),
-        axios
-          .get(
-            `${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`,
-            {
-              headers: authHeaders(),
-            },
-          )
-          .catch(() => ({ data: null })),
+        axios.get(`${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`, { headers: authHeaders() }).catch(() => ({ data: null })),
       ]);
 
-      const raw = combinedRes.data?.data ?? [];
-      setRows(Array.isArray(raw) ? raw : []);
+      const raw = combinedRes.data?.data ?? combinedRes.data ?? {};
+      const content = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.content)
+          ? raw.content
+          : [];
+
+      setRows(content);
+      setTotalElements(Number(raw?.totalElements ?? content.length) || 0);
+      setTotalPages(Math.max(1, Number(raw?.totalPages ?? (Array.isArray(raw) ? 1 : 0)) || 1));
       setSessionStats(statsRes.data?.data ?? null);
     } catch (err) {
       setRows([]);
+      setTotalElements(0);
+      setTotalPages(1);
       setSessionStats(null);
-      setError(
-        err.response?.data?.message || "Failed to load company insights",
-      );
+      setError(err.response?.data?.message || "Failed to load company insights");
     } finally {
       setLoadingData(false);
     }
   };
 
+  useEffect(() => { loadSessions(); }, []);
   useEffect(() => {
-    loadSessions();
-  }, []);
+    setCurrentPage(0);
+  }, [selectedSession]);
 
   useEffect(() => {
-    loadCombinedData(selectedSession);
-  }, [selectedSession]);
+    loadCombinedData(selectedSession, currentPage);
+  }, [selectedSession, currentPage]);
 
   const summary = rows.reduce(
     (acc, row) => {
@@ -1444,41 +1552,32 @@ const SessionCompanyInsightsSection = () => {
     { companyCount: 0, totalStudents: 0 },
   );
 
+  const displayedCompanyCount = totalElements > 0 ? totalElements : summary.companyCount;
+
   const sessionAvgRaw = Number(sessionStats?.averagePackage);
-  const sessionAvg = Number.isFinite(sessionAvgRaw) && sessionAvgRaw > 0
-    ? sessionAvgRaw
-    : null;
+  const sessionAvg = Number.isFinite(sessionAvgRaw) && sessionAvgRaw > 0 ? sessionAvgRaw : null;
 
   const packageAverage = (values = []) => {
-    const clean = values
-      .map((v) => Number(v))
-      .filter((v) => Number.isFinite(v) && v > 0);
-
+    const clean = values.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0);
     if (!clean.length) return null;
     return clean.reduce((acc, n) => acc + n, 0) / clean.length;
   };
 
+  const px = isMobile ? "20px" : "80px";
+
   return (
     <section
       id="tnp-sessions"
-      style={{ padding: "100px 80px", background: "var(--black-soft)" }}
+      style={{ padding: isMobile ? "60px 20px" : "100px 80px", background: "var(--black-soft)" }}
     >
       <div style={{ marginBottom: "16px" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "12px",
-            color: "var(--orange)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--orange)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
           Session-Wise Company Data
         </span>
         <h2
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "64px",
+            fontSize: isMobile ? "48px" : "64px",
             letterSpacing: "0.03em",
             lineHeight: 1,
           }}
@@ -1488,252 +1587,273 @@ const SessionCompanyInsightsSection = () => {
       </div>
       <Divider />
 
-      <div
-        style={{
-          marginTop: "24px",
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <label
-          htmlFor="tnp-session-select"
-          style={{
-            color: "var(--white-60)",
-            fontSize: "13px",
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.04em",
-          }}
-        >
+      <div style={{ marginTop: "24px", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: "12px", flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
+        <label style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", flexShrink: 0 }}>
           SESSION
         </label>
-        <div style={{ minWidth: "220px" }}>
+        <div style={{ width: isMobile ? "100%" : "220px" }}>
           <CustomSelect
             name="session"
             value={selectedSession}
             disabled={loadingSessions}
             onChange={(e) => setSelectedSession(e.target.value)}
-            options={sessions.map((session) => ({
-              value: session,
-              label: session,
-            }))}
+            options={sessions.map((session) => ({ value: session, label: session }))}
             placeholder="Select session"
             theme={TNP_SELECT_THEME}
           />
         </div>
       </div>
 
+      {/* Stats cards — scroll on mobile */}
       <div
+        className={isMobile ? "tnp-hide-scrollbar" : ""}
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          display: isMobile ? "flex" : "grid",
+          gridTemplateColumns: isMobile ? undefined : "repeat(auto-fit, minmax(220px, 1fr))",
           gap: "10px",
           marginTop: "20px",
           marginBottom: "20px",
+          overflowX: isMobile ? "auto" : "visible",
+          paddingBottom: isMobile ? "4px" : "0",
         }}
       >
-        <div
-          style={{
-            background: "var(--black-card)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "10px",
-            padding: "16px",
-          }}
-        >
+        {[
+          { label: "Companies", value: displayedCompanyCount },
+          { label: "Total Students Hired", value: summary.totalStudents },
+          { label: "Session Average Package", value: sessionAvg !== null ? `₹${sessionAvg.toFixed(2)} LPA` : "—", color: "var(--orange)" },
+        ].map((item, i) => (
           <div
+            key={i}
             style={{
-              fontSize: "12px",
-              color: "var(--white-60)",
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.05em",
+              background: "var(--black-card)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "10px",
+              padding: "16px",
+              flexShrink: isMobile ? 0 : undefined,
+              minWidth: isMobile ? "160px" : undefined,
             }}
           >
-            Companies
+            <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.05em" }}>
+              {item.label}
+            </div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: "32px", color: item.color }}>
+              {item.value}
+            </div>
           </div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "32px" }}>
-            {summary.companyCount}
-          </div>
-        </div>
-        <div
-          style={{
-            background: "var(--black-card)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "10px",
-            padding: "16px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--white-60)",
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Total Students Hired
-          </div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "32px" }}>
-            {summary.totalStudents}
-          </div>
-        </div>
-        <div
-          style={{
-            background: "var(--black-card)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "10px",
-            padding: "16px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--white-60)",
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Session Average Package
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "32px",
-              color: "var(--orange)",
-            }}
-          >
-            {sessionAvg !== null ? `₹${sessionAvg.toFixed(2)} LPA` : "—"}
-          </div>
-        </div>
+        ))}
       </div>
 
-      {error && (
-        <ErrorBox
-          message={error}
-          onRetry={() => loadCombinedData(selectedSession)}
-        />
-      )}
+      {error && <ErrorBox message={error} onRetry={() => loadCombinedData(selectedSession)} />}
 
-      <div
-        style={{
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: "12px",
-          overflow: "hidden",
-          background: "var(--black-card)",
-        }}
-      >
+      {isMobile ? (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
-            gap: "8px",
-            padding: "12px 14px",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-            fontSize: "12px",
-            letterSpacing: "0.06em",
-            color: "var(--white-60)",
-            textTransform: "uppercase",
-            fontFamily: "var(--font-mono)",
+            gap: "10px",
           }}
         >
-          <div>Company</div>
-          <div>Industry</div>
-          <div>Package Offered</div>
-          <div>Students Hired</div>
-        </div>
+          {loadingData ? (
+            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-60)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)" }}>
+              Loading data...
+            </div>
+          ) : rows.length === 0 ? (
+            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)" }}>
+              No company data found for this session.
+            </div>
+          ) : (
+            rows.map((row, idx) => {
+              const offers = Array.isArray(row?.packageOffered)
+                ? row.packageOffered.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0)
+                : [];
+              const avg = packageAverage(offers);
 
-        {loadingData ? (
+              return (
+                <div
+                  key={`${row?.companyId || idx}-${row?.name || "company"}`}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "12px",
+                    padding: "14px",
+                    background: "var(--black-card)",
+                    display: "grid",
+                    gap: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: "14px", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {row?.name || "—"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+                        {row?.industry || "—"}
+                      </div>
+                    </div>
+                    <Badge>{row?.academicSession || selectedSession}</Badge>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        AVG PACKAGE
+                      </div>
+                      <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "13px" }}>
+                        {avg !== null ? `₹${avg.toFixed(2)} LPA` : "—"}
+                      </div>
+                    </div>
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        STUDENTS HIRED
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: "13px" }}>{Number(row?.studentsHired) || 0}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
+        <div
+          style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", overflow: "hidden", background: "var(--black-card)" }}
+        >
           <div
             style={{
-              padding: "26px",
-              textAlign: "center",
+              display: "grid",
+              gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
+              gap: "8px",
+              padding: "12px 14px",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              fontSize: "12px",
+              letterSpacing: "0.06em",
               color: "var(--white-60)",
-            }}
-          >
-            Loading data...
-          </div>
-        ) : rows.length === 0 ? (
-          <div
-            style={{
-              padding: "26px",
-              textAlign: "center",
-              color: "var(--white-30)",
+              textTransform: "uppercase",
               fontFamily: "var(--font-mono)",
             }}
           >
-            No company data found for this session.
+            <div>Company</div>
+            <div>Industry</div>
+            <div>Package Offered</div>
+            <div>Students Hired</div>
           </div>
-        ) : (
-          rows.map((row, idx) => {
-            const offers = Array.isArray(row?.packageOffered)
-              ? row.packageOffered
-                  .map((v) => Number(v))
-                  .filter((v) => Number.isFinite(v) && v > 0)
-              : [];
-            const avg = packageAverage(offers);
 
-            return (
-              <div
-                key={`${row?.companyId || idx}-${row?.name || "company"}`}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
-                  gap: "8px",
-                  padding: "14px",
-                  borderBottom:
-                    idx === rows.length - 1
-                      ? "none"
-                      : "1px solid rgba(255,255,255,0.06)",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: "2px" }}>
-                    {row?.name || "—"}
+          {loadingData ? (
+            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-60)" }}>
+              Loading data...
+            </div>
+          ) : rows.length === 0 ? (
+            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+              No company data found for this session.
+            </div>
+          ) : (
+            rows.map((row, idx) => {
+              const offers = Array.isArray(row?.packageOffered)
+                ? row.packageOffered.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0)
+                : [];
+              const avg = packageAverage(offers);
+              return (
+                <div
+                  key={`${row?.companyId || idx}-${row?.name || "company"}`}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
+                    gap: "8px",
+                    padding: "14px",
+                    borderBottom: idx === rows.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: "2px", fontSize: "13px" }}>{row?.name || "—"}</div>
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+                      {row?.academicSession || selectedSession}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {row?.academicSession || selectedSession}
+                  <div style={{ color: "var(--white-90)", fontSize: "13px" }}>{row?.industry || "—"}</div>
+                  <div>
+                    <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "13px" }}>
+                      {avg !== null ? `Avg ₹${avg.toFixed(2)} LPA` : "—"}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+                      {offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}
+                    </div>
                   </div>
+                  <div style={{ fontWeight: 600, fontSize: "13px" }}>{Number(row?.studentsHired) || 0}</div>
                 </div>
-                <div style={{ color: "var(--white-90)" }}>
-                  {row?.industry || "—"}
-                </div>
-                <div>
-                  <div style={{ color: "var(--orange)", fontWeight: 600 }}>
-                    {avg !== null ? `Avg ₹${avg.toFixed(2)} LPA` : "—"}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {offers.length
-                      ? `Offers: ${offers.join(", ")}`
-                      : "No package entries"}
-                  </div>
-                </div>
-                <div style={{ fontWeight: 600 }}>
-                  {Number(row?.studentsHired) || 0}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            marginTop: "14px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "12px",
+              color: "var(--white-60)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {`Page ${currentPage + 1} of ${totalPages} · ${pageSize} per page`}
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage === 0 || loadingData}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: "transparent",
+                color: currentPage === 0 || loadingData ? "var(--white-30)" : "var(--white)",
+                cursor: currentPage === 0 || loadingData ? "not-allowed" : "pointer",
+                fontSize: "12px",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage >= totalPages - 1 || loadingData}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: "transparent",
+                color: currentPage >= totalPages - 1 || loadingData ? "var(--white-30)" : "var(--white)",
+                cursor: currentPage >= totalPages - 1 || loadingData ? "not-allowed" : "pointer",
+                fontSize: "12px",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
 
 // ── Team Section ──────────────────────────────────────────────────────────────
 const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
+  const isMobile = useIsMobile(768);
   const [members, setMembers] = useState([]);
   const [memberImageMap, setMemberImageMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -1744,9 +1864,7 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${BASE_URL}/api/tnp/all/getAll/true`, {
-        headers: authHeaders(),
-      });
+      const res = await axios.get(`${BASE_URL}/api/tnp/all/getAll/true`, { headers: authHeaders() });
       const raw = res.data?.data ?? res.data;
       setMembers(Array.isArray(raw) ? raw : raw?.content || []);
     } catch (err) {
@@ -1756,22 +1874,14 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     let isActive = true;
     let createdUrls = [];
-
     const loadImages = async () => {
       const withImages = members.filter((m) => m?.imageUrl && m?.prn);
-
-      if (!withImages.length) {
-        setMemberImageMap({});
-        return;
-      }
-
+      if (!withImages.length) { setMemberImageMap({}); return; }
       const results = await Promise.all(
         withImages.map(async (m) => {
           const blobUrl = await fetchProtectedImageBlobUrl(m.imageUrl);
@@ -1779,88 +1889,59 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
           return { key: m.prn, blobUrl };
         }),
       );
-
-      if (!isActive) {
-        createdUrls.forEach((u) => URL.revokeObjectURL(u));
-        return;
-      }
-
+      if (!isActive) { createdUrls.forEach((u) => URL.revokeObjectURL(u)); return; }
       const nextMap = {};
-      results.forEach((r) => {
-        if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl;
-      });
+      results.forEach((r) => { if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl; });
       setMemberImageMap(nextMap);
     };
-
     loadImages();
-
-    return () => {
-      isActive = false;
-      createdUrls.forEach((u) => URL.revokeObjectURL(u));
-    };
+    return () => { isActive = false; createdUrls.forEach((u) => URL.revokeObjectURL(u)); };
   }, [members]);
 
   const canEnter = canAccess(globalRole, tnpRole, "enter_portal");
-  const sorted = [...members].sort(
-    (a, b) => (ROLE_RANK[a.role] ?? 9) - (ROLE_RANK[b.role] ?? 9),
-  );
+  const sorted = [...members].sort((a, b) => (ROLE_RANK[a.role] ?? 9) - (ROLE_RANK[b.role] ?? 9));
   const head = sorted.find((m) => m.role === "TNP_HEAD");
-  const leadership = sorted.filter(
-    (m) => m.role === "PRESIDENT" || m.role === "VICE_PRESIDENT",
-  );
+  const leadership = sorted.filter((m) => m.role === "PRESIDENT" || m.role === "VICE_PRESIDENT");
   const coordinators = sorted.filter((m) => m.role === "CO_ORDINATOR");
-  const others = sorted.filter(
-    (m) =>
-      !["TNP_HEAD", "PRESIDENT", "VICE_PRESIDENT", "CO_ORDINATOR"].includes(
-        m.role,
-      ),
-  );
+  const others = sorted.filter((m) => !["TNP_HEAD", "PRESIDENT", "VICE_PRESIDENT", "CO_ORDINATOR"].includes(m.role));
 
-  const coordinatorsPerSlide = 3;
+  const coordinatorsPerSlide = isMobile ? 2 : 3;
+  const coordinatorStep = coordinatorsPerSlide;
   const canSlideCoordinators = coordinators.length > coordinatorsPerSlide;
   const coordinatorWindow = canSlideCoordinators
-    ? Array.from(
-        { length: coordinatorsPerSlide },
-        (_, idx) => coordinators[(coordStart + idx) % coordinators.length],
-      )
+    ? Array.from({ length: coordinatorsPerSlide }, (_, idx) => coordinators[(coordStart + idx) % coordinators.length])
     : coordinators;
 
   const slideCoordinatorsPrev = () => {
     if (!canSlideCoordinators) return;
     setCoordStart(
-      (prev) => (prev - 1 + coordinators.length) % coordinators.length,
+      (prev) =>
+        (prev - coordinatorStep + coordinators.length) % coordinators.length,
     );
   };
-
   const slideCoordinatorsNext = () => {
     if (!canSlideCoordinators) return;
-    setCoordStart((prev) => (prev + 1) % coordinators.length);
+    setCoordStart((prev) => (prev + coordinatorStep) % coordinators.length);
   };
 
-  useEffect(() => {
-    setCoordStart(0);
-  }, [coordinators.length]);
-
+  useEffect(() => { setCoordStart(0); }, [coordinators.length]);
   useEffect(() => {
     if (!canSlideCoordinators) return undefined;
     const timer = setInterval(() => {
-      setCoordStart((prev) => (prev + 1) % coordinators.length);
-    }, 5000);
+      setCoordStart((prev) => (prev + coordinatorStep) % coordinators.length);
+    }, 2000);
     return () => clearInterval(timer);
-  }, [canSlideCoordinators, coordinators.length]);
+  }, [canSlideCoordinators, coordinators.length, coordinatorStep]);
 
   const getInitials = (name) => {
     if (!name) return "?";
-    return name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   };
 
   const MemberCard = ({ m, large, highlight }) => {
     const imageSrc = memberImageMap[m.prn] || resolveMediaUrl(m.imageUrl);
+    const cardHeight = large ? (isMobile ? "110px" : "154px") : (isMobile ? "100px" : "132px");
+    const imgWidth = large ? (isMobile ? "90px" : "140px") : (isMobile ? "80px" : "116px");
 
     return (
       <div
@@ -1869,29 +1950,23 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
           background: highlight
             ? "linear-gradient(135deg, rgba(244,96,12,0.1), rgba(255,255,255,0.02))"
             : "var(--black-card)",
-          border: highlight
-            ? "1px solid rgba(244,96,12,0.35)"
-            : "1px solid rgba(255,255,255,0.08)",
-          borderRadius: "14px",
+          border: highlight ? "1px solid rgba(244,96,12,0.35)" : "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "12px",
           display: "grid",
-          gridTemplateColumns: large ? "140px 1fr" : "116px 1fr",
+          gridTemplateColumns: `${imgWidth} 1fr`,
           alignItems: "stretch",
-          minHeight: large ? "154px" : "132px",
+          minHeight: cardHeight,
           overflow: "hidden",
           transition: "border-color 0.2s, background 0.2s",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = highlight
-            ? "rgba(255,125,53,0.6)"
-            : "rgba(244,96,12,0.4)";
+          e.currentTarget.style.borderColor = highlight ? "rgba(255,125,53,0.6)" : "rgba(244,96,12,0.4)";
           e.currentTarget.style.background = highlight
             ? "linear-gradient(135deg, rgba(244,96,12,0.16), rgba(255,255,255,0.03))"
             : "var(--black-elevated)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = highlight
-            ? "rgba(244,96,12,0.35)"
-            : "rgba(255,255,255,0.08)";
+          e.currentTarget.style.borderColor = highlight ? "rgba(244,96,12,0.35)" : "rgba(255,255,255,0.08)";
           e.currentTarget.style.background = highlight
             ? "linear-gradient(135deg, rgba(244,96,12,0.1), rgba(255,255,255,0.02))"
             : "var(--black-card)";
@@ -1901,13 +1976,7 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
           <img
             src={imageSrc}
             alt={m.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              borderRadius: "10px",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "8px" }}
           />
         ) : (
           <div
@@ -1926,40 +1995,27 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 600,
-              fontSize: large ? "28px" : "24px",
+              fontSize: large ? (isMobile ? "22px" : "28px") : (isMobile ? "18px" : "24px"),
               color: "white",
-              borderRadius: "10px",
+              borderRadius: "8px",
             }}
           >
             {getInitials(m.name)}
           </div>
         )}
-        <div style={{ minWidth: 0, padding: large ? "24px" : "20px" }}>
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: large ? "20px" : "15px",
-              marginBottom: "2px",
-            }}
-          >
+        <div style={{ minWidth: 0, padding: large ? (isMobile ? "14px" : "24px") : (isMobile ? "12px" : "20px") }}>
+          <div style={{ fontWeight: 600, fontSize: large ? (isMobile ? "15px" : "20px") : (isMobile ? "13px" : "15px"), marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {m.name || m.prn}
           </div>
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--white-60)",
-              fontFamily: "var(--font-mono)",
-              marginBottom: "10px",
-            }}
-          >
+          <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", marginBottom: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {m.department || "—"}
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             <Badge variant={m.role === "TNP_HEAD" ? "orange" : "default"}>
               {ROLE_LABELS[m.role] || m.role}
             </Badge>
-            {m.year && <Badge>Year {m.year}</Badge>}
-            {m.startDate && (
+            {m.year && !isMobile && <Badge>Year {m.year}</Badge>}
+            {m.startDate && !isMobile && (
               <Badge>
                 {new Date(m.startDate).getFullYear()}
                 {m.endDate ? `–${new Date(m.endDate).getFullYear()}` : "–"}
@@ -1974,24 +2030,16 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
   return (
     <section
       id="tnp-team"
-      style={{ padding: "100px 80px", background: "var(--black-soft)" }}
+      style={{ padding: isMobile ? "60px 20px" : "100px 80px", background: "var(--black-soft)" }}
     >
       <div style={{ marginBottom: "16px" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "12px",
-            color: "var(--orange)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--orange)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
           The People Behind It
         </span>
         <h2
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "64px",
+            fontSize: isMobile ? "48px" : "64px",
             letterSpacing: "0.03em",
             lineHeight: 1,
           }}
@@ -2001,30 +2049,15 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
       </div>
       <Divider />
 
-      <div style={{ marginTop: "48px" }}>
+      <div style={{ marginTop: "32px" }}>
         {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "60px",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
             <Spinner size={40} />
           </div>
         ) : error ? (
           <ErrorBox message={error} onRetry={loadData} />
         ) : sorted.length === 0 ? (
-          <div
-            style={{
-              padding: "48px",
-              textAlign: "center",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "10px",
-              color: "var(--white-30)",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <div style={{ padding: "48px", textAlign: "center", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
             No active TNP team members are available right now.
           </div>
         ) : (
@@ -2033,22 +2066,13 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
 
             {leadership.length > 0 && (
               <div style={{ display: "grid", gap: "12px" }}>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--orange)",
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <div style={{ fontSize: "11px", color: "var(--orange)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                   Leadership
                 </div>
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(300px, 1fr))",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))",
                     gap: "16px",
                   }}
                 >
@@ -2061,79 +2085,28 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
 
             {coordinators.length > 0 && (
               <div style={{ display: "grid", gap: "12px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                    }}
-                  >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                  <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                     Coordinators
                   </div>
                   {canSlideCoordinators && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          color: "var(--white-30)",
-                          fontFamily: "var(--font-mono)",
-                        }}
-                      >
-                        Sliding window view
-                      </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      {!isMobile && (
+                        <div style={{ fontSize: "11px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                          Sliding window view
+                        </div>
+                      )}
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button
                           type="button"
                           onClick={slideCoordinatorsPrev}
-                          aria-label="Previous coordinators"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "50%",
-                            border: "1px solid rgba(255,255,255,0.18)",
-                            background: "transparent",
-                            color: "var(--white)",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            lineHeight: 1,
-                          }}
-                        >
-                          ‹
-                        </button>
+                          style={{ width: "30px", height: "30px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "var(--white)", cursor: "pointer", fontSize: "14px", lineHeight: 1, touchAction: "manipulation" }}
+                        >‹</button>
                         <button
                           type="button"
                           onClick={slideCoordinatorsNext}
-                          aria-label="Next coordinators"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "50%",
-                            border: "1px solid rgba(255,255,255,0.18)",
-                            background: "transparent",
-                            color: "var(--white)",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            lineHeight: 1,
-                          }}
-                        >
-                          ›
-                        </button>
+                          style={{ width: "30px", height: "30px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "var(--white)", cursor: "pointer", fontSize: "14px", lineHeight: 1, touchAction: "manipulation" }}
+                        >›</button>
                       </div>
                     </div>
                   )}
@@ -2141,16 +2114,12 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: "16px",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: isMobile ? "10px" : "16px",
                   }}
                 >
                   {coordinatorWindow.map((m) => (
-                    <MemberCard
-                      key={`${m.tnpId || m.prn}-${coordStart}`}
-                      m={m}
-                    />
+                    <MemberCard key={`${m.tnpId || m.prn}-${coordStart}`} m={m} />
                   ))}
                 </div>
               </div>
@@ -2158,23 +2127,14 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
 
             {others.length > 0 && (
               <div style={{ display: "grid", gap: "12px" }}>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--white-60)",
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                   Team Members
                 </div>
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: "16px",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: isMobile ? "10px" : "16px",
                   }}
                 >
                   {others.map((m) => (
@@ -2190,63 +2150,47 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
       {!canEnter && (
         <div
           style={{
-            marginTop: "80px",
-            padding: "60px",
+            marginTop: "60px",
+            padding: isMobile ? "36px 20px" : "60px",
             textAlign: "center",
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: "8px",
-            background:
-              "linear-gradient(135deg, rgba(244,96,12,0.04), transparent)",
+            background: "linear-gradient(135deg, rgba(244,96,12,0.04), transparent)",
             position: "relative",
             overflow: "hidden",
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "12px",
-              color: "var(--orange)",
-              letterSpacing: "0.1em",
-              marginBottom: "16px",
-            }}
-          >
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--orange)", letterSpacing: "0.1em", marginBottom: "16px" }}>
             RESTRICTED ACCESS
           </div>
           <h3
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "48px",
+              fontSize: isMobile ? "36px" : "48px",
               letterSpacing: "0.04em",
               marginBottom: "16px",
             }}
           >
             TNP PORTAL
           </h3>
-          <p
-            style={{
-              color: "var(--white-60)",
-              fontSize: "15px",
-              maxWidth: "420px",
-              margin: "0 auto 32px",
-              lineHeight: 1.7,
-            }}
-          >
+          <p style={{ color: "var(--white-60)", fontSize: "15px", maxWidth: "420px", margin: "0 auto 32px", lineHeight: 1.7 }}>
             The internal portal is accessible only to registered TNP members.
           </p>
           <div
+            className="tnp-hide-scrollbar"
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: isMobile ? "flex-start" : "center",
               gap: "8px",
               marginBottom: "32px",
+              overflowX: isMobile ? "auto" : "visible",
+              paddingBottom: isMobile ? "4px" : "0",
             }}
           >
-            {["CO_ORDINATOR", "VICE_PRESIDENT", "PRESIDENT", "TNP_HEAD"].map(
-              (r) => (
-                <Badge key={r}>{ROLE_LABELS[r]}</Badge>
-              ),
-            )}
+            {["CO_ORDINATOR", "VICE_PRESIDENT", "PRESIDENT", "TNP_HEAD"].map((r) => (
+              <Badge key={r}>{ROLE_LABELS[r]}</Badge>
+            ))}
           </div>
         </div>
       )}
@@ -2255,144 +2199,81 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
 };
 
 // ── Footer ────────────────────────────────────────────────────────────────────
-const Footer = () => (
-  <footer
-    style={{
-      borderTop: "1px solid rgba(255,255,255,0.08)",
-      padding: "48px 80px 32px",
-      background: "var(--black)",
-    }}
-  >
-    <div
+const Footer = () => {
+  const isMobile = useIsMobile(768);
+  return (
+    <footer
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: "40px",
-        flexWrap: "wrap",
-        gap: "32px",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        padding: isMobile ? "40px 20px 24px" : "48px 80px 32px",
+        background: "var(--black)",
       }}
     >
-      <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "40px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: "32px",
+        }}
+      >
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+            <div
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "4px",
+                background: "var(--orange)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "16px", color: "white", lineHeight: 1 }}>T</span>
+            </div>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: "20px", letterSpacing: "0.05em" }}>T&P CELL</span>
+          </div>
+          <p style={{ color: "var(--white-60)", fontSize: "13px", maxWidth: "280px", lineHeight: 1.7 }}>
+            Training & Placement Cell — bridging the gap between academia and industry.
+          </p>
+        </div>
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            marginBottom: "12px",
+            gap: isMobile ? "32px" : "64px",
+            flexWrap: "wrap",
           }}
         >
-          <div
-            style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "4px",
-              background: "var(--orange)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "16px",
-                color: "white",
-                lineHeight: 1,
-              }}
-            >
-              T
-            </span>
-          </div>
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-            }}
-          >
-            T&P CELL
-          </span>
-        </div>
-        <p
-          style={{
-            color: "var(--white-60)",
-            fontSize: "13px",
-            maxWidth: "280px",
-            lineHeight: 1.7,
-          }}
-        >
-          Training & Placement Cell — bridging the gap between academia and
-          industry.
-        </p>
-      </div>
-      <div style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
-        {[
-          {
-            title: "Quick Links",
-            links: ["Companies", "Placements", "Our Team"],
-          },
-          {
-            title: "Contact",
-            links: [
-              "tnp@college.ac.in",
-              "+91 98765 43210",
-              "Room 204, Admin Block",
-            ],
-          },
-        ].map((col) => (
-          <div key={col.title}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--orange)",
-                letterSpacing: "0.1em",
-                marginBottom: "12px",
-              }}
-            >
-              {col.title.toUpperCase()}
-            </div>
-            {col.links.map((l) => (
-              <div
-                key={l}
-                style={{
-                  fontSize: "13px",
-                  color: "var(--white-60)",
-                  marginBottom: "6px",
-                }}
-              >
-                {l}
+          {[
+            { title: "Quick Links", links: ["Companies", "Placements", "Our Team"] },
+            { title: "Contact", links: ["tnp@college.ac.in", "+91 98765 43210", "Room 204, Admin Block"] },
+          ].map((col) => (
+            <div key={col.title}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--orange)", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                {col.title.toUpperCase()}
               </div>
-            ))}
-          </div>
-        ))}
+              {col.links.map((l) => (
+                <div key={l} style={{ fontSize: "13px", color: "var(--white-60)", marginBottom: "6px" }}>
+                  {l}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-    <Divider />
-    <div
-      style={{
-        marginTop: "24px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "12px",
-      }}
-    >
-      <span
-        style={{
-          fontSize: "12px",
-          color: "var(--white-30)",
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        © {new Date().getFullYear()} Training & Placement Cell. All rights
-        reserved.
-      </span>
-    </div>
-  </footer>
-);
+      <Divider />
+      <div style={{ marginTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+        <span style={{ fontSize: "12px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+          © {new Date().getFullYear()} Training & Placement Cell. All rights reserved.
+        </span>
+      </div>
+    </footer>
+  );
+};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── TNP PORTAL ────────────────────────────────────────────────────────────────
@@ -2403,7 +2284,13 @@ const Portal = ({ user, tnpRole, onBack }) => {
     const savedTab = localStorage.getItem(TNP_PORTAL_TAB_STORAGE_KEY);
     return savedTab || "dashboard";
   });
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1280,
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const globalRole = user?.role || "USER";
+  const isMobilePortal = viewportWidth < 1024;
+  const mobileTopOffset = 64;
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: "◉" },
@@ -2429,89 +2316,115 @@ const Portal = ({ user, tnpRole, onBack }) => {
     }
   }, [activeTab, tabs]);
 
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobilePortal) setIsSidebarOpen(false);
+  }, [isMobilePortal]);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobilePortal && isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobilePortal, isSidebarOpen]);
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (isMobilePortal) setIsSidebarOpen(false);
+  };
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex" }}>
+    <div style={{ minHeight: "100vh", display: "flex", position: "relative" }}>
+      {/* Overlay backdrop for mobile sidebar */}
+      {isMobilePortal && isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          style={{
+            position: "fixed",
+            top: `${mobileTopOffset}px`,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.65)",
+            zIndex: 19,
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            animation: "tnpFadeIn 0.2s ease",
+          }}
+        />
+      )}
+
       {/* Sidebar */}
       <div
         style={{
-          width: "220px",
+          width: isMobilePortal ? "min(82vw, 300px)" : "220px",
           flexShrink: 0,
           borderRight: "1px solid rgba(255,255,255,0.08)",
-          padding: "32px 0",
+          padding: "24px 0",
           background: "var(--black-soft)",
-          position: "sticky",
-          top: "0",
-          height: "100vh",
+          position: isMobilePortal ? "fixed" : "sticky",
+          left: 0,
+          top: isMobilePortal ? `${mobileTopOffset}px` : 0,
+          height: isMobilePortal ? `calc(100svh - ${mobileTopOffset}px)` : "100vh",
           overflowY: "auto",
+          zIndex: isMobilePortal ? 20 : 2,
+          transform: isMobilePortal
+            ? isSidebarOpen ? "translateX(0)" : "translateX(-105%)"
+            : "none",
+          transition: "transform 0.25s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: isMobilePortal && isSidebarOpen ? "8px 0 32px rgba(0,0,0,0.5)" : "none",
         }}
       >
-        <div
-          style={{
-            padding: "0 20px 24px",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
+        <div style={{ padding: "0 16px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
               background: "linear-gradient(135deg, var(--orange), #c44d0a)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 600,
-              fontSize: "16px",
+              fontSize: "15px",
               marginBottom: "10px",
             }}
           >
             {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
           </div>
-          <div style={{ fontWeight: 500, fontSize: "14px" }}>
+          <div style={{ fontWeight: 500, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.username}
           </div>
-          <div
-            style={{
-              fontSize: "11px",
-              color: "var(--white-60)",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.prn}
           </div>
           <div style={{ marginTop: "8px" }}>
-            <Badge
-              variant={globalRole === "SUPER_ADMIN" ? "orange" : "default"}
-            >
-              {globalRole === "SUPER_ADMIN"
-                ? "Super Admin"
-                : tnpRole
-                  ? ROLE_LABELS[tnpRole]
-                  : "Member"}
+            <Badge variant={globalRole === "SUPER_ADMIN" ? "orange" : "default"}>
+              {globalRole === "SUPER_ADMIN" ? "Super Admin" : tnpRole ? ROLE_LABELS[tnpRole] : "Member"}
             </Badge>
           </div>
         </div>
 
-        <nav
-          style={{
-            padding: "16px 12px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-          }}
-        >
+        <nav style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: "2px" }}>
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => handleTabClick(t.id)}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                padding: "10px 12px",
+                padding: "11px 12px",
                 borderRadius: "6px",
-                background:
-                  activeTab === t.id ? "rgba(244,96,12,0.15)" : "transparent",
+                background: activeTab === t.id ? "rgba(244,96,12,0.15)" : "transparent",
                 color: activeTab === t.id ? "var(--orange)" : "var(--white-60)",
                 border: "none",
                 cursor: "pointer",
@@ -2519,75 +2432,34 @@ const Portal = ({ user, tnpRole, onBack }) => {
                 fontSize: "14px",
                 fontFamily: "var(--font-body)",
                 transition: "all 0.15s",
+                touchAction: "manipulation",
+                WebkitTapHighlightColor: "transparent",
+                width: "100%",
               }}
             >
-              <span style={{ fontSize: "14px", opacity: 0.8 }}>{t.icon}</span>
+              <span style={{ fontSize: "14px", opacity: 0.8, flexShrink: 0 }}>{t.icon}</span>
               {t.label}
             </button>
           ))}
         </nav>
 
-        <div
-          style={{
-            margin: "20px 20px 0",
-            padding: "12px",
-            background: "rgba(255,255,255,0.04)",
-            borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "10px",
-              color: "var(--white-30)",
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.08em",
-              marginBottom: "8px",
-            }}
-          >
+        <div style={{ margin: "16px 12px 0", padding: "12px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: "10px", color: "var(--white-30)", fontFamily: "var(--font-mono)", letterSpacing: "0.08em", marginBottom: "8px" }}>
             YOUR ACCESS
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             {[
               ["View Data", true],
-              [
-                "Add Records",
-                canAccess(globalRole, tnpRole, "write_placement"),
-              ],
-              [
-                "Edit Companies",
-                canAccess(globalRole, tnpRole, "write_company"),
-              ],
-              [
-                "Manage Company Master",
-                canAccess(globalRole, tnpRole, "write_company_master"),
-              ],
-              [
-                "Delete Records",
-                canAccess(globalRole, tnpRole, "delete_records"),
-              ],
-              [
-                "Manage Members",
-                canAccess(globalRole, tnpRole, "manage_members"),
-              ],
+              ["Add Records", canAccess(globalRole, tnpRole, "write_placement")],
+              ["Edit Companies", canAccess(globalRole, tnpRole, "write_company")],
+              ["Manage Company Master", canAccess(globalRole, tnpRole, "write_company_master")],
+              ["Delete Records", canAccess(globalRole, tnpRole, "delete_records")],
+              ["Manage Members", canAccess(globalRole, tnpRole, "manage_members")],
               ["Change Role & Tenure", canAccess(globalRole, tnpRole, "change_roles")],
             ].map(([label, allowed]) => (
-              <div
-                key={label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  fontSize: "12px",
-                }}
-              >
-                <span style={{ color: "var(--white-60)" }}>{label}</span>
-                <span
-                  style={{
-                    color: allowed ? "#22c55e" : "#ef4444",
-                    fontSize: "10px",
-                  }}
-                >
+              <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px" }}>
+                <span style={{ color: "var(--white-60)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: "4px" }}>{label}</span>
+                <span style={{ color: allowed ? "#22c55e" : "#ef4444", fontSize: "10px", flexShrink: 0 }}>
                   {allowed ? "✓" : "✗"}
                 </span>
               </div>
@@ -2595,7 +2467,7 @@ const Portal = ({ user, tnpRole, onBack }) => {
           </div>
         </div>
 
-        <div style={{ padding: "20px 12px 0" }}>
+        <div style={{ padding: "16px 12px 0" }}>
           <button
             onClick={onBack}
             style={{
@@ -2608,6 +2480,7 @@ const Portal = ({ user, tnpRole, onBack }) => {
               cursor: "pointer",
               fontSize: "13px",
               fontFamily: "var(--font-body)",
+              touchAction: "manipulation",
             }}
           >
             ← Back to Public View
@@ -2615,28 +2488,85 @@ const Portal = ({ user, tnpRole, onBack }) => {
         </div>
       </div>
 
-      {/* Main */}
-      <div style={{ flex: 1, minWidth: 0, padding: "40px", overflowY: "auto" }}>
+      {/* Main content */}
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          padding: isMobilePortal ? "16px 16px 32px" : "40px",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+      >
+        {/* Mobile top bar */}
+        {isMobilePortal && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "10px",
+              marginBottom: "16px",
+              padding: "10px 12px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "10px",
+              background: "rgba(255,255,255,0.03)",
+              position: "sticky",
+              top: 0,
+              zIndex: 5,
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "6px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "transparent",
+                color: "var(--white)",
+                cursor: "pointer",
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+                touchAction: "manipulation",
+                flexShrink: 0,
+              }}
+            >
+              ☰ Menu
+            </button>
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+                color: "var(--white-60)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {tabs.find((t) => t.id === activeTab)?.label || "Portal"}
+            </div>
+            {/* Mobile tab scrollable shortcut bar */}
+            <div style={{ flexShrink: 0 }}>
+              <span style={{ fontSize: "12px", color: "var(--orange)", fontFamily: "var(--font-mono)" }}>
+                {tabs.find((t) => t.id === activeTab)?.icon || ""}
+              </span>
+            </div>
+          </div>
+        )}
+
         {activeTab === "dashboard" && (
-          <PortalDashboard
-            user={user}
-            globalRole={globalRole}
-            tnpRole={tnpRole}
-          />
+          <PortalDashboard user={user} globalRole={globalRole} tnpRole={tnpRole} />
         )}
         {activeTab === "companies" && (
-          <PortalCompanies
-            user={user}
-            globalRole={globalRole}
-            tnpRole={tnpRole}
-          />
+          <PortalCompanies user={user} globalRole={globalRole} tnpRole={tnpRole} />
         )}
         {activeTab === "company-master" && (
-          <PortalCompanyMaster
-            user={user}
-            globalRole={globalRole}
-            tnpRole={tnpRole}
-          />
+          <PortalCompanyMaster user={user} globalRole={globalRole} tnpRole={tnpRole} />
         )}
         {activeTab === "industries-sessions" && (
           <PortalIndustrySessionAdmin
@@ -2648,18 +2578,10 @@ const Portal = ({ user, tnpRole, onBack }) => {
           />
         )}
         {activeTab === "placements" && (
-          <PortalPlacements
-            user={user}
-            globalRole={globalRole}
-            tnpRole={tnpRole}
-          />
+          <PortalPlacements user={user} globalRole={globalRole} tnpRole={tnpRole} />
         )}
         {activeTab === "members" && (
-          <PortalMembers
-            user={user}
-            globalRole={globalRole}
-            tnpRole={tnpRole}
-          />
+          <PortalMembers user={user} globalRole={globalRole} tnpRole={tnpRole} />
         )}
       </div>
     </div>
@@ -2668,6 +2590,7 @@ const Portal = ({ user, tnpRole, onBack }) => {
 
 // ── Portal Dashboard ──────────────────────────────────────────────────────────
 const PortalDashboard = ({ user, globalRole, tnpRole }) => {
+  const isMobile = useIsMobile(640);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const currentSession = getCurrentSession();
@@ -2677,20 +2600,14 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
       try {
         const [statsRes, companiesRes] = await Promise.all([
           axios
-            .get(`${BASE_URL}/api/placements/all/stats/${currentSession}`, {
-              headers: authHeaders(),
-            })
+            .get(`${BASE_URL}/api/placements/all/stats/${currentSession}`, { headers: authHeaders() })
             .catch(() => ({ data: null })),
           axios
-            .get(`${BASE_URL}/api/company/all/getAll`, {
-              headers: authHeaders(),
-            })
+            .get(`${BASE_URL}/api/company/all/getAll`, { headers: authHeaders() })
             .catch(() => ({ data: [] })),
         ]);
         const rawComp = companiesRes.data?.data ?? companiesRes.data;
-        const companyCount = Array.isArray(rawComp)
-          ? rawComp.length
-          : rawComp?.totalElements || 0;
+        const companyCount = Array.isArray(rawComp) ? rawComp.length : rawComp?.totalElements || 0;
         setStats({ ...statsRes.data?.data, totalCompanies: companyCount });
       } catch {}
       setLoading(false);
@@ -2699,114 +2616,61 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
   }, []);
 
   const metrics = [
-    {
-      label: "Companies This Year",
-      value: stats?.totalCompanies ?? "—",
-      change: "Current Session",
-    },
-    {
-      label: "Total Placements",
-      value: stats?.totalPlacements ?? "—",
-      change: currentSession,
-    },
-    {
-      label: "Highest Package",
-      value: stats?.highestPackage ? `₹${stats.highestPackage} LPA` : "—",
-      change: "This session",
-    },
-    {
-      label: "Avg Package",
-      value: stats?.averagePackage
-        ? `₹${parseFloat(stats.averagePackage).toFixed(1)} LPA`
-        : "—",
-      change: currentSession,
-    },
+    { label: "Companies This Year", value: stats?.totalCompanies ?? "—", change: "Current Session" },
+    { label: "Total Placements", value: stats?.totalPlacements ?? "—", change: currentSession },
+    { label: "Highest Package", value: stats?.highestPackage ? `₹${stats.highestPackage} LPA` : "—", change: "This session" },
+    { label: "Avg Package", value: stats?.averagePackage ? `₹${parseFloat(stats.averagePackage).toFixed(1)} LPA` : "—", change: currentSession },
   ];
 
   return (
     <div style={{ animation: "tnpFadeUp 0.3s ease" }}>
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "28px" }}>
         <h2
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "40px",
+            fontSize: isMobile ? "32px" : "40px",
             letterSpacing: "0.04em",
+            lineHeight: 1.1,
           }}
         >
           WELCOME BACK, {user?.username?.toUpperCase()}
         </h2>
-        <p
-          style={{
-            color: "var(--white-60)",
-            fontSize: "14px",
-            fontFamily: "var(--font-mono)",
-          }}
-        >
-          {currentSession} ·{" "}
-          {globalRole === "SUPER_ADMIN"
-            ? "Full Access"
-            : tnpRole
-              ? ROLE_LABELS[tnpRole]
-              : "Member"}{" "}
-          View
+        <p style={{ color: "var(--white-60)", fontSize: "14px", fontFamily: "var(--font-mono)", marginTop: "4px" }}>
+          {currentSession} · {globalRole === "SUPER_ADMIN" ? "Full Access" : tnpRole ? ROLE_LABELS[tnpRole] : "Member"} View
         </p>
       </div>
 
       {loading ? (
-        <div
-          style={{ display: "flex", padding: "60px", justifyContent: "center" }}
-        >
+        <div style={{ display: "flex", padding: "60px", justifyContent: "center" }}>
           <Spinner size={40} />
         </div>
       ) : (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: "12px",
-            marginBottom: "40px",
+            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: "10px",
+            marginBottom: "36px",
           }}
         >
           {metrics.map((m, i) => (
             <div
               key={i}
               style={{
-                padding: "20px",
+                padding: "16px",
                 background: "var(--black-card)",
                 border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: "8px",
                 animation: `tnpFadeUp 0.3s ease ${i * 0.05}s both`,
               }}
             >
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  marginBottom: "8px",
-                  textTransform: "uppercase",
-                }}
-              >
+              <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "6px", textTransform: "uppercase" }}>
                 {m.label}
               </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "32px",
-                  letterSpacing: "0.03em",
-                  marginBottom: "4px",
-                }}
-              >
+              <div style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "24px" : "32px", letterSpacing: "0.03em", marginBottom: "4px", lineHeight: 1.1 }}>
                 {m.value}
               </div>
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "var(--orange)",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+              <div style={{ fontSize: "11px", color: "var(--orange)", fontFamily: "var(--font-mono)" }}>
                 {m.change}
               </div>
             </div>
@@ -2815,116 +2679,52 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
       )}
 
       <div>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "24px",
-            letterSpacing: "0.06em",
-            marginBottom: "16px",
-            color: "var(--white-60)",
-          }}
-        >
+        <h3 style={{ fontFamily: "var(--font-display)", fontSize: "22px", letterSpacing: "0.06em", marginBottom: "14px", color: "var(--white-60)" }}>
           QUICK ACTIONS
         </h3>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "12px",
+            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: "10px",
           }}
         >
           {[
-            {
-              label: "Add Company Record",
-              desc: "Log a new company visit",
-              action: "write_company",
-              icon: "⊕",
-            },
-            {
-              label: "Record Placement",
-              desc: "Mark student as placed",
-              action: "write_placement",
-              icon: "◈",
-            },
-            {
-              label: "Bulk Import",
-              desc: "Upload multiple records",
-              action: "write_company",
-              icon: "⊞",
-            },
-            {
-              label: "Manage Members",
-              desc: "Add / update TNP team",
-              action: "manage_members",
-              icon: "◎",
-            },
-            {
-              label: "Change Role & Tenure",
-              desc: "Reassign member roles",
-              action: "change_roles",
-              icon: "⟳",
-            },
-            {
-              label: "Sync Hired Count",
-              desc: "Recalculate from placements",
-              action: "write_company",
-              icon: "⟲",
-            },
+            { label: "Add Company Record", desc: "Log a new company visit", action: "write_company", icon: "⊕" },
+            { label: "Record Placement", desc: "Mark student as placed", action: "write_placement", icon: "◈" },
+            { label: "Bulk Import", desc: "Upload multiple records", action: "write_company", icon: "⊞" },
+            { label: "Manage Members", desc: "Add / update TNP team", action: "manage_members", icon: "◎" },
+            { label: "Change Role & Tenure", desc: "Reassign member roles", action: "change_roles", icon: "⟳" },
+            { label: "Sync Hired Count", desc: "Recalculate from placements", action: "write_company", icon: "⟲" },
           ].map((a, i) => {
             const allowed = canAccess(globalRole, tnpRole, a.action);
             return (
               <div
                 key={i}
                 style={{
-                  padding: "20px",
+                  padding: "16px",
                   borderRadius: "8px",
-                  background: allowed
-                    ? "rgba(244,96,12,0.06)"
-                    : "rgba(255,255,255,0.02)",
+                  background: allowed ? "rgba(244,96,12,0.06)" : "rgba(255,255,255,0.02)",
                   border: `1px solid ${allowed ? "rgba(244,96,12,0.2)" : "rgba(255,255,255,0.06)"}`,
                   opacity: allowed ? 1 : 0.5,
                   cursor: allowed ? "pointer" : "not-allowed",
                   transition: "all 0.15s",
+                  touchAction: "manipulation",
                 }}
-                onMouseEnter={(e) => {
-                  if (allowed)
-                    e.currentTarget.style.background = "rgba(244,96,12,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  if (allowed)
-                    e.currentTarget.style.background = "rgba(244,96,12,0.06)";
-                }}
+                onMouseEnter={(e) => { if (allowed) e.currentTarget.style.background = "rgba(244,96,12,0.12)"; }}
+                onMouseLeave={(e) => { if (allowed) e.currentTarget.style.background = "rgba(244,96,12,0.06)"; }}
               >
-                <div
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "8px",
-                    color: allowed ? "var(--orange)" : "var(--white-30)",
-                  }}
-                >
+                <div style={{ fontSize: isMobile ? "16px" : "20px", marginBottom: "6px", color: allowed ? "var(--orange)" : "var(--white-30)" }}>
                   {a.icon}
                 </div>
-                <div
-                  style={{
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    marginBottom: "4px",
-                  }}
-                >
+                <div style={{ fontWeight: 600, fontSize: isMobile ? "12px" : "14px", marginBottom: "4px" }}>
                   {a.label}
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--white-60)" }}>
+                <div style={{ fontSize: isMobile ? "11px" : "12px", color: "var(--white-60)" }}>
                   {a.desc}
                 </div>
                 {!allowed && (
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: "#ef4444",
-                      fontFamily: "var(--font-mono)",
-                      marginTop: "8px",
-                    }}
-                  >
+                  <div style={{ fontSize: "10px", color: "#ef4444", fontFamily: "var(--font-mono)", marginTop: "8px" }}>
                     Insufficient Role
                   </div>
                 )}
@@ -2939,6 +2739,7 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
 
 // ── Portal Companies ──────────────────────────────────────────────────────────
 const PortalCompanies = ({ user, globalRole, tnpRole }) => {
+  const isMobile = useIsMobile(640);
   const { confirm, dialogNode } = useAppConfirmDialog(true);
   const [companies, setCompanies] = useState([]);
   const [industries, setIndustries] = useState([]);
@@ -2971,20 +2772,12 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
           headers: authHeaders(),
           params: { page, size: companyPageSize },
         }),
-        axios.get(`${BASE_URL}/api/industry/all/getAll`, {
-          headers: authHeaders(),
-        }),
+        axios.get(`${BASE_URL}/api/industry/all/getAll`, { headers: authHeaders() }),
       ]);
 
       const raw = compRes.data?.data ?? compRes.data;
-      const content = Array.isArray(raw?.content)
-        ? raw.content
-        : Array.isArray(raw)
-          ? raw
-          : [];
-      const nextTotalPages = Number(
-        raw?.totalPages ?? (content.length ? 1 : 0),
-      );
+      const content = Array.isArray(raw?.content) ? raw.content : Array.isArray(raw) ? raw : [];
+      const nextTotalPages = Number(raw?.totalPages ?? (content.length ? 1 : 0));
       const nextTotalElements = Number(raw?.totalElements ?? content.length);
 
       if (nextTotalPages > 0 && page >= nextTotalPages) {
@@ -3004,21 +2797,13 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
     }
   };
 
-  useEffect(() => {
-    load(currentPage);
-  }, [currentPage]);
+  useEffect(() => { load(currentPage); }, [currentPage]);
 
   const resetForm = () => {
     setEditingId(null);
     setAdding(false);
     setFormMsg("");
-    setForm({
-      name: "",
-      industry: "",
-      packageOffered: "",
-      studentsHired: "",
-      sessionYear: getCurrentSession().split("-")[0],
-    });
+    setForm({ name: "", industry: "", packageOffered: "", studentsHired: "", sessionYear: getCurrentSession().split("-")[0] });
   };
 
   const handleEdit = (company) => {
@@ -3029,28 +2814,19 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
     setForm({
       name: company?.name || "",
       industry: company?.industry || "",
-      packageOffered:
-        company?.packageOffered != null ? String(company.packageOffered) : "",
-      studentsHired:
-        company?.studentsHired != null ? String(company.studentsHired) : "",
-      sessionYear: company?.academicSession
-        ? String(company.academicSession).split("-")[0]
-        : getCurrentSession().split("-")[0],
+      packageOffered: company?.packageOffered != null ? String(company.packageOffered) : "",
+      studentsHired: company?.studentsHired != null ? String(company.studentsHired) : "",
+      sessionYear: company?.academicSession ? String(company.academicSession).split("-")[0] : getCurrentSession().split("-")[0],
     });
+    // Scroll to form on mobile
+    if (isMobile) setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
   };
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!form.industry) {
-      setFormMsg("Industry is required");
-      return;
-    }
-
+    if (!form.industry) { setFormMsg("Industry is required"); return; }
     const parsedSession = parseInt(form.sessionYear, 10);
-    if (!Number.isFinite(parsedSession)) {
-      setFormMsg("Session year is required");
-      return;
-    }
+    if (!Number.isFinite(parsedSession)) { setFormMsg("Session year is required"); return; }
 
     setSaving(true);
     setFormMsg("");
@@ -3062,24 +2838,15 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
         studentsHired: form.studentsHired ? parseInt(form.studentsHired) : null,
         academicSession: parsedSession,
       };
-
       if (editingId) {
-        await axios.patch(`${BASE_URL}/api/company/all/${editingId}`, payload, {
-          headers: authHeaders(),
-        });
+        await axios.patch(`${BASE_URL}/api/company/all/${editingId}`, payload, { headers: authHeaders() });
       } else {
-        await axios.post(`${BASE_URL}/api/company/all/add`, payload, {
-          headers: authHeaders(),
-        });
+        await axios.post(`${BASE_URL}/api/company/all/add`, payload, { headers: authHeaders() });
       }
-
       resetForm();
       setCurrentPage(0);
     } catch (err) {
-      setFormMsg(
-        err.response?.data?.message ||
-          (editingId ? "Failed to update company" : "Failed to add company"),
-      );
+      setFormMsg(err.response?.data?.message || (editingId ? "Failed to update company" : "Failed to add company"));
     } finally {
       setSaving(false);
     }
@@ -3096,9 +2863,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
     });
     if (!ok) return;
     try {
-      await axios.delete(`${BASE_URL}/api/company/all/${id}`, {
-        headers: authHeaders(),
-      });
+      await axios.delete(`${BASE_URL}/api/company/all/${id}`, { headers: authHeaders() });
       load(currentPage);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete");
@@ -3108,14 +2873,9 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
   const handleSync = async () => {
     const session = getCurrentSession();
     try {
-      await axios.get(
-        `${BASE_URL}/api/company/all/countTotalStudents/${encodeURIComponent(session)}`,
-        {
-          headers: authHeaders(),
-        },
-      );
+      await axios.get(`${BASE_URL}/api/company/all/countTotalStudents/${encodeURIComponent(session)}`, { headers: authHeaders() });
       load(currentPage);
-    } catch (err) {
+    } catch {
       alert("Sync failed");
     }
   };
@@ -3125,41 +2885,27 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: isMobile ? "flex-start" : "center",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "24px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "12px" : "0",
         }}
       >
         <div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "40px",
-              letterSpacing: "0.04em",
-            }}
-          >
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "32px" : "40px", letterSpacing: "0.04em" }}>
             COMPANIES
           </h2>
-          <p
-            style={{
-              color: "var(--white-60)",
-              fontSize: "13px",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
             {totalElements} records · {companyPageSize} per page
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {canWrite && (
-            <OrangeBtn small outline onClick={handleSync}>
-              Sync Hired
-            </OrangeBtn>
+            <OrangeBtn small outline onClick={handleSync}>Sync Hired</OrangeBtn>
           )}
           {canWrite && (
-            <OrangeBtn small onClick={() => setAdding(!adding)}>
-              + Add Company
-            </OrangeBtn>
+            <OrangeBtn small onClick={() => setAdding(!adding)}>+ Add Company</OrangeBtn>
           )}
         </div>
       </div>
@@ -3169,69 +2915,33 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
         <form
           onSubmit={handleAdd}
           style={{
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             background: "var(--black-card)",
             border: "1px solid rgba(244,96,12,0.3)",
             borderRadius: "8px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             animation: "tnpFadeUp 0.2s ease",
           }}
         >
-          <h4
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-              marginBottom: "20px",
-              color: "var(--orange)",
-            }}
-          >
+          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "18px", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--orange)" }}>
             {editingId ? "UPDATE COMPANY" : "ADD COMPANY"}
           </h4>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
+              gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: "12px",
+              marginBottom: "16px",
             }}
           >
             {[
-              {
-                label: "Company Name",
-                key: "name",
-                placeholder: "e.g. Google",
-              },
-              {
-                label: "Package (LPA)",
-                key: "packageOffered",
-                placeholder: "e.g. 32",
-                type: "number",
-              },
-              {
-                label: "Students Hired",
-                key: "studentsHired",
-                placeholder: "e.g. 12",
-                type: "number",
-              },
-              {
-                label: "Session Year",
-                key: "sessionYear",
-                placeholder: "e.g. 2024",
-                type: "number",
-              },
+              { label: "Company Name", key: "name", placeholder: "e.g. Google" },
+              { label: "Package (LPA)", key: "packageOffered", placeholder: "e.g. 32", type: "number" },
+              { label: "Students Hired", key: "studentsHired", placeholder: "e.g. 12", type: "number" },
+              { label: "Session Year", key: "sessionYear", placeholder: "e.g. 2024", type: "number" },
             ].map((f) => (
               <div key={f.key}>
-                <label
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--white-60)",
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    display: "block",
-                    marginBottom: "6px",
-                  }}
-                >
+                <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
                   {f.label.toUpperCase()}
                 </label>
                 <input
@@ -3239,9 +2949,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
                   placeholder={f.placeholder}
                   value={form[f.key]}
                   required={f.key !== "studentsHired"}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, [f.key]: e.target.value }))
-                  }
+                  onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
                   style={{
                     width: "100%",
                     padding: "10px 12px",
@@ -3256,240 +2964,141 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
                 />
               </div>
             ))}
-            <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
+            <div style={{ gridColumn: isMobile ? "1 / -1" : "auto" }}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
                 INDUSTRY
               </label>
               <CustomSelect
                 name="industry"
                 value={form.industry}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, industry: e.target.value }))
-                }
-                options={[
-                  { value: "", label: "Select industry" },
-                  ...industries.map((i) => ({ value: i.name, label: i.name })),
-                ]}
+                onChange={(e) => setForm((p) => ({ ...p, industry: e.target.value }))}
+                options={[{ value: "", label: "Select industry" }, ...industries.map((i) => ({ value: i.name, label: i.name }))]}
                 placeholder="Select industry"
                 required
                 theme={TNP_SELECT_THEME}
               />
             </div>
           </div>
-          {formMsg && (
-            <div
-              style={{
-                color: "#ef4444",
-                fontSize: "13px",
-                marginBottom: "12px",
-              }}
-            >
-              {formMsg}
-            </div>
-          )}
-          <div style={{ display: "flex", gap: "10px" }}>
+          {formMsg && <div style={{ color: "#ef4444", fontSize: "13px", marginBottom: "12px" }}>{formMsg}</div>}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <OrangeBtn small type="submit" disabled={saving}>
-              {saving
-                ? "Saving..."
-                : editingId
-                  ? "Update Record"
-                  : "Save Record"}
+              {saving ? "Saving..." : editingId ? "Update Record" : "Save Record"}
             </OrangeBtn>
-            <OrangeBtn small outline onClick={resetForm}>
-              Cancel
-            </OrangeBtn>
+            <OrangeBtn small outline onClick={resetForm}>Cancel</OrangeBtn>
           </div>
         </form>
       )}
 
       {loading ? (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
-        >
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
           <Spinner size={40} />
         </div>
       ) : error ? (
         <ErrorBox message={error} onRetry={() => load(currentPage)} />
       ) : (
         <>
-          <div
-            style={{
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "14px",
-              }}
-            >
-              <thead>
-                <tr
+          {/* Mobile: card list. Desktop: table */}
+          {isMobile ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {companies.map((c) => (
+                <div
+                  key={c.companyId}
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    background: "var(--black-card)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "8px",
+                    padding: "14px",
                   }}
                 >
-                  {[
-                    "Company",
-                    "Industry",
-                    "Package",
-                    "Hired",
-                    "Session",
-                    ...(canWrite ? ["Edit"] : []),
-                    ...(canDelete ? ["Delete"] : []),
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--white-60)",
-                        letterSpacing: "0.06em",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {h.toUpperCase()}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {companies.map((c) => (
-                  <tr
-                    key={c.companyId}
-                    style={{
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.03)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    <td style={{ padding: "14px 16px", fontWeight: 500 }}>
-                      {c.name}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        color: "var(--white-60)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {c.industry}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        color: "var(--orange)",
-                        fontWeight: 600,
-                        fontFamily: "var(--font-display)",
-                        fontSize: "16px",
-                      }}
-                    >
-                      {c.packageOffered} LPA
-                    </td>
-                    <td
-                      style={{ padding: "14px 16px", color: "var(--white-60)" }}
-                    >
-                      {c.studentsHired ?? "—"}
-                    </td>
-                    <td style={{ padding: "14px 16px" }}>
-                      <Badge>{c.academicSession}</Badge>
-                    </td>
-                    {canWrite && (
-                      <td style={{ padding: "14px 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "14px" }}>{c.name}</div>
+                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{c.industry}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      {canWrite && (
                         <button
                           onClick={() => handleEdit(c)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: "4px",
-                            background: "rgba(255,255,255,0.06)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "var(--white-60)",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    )}
-                    {canDelete && (
-                      <td style={{ padding: "14px 16px" }}>
+                          style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}
+                        >Edit</button>
+                      )}
+                      {canDelete && (
                         <button
                           onClick={() => handleDelete(c.companyId)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: "4px",
-                            background: "rgba(239,68,68,0.1)",
-                            border: "1px solid rgba(239,68,68,0.2)",
-                            color: "#ef4444",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    )}
+                          style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}
+                        >Del</button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                    <div style={{ color: "var(--orange)", fontWeight: 600, fontFamily: "var(--font-display)", fontSize: "18px" }}>
+                      {c.packageOffered} LPA
+                    </div>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <span style={{ fontSize: "12px", color: "var(--white-60)" }}>Hired: {c.studentsHired ?? "—"}</span>
+                      <Badge>{c.academicSession}</Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {companies.length === 0 && (
+                <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                  No companies found
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    {["Company", "Industry", "Package", "Hired", "Session", ...(canWrite ? ["Edit"] : []), ...(canDelete ? ["Delete"] : [])].map((h) => (
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--white-60)", letterSpacing: "0.06em", fontWeight: 500 }}>
+                        {h.toUpperCase()}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-                {companies.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={5 + (canWrite ? 1 : 0) + (canDelete ? 1 : 0)}
-                      style={{
-                        padding: "40px",
-                        textAlign: "center",
-                        color: "var(--white-30)",
-                        fontFamily: "var(--font-mono)",
-                      }}
+                </thead>
+                <tbody>
+                  {companies.map((c) => (
+                    <tr
+                      key={c.companyId}
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      No companies found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <td style={{ padding: "14px 16px", fontWeight: 500 }}>{c.name}</td>
+                      <td style={{ padding: "14px 16px", color: "var(--white-60)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>{c.industry}</td>
+                      <td style={{ padding: "14px 16px", color: "var(--orange)", fontWeight: 600, fontFamily: "var(--font-display)", fontSize: "16px" }}>{c.packageOffered} LPA</td>
+                      <td style={{ padding: "14px 16px", color: "var(--white-60)" }}>{c.studentsHired ?? "—"}</td>
+                      <td style={{ padding: "14px 16px" }}><Badge>{c.academicSession}</Badge></td>
+                      {canWrite && (
+                        <td style={{ padding: "14px 16px" }}>
+                          <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
+                        </td>
+                      )}
+                      {canDelete && (
+                        <td style={{ padding: "14px 16px" }}>
+                          <button onClick={() => handleDelete(c.companyId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Delete</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {companies.length === 0 && (
+                    <tr>
+                      <td colSpan={5 + (canWrite ? 1 : 0) + (canDelete ? 1 : 0)} style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                        No companies found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "14px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginTop: "14px" }}>
+              <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
                 {`Page ${currentPage + 1} of ${totalPages}`}
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -3497,43 +3106,14 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
                   disabled={currentPage === 0}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage === 0 ? "var(--white-30)" : "var(--white)",
-                    cursor: currentPage === 0 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Prev
-                </button>
+                  style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage === 0 ? "var(--white-30)" : "var(--white)", cursor: currentPage === 0 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", touchAction: "manipulation" }}
+                >Prev</button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages - 1))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages - 1))}
                   disabled={currentPage >= totalPages - 1}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage >= totalPages - 1
-                        ? "var(--white-30)"
-                        : "var(--white)",
-                    cursor:
-                      currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Next
-                </button>
+                  style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage >= totalPages - 1 ? "var(--white-30)" : "var(--white)", cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", touchAction: "manipulation" }}
+                >Next</button>
               </div>
             </div>
           )}
@@ -3547,6 +3127,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
 
 // ── Portal Company Master ────────────────────────────────────────────────────
 const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
+  const isMobile = useIsMobile(640);
   const { confirm, dialogNode } = useAppConfirmDialog(true);
   const [companyMasters, setCompanyMasters] = useState([]);
   const [industries, setIndustries] = useState([]);
@@ -3575,29 +3156,15 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
     setError(null);
     try {
       const [masterRes, industryRes] = await Promise.all([
-        axios.get(`${BASE_URL}/api/companyMaster/all/getAllPaged`, {
-          headers: authHeaders(),
-          params: { page, size: companyMasterPageSize },
-        }),
-        axios.get(`${BASE_URL}/api/industry/all/getAll`, {
-          headers: authHeaders(),
-        }),
+        axios.get(`${BASE_URL}/api/companyMaster/all/getAllPaged`, { headers: authHeaders(), params: { page, size: companyMasterPageSize } }),
+        axios.get(`${BASE_URL}/api/industry/all/getAll`, { headers: authHeaders() }),
       ]);
 
       const masterRaw = masterRes.data?.data ?? masterRes.data;
       const industryRaw = industryRes.data?.data ?? industryRes.data;
-
-      const masterList = Array.isArray(masterRaw)
-        ? masterRaw
-        : Array.isArray(masterRaw?.content)
-          ? masterRaw.content
-          : [];
-      const nextTotalPages = Number(
-        masterRaw?.totalPages ?? (masterList.length ? 1 : 0),
-      );
-      const nextTotalElements = Number(
-        masterRaw?.totalElements ?? masterList.length,
-      );
+      const masterList = Array.isArray(masterRaw) ? masterRaw : Array.isArray(masterRaw?.content) ? masterRaw.content : [];
+      const nextTotalPages = Number(masterRaw?.totalPages ?? (masterList.length ? 1 : 0));
+      const nextTotalElements = Number(masterRaw?.totalElements ?? masterList.length);
 
       if (nextTotalPages > 0 && page >= nextTotalPages) {
         setCurrentPage(nextTotalPages - 1);
@@ -3605,12 +3172,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
         return;
       }
 
-      const industryList = Array.isArray(industryRaw)
-        ? industryRaw
-        : Array.isArray(industryRaw?.content)
-          ? industryRaw.content
-          : [];
-
+      const industryList = Array.isArray(industryRaw) ? industryRaw : Array.isArray(industryRaw?.content) ? industryRaw.content : [];
       setCompanyMasters(masterList);
       setTotalPages(nextTotalPages);
       setTotalElements(nextTotalElements);
@@ -3622,48 +3184,25 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
     }
   };
 
-  useEffect(() => {
-    load(currentPage);
-  }, [currentPage]);
+  useEffect(() => { load(currentPage); }, [currentPage]);
 
   const handleSave = async (e) => {
     e.preventDefault();
     if (!canWriteMaster) return;
-    if (!form.industryId) {
-      setFormMsg("Industry is required");
-      return;
-    }
-
+    if (!form.industryId) { setFormMsg("Industry is required"); return; }
     setSaving(true);
     setFormMsg("");
-
     try {
-      const payload = {
-        name: form.name,
-        industryId: Number(form.industryId),
-        logoUrl: form.logoUrl,
-      };
-
+      const payload = { name: form.name, industryId: Number(form.industryId), logoUrl: form.logoUrl };
       if (editingId) {
-        await axios.put(
-          `${BASE_URL}/api/companyMaster/all/update/${editingId}`,
-          payload,
-          { headers: authHeaders() },
-        );
+        await axios.put(`${BASE_URL}/api/companyMaster/all/update/${editingId}`, payload, { headers: authHeaders() });
       } else {
-        await axios.post(
-          `${BASE_URL}/api/companyMaster/all/addCompany`,
-          payload,
-          { headers: authHeaders() },
-        );
+        await axios.post(`${BASE_URL}/api/companyMaster/all/addCompany`, payload, { headers: authHeaders() });
       }
-
       resetForm();
       setCurrentPage(0);
     } catch (err) {
-      setFormMsg(
-        err.response?.data?.message || "Failed to save company master record",
-      );
+      setFormMsg(err.response?.data?.message || "Failed to save company master record");
     } finally {
       setSaving(false);
     }
@@ -3671,14 +3210,11 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 
   const handleEdit = (item) => {
     if (!canWriteMaster) return;
-
     const matchedIndustry = industries.find((i) => i?.name === item?.industry);
     setEditingId(item?.companyMasterId);
     setForm({
       name: item?.name || "",
-      industryId: matchedIndustry?.industryId
-        ? String(matchedIndustry.industryId)
-        : "",
+      industryId: matchedIndustry?.industryId ? String(matchedIndustry.industryId) : "",
       logoUrl: item?.logoUrl || "",
     });
     setFormMsg("");
@@ -3686,24 +3222,13 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 
   const handleDelete = async (id) => {
     if (!canDelete) return;
-    const ok = await confirm({
-      title: "Delete company master record?",
-      message: "This action cannot be undone.",
-      confirmText: "Delete",
-      cancelText: "Cancel",
-      variant: "danger",
-    });
+    const ok = await confirm({ title: "Delete company master record?", message: "This action cannot be undone.", confirmText: "Delete", cancelText: "Cancel", variant: "danger" });
     if (!ok) return;
-
     try {
-      await axios.delete(`${BASE_URL}/api/companyMaster/all/${id}`, {
-        headers: authHeaders(),
-      });
+      await axios.delete(`${BASE_URL}/api/companyMaster/all/${id}`, { headers: authHeaders() });
       load(currentPage);
     } catch (err) {
-      alert(
-        err.response?.data?.message || "Failed to delete company master record",
-      );
+      alert(err.response?.data?.message || "Failed to delete company master record");
     }
   };
 
@@ -3712,28 +3237,18 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: isMobile ? "flex-start" : "center",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "24px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "8px" : "0",
         }}
       >
         <div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "40px",
-              letterSpacing: "0.04em",
-            }}
-          >
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "32px" : "40px", letterSpacing: "0.04em" }}>
             COMPANY MASTER
           </h2>
-          <p
-            style={{
-              color: "var(--white-60)",
-              fontSize: "13px",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
             {totalElements} records · {companyMasterPageSize} per page
           </p>
         </div>
@@ -3743,382 +3258,165 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
         <form
           onSubmit={handleSave}
           style={{
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             background: "var(--black-card)",
             border: "1px solid rgba(244,96,12,0.3)",
             borderRadius: "8px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             animation: "tnpFadeUp 0.2s ease",
           }}
         >
-          <h4
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-              marginBottom: "20px",
-              color: "var(--orange)",
-            }}
-          >
+          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "18px", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--orange)" }}>
             {editingId ? "UPDATE COMPANY MASTER" : "ADD COMPANY MASTER"}
           </h4>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: "12px",
+              marginBottom: "16px",
             }}
           >
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                COMPANY NAME
-              </label>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>COMPANY NAME</label>
               <input
                 value={form.name}
                 required
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                INDUSTRY
-              </label>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>INDUSTRY</label>
               <CustomSelect
                 name="industryId"
                 value={form.industryId}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, industryId: e.target.value }))
-                }
-                options={[
-                  { value: "", label: "Select industry" },
-                  ...industries.map((i) => ({
-                    value: String(i.industryId),
-                    label: i.name,
-                  })),
-                ]}
+                onChange={(e) => setForm((prev) => ({ ...prev, industryId: e.target.value }))}
+                options={[{ value: "", label: "Select industry" }, ...industries.map((i) => ({ value: String(i.industryId), label: i.name }))]}
                 placeholder="Select industry"
                 required
                 theme={TNP_SELECT_THEME}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                LOGO URL
-              </label>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>LOGO URL</label>
               <input
                 value={form.logoUrl}
                 required
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, logoUrl: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
+                onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
               />
             </div>
           </div>
-          {formMsg && (
-            <div
-              style={{
-                color: "#ef4444",
-                fontSize: "13px",
-                marginBottom: "12px",
-              }}
-            >
-              {formMsg}
-            </div>
-          )}
-          <div style={{ display: "flex", gap: "10px" }}>
-            <OrangeBtn small type="submit" disabled={saving}>
-              {saving ? "Saving..." : editingId ? "Update" : "Add"}
-            </OrangeBtn>
-            <OrangeBtn small outline onClick={resetForm}>
-              Reset
-            </OrangeBtn>
+          {formMsg && <div style={{ color: "#ef4444", fontSize: "13px", marginBottom: "12px" }}>{formMsg}</div>}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <OrangeBtn small type="submit" disabled={saving}>{saving ? "Saving..." : editingId ? "Update" : "Add"}</OrangeBtn>
+            <OrangeBtn small outline onClick={resetForm}>Reset</OrangeBtn>
           </div>
         </form>
       )}
 
       {loading ? (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
-        >
-          <Spinner size={40} />
-        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}><Spinner size={40} /></div>
       ) : error ? (
         <ErrorBox message={error} onRetry={() => load(currentPage)} />
       ) : (
         <>
-          <div
-            style={{
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "14px",
-              }}
-            >
-              <thead>
-                <tr
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
-                  }}
+          {isMobile ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {companyMasters.map((c) => (
+                <div
+                  key={c.companyMasterId}
+                  style={{ background: "var(--black-card)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px", display: "flex", alignItems: "center", gap: "12px" }}
                 >
-                  {[
-                    "Company",
-                    "Industry",
-                    "Logo",
-                    ...(canWriteMaster ? ["Edit"] : []),
-                    ...(canDelete ? ["Delete"] : []),
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--white-60)",
-                        letterSpacing: "0.06em",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {h.toUpperCase()}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {companyMasters.map((c) => (
-                  <tr
-                    key={c.companyMasterId}
-                    style={{
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.03)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    <td style={{ padding: "14px 16px", fontWeight: 500 }}>
-                      {c.name}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        color: "var(--white-60)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {c.industry || "—"}
-                    </td>
-                    <td style={{ padding: "14px 16px" }}>
-                      {c.logoUrl ? (
-                        <img
-                          src={resolveMediaUrl(c.logoUrl)}
-                          alt={`${c.name} logo`}
-                          loading="lazy"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            const fallback = e.currentTarget.nextSibling;
-                            if (fallback) fallback.style.display = "inline";
-                          }}
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "8px",
-                            objectFit: "cover",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            background: "rgba(255,255,255,0.04)",
-                          }}
-                        />
-                      ) : null}
-                      <span
-                        style={{
-                          display: c.logoUrl ? "none" : "inline",
-                          color: "var(--white-30)",
-                          fontSize: "12px",
-                        }}
-                      >
-                        —
-                      </span>
-                    </td>
+                  <div style={{ flexShrink: 0 }}>
+                    {c.logoUrl ? (
+                      <img
+                        src={resolveMediaUrl(c.logoUrl)}
+                        alt={`${c.name} logo`}
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }}
+                      />
+                    ) : (
+                      <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--white-30)", fontSize: "10px" }}>—</div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{c.industry || "—"}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                     {canWriteMaster && (
-                      <td style={{ padding: "14px 16px" }}>
-                        <button
-                          onClick={() => handleEdit(c)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: "4px",
-                            background: "rgba(255,255,255,0.06)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "var(--white-60)",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </td>
+                      <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
                     )}
                     {canDelete && (
-                      <td style={{ padding: "14px 16px" }}>
-                        <button
-                          onClick={() => handleDelete(c.companyMasterId)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: "4px",
-                            background: "rgba(239,68,68,0.1)",
-                            border: "1px solid rgba(239,68,68,0.2)",
-                            color: "#ef4444",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      <button onClick={() => handleDelete(c.companyMasterId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Del</button>
                     )}
+                  </div>
+                </div>
+              ))}
+              {companyMasters.length === 0 && (
+                <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>No company master records found</div>
+              )}
+            </div>
+          ) : (
+            <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    {["Company", "Industry", "Logo", ...(canWriteMaster ? ["Edit"] : []), ...(canDelete ? ["Delete"] : [])].map((h) => (
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--white-60)", letterSpacing: "0.06em", fontWeight: 500 }}>
+                        {h.toUpperCase()}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-                {companyMasters.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={canWriteMaster || canDelete ? 5 : 3}
-                      style={{
-                        padding: "40px",
-                        textAlign: "center",
-                        color: "var(--white-30)",
-                        fontFamily: "var(--font-mono)",
-                      }}
+                </thead>
+                <tbody>
+                  {companyMasters.map((c) => (
+                    <tr
+                      key={c.companyMasterId}
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      No company master records found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <td style={{ padding: "14px 16px", fontWeight: 500 }}>{c.name}</td>
+                      <td style={{ padding: "14px 16px", color: "var(--white-60)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>{c.industry || "—"}</td>
+                      <td style={{ padding: "14px 16px" }}>
+                        {c.logoUrl ? (
+                          <img src={resolveMediaUrl(c.logoUrl)} alt={`${c.name} logo`} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }} />
+                        ) : <span style={{ color: "var(--white-30)", fontSize: "12px" }}>—</span>}
+                      </td>
+                      {canWriteMaster && (
+                        <td style={{ padding: "14px 16px" }}>
+                          <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
+                        </td>
+                      )}
+                      {canDelete && (
+                        <td style={{ padding: "14px 16px" }}>
+                          <button onClick={() => handleDelete(c.companyMasterId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Delete</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {companyMasters.length === 0 && (
+                    <tr>
+                      <td colSpan={canWriteMaster || canDelete ? 5 : 3} style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>No company master records found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "14px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginTop: "14px" }}>
+              <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
                 {`Page ${currentPage + 1} of ${totalPages}`}
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                  disabled={currentPage === 0}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage === 0 ? "var(--white-30)" : "var(--white)",
-                    cursor: currentPage === 0 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Prev
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages - 1))
-                  }
-                  disabled={currentPage >= totalPages - 1}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage >= totalPages - 1
-                        ? "var(--white-30)"
-                        : "var(--white)",
-                    cursor:
-                      currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Next
-                </button>
+                <button type="button" onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))} disabled={currentPage === 0} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage === 0 ? "var(--white-30)" : "var(--white)", cursor: currentPage === 0 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)" }}>Prev</button>
+                <button type="button" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages - 1))} disabled={currentPage >= totalPages - 1} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage >= totalPages - 1 ? "var(--white-30)" : "var(--white)", cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)" }}>Next</button>
               </div>
             </div>
           )}
@@ -4132,14 +3430,14 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 
 // ── Portal Placements ─────────────────────────────────────────────────────────
 const PortalPlacements = ({ user, globalRole, tnpRole }) => {
+  const isMobile = useIsMobile(640);
   const { confirm, dialogNode } = useAppConfirmDialog(true);
   const [placements, setPlacements] = useState([]);
   const [placementImageMap, setPlacementImageMap] = useState({});
   const [stats, setStats] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [sessionOptions, setSessionOptions] = useState([]);
-  const [selectedCompanySession, setSelectedCompanySession] =
-    useState(getCurrentSession());
+  const [selectedCompanySession, setSelectedCompanySession] = useState(getCurrentSession());
   const [companyOptionsLoading, setCompanyOptionsLoading] = useState(false);
   const [companyOptionsError, setCompanyOptionsError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -4147,20 +3445,13 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    studentPrn: "",
-    companyId: "",
-    role: "",
-    packageOffered: "",
-  });
+  const [form, setForm] = useState({ studentPrn: "", companyId: "", role: "", packageOffered: "" });
   const [formMsg, setFormMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const canWrite = canAccess(globalRole, tnpRole, "write_placement");
-  const canDeletePlacement =
-    canAccess(globalRole, tnpRole, "delete_records") &&
-    tnpRole !== "CO_ORDINATOR";
+  const canDeletePlacement = canAccess(globalRole, tnpRole, "delete_records") && tnpRole !== "CO_ORDINATOR";
   const placementsPageSize = 15;
 
   const sortSessionsDesc = (sessions) =>
@@ -4172,166 +3463,77 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 
   const loadSessionOptions = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/visitYear/all/getAllSessions`,
-        {
-          headers: authHeaders(),
-        },
-      );
-
+      const res = await axios.get(`${BASE_URL}/api/visitYear/all/getAllSessions`, { headers: authHeaders() });
       const raw = res.data?.data ?? res.data;
       const list = Array.isArray(raw) ? raw : [];
-      const sessions = sortSessionsDesc(
-        list.map((item) => item?.academicSession).filter(Boolean),
-      );
-
-      if (!sessions.length) {
-        setSessionOptions([getCurrentSession()]);
-        return;
-      }
-
+      const sessions = sortSessionsDesc(list.map((item) => item?.academicSession).filter(Boolean));
+      if (!sessions.length) { setSessionOptions([getCurrentSession()]); return; }
       setSessionOptions(sessions);
-      if (!sessions.includes(selectedCompanySession)) {
-        setSelectedCompanySession(sessions[0]);
-      }
+      if (!sessions.includes(selectedCompanySession)) setSelectedCompanySession(sessions[0]);
     } catch {
       setSessionOptions([getCurrentSession()]);
     }
   };
 
   const loadCompaniesBySession = async (session) => {
-    if (!session) {
-      setCompanies([]);
-      setCompanyOptionsError("");
-      return;
-    }
-
+    if (!session) { setCompanies([]); setCompanyOptionsError(""); return; }
     setCompanyOptionsLoading(true);
     setCompanyOptionsError("");
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/company/all/search/session`,
-        {
-          headers: authHeaders(),
-          params: { session },
-        },
-      );
-
+      const res = await axios.get(`${BASE_URL}/api/company/all/search/session`, { headers: authHeaders(), params: { session } });
       const payload = res.data?.data ?? res.data;
-      const list = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.content)
-          ? payload.content
-          : [];
-
-      const normalized = list
-        .map((item) => ({
-          companyId: item?.companyId,
-          name: item?.name,
-          industry: item?.industry,
-          packageOffered: item?.packageOffered,
-          academicSession: item?.academicSession,
-          studentsHired: item?.studentsHired,
-        }))
-        .filter((item) => item.companyId != null && item.name);
-
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload?.content) ? payload.content : [];
+      const normalized = list.map((item) => ({
+        companyId: item?.companyId,
+        name: item?.name,
+        industry: item?.industry,
+        packageOffered: item?.packageOffered,
+        academicSession: item?.academicSession,
+        studentsHired: item?.studentsHired,
+      })).filter((item) => item.companyId != null && item.name);
       setCompanies(normalized);
     } catch (err) {
       setCompanies([]);
-      setCompanyOptionsError(
-        err.response?.data?.message ||
-          "Unable to fetch companies for selected session",
-      );
+      setCompanyOptionsError(err.response?.data?.message || "Unable to fetch companies for selected session");
     } finally {
       setCompanyOptionsLoading(false);
     }
   };
 
   const load = async (session, page = 0) => {
-    if (!session) {
-      setPlacements([]);
-      setStats(null);
-      setTotalPages(0);
-      setTotalElements(0);
-      return;
-    }
-
+    if (!session) { setPlacements([]); setStats(null); setTotalPages(0); setTotalElements(0); return; }
     setLoading(true);
     setError(null);
     try {
-      const statsPromise = axios
-        .get(
-          `${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`,
-          { headers: authHeaders() },
-        )
-        .catch(() => ({ data: null }));
-
-      const pRes = await axios.get(
-        `${BASE_URL}/api/placements/all/session/${encodeURIComponent(session)}`,
-        {
-          headers: authHeaders(),
-          params: { page, size: placementsPageSize },
-        },
-      );
-
+      const statsPromise = axios.get(`${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`, { headers: authHeaders() }).catch(() => ({ data: null }));
+      const pRes = await axios.get(`${BASE_URL}/api/placements/all/session/${encodeURIComponent(session)}`, { headers: authHeaders(), params: { page, size: placementsPageSize } });
       const raw = pRes.data?.data ?? pRes.data;
-      const content = Array.isArray(raw?.content)
-        ? raw.content
-        : Array.isArray(raw)
-          ? raw
-          : [];
-      const nextTotalPages = Number(
-        raw?.totalPages ?? (content.length ? 1 : 0),
-      );
+      const content = Array.isArray(raw?.content) ? raw.content : Array.isArray(raw) ? raw : [];
+      const nextTotalPages = Number(raw?.totalPages ?? (content.length ? 1 : 0));
       const nextTotalElements = Number(raw?.totalElements ?? content.length);
-
-      // If current page becomes invalid after mutations, move to the new last page.
-      if (nextTotalPages > 0 && page >= nextTotalPages) {
-        setCurrentPage(nextTotalPages - 1);
-        setLoading(false);
-        return;
-      }
-
+      if (nextTotalPages > 0 && page >= nextTotalPages) { setCurrentPage(nextTotalPages - 1); setLoading(false); return; }
       const sRes = await statsPromise;
       setPlacements(content);
       setTotalPages(nextTotalPages);
       setTotalElements(nextTotalElements);
       setStats(sRes.data?.data);
-    } catch (err) {
+    } catch {
       setError("Failed to load placements");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadSessionOptions();
-  }, []);
-
-  useEffect(() => {
-    loadCompaniesBySession(selectedCompanySession);
-    setCurrentPage(0);
-    setForm((prev) => ({ ...prev, companyId: "" }));
-  }, [selectedCompanySession]);
-
-  useEffect(() => {
-    load(selectedCompanySession, currentPage);
-  }, [selectedCompanySession, currentPage]);
+  useEffect(() => { loadSessionOptions(); }, []);
+  useEffect(() => { loadCompaniesBySession(selectedCompanySession); setCurrentPage(0); setForm((prev) => ({ ...prev, companyId: "" })); }, [selectedCompanySession]);
+  useEffect(() => { load(selectedCompanySession, currentPage); }, [selectedCompanySession, currentPage]);
 
   useEffect(() => {
     let isActive = true;
     let createdUrls = [];
-
     const loadImages = async () => {
-      const withImages = placements.filter(
-        (s) => s?.imageUrl && (s?.placementId || s?.studentPrn),
-      );
-
-      if (!withImages.length) {
-        setPlacementImageMap({});
-        return;
-      }
-
+      const withImages = placements.filter((s) => s?.imageUrl && (s?.placementId || s?.studentPrn));
+      if (!withImages.length) { setPlacementImageMap({}); return; }
       const results = await Promise.all(
         withImages.map(async (s) => {
           const key = s.placementId || s.studentPrn;
@@ -4340,25 +3542,13 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
           return { key, blobUrl };
         }),
       );
-
-      if (!isActive) {
-        createdUrls.forEach((u) => URL.revokeObjectURL(u));
-        return;
-      }
-
+      if (!isActive) { createdUrls.forEach((u) => URL.revokeObjectURL(u)); return; }
       const nextMap = {};
-      results.forEach((r) => {
-        if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl;
-      });
+      results.forEach((r) => { if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl; });
       setPlacementImageMap(nextMap);
     };
-
     loadImages();
-
-    return () => {
-      isActive = false;
-      createdUrls.forEach((u) => URL.revokeObjectURL(u));
-    };
+    return () => { isActive = false; createdUrls.forEach((u) => URL.revokeObjectURL(u)); };
   }, [placements]);
 
   const filtered = placements.filter(
@@ -4370,25 +3560,14 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!selectedCompanySession) {
-      setFormMsg("Session is required");
-      return;
-    }
-    if (!form.companyId) {
-      setFormMsg("Company is required");
-      return;
-    }
+    if (!selectedCompanySession) { setFormMsg("Session is required"); return; }
+    if (!form.companyId) { setFormMsg("Company is required"); return; }
     setSaving(true);
     setFormMsg("");
     try {
       await axios.post(
         `${BASE_URL}/api/placements/all/create`,
-        {
-          studentPrn: form.studentPrn,
-          companyId: parseInt(form.companyId),
-          role: form.role,
-          packageOffered: parseFloat(form.packageOffered),
-        },
+        { studentPrn: form.studentPrn, companyId: parseInt(form.companyId), role: form.role, packageOffered: parseFloat(form.packageOffered) },
         { headers: authHeaders() },
       );
       setAdding(false);
@@ -4403,18 +3582,10 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 
   const handleDelete = async (id) => {
     if (!canDeletePlacement) return;
-    const ok = await confirm({
-      title: "Delete placement record?",
-      message: "This action cannot be undone.",
-      confirmText: "Delete",
-      cancelText: "Cancel",
-      variant: "danger",
-    });
+    const ok = await confirm({ title: "Delete placement record?", message: "This action cannot be undone.", confirmText: "Delete", cancelText: "Cancel", variant: "danger" });
     if (!ok) return;
     try {
-      await axios.delete(`${BASE_URL}/api/placements/all/${id}`, {
-        headers: authHeaders(),
-      });
+      await axios.delete(`${BASE_URL}/api/placements/all/${id}`, { headers: authHeaders() });
       load(selectedCompanySession, currentPage);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete");
@@ -4423,12 +3594,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 
   const getInitials = (name) => {
     if (!name) return "?";
-    return name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   };
 
   return (
@@ -4436,48 +3602,33 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: isMobile ? "flex-start" : "center",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "20px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "12px" : "0",
         }}
       >
         <div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "40px",
-              letterSpacing: "0.04em",
-            }}
-          >
-            PLACEMENTS
-          </h2>
-          <p
-            style={{
-              color: "var(--white-60)",
-              fontSize: "13px",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "32px" : "40px", letterSpacing: "0.04em" }}>PLACEMENTS</h2>
+          <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
             {totalElements} records · {placementsPageSize} per page
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ minWidth: "170px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
+          <div style={{ width: isMobile ? "100%" : "170px" }}>
             <CustomSelect
               name="selectedCompanySession"
               value={selectedCompanySession}
               onChange={(e) => setSelectedCompanySession(e.target.value)}
               disabled={loading || sessionOptions.length === 0}
-              options={sessionOptions.map((session) => ({
-                value: session,
-                label: session,
-              }))}
+              options={sessionOptions.map((session) => ({ value: session, label: session }))}
               placeholder="Select session"
               theme={TNP_SELECT_THEME}
             />
           </div>
           {canWrite && (
-            <OrangeBtn small onClick={() => setAdding(!adding)}>
+            <OrangeBtn small onClick={() => setAdding(!adding)} fullWidth={isMobile}>
               + Record Placement
             </OrangeBtn>
           )}
@@ -4492,52 +3643,21 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: "1px",
             background: "rgba(255,255,255,0.08)",
-            marginBottom: "24px",
+            marginBottom: "20px",
             borderRadius: "8px",
             overflow: "hidden",
           }}
         >
           {[
             { label: "Total Placed", value: stats.totalPlacements ?? "—" },
-            {
-              label: "Avg Package",
-              value: stats.averagePackage
-                ? `₹${parseFloat(stats.averagePackage).toFixed(1)} LPA`
-                : "—",
-            },
-            {
-              label: "Highest",
-              value: stats.highestPackage
-                ? `₹${stats.highestPackage} LPA`
-                : "—",
-            },
+            { label: "Avg Package", value: stats.averagePackage ? `₹${parseFloat(stats.averagePackage).toFixed(1)} LPA` : "—" },
+            { label: "Highest", value: stats.highestPackage ? `₹${stats.highestPackage} LPA` : "—" },
           ].map((s, i) => (
-            <div
-              key={i}
-              style={{
-                background: "var(--black-card)",
-                padding: "20px",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "28px",
-                  color: "var(--orange)",
-                  letterSpacing: "0.03em",
-                }}
-              >
+            <div key={i} style={{ background: "var(--black-card)", padding: isMobile ? "14px 8px" : "20px", textAlign: "center" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "20px" : "28px", color: "var(--orange)", letterSpacing: "0.03em", lineHeight: 1.1 }}>
                 {s.value}
               </div>
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                }}
-              >
+              <div style={{ fontSize: isMobile ? "9px" : "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
                 {s.label.toUpperCase()}
               </div>
             </div>
@@ -4550,58 +3670,32 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
         <form
           onSubmit={handleAdd}
           style={{
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             background: "var(--black-card)",
             border: "1px solid rgba(244,96,12,0.3)",
             borderRadius: "8px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             animation: "tnpFadeUp 0.2s ease",
           }}
         >
-          <h4
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-              marginBottom: "20px",
-              color: "var(--orange)",
-            }}
-          >
+          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "18px", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--orange)" }}>
             RECORD PLACEMENT
           </h4>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
+              gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: "12px",
+              marginBottom: "16px",
             }}
           >
             {[
-              {
-                label: "Student PRN",
-                key: "studentPrn",
-                placeholder: "e.g. 2021BTCS001",
-              },
+              { label: "Student PRN", key: "studentPrn", placeholder: "e.g. 2021BTCS001", colSpan: isMobile },
               { label: "Job Role", key: "role", placeholder: "e.g. SDE" },
-              {
-                label: "Package (LPA)",
-                key: "packageOffered",
-                placeholder: "e.g. 32",
-                type: "number",
-              },
+              { label: "Package (LPA)", key: "packageOffered", placeholder: "e.g. 32", type: "number" },
             ].map((f) => (
-              <div key={f.key}>
-                <label
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--white-60)",
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    display: "block",
-                    marginBottom: "6px",
-                  }}
-                >
+              <div key={f.key} style={f.colSpan ? { gridColumn: "1 / -1" } : {}}>
+                <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
                   {f.label.toUpperCase()}
                 </label>
                 <input
@@ -4609,130 +3703,45 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
                   placeholder={f.placeholder}
                   value={form[f.key]}
                   required
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, [f.key]: e.target.value }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "4px",
-                    color: "white",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
+                  onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
+                  style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
                 />
               </div>
             ))}
-            <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                SESSION
-              </label>
+            <div style={isMobile ? { gridColumn: "1 / -1" } : {}}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>SESSION</label>
               <CustomSelect
                 name="selectedCompanySession"
                 value={selectedCompanySession}
                 onChange={(e) => setSelectedCompanySession(e.target.value)}
-                options={sessionOptions.map((session) => ({
-                  value: session,
-                  label: session,
-                }))}
+                options={sessionOptions.map((session) => ({ value: session, label: session }))}
                 placeholder="Select session"
                 required
                 theme={TNP_SELECT_THEME}
               />
             </div>
-            <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                COMPANY
-              </label>
+            <div style={isMobile ? { gridColumn: "1 / -1" } : {}}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>COMPANY</label>
               <CustomSelect
                 name="companyId"
                 value={form.companyId}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, companyId: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, companyId: e.target.value }))}
                 disabled={companyOptionsLoading || !selectedCompanySession}
                 options={[
-                  {
-                    value: "",
-                    label: companyOptionsLoading
-                      ? "Loading companies..."
-                      : "Select company",
-                  },
-                  ...companies.map((c) => ({
-                    value: String(c.companyId),
-                    label: `${c.name} (${c.academicSession || selectedCompanySession})`,
-                  })),
+                  { value: "", label: companyOptionsLoading ? "Loading companies..." : "Select company" },
+                  ...companies.map((c) => ({ value: String(c.companyId), label: `${c.name} (${c.academicSession || selectedCompanySession})` })),
                 ]}
                 placeholder="Select company"
                 required
                 theme={TNP_SELECT_THEME}
               />
-              {companyOptionsError && (
-                <div
-                  style={{
-                    marginTop: "6px",
-                    fontSize: "12px",
-                    color: "#ef4444",
-                  }}
-                >
-                  {companyOptionsError}
-                </div>
-              )}
-              {!companyOptionsLoading &&
-                !companyOptionsError &&
-                selectedCompanySession &&
-                companies.length === 0 && (
-                  <div
-                    style={{
-                      marginTop: "6px",
-                      fontSize: "12px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    No companies found for {selectedCompanySession}
-                  </div>
-                )}
+              {companyOptionsError && <div style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444" }}>{companyOptionsError}</div>}
             </div>
           </div>
-          {formMsg && (
-            <div
-              style={{
-                color: "#ef4444",
-                fontSize: "13px",
-                marginBottom: "12px",
-              }}
-            >
-              {formMsg}
-            </div>
-          )}
-          <div style={{ display: "flex", gap: "10px" }}>
-            <OrangeBtn small type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Record"}
-            </OrangeBtn>
-            <OrangeBtn small outline onClick={() => setAdding(false)}>
-              Cancel
-            </OrangeBtn>
+          {formMsg && <div style={{ color: "#ef4444", fontSize: "13px", marginBottom: "12px" }}>{formMsg}</div>}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <OrangeBtn small type="submit" disabled={saving}>{saving ? "Saving..." : "Record"}</OrangeBtn>
+            <OrangeBtn small outline onClick={() => setAdding(false)}>Cancel</OrangeBtn>
           </div>
         </form>
       )}
@@ -4741,42 +3750,16 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name, PRN, or company..."
-        style={{
-          width: "100%",
-          padding: "12px 16px",
-          marginBottom: "16px",
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "6px",
-          color: "white",
-          fontSize: "14px",
-          outline: "none",
-        }}
+        style={{ width: "100%", padding: "12px 16px", marginBottom: "16px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "white", fontSize: "14px", outline: "none" }}
       />
 
       {loading ? (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
-        >
-          <Spinner size={40} />
-        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}><Spinner size={40} /></div>
       ) : error ? (
-        <ErrorBox
-          message={error}
-          onRetry={() => load(selectedCompanySession, currentPage)}
-        />
+        <ErrorBox message={error} onRetry={() => load(selectedCompanySession, currentPage)} />
       ) : (
         <>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1px",
-              background: "rgba(255,255,255,0.06)",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: "1px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" }}>
             {filtered.map((s) => {
               const imageKey = s.placementId || s.studentPrn;
               const imageSrc = imageKey ? placementImageMap[imageKey] : null;
@@ -4785,90 +3768,48 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
                   key={s.placementId}
                   style={{
                     background: "var(--black-card)",
-                    padding: "16px 20px",
+                    padding: isMobile ? "12px 14px" : "16px 20px",
                     display: "flex",
                     alignItems: "center",
-                    gap: "16px",
+                    gap: isMobile ? "10px" : "16px",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "var(--black-elevated)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "var(--black-card)")
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--black-elevated)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "var(--black-card)")}
                 >
                   {imageSrc ? (
-                    <img
-                      src={imageSrc}
-                      alt={s.studentName}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        flexShrink: 0,
-                        objectFit: "cover",
-                      }}
-                    />
+                    <img src={imageSrc} alt={s.studentName} style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
                   ) : (
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        flexShrink: 0,
-                        background:
-                          "linear-gradient(135deg, var(--orange), #c44d0a)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 600,
-                        fontSize: "13px",
-                      }}
-                    >
+                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--orange), #c44d0a)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "12px" }}>
                       {getInitials(s.studentName)}
                     </div>
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, fontSize: "15px" }}>
+                    <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {s.studentName || s.studentPrn}
                     </div>
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--white-60)",
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {s.studentPrn}
-                      {s.department ? ` · ${s.department}` : ""}
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {isMobile ? s.companyName : `${s.studentPrn}${s.department ? ` · ${s.department}` : ""}`}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 500 }}>
-                      {s.companyName}
+                  {!isMobile && (
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: 500 }}>{s.companyName}</div>
+                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{s.role}</div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: "var(--white-60)",
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {s.role}
-                    </div>
-                  </div>
+                  )}
                   <div
                     style={{
-                      padding: "6px 14px",
+                      padding: isMobile ? "4px 10px" : "6px 14px",
                       borderRadius: "4px",
                       background: "rgba(244,96,12,0.12)",
                       border: "1px solid var(--orange-border)",
                       fontFamily: "var(--font-display)",
-                      fontSize: "16px",
+                      fontSize: isMobile ? "14px" : "16px",
                       letterSpacing: "0.04em",
                       color: "var(--orange)",
                       flexShrink: 0,
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {s.packageOffered} LPA
@@ -4876,98 +3817,27 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
                   {canDeletePlacement && (
                     <button
                       onClick={() => handleDelete(s.placementId)}
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "4px",
-                        background: "rgba(239,68,68,0.1)",
-                        border: "1px solid rgba(239,68,68,0.2)",
-                        color: "#ef4444",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      Del
-                    </button>
+                      style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, touchAction: "manipulation" }}
+                    >Del</button>
                   )}
                 </div>
               );
             })}
             {filtered.length === 0 && (
-              <div
-                style={{
-                  padding: "40px",
-                  textAlign: "center",
-                  color: "var(--white-30)",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+              <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
                 No placements found
               </div>
             )}
           </div>
 
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "14px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginTop: "14px" }}>
+              <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
                 {`Page ${currentPage + 1} of ${totalPages}`}
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                  disabled={currentPage === 0}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage === 0 ? "var(--white-30)" : "var(--white)",
-                    cursor: currentPage === 0 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Prev
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages - 1))
-                  }
-                  disabled={currentPage >= totalPages - 1}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    background: "transparent",
-                    color:
-                      currentPage >= totalPages - 1
-                        ? "var(--white-30)"
-                        : "var(--white)",
-                    cursor:
-                      currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
-                    fontSize: "12px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  Next
-                </button>
+                <button type="button" onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))} disabled={currentPage === 0} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage === 0 ? "var(--white-30)" : "var(--white)", cursor: currentPage === 0 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", touchAction: "manipulation" }}>Prev</button>
+                <button type="button" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages - 1))} disabled={currentPage >= totalPages - 1} style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: currentPage >= totalPages - 1 ? "var(--white-30)" : "var(--white)", cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", touchAction: "manipulation" }}>Next</button>
               </div>
             </div>
           )}
@@ -4981,64 +3851,55 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 
 // ── Portal Members ────────────────────────────────────────────────────────────
 const PortalMembers = ({ user, globalRole, tnpRole }) => {
+  const isMobile = useIsMobile(640);
   const { confirm, dialogNode } = useAppConfirmDialog(true);
   const [members, setMembers] = useState([]);
   const [memberImageMap, setMemberImageMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1280,
+  );
+  const [currentPage, setCurrentPage] = useState(0);
   const [adding, setAdding] = useState(false);
   const [changingRole, setChangingRole] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    prn: "",
-    role: "CO_ORDINATOR",
-    startDate: "",
-    endDate: "",
-  });
+  const [form, setForm] = useState({ prn: "", role: "CO_ORDINATOR", startDate: "", endDate: "" });
   const [formMsg, setFormMsg] = useState("");
   const [roleSaving, setRoleSaving] = useState(false);
   const [roleMsg, setRoleMsg] = useState("");
-  const [roleForm, setRoleForm] = useState({
-    prn: "",
-    newRole: "CO_ORDINATOR",
-    startDate: "",
-    endDate: "",
-  });
+  const [roleForm, setRoleForm] = useState({ prn: "", newRole: "CO_ORDINATOR", startDate: "", endDate: "" });
   const canChangeRoles = canAccess(globalRole, tnpRole, "change_roles");
   const canManage = canAccess(globalRole, tnpRole, "manage_members");
+  const pageSize = 20;
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${BASE_URL}/api/tnp/all/getAll/true`, {
-        headers: authHeaders(),
-      });
-      const raw = res.data?.data ?? res.data;
-      setMembers(Array.isArray(raw) ? raw : raw?.content || []);
-    } catch (err) {
+      const allMembers = await fetchAllTnpMembersPaged(pageSize);
+      setMembers(allMembers);
+    } catch {
       setError("Failed to load members");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => { load(); }, []);
+  useEffect(() => { setCurrentPage(0); }, [members.length]);
   useEffect(() => {
-    load();
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
     let isActive = true;
     let createdUrls = [];
-
     const loadImages = async () => {
       const withImages = members.filter((m) => m?.imageUrl && m?.prn);
-
-      if (!withImages.length) {
-        setMemberImageMap({});
-        return;
-      }
-
+      if (!withImages.length) { setMemberImageMap({}); return; }
       const results = await Promise.all(
         withImages.map(async (m) => {
           const blobUrl = await fetchProtectedImageBlobUrl(m.imageUrl);
@@ -5046,46 +3907,41 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
           return { key: m.prn, blobUrl };
         }),
       );
-
-      if (!isActive) {
-        createdUrls.forEach((u) => URL.revokeObjectURL(u));
-        return;
-      }
-
+      if (!isActive) { createdUrls.forEach((u) => URL.revokeObjectURL(u)); return; }
       const nextMap = {};
-      results.forEach((r) => {
-        if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl;
-      });
+      results.forEach((r) => { if (r?.key && r.blobUrl) nextMap[r.key] = r.blobUrl; });
       setMemberImageMap(nextMap);
     };
-
     loadImages();
-
-    return () => {
-      isActive = false;
-      createdUrls.forEach((u) => URL.revokeObjectURL(u));
-    };
+    return () => { isActive = false; createdUrls.forEach((u) => URL.revokeObjectURL(u)); };
   }, [members]);
 
-  const sorted = [...members].sort(
-    (a, b) => (ROLE_RANK[a.role] ?? 9) - (ROLE_RANK[b.role] ?? 9),
-  );
+  const sorted = [...members].sort((a, b) => (ROLE_RANK[a.role] ?? 9) - (ROLE_RANK[b.role] ?? 9));
+  const head = sorted.find((m) => m.role === "TNP_HEAD");
+  const leadership = sorted.filter((m) => m.role === "PRESIDENT" || m.role === "VICE_PRESIDENT");
+  const pagedMembers = sorted.filter((m) => !["TNP_HEAD", "PRESIDENT", "VICE_PRESIDENT"].includes(m.role));
+  const memberColumns = viewportWidth < 640 ? 1 : viewportWidth < 1024 ? 2 : viewportWidth < 1536 ? 3 : 4;
+  const totalPages = Math.max(1, Math.ceil(pagedMembers.length / pageSize));
+  const currentMembers = pagedMembers.slice(currentPage * pageSize, currentPage * pageSize + pageSize);
+  const canPaginate = totalPages > 1;
+  const startItem = pagedMembers.length === 0 ? 0 : currentPage * pageSize + 1;
+  const endItem = Math.min((currentPage + 1) * pageSize, pagedMembers.length);
+
+  const getVisiblePages = () => {
+    const pages = [];
+    const delta = 1;
+    const left = Math.max(0, currentPage - delta);
+    const right = Math.min(totalPages - 1, currentPage + delta);
+    for (let i = left; i <= right; i += 1) pages.push(i);
+    return pages;
+  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
     setSaving(true);
     setFormMsg("");
     try {
-      await axios.post(
-        `${BASE_URL}/api/tnp/all/add`,
-        {
-          prn: form.prn,
-          role: form.role,
-          startDate: form.startDate,
-          endDate: form.endDate,
-        },
-        { headers: authHeaders() },
-      );
+      await axios.post(`${BASE_URL}/api/tnp/all/add`, { prn: form.prn, role: form.role, startDate: form.startDate, endDate: form.endDate }, { headers: authHeaders() });
       setAdding(false);
       setForm({ prn: "", role: "CO_ORDINATOR", startDate: "", endDate: "" });
       load();
@@ -5097,18 +3953,10 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
   };
 
   const handleDelete = async (prn) => {
-    const ok = await confirm({
-      title: "Remove member?",
-      message: "This will permanently remove the member from TNP.",
-      confirmText: "Remove",
-      cancelText: "Cancel",
-      variant: "danger",
-    });
+    const ok = await confirm({ title: "Remove member?", message: "This will permanently remove the member from TNP.", confirmText: "Remove", cancelText: "Cancel", variant: "danger" });
     if (!ok) return;
     try {
-      await axios.delete(`${BASE_URL}/api/tnp/tr/permanentlyDelete/${prn}`, {
-        headers: authHeaders(),
-      });
+      await axios.delete(`${BASE_URL}/api/tnp/tr/permanentlyDelete/${prn}`, { headers: authHeaders() });
       load();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to remove");
@@ -5118,38 +3966,18 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
   const handleChangeRole = async (e) => {
     e.preventDefault();
     if (!canChangeRoles) return;
-
-    if (!roleForm.startDate || !roleForm.endDate) {
-      setRoleMsg("Start date and end date are required");
-      return;
-    }
-
-    if (new Date(roleForm.startDate) > new Date(roleForm.endDate)) {
-      setRoleMsg("Start date cannot be after end date");
-      return;
-    }
-
+    if (!roleForm.startDate || !roleForm.endDate) { setRoleMsg("Start date and end date are required"); return; }
+    if (new Date(roleForm.startDate) > new Date(roleForm.endDate)) { setRoleMsg("Start date cannot be after end date"); return; }
     setRoleSaving(true);
     setRoleMsg("");
     try {
       await axios.put(
         `${BASE_URL}/api/tnp/tr/changeClubRole`,
-        {
-          prn: roleForm.prn,
-          newRole: roleForm.newRole,
-          startDate: toLocalDateTimeWithSeconds(roleForm.startDate, false),
-          endDate: toLocalDateTimeWithSeconds(roleForm.endDate, true),
-        },
+        { prn: roleForm.prn, newRole: roleForm.newRole, startDate: toLocalDateTimeWithSeconds(roleForm.startDate, false), endDate: toLocalDateTimeWithSeconds(roleForm.endDate, true) },
         { headers: authHeaders() },
       );
-
       setRoleMsg("Role changed successfully");
-      setRoleForm({
-        prn: "",
-        newRole: "CO_ORDINATOR",
-        startDate: "",
-        endDate: "",
-      });
+      setRoleForm({ prn: "", newRole: "CO_ORDINATOR", startDate: "", endDate: "" });
       setChangingRole(false);
       load();
     } catch (err) {
@@ -5160,14 +3988,27 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
   };
 
   const getInitials = (name, prn) => {
-    if (name)
-      return name
-        .split(" ")
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
+    if (name) return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
     return (prn || "?").slice(0, 2).toUpperCase();
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "4px",
+    color: "white",
+    fontSize: "14px",
+    outline: "none",
+  };
+  const labelStyle = {
+    fontSize: "11px",
+    color: "var(--white-60)",
+    fontFamily: "var(--font-mono)",
+    letterSpacing: "0.06em",
+    display: "block",
+    marginBottom: "6px",
   };
 
   return (
@@ -5175,48 +4016,30 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: isMobile ? "flex-start" : "center",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "24px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "12px" : "0",
         }}
       >
         <div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "40px",
-              letterSpacing: "0.04em",
-            }}
-          >
-            TNP MEMBERS
-          </h2>
-          <p
-            style={{
-              color: "var(--white-60)",
-              fontSize: "13px",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "32px" : "40px", letterSpacing: "0.04em" }}>TNP MEMBERS</h2>
+          <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)", marginTop: "4px" }}>
             Active team
             {!canChangeRoles && (
-              <span style={{ color: "var(--orange)", marginLeft: "8px" }}>
-                · Role changes require TNP_HEAD
-              </span>
+              <span style={{ color: "var(--orange)", marginLeft: "8px" }}>· Role changes require TNP_HEAD</span>
             )}
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
           {canChangeRoles && (
-            <OrangeBtn
-              small
-              outline
-              onClick={() => setChangingRole(!changingRole)}
-            >
+            <OrangeBtn small outline onClick={() => setChangingRole(!changingRole)} fullWidth={isMobile}>
               Change Role & Tenure
             </OrangeBtn>
           )}
           {canManage && (
-            <OrangeBtn small onClick={() => setAdding(!adding)}>
+            <OrangeBtn small onClick={() => setAdding(!adding)} fullWidth={isMobile}>
               + Add Member
             </OrangeBtn>
           )}
@@ -5227,500 +4050,243 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
         <form
           onSubmit={handleChangeRole}
           style={{
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             background: "var(--black-card)",
             border: "1px solid rgba(244,96,12,0.3)",
             borderRadius: "8px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             animation: "tnpFadeUp 0.2s ease",
           }}
         >
-          <h4
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-              marginBottom: "20px",
-              color: "var(--orange)",
-            }}
-          >
+          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "18px", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--orange)" }}>
             CHANGE MEMBER ROLE & TENURE
           </h4>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px", marginBottom: "16px" }}>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                PRN
-              </label>
-              <input
-                placeholder="e.g. 2022BTCS011"
-                value={roleForm.prn}
-                required
-                onChange={(e) =>
-                  setRoleForm((p) => ({ ...p, prn: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              />
+              <label style={labelStyle}>PRN</label>
+              <input placeholder="e.g. 2022BTCS011" value={roleForm.prn} required onChange={(e) => setRoleForm((p) => ({ ...p, prn: e.target.value }))} style={inputStyle} />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                NEW ROLE
-              </label>
+              <label style={labelStyle}>NEW ROLE</label>
               <CustomSelect
                 name="newRole"
                 value={roleForm.newRole}
-                onChange={(e) =>
-                  setRoleForm((p) => ({ ...p, newRole: e.target.value }))
-                }
-                options={Object.entries(ROLE_LABELS)
-                  .filter(
-                    ([val]) => val !== "TNP_HEAD" || globalRole === "SUPER_ADMIN",
-                  )
-                  .map(([value, label]) => ({ value, label }))}
+                onChange={(e) => setRoleForm((p) => ({ ...p, newRole: e.target.value }))}
+                options={Object.entries(ROLE_LABELS).filter(([val]) => val !== "TNP_HEAD" || globalRole === "SUPER_ADMIN").map(([value, label]) => ({ value, label }))}
                 placeholder="Select role"
                 required
                 theme={TNP_SELECT_THEME}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                START DATE
-              </label>
-              <DateTimePicker
-                value={roleForm.startDate}
-                required
-                onChange={(value) =>
-                  setRoleForm((p) => ({ ...p, startDate: value }))
-                }
-                placeholder="Select start date"
-                dateOnly
-                theme={TNP_SELECT_THEME}
-              />
+              <label style={labelStyle}>START DATE</label>
+              <DateTimePicker value={roleForm.startDate} required onChange={(value) => setRoleForm((p) => ({ ...p, startDate: value }))} placeholder="Select start date" dateOnly theme={TNP_SELECT_THEME} />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                END DATE
-              </label>
-              <DateTimePicker
-                value={roleForm.endDate}
-                required
-                onChange={(value) =>
-                  setRoleForm((p) => ({ ...p, endDate: value }))
-                }
-                placeholder="Select end date"
-                dateOnly
-                theme={TNP_SELECT_THEME}
-              />
+              <label style={labelStyle}>END DATE</label>
+              <DateTimePicker value={roleForm.endDate} required onChange={(value) => setRoleForm((p) => ({ ...p, endDate: value }))} placeholder="Select end date" dateOnly theme={TNP_SELECT_THEME} />
             </div>
           </div>
           {roleMsg && (
-            <div
-              style={{
-                color: roleMsg.toLowerCase().includes("success")
-                  ? "#22c55e"
-                  : "#ef4444",
-                fontSize: "13px",
-                marginBottom: "12px",
-              }}
-            >
+            <div style={{ color: roleMsg.toLowerCase().includes("success") ? "#22c55e" : "#ef4444", fontSize: "13px", marginBottom: "12px" }}>
               {roleMsg}
             </div>
           )}
-          <div style={{ display: "flex", gap: "10px" }}>
-            <OrangeBtn small type="submit" disabled={roleSaving}>
-              {roleSaving ? "Saving..." : "Change Role & Tenure"}
-            </OrangeBtn>
-            <OrangeBtn small outline onClick={() => setChangingRole(false)}>
-              Cancel
-            </OrangeBtn>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <OrangeBtn small type="submit" disabled={roleSaving}>{roleSaving ? "Saving..." : "Change Role & Tenure"}</OrangeBtn>
+            <OrangeBtn small outline onClick={() => setChangingRole(false)}>Cancel</OrangeBtn>
           </div>
         </form>
       )}
 
-      {/* Add form */}
       {adding && canManage && (
         <form
           onSubmit={handleAdd}
           style={{
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             background: "var(--black-card)",
             border: "1px solid rgba(244,96,12,0.3)",
             borderRadius: "8px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             animation: "tnpFadeUp 0.2s ease",
           }}
         >
-          <h4
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "20px",
-              letterSpacing: "0.05em",
-              marginBottom: "20px",
-              color: "var(--orange)",
-            }}
-          >
-            ADD MEMBER
-          </h4>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                PRN
-              </label>
-              <input
-                placeholder="e.g. 2022BTCS011"
-                value={form.prn}
-                required
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, prn: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              />
+          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "18px", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--orange)" }}>ADD MEMBER</h4>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+            <div style={isMobile ? { gridColumn: "1 / -1" } : {}}>
+              <label style={labelStyle}>PRN</label>
+              <input placeholder="e.g. 2022BTCS011" value={form.prn} required onChange={(e) => setForm((p) => ({ ...p, prn: e.target.value }))} style={inputStyle} />
             </div>
-            <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                ROLE
-              </label>
+            <div style={isMobile ? { gridColumn: "1 / -1" } : {}}>
+              <label style={labelStyle}>ROLE</label>
               <CustomSelect
                 name="role"
                 value={form.role}
                 onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
-                options={Object.entries(ROLE_LABELS)
-                  .filter(
-                    ([val]) => val !== "TNP_HEAD" || globalRole === "SUPER_ADMIN",
-                  )
-                  .map(([value, label]) => ({ value, label }))}
+                options={Object.entries(ROLE_LABELS).filter(([val]) => val !== "TNP_HEAD" || globalRole === "SUPER_ADMIN").map(([value, label]) => ({ value, label }))}
                 placeholder="Select role"
                 required
                 theme={TNP_SELECT_THEME}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                START DATE
-              </label>
-              <input
-                type="date"
-                value={form.startDate}
-                required
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, startDate: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              />
+              <label style={labelStyle}>START DATE</label>
+              <input type="date" value={form.startDate} required onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} style={inputStyle} />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: "11px",
-                  color: "var(--white-60)",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  display: "block",
-                  marginBottom: "6px",
-                }}
-              >
-                END DATE
-              </label>
-              <input
-                type="date"
-                value={form.endDate}
-                required
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, endDate: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "4px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              />
+              <label style={labelStyle}>END DATE</label>
+              <input type="date" value={form.endDate} required onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))} style={inputStyle} />
             </div>
           </div>
-          {formMsg && (
-            <div
-              style={{
-                color: "#ef4444",
-                fontSize: "13px",
-                marginBottom: "12px",
-              }}
-            >
-              {formMsg}
-            </div>
-          )}
-          <div style={{ display: "flex", gap: "10px" }}>
-            <OrangeBtn small type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Add Member"}
-            </OrangeBtn>
-            <OrangeBtn small outline onClick={() => setAdding(false)}>
-              Cancel
-            </OrangeBtn>
+          {formMsg && <div style={{ color: "#ef4444", fontSize: "13px", marginBottom: "12px" }}>{formMsg}</div>}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <OrangeBtn small type="submit" disabled={saving}>{saving ? "Saving..." : "Add Member"}</OrangeBtn>
+            <OrangeBtn small outline onClick={() => setAdding(false)}>Cancel</OrangeBtn>
           </div>
         </form>
       )}
 
       {loading ? (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
-        >
-          <Spinner size={40} />
-        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}><Spinner size={40} /></div>
       ) : error ? (
         <ErrorBox message={error} onRetry={load} />
+      ) : sorted.length === 0 ? (
+        <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px" }}>
+          No active members
+        </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          {sorted.map((m, i) => (
-            <div
-              key={m.tnpId || m.prn}
-              style={{
-                background: "var(--black-card)",
-                border: `1px solid ${m.role === "TNP_HEAD" ? "rgba(244,96,12,0.3)" : "rgba(255,255,255,0.08)"}`,
-                borderRadius: "8px",
-                padding: "24px",
-                animation: `tnpFadeUp 0.3s ease ${i * 0.06}s both`,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  marginBottom: "16px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", gap: "14px", alignItems: "center" }}
-                >
-                  {memberImageMap[m.prn] ? (
-                    <img
-                      src={memberImageMap[m.prn]}
-                      alt={m.name}
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "50%",
-                        flexShrink: 0,
-                        objectFit: "cover",
-                      }}
-                    />
+        <div style={{ display: "grid", gap: "20px" }}>
+          {head && (
+            <div style={{ background: "var(--black-card)", border: "1px solid rgba(244,96,12,0.3)", borderRadius: "8px", padding: isMobile ? "16px" : "24px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
+                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  {memberImageMap[head.prn] ? (
+                    <img src={memberImageMap[head.prn]} alt={head.name} style={{ width: "44px", height: "44px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
                   ) : (
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "50%",
-                        background:
-                          m.role === "TNP_HEAD"
-                            ? "linear-gradient(135deg, var(--orange), #c44d0a)"
-                            : m.role === "PRESIDENT"
-                              ? "linear-gradient(135deg, #6366f1, #4338ca)"
-                              : m.role === "VICE_PRESIDENT"
-                                ? "linear-gradient(135deg, #14b8a6, #0d9488)"
-                                : "linear-gradient(135deg, #374151, #1f2937)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 600,
-                        fontSize: "16px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {getInitials(m.name, m.prn)}
+                    <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, var(--orange), #c44d0a)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "15px", flexShrink: 0 }}>
+                      {getInitials(head.name, head.prn)}
                     </div>
                   )}
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: "15px" }}>
-                      {m.name || m.prn}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: "var(--white-60)",
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {m.prn}
-                    </div>
+                    <div style={{ fontWeight: 600, fontSize: "15px" }}>{head.name || head.prn}</div>
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{head.prn}</div>
                   </div>
                 </div>
-                <Badge variant={m.role === "TNP_HEAD" ? "orange" : "default"}>
-                  {ROLE_LABELS[m.role] || m.role}
-                </Badge>
+                <Badge variant="orange">{ROLE_LABELS[head.role] || head.role}</Badge>
               </div>
-              <div
-                style={{
-                  paddingTop: "14px",
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
+              <div style={{ paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--white-60)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {m.department || "—"}
-                    {m.year ? ` · Year ${m.year}` : ""}
+                  <div style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+                    {head.department || "—"}{head.year ? ` · Year ${head.year}` : ""}
                   </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--white-30)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {m.startDate ? new Date(m.startDate).getFullYear() : "—"}
-                    {m.endDate ? `–${new Date(m.endDate).getFullYear()}` : ""}
+                  <div style={{ fontSize: "12px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                    {head.startDate ? new Date(head.startDate).getFullYear() : "—"}{head.endDate ? `–${new Date(head.endDate).getFullYear()}` : ""}
                   </div>
                 </div>
-                {canManage && m.role !== "TNP_HEAD" && (
-                  <button
-                    onClick={() => handleDelete(m.prn)}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "4px",
-                      background: "rgba(239,68,68,0.1)",
-                      border: "1px solid rgba(239,68,68,0.2)",
-                      color: "#ef4444",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
               </div>
             </div>
-          ))}
-          {sorted.length === 0 && (
-            <div
-              style={{
-                gridColumn: "1/-1",
-                padding: "40px",
-                textAlign: "center",
-                color: "var(--white-30)",
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              No active members
+          )}
+
+          {leadership.length > 0 && (
+            <div style={{ display: "grid", gap: "10px" }}>
+              <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Leadership</div>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`, gap: isMobile ? "10px" : "16px" }}>
+                {leadership.map((m, i) => (
+                  <div key={m.tnpId || m.prn} style={{ background: "var(--black-card)", border: m.role === "PRESIDENT" ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(20,184,166,0.3)", borderRadius: "8px", padding: isMobile ? "14px" : "24px", animation: `tnpFadeUp 0.3s ease ${i * 0.06}s both` }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        {memberImageMap[m.prn] ? (
+                          <img src={memberImageMap[m.prn]} alt={m.name} style={{ width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: m.role === "PRESIDENT" ? "linear-gradient(135deg, #6366f1, #4338ca)" : "linear-gradient(135deg, #14b8a6, #0d9488)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "14px", flexShrink: 0 }}>
+                            {getInitials(m.name, m.prn)}
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name || m.prn}</div>
+                          <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.prn}</div>
+                        </div>
+                      </div>
+                      {!isMobile && <Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge>}
+                    </div>
+                    {isMobile && <div style={{ marginBottom: "10px" }}><Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
+                    <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{m.department || "—"}</div>
+                        <div style={{ fontSize: "11px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                          {m.startDate ? new Date(m.startDate).getFullYear() : "—"}{m.endDate ? `–${new Date(m.endDate).getFullYear()}` : ""}
+                        </div>
+                      </div>
+                      {canManage && m.role !== "TNP_HEAD" && (
+                        <button onClick={() => handleDelete(m.prn)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Remove</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pagedMembers.length > 0 && (
+            <div style={{ display: "grid", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Team Members</div>
+                <div style={{ fontSize: "11px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                  Showing {startItem}–{endItem} of {pagedMembers.length}
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`, gap: isMobile ? "8px" : "16px" }}>
+                {currentMembers.map((m) => (
+                  <div key={m.tnpId || m.prn} style={{ background: "var(--black-card)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: isMobile ? "12px" : "24px", animation: "tnpFadeUp 0.3s ease" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "10px" }}>
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center", minWidth: 0, flex: 1 }}>
+                        {memberImageMap[m.prn] ? (
+                          <img src={memberImageMap[m.prn]} alt={m.name} style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg, #374151, #1f2937)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "13px", flexShrink: 0 }}>
+                            {getInitials(m.name, m.prn)}
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name || m.prn}</div>
+                          <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.prn}</div>
+                        </div>
+                      </div>
+                      {!isMobile && <Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge>}
+                    </div>
+                    {isMobile && <div style={{ marginBottom: "8px" }}><Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
+                    <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {m.department || "—"}{m.year ? ` · Y${m.year}` : ""}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+                          {m.startDate ? new Date(m.startDate).getFullYear() : "—"}{m.endDate ? `–${new Date(m.endDate).getFullYear()}` : ""}
+                        </div>
+                      </div>
+                      {canManage && m.role !== "TNP_HEAD" && (
+                        <button onClick={() => handleDelete(m.prn)} style={{ padding: "3px 8px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "11px", cursor: "pointer", flexShrink: 0 }}>Remove</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {canPaginate && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "6px", padding: "14px 16px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", background: "rgba(255,255,255,0.03)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", flexWrap: "wrap" }}>
+                    <button type="button" onClick={() => setCurrentPage(0)} disabled={currentPage === 0} style={{ padding: "7px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--white)", cursor: currentPage === 0 ? "not-allowed" : "pointer", opacity: currentPage === 0 ? 0.4 : 1, fontSize: "12px", touchAction: "manipulation" }}>First</button>
+                    <button type="button" onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))} disabled={currentPage === 0} style={{ padding: "7px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--white)", cursor: currentPage === 0 ? "not-allowed" : "pointer", opacity: currentPage === 0 ? 0.4 : 1, fontSize: "12px", touchAction: "manipulation" }}>Prev</button>
+                    {getVisiblePages().map((page) => (
+                      <button key={page} type="button" onClick={() => setCurrentPage(page)} disabled={page === currentPage} style={{ minWidth: "36px", height: "34px", padding: "0 10px", borderRadius: "6px", border: page === currentPage ? "1px solid rgba(244,96,12,0.55)" : "1px solid rgba(255,255,255,0.12)", background: page === currentPage ? "var(--orange)" : "transparent", color: page === currentPage ? "white" : "var(--white)", cursor: page === currentPage ? "default" : "pointer", fontFamily: "var(--font-mono)", fontSize: "12px", touchAction: "manipulation" }}>
+                        {page + 1}
+                      </button>
+                    ))}
+                    <button type="button" onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))} disabled={currentPage >= totalPages - 1} style={{ padding: "7px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--white)", cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer", opacity: currentPage >= totalPages - 1 ? 0.4 : 1, fontSize: "12px", touchAction: "manipulation" }}>Next</button>
+                    <button type="button" onClick={() => setCurrentPage(totalPages - 1)} disabled={currentPage >= totalPages - 1} style={{ padding: "7px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--white)", cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer", opacity: currentPage >= totalPages - 1 ? 0.4 : 1, fontSize: "12px", touchAction: "manipulation" }}>Last</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -5735,22 +4301,12 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
 // ── ROOT COMPONENT ────────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-/**
- * TNPPage — drop this into your router at /tnp
- *
- * Reads auth from localStorage (same pattern as UsersDashboard):
- *   localStorage.getItem("user")  → { prn, username, email, role, verified }
- *   localStorage.getItem("token") → JWT
- *
- * Sends X-User-PRN and X-User-Role headers on every request.
- * Looks up tnpRole from GET /tnp/members/{prn} to determine portal access.
- */
 export default function TNPPage() {
   const [view, setView] = useState(() => {
     const savedView = localStorage.getItem(TNP_VIEW_STORAGE_KEY);
     return savedView === "portal" ? "portal" : "landing";
-  }); // "landing" | "portal"
-  const [tnpRole, setTnpRole] = useState(null); // e.g. "TNP_HEAD"
+  });
+  const [tnpRole, setTnpRole] = useState(null);
   const [tnpLoading, setTnpLoading] = useState(true);
   const [landingStats, setLandingStats] = useState({});
   const navigate = useNavigate();
@@ -5759,42 +4315,23 @@ export default function TNPPage() {
   const globalRole = user?.role || "USER";
   const currentSession = getCurrentSession();
 
-  // Look up this user's TNP role (if any)
   useEffect(() => {
     const checkTnpRole = async () => {
-      if (!user?.prn) {
-        setTnpLoading(false);
-        return;
-      }
-      if (globalRole === "SUPER_ADMIN") {
-        setTnpRole("SUPER_ADMIN");
-        setTnpLoading(false);
-        return;
-      }
+      if (!user?.prn) { setTnpLoading(false); return; }
+      if (globalRole === "SUPER_ADMIN") { setTnpRole("SUPER_ADMIN"); setTnpLoading(false); return; }
       try {
-        const res = await axios.get(
-          `${BASE_URL}/api/tnp/all/getByPrn/${user.prn}`,
-          { headers: authHeaders() },
-        );
+        const res = await axios.get(`${BASE_URL}/api/tnp/all/getByPrn/${user.prn}`, { headers: authHeaders() });
         if (res.data?.data?.role) setTnpRole(res.data.data.role);
-      } catch {
-        /* user is not a TNP member — tnpRole stays null */
-      }
+      } catch {}
       setTnpLoading(false);
     };
     checkTnpRole();
   }, [user?.prn]);
 
-  // Load landing stats
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const statsRes = await axios
-          .get(`${BASE_URL}/api/company/all/stats`, {
-            headers: authHeaders(),
-          })
-          .catch(() => ({ data: {} }));
-
+        const statsRes = await axios.get(`${BASE_URL}/api/company/all/stats`, { headers: authHeaders() }).catch(() => ({ data: {} }));
         const overall = statsRes.data?.data ?? statsRes.data ?? {};
         setLandingStats({
           totalCompanies: overall.totalCompaniesVisited,
@@ -5816,11 +4353,7 @@ export default function TNPPage() {
   }, [view]);
 
   useEffect(() => {
-    if (
-      !tnpLoading &&
-      view === "portal" &&
-      !canAccess(globalRole, tnpRole, "enter_portal")
-    ) {
+    if (!tnpLoading && view === "portal" && !canAccess(globalRole, tnpRole, "enter_portal")) {
       setView("landing");
     }
   }, [tnpLoading, view, globalRole, tnpRole]);
@@ -5829,12 +4362,7 @@ export default function TNPPage() {
     return (
       <div
         className="tnp-root"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100svh" }}
       >
         <FontLoader />
         <Spinner size={48} />
