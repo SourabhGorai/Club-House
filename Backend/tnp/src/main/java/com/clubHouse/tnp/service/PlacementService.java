@@ -1,6 +1,7 @@
 package com.clubHouse.tnp.service;
 
 import com.clubHouse.tnp.client.ProfileManagementServiceClient;
+import com.clubHouse.tnp.config.CacheConfig;
 import com.clubHouse.tnp.dto.request.BulkPlacementRequest;
 import com.clubHouse.tnp.dto.request.PlacementRequest;
 import com.clubHouse.tnp.dto.response.BulkPlacementResponse;
@@ -18,6 +19,9 @@ import com.clubHouse.tnp.repository.PlacementRepository;
 import com.clubHouse.tnp.repository.TnpRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,6 +46,7 @@ public class PlacementService {
 
     // ── Of-TNP? ──────────────────────────────────────────────────────────────
 
+    // Not cached — auth check must always be fresh
     private boolean notOfTnp(String prn, String role) {
         Tnp user = tnpRepository.findByPrnAndIsActiveTrue(prn);
         return user == null && !role.equals("SUPER_ADMIN");
@@ -49,26 +54,35 @@ public class PlacementService {
 
     // ── Create ───────────────────────────────────────────────────────────────
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_PRN, key = "#request.studentPrn"),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, allEntries = true),
+            // Placement creation affects studentsHired counts and overall stats
+            @CacheEvict(value = CacheConfig.COMPANY_BY_ID, key = "#request.companyId"),
+            @CacheEvict(value = CacheConfig.ALL_COMPANIES, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_MIN_HIRED, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMBINED_PACKAGES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_OVERALL_STATS, allEntries = true)
+    })
     @Transactional
     public PlacementResponse createPlacement(PlacementRequest request, String prn, String role) {
 
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
-        // 1. Validate student PRN exists in profile-service
         ProfileResponse profile = profileClient.getProfileByPrn(request.getStudentPrn());
         if (profile == null) {
             throw new ResourceNotFoundException(
                     "Student with PRN " + request.getStudentPrn() + " not found");
         }
 
-        // 2. Validate company exists
         Company company = companyRepository.findById(request.getCompanyId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Company not found with id: " + request.getCompanyId()));
 
-        // 3. Prevent duplicate placement for same student + company
         if (placementRepository.existsByStudentPrnAndCompany_CompanyId(
                 request.getStudentPrn(), request.getCompanyId())) {
             throw new DuplicateResourceException(
@@ -91,9 +105,20 @@ public class PlacementService {
         return toResponse(placement, profile);
     }
 
-
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_PRN, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_COMPANIES, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_MIN_HIRED, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMBINED_PACKAGES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_OVERALL_STATS, allEntries = true)
+    })
     @Transactional
-    public BulkPlacementResponse createBulkPlacements(BulkPlacementRequest bulkRequest, String prn, String role) {
+    public BulkPlacementResponse createBulkPlacements(
+            BulkPlacementRequest bulkRequest, String prn, String role
+    ) {
 
         if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
@@ -104,19 +129,16 @@ public class PlacementService {
 
         for (PlacementRequest request : bulkRequest.getPlacements()) {
             try {
-                // 1. Validate student exists in profile-service
                 ProfileResponse profile = profileClient.getProfileByPrn(request.getStudentPrn());
                 if (profile == null) {
                     throw new ResourceNotFoundException(
                             "Student with PRN " + request.getStudentPrn() + " not found");
                 }
 
-                // 2. Validate company exists
                 Company company = companyRepository.findById(request.getCompanyId())
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 "Company not found with id: " + request.getCompanyId()));
 
-                // 3. Prevent duplicate placement
                 if (placementRepository.existsByStudentPrnAndCompany_CompanyId(
                         request.getStudentPrn(), request.getCompanyId())) {
                     throw new DuplicateResourceException(
@@ -161,18 +183,27 @@ public class PlacementService {
 
     // ── Update ───────────────────────────────────────────────────────────────
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PLACEMENT_BY_ID, key = "#placementId"),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_PRN, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_COMPANIES, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMBINED_PACKAGES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_OVERALL_STATS, allEntries = true)
+    })
     @Transactional
     public PlacementResponse updatePlacement(
             Long placementId, PlacementRequest request, String prn, String role
     ) {
 
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
         Placement placement = getPlacementOrThrow(placementId);
 
-        // If company changed, re-validate and check for duplicate
         if (!placement.getCompany().getCompanyId().equals(request.getCompanyId())) {
             Company newCompany = companyRepository.findById(request.getCompanyId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -187,7 +218,6 @@ public class PlacementService {
             placement.setCompany(newCompany);
         }
 
-        // If PRN changed, re-validate
         ProfileResponse profile;
         if (!placement.getStudentPrn().equals(request.getStudentPrn())) {
             profile = profileClient.getProfileByPrn(request.getStudentPrn());
@@ -211,12 +241,21 @@ public class PlacementService {
 
     // ── Delete ───────────────────────────────────────────────────────────────
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PLACEMENT_BY_ID, key = "#placementId"),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_PRN, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.ALL_COMPANIES, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANIES_BY_MIN_HIRED, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMBINED_PACKAGES_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_OVERALL_STATS, allEntries = true)
+    })
     @Transactional
-    public void deletePlacement(
-            Long placementId, String prn, String role
-    ) {
+    public void deletePlacement(Long placementId, String prn, String role) {
 
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
@@ -225,13 +264,20 @@ public class PlacementService {
         log.info("Placement deleted: id={}", placementId);
     }
 
+    // Called internally by CompanyService.deleteRecord — no auth re-check needed here,
+    // caller already validated. Evicts all placement caches since the whole company is gone.
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PLACEMENT_BY_ID, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_PRN, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENTS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, allEntries = true),
+            @CacheEvict(value = CacheConfig.COMPANY_OVERALL_STATS, allEntries = true)
+    })
     @Transactional
-    public void deletePlacementForCompany(
-            Company company, String prn, String role
-    ) {
+    public void deletePlacementForCompany(Company company, String prn, String role) {
 
         List<Long> placementIds = placementRepository.findByCompany(company);
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
@@ -241,31 +287,33 @@ public class PlacementService {
 
     // ── Read: single ─────────────────────────────────────────────────────────
 
+    // Auth-gated but the underlying data is stable between mutations — cache it.
+    // The prn/role params are auth only and must NOT be part of the cache key.
+    @Cacheable(value = CacheConfig.PLACEMENT_BY_ID, key = "#placementId")
     @Transactional(readOnly = true)
-    public PlacementResponse getPlacementById(
-            Long placementId, String prn, String role
-    ) {
+    public PlacementResponse getPlacementById(Long placementId, String prn, String role) {
 
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
+        log.info("Fetching placement by id: {} - Cache miss, loading from DB", placementId);
         Placement placement = getPlacementOrThrow(placementId);
         ProfileResponse profile = profileClient.getProfileByPrn(placement.getStudentPrn());
         return toResponse(placement, profile);
     }
 
-    // ── Read: by student PRN (returns list – one student can have multiple placements) ──
-
+    @Cacheable(value = CacheConfig.PLACEMENTS_BY_PRN, key = "#prn")
     @Transactional(readOnly = true)
     public List<PlacementResponse> getPlacementsByPrn(
             String prn, String requesterPrn, String role
     ) {
 
-        if(notOfTnp(requesterPrn, role)){
+        if (notOfTnp(requesterPrn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
+        log.info("Fetching placements for PRN: {} - Cache miss, loading from DB", prn);
         List<Placement> placements = placementRepository.findByStudentPrn(prn);
         if (placements.isEmpty()) return List.of();
 
@@ -275,7 +323,8 @@ public class PlacementService {
                 .toList();
     }
 
-    // ── Read: pageable – all ─────────────────────────────────────────────────
+    // ── Read: pageable ────────────────────────────────────────────────────────
+    // Paginated reads are NOT cached — unbounded page/size keys, same policy as all other services.
 
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getAllPlacements(Pageable pageable) {
@@ -283,13 +332,11 @@ public class PlacementService {
         return enrichPageWithProfiles(page);
     }
 
-    // ── Read: pageable – by company ──────────────────────────────────────────
-
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getPlacementsByCompany(
             Long companyId, Pageable pageable, String prn, String role
     ) {
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
 
@@ -300,47 +347,39 @@ public class PlacementService {
         return enrichPageWithProfiles(page);
     }
 
-    // ── Read: pageable – by academic session ─────────────────────────────────
-
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getPlacementsBySession(String session, Pageable pageable) {
         Page<Placement> page = placementRepository.findByAcademicSession(session, pageable);
         return enrichPageWithProfiles(page);
     }
 
-    // ── Read: pageable – by role ─────────────────────────────────────────────
-
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getPlacementsByRole(
             String role, Pageable pageable, String prn, String requesterRole
     ) {
-        if(notOfTnp(prn, requesterRole)){
+        if (notOfTnp(prn, requesterRole)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
         Page<Placement> page = placementRepository.findByRole(role, pageable);
         return enrichPageWithProfiles(page);
     }
 
-    // ── Read: pageable – by industry ─────────────────────────────────────────
-
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getPlacementsByIndustry(
             Long industryId, Pageable pageable, String prn, String role
     ) {
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
         Page<Placement> page = placementRepository.findByIndustry(industryId, pageable);
         return enrichPageWithProfiles(page);
     }
 
-    // ── Read: pageable – by package range ────────────────────────────────────
-
     @Transactional(readOnly = true)
     public Page<PlacementResponse> getPlacementsByPackageRange(
             Double min, Double max, Pageable pageable, String prn, String role
     ) {
-        if(notOfTnp(prn, role)){
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
         Page<Placement> page = placementRepository.findByPackageOfferedBetween(min, max, pageable);
@@ -349,12 +388,15 @@ public class PlacementService {
 
     // ── Stats ────────────────────────────────────────────────────────────────
 
+    @Cacheable(value = CacheConfig.PLACEMENT_STATS_BY_SESSION, key = "#session")
     @Transactional(readOnly = true)
-    public PlacementStatsResponse getStatsBySession(String session, String prn, String role
-    ) {
-        if(notOfTnp(prn, role)){
+    public PlacementStatsResponse getStatsBySession(String session, String prn, String role) {
+
+        if (notOfTnp(prn, role)) {
             throw new UnauthorizedException("You are not a member of TNP");
         }
+
+        log.info("Fetching placement stats for session: {} - Cache miss, loading from DB", session);
         return PlacementStatsResponse.builder()
                 .academicSession(session)
                 .totalPlacements(placementRepository.countByAcademicSession(session))
@@ -365,11 +407,6 @@ public class PlacementService {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    /**
-     * Bulk-fetches all profiles for a page in ONE external call, then maps
-     * each placement to its profile via a PRN→profile lookup map.
-     * This keeps the page-level cost to O(1) external calls regardless of page size.
-     */
     private Page<PlacementResponse> enrichPageWithProfiles(Page<Placement> page) {
         if (page.isEmpty()) return page.map(p -> toResponse(p, null));
 

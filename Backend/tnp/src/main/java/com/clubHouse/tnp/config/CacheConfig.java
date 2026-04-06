@@ -38,6 +38,12 @@ public class CacheConfig {
     public static final String COMBINED_PACKAGES_BY_SESSION = "combinedPackagesBySession";
     public static final String COMPANY_OVERALL_STATS        = "companyOverallStats";
 
+    // Placement caches
+    public static final String PLACEMENT_BY_ID              = "placementById";
+    public static final String PLACEMENTS_BY_PRN            = "placementsByPrn";
+    public static final String PLACEMENTS_BY_SESSION        = "placementsBySession";
+    public static final String PLACEMENT_STATS_BY_SESSION   = "placementStatsBySession";
+
     @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
@@ -60,7 +66,11 @@ public class CacheConfig {
                 COMPANIES_BY_PACKAGE_RANGE,
                 COMPANIES_BY_MIN_HIRED,
                 COMBINED_PACKAGES_BY_SESSION,
-                COMPANY_OVERALL_STATS
+                COMPANY_OVERALL_STATS,
+                PLACEMENT_BY_ID,
+                PLACEMENTS_BY_PRN,
+                PLACEMENTS_BY_SESSION,
+                PLACEMENT_STATS_BY_SESSION
         );
     }
 }
