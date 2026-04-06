@@ -19,6 +19,14 @@ public class CacheConfig {
     public static final String ALL_INDUSTRIES               = "allIndustries";
     public static final String INDUSTRY_BY_ID               = "industryById";
 
+    // TNP Member caches
+    public static final String TNP_MEMBER_BY_PRN            = "tnpMemberByPrn";
+    public static final String TNP_ALL_ACTIVE_MEMBERS       = "tnpAllActiveMembers";
+    public static final String TNP_ALL_INACTIVE_MEMBERS     = "tnpAllInactiveMembers";
+    public static final String TNP_MEMBERS_BY_ROLE          = "tnpMembersByRole";
+    public static final String TNP_MEMBERS_BY_YEAR          = "tnpMembersByYear";
+    public static final String TNP_ROLES                    = "tnpRoles";
+
     @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
@@ -26,7 +34,13 @@ public class CacheConfig {
                 COMPANY_MASTER_BY_ID,
                 COMPANY_MASTERS_BY_INDUSTRY,
                 ALL_INDUSTRIES,
-                INDUSTRY_BY_ID
+                INDUSTRY_BY_ID,
+                TNP_MEMBER_BY_PRN,
+                TNP_ALL_ACTIVE_MEMBERS,
+                TNP_ALL_INACTIVE_MEMBERS,
+                TNP_MEMBERS_BY_ROLE,
+                TNP_MEMBERS_BY_YEAR,
+                TNP_ROLES
         );
     }
 }

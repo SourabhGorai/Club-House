@@ -92,7 +92,7 @@ public class TnpController {
 
     }
 
-    // SUPER_ADMIN
+
     @GetMapping("/all/getAll/{activeStatus}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserResponse>>> getAllTnpMembers(
             @PathVariable boolean activeStatus
@@ -107,6 +107,7 @@ public class TnpController {
                 )
         );
     }
+
 
     @GetMapping("/all/club/year/{year}")
     public ResponseEntity<ApiResponse<List<ProfileEnrichedUserResponse>>> getClubMembersByYear(
@@ -149,7 +150,7 @@ public class TnpController {
     // ── Paginated endpoints (new — /paged suffix) ─────────────────────────────────
 
     @GetMapping("/all/getAll/paged")
-    public ResponseEntity<ApiResponse<PageResponse<ProfileEnrichedUserResponse>>> getAllUserClubAssociationsPaged(
+    public ResponseEntity<ApiResponse<PageResponse<ProfileEnrichedUserResponse>>> getAllPaged(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {

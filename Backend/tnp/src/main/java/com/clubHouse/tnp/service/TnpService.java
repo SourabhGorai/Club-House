@@ -1,6 +1,7 @@
 package com.clubHouse.tnp.service;
 
 import com.clubHouse.tnp.client.ProfileManagementServiceClient;
+import com.clubHouse.tnp.config.CacheConfig;
 import com.clubHouse.tnp.dto.request.AddUserRequest;
 import com.clubHouse.tnp.dto.request.BulkUserTnpRequest;
 import com.clubHouse.tnp.dto.request.RoleTenureChangeRequest;
@@ -15,8 +16,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -34,15 +40,18 @@ public class TnpService {
 
     // ── Public Methods ───────────────────────────────────────────────────────────
 
+    // Roles are static enum values — cache forever, no eviction needed
+    @Cacheable(value = CacheConfig.TNP_ROLES)
     public List<String> getAllClubRoles() {
 
-        log.info("Attempting to fetch all the roles for TNP");
+        log.info("Attempting to fetch all the roles for TNP - Cache miss, loading from source");
 
         return Arrays.stream(TnpRoles.values())
                 .map(Enum::toString)
                 .toList();
     }
 
+    // Not cached — this is an auth check, must always be fresh
     public boolean authorize(String prn) {
 
         log.info("Checking authorization for prn: {}", prn);
@@ -55,6 +64,13 @@ public class TnpService {
                 user.getRole() == TnpRoles.VICE_PRESIDENT;
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#request.prn"),
+            @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_ROLE, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_YEAR, allEntries = true)
+    })
     public UserTnpResponse addUserToClub(@Valid AddUserRequest request, String prn, String role) {
 
         log.info("Attempting to add a new member to TNP with prn: {}", request.getPrn());
@@ -86,6 +102,12 @@ public class TnpService {
         }
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_ROLE, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_YEAR, allEntries = true)
+    })
     public BulkUserTnpResponse addUsersToTnpBulk(BulkUserTnpRequest request,
                                                  String callerPrn, String callerRole) {
 
@@ -123,9 +145,10 @@ public class TnpService {
                 .build();
     }
 
+    @Cacheable(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#prn")
     public ProfileEnrichedUserResponse getByPrn(String prn) {
 
-        log.info("Attempting to fetch profile of user with PRN: {}", prn);
+        log.info("Attempting to fetch profile of user with PRN: {} - Cache miss, loading from DB", prn);
 
         Tnp user = tnpRepository.findByPrn(prn);
         if (user == null) return null;
@@ -135,9 +158,13 @@ public class TnpService {
         return TnpMapper.toProfileEnrichedResponse(user, profile);
     }
 
+    @Caching(cacheable = {
+            @Cacheable(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, condition = "#activeStatus == true"),
+            @Cacheable(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, condition = "#activeStatus == false")
+    })
     public List<ProfileEnrichedUserResponse> getAllMembers(boolean activeStatus) {
 
-        log.info("Attempting to fetch all {} members of TNP",
+        log.info("Attempting to fetch all {} members of TNP - Cache miss, loading from DB",
                 activeStatus ? "active" : "inactive");
 
         List<Tnp> members = activeStatus
@@ -151,11 +178,12 @@ public class TnpService {
         return TnpMapper.toProfileEnrichedResponseList(members, profilePrnMap);
     }
 
+    @Cacheable(value = CacheConfig.TNP_MEMBERS_BY_YEAR, key = "#year")
     public List<ProfileEnrichedUserResponse> getMembersByYear(
             @NotNull(message = "Year is required") Integer year
     ) {
 
-        log.info("Attempting to fetch all active TNP members of year: {}", year);
+        log.info("Attempting to fetch all active TNP members of year: {} - Cache miss, loading from DB", year);
 
         List<Tnp> members = fetchAllActiveMembers();
         if (members.isEmpty()) return List.of();
@@ -182,6 +210,13 @@ public class TnpService {
         return TnpMapper.toProfileEnrichedResponseList(filteredMembers, filteredProfileMap);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#prn"),
+            @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_ROLE, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_YEAR, allEntries = true)
+    })
     @Transactional
     public void permanentlyDelete(String prn, String requesterPrn, String role) {
 
@@ -202,9 +237,10 @@ public class TnpService {
         log.info("Permanently deleted TNP member with PRN: {}", prn);
     }
 
+    @Cacheable(value = CacheConfig.TNP_MEMBERS_BY_ROLE, key = "#role")
     public List<ProfileEnrichedUserResponse> getAllByRole(String role) {
 
-        log.info("Attempting to fetch members by their role: {}", role);
+        log.info("Attempting to fetch members by their role: {} - Cache miss, loading from DB", role);
 
         TnpRoles tnpRole;
         try {
@@ -224,12 +260,20 @@ public class TnpService {
         return TnpMapper.toProfileEnrichedResponseList(members, profilePrnMap);
     }
 
+    // NOTE: Paginated methods are NOT cached — unbounded page/size key combinations
+    //       make cache management impractical, consistent with CompanyMasterService approach.
     public PageResponse<ProfileEnrichedUserResponse> getAllMembersPaged(Pageable pageable) {
 
         log.info("Attempting to fetch all active members in paginated format - page: {}, size: {}",
                 pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<Tnp> memberPage = tnpRepository.findAllByIsActiveTrue(pageable);
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "tnpId")
+        );
+
+        Page<Tnp> memberPage = tnpRepository.findAllByIsActiveTrue(sortedPageable);
 
         if (memberPage.isEmpty()) {
             return PageResponse.<ProfileEnrichedUserResponse>builder()
@@ -251,13 +295,20 @@ public class TnpService {
         return PageResponse.from(enrichedPage);
     }
 
+    // NOTE: Paginated + filtered by year — not cached for same reason as above.
     public PageResponse<ProfileEnrichedUserResponse> getMembersByYearPaged(
             @NotNull(message = "Year is required") Integer year, Pageable pageable) {
 
         log.info("Attempting to fetch active TNP members of year: {} in paginated format - page: {}, size: {}",
                 year, pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<Tnp> memberPage = tnpRepository.findAllByIsActiveTrue(pageable);
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "tnpId")
+        );
+
+        Page<Tnp> memberPage = tnpRepository.findAllByIsActiveTrue(sortedPageable);
 
         if (memberPage.isEmpty()) {
             return PageResponse.<ProfileEnrichedUserResponse>builder()
@@ -292,6 +343,13 @@ public class TnpService {
                 .build();
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#req.prn"),
+            @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_ROLE, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_YEAR, allEntries = true)
+    })
     @Transactional
     public void changeRoleTenure(
             @Valid RoleTenureChangeRequest req,
@@ -301,10 +359,9 @@ public class TnpService {
 
         log.info("Attempting to change the role & tenure of the user with prn: {}", req.getPrn());
 
-        if(req.getNewRole() == TnpRoles.TNP_HEAD && !role.equals("SUPER_ADMIN")){
+        if (req.getNewRole() == TnpRoles.TNP_HEAD && !role.equals("SUPER_ADMIN")) {
             throw new UnauthorizedException(
-                    String.format("Only SUPER_ADMIN can assign TNP_HEAD. Your role: %s",
-                            role)
+                    String.format("Only SUPER_ADMIN can assign TNP_HEAD. Your role: %s", role)
             );
         }
 
