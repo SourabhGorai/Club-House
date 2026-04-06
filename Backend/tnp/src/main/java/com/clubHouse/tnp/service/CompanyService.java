@@ -432,8 +432,10 @@ public class CompanyService {
                         .map(CompanyMapper::toResponse));
     }
 
-    public PagedResponse<CompanyResponse> getByVisitYearPaged(Integer year, int page, int size) {
-        VisitYear visitYear = resolveAcademicSession(year);
+    public PagedResponse<CompanyResponse> getByVisitYearPaged(String session, int page, int size) {
+//        VisitYear visitYear = resolveAcademicSession(year);
+        VisitYear visitYear = visitYearRepository.findByAcademicSession(session)
+                .orElseThrow();
         log.info("Fetching company records by visit year: {} - page: {}, size: {}",
                 visitYear.getAcademicSession(), page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
@@ -477,9 +479,11 @@ public class CompanyService {
     }
 
     public PagedResponse<CompanyResponse> getByVisitYearAndPackageRangePaged(
-            Integer year, Double min, Double max, int page, int size
+            String session, Double min, Double max, int page, int size
     ) {
-        VisitYear visitYear = resolveAcademicSession(year);
+        VisitYear visitYear = visitYearRepository.findByAcademicSession(session)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+
         log.info("Fetching company records by year: {}, package: {} - {} - page: {}, size: {}",
                 visitYear.getAcademicSession(), min, max, page, size);
         if (min > max) throw new ServiceException("Min package cannot be greater than max package.");
@@ -491,9 +495,12 @@ public class CompanyService {
     }
 
     public PagedResponse<CompanyResponse> getByVisitYearAndIndustryPaged(
-            Integer year, String industry, int page, int size
+            String session, String industry, int page, int size
     ) {
-        VisitYear visitYear = resolveAcademicSession(year);
+
+        VisitYear visitYear = visitYearRepository.findByAcademicSession(session)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+
         log.info("Fetching company records by year: {}, industry: {} - page: {}, size: {}",
                 visitYear.getAcademicSession(), industry, page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
@@ -505,9 +512,12 @@ public class CompanyService {
     }
 
     public PagedResponse<CompanyResponse> getByVisitYearAndStudentsHiredPaged(
-            Integer year, Integer minHired, int page, int size
+            String session, Integer minHired, int page, int size
     ) {
-        VisitYear visitYear = resolveAcademicSession(year);
+
+        VisitYear visitYear = visitYearRepository.findByAcademicSession(session)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+
         log.info("Fetching company records by year: {}, min hired: {} - page: {}, size: {}",
                 visitYear.getAcademicSession(), minHired, page, size);
         Pageable pageable = PageRequest.of(page, size);

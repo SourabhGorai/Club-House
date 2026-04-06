@@ -2834,6 +2834,9 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
   const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [companies, setCompanies] = useState([]);
   const [industries, setIndustries] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(getCurrentSession());
+  const [loadingSessions, setLoadingSessions] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -2850,18 +2853,82 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
     sessionYear: getCurrentSession().split("-")[0],
   });
   const [formMsg, setFormMsg] = useState("");
+  const [filterDraft, setFilterDraft] = useState({ mode: "all", industry: "", minPackage: "", maxPackage: "", minHired: "" });
+  const [activeFilter, setActiveFilter] = useState({ mode: "all", industry: "", minPackage: "", maxPackage: "", minHired: "" });
+  const [filterMsg, setFilterMsg] = useState("");
   const canWrite = canAccess(globalRole, tnpRole, "write_company");
   const canDelete = canAccess(globalRole, tnpRole, "delete_records");
   const companyPageSize = 10;
 
-  const load = async (page = 0) => {
+  const loadSessions = async () => {
+    setLoadingSessions(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/visitYear/all/getAllSessions`, { headers: authHeaders() });
+      const raw = res.data?.data ?? res.data;
+      const list = Array.isArray(raw) ? raw : [];
+      const sortedSessions = list
+        .map((item) => item?.academicSession)
+        .filter(Boolean)
+        .sort((a, b) => {
+          const aYear = Number(String(a).split("-")[0]) || 0;
+          const bYear = Number(String(b).split("-")[0]) || 0;
+          return bYear - aYear;
+        });
+      const fallback = getCurrentSession();
+      if (!sortedSessions.includes(fallback)) sortedSessions.unshift(fallback);
+      setSessions(sortedSessions);
+      if (!sortedSessions.includes(selectedSession)) setSelectedSession(sortedSessions[0] || fallback);
+    } catch {
+      const fallback = getCurrentSession();
+      setSessions([fallback]);
+      setSelectedSession((prev) => prev || fallback);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const load = async (session, page = 0, filter = activeFilter) => {
+    if (!session) { setCompanies([]); setTotalPages(0); setTotalElements(0); setIndustries([]); return; }
     setLoading(true);
     setError(null);
     try {
+      const filterMode = filter?.mode || "all";
+      let companyUrl = `${BASE_URL}/api/company/all/paged/search/year`;
+      let companyParams = { session, year: session, page, size: companyPageSize };
+
+      if (filterMode === "package") {
+        companyUrl = `${BASE_URL}/api/company/all/paged/search/year-package`;
+        companyParams = {
+          session,
+          min: Number(filter.minPackage),
+          max: Number(filter.maxPackage),
+          page,
+          size: companyPageSize,
+        };
+      } else if (filterMode === "industry") {
+        companyUrl = `${BASE_URL}/api/company/all/paged/search/year-industry`;
+        companyParams = {
+          session,
+          industry: filter.industry,
+          page,
+          size: companyPageSize,
+        };
+      } else if (filterMode === "hired") {
+        companyUrl = `${BASE_URL}/api/company/all/paged/search/year-hired`;
+        companyParams = {
+          session,
+          minHired: Number(filter.minHired),
+          page,
+          size: companyPageSize,
+        };
+      } else {
+        companyParams = { session, year: session, page, size: companyPageSize };
+      }
+
       const [compRes, indRes] = await Promise.all([
-        axios.get(`${BASE_URL}/api/company/all/paged/all`, {
+        axios.get(companyUrl, {
           headers: authHeaders(),
-          params: { page, size: companyPageSize },
+          params: companyParams,
         }),
         axios.get(`${BASE_URL}/api/industry/all/getAll`, { headers: authHeaders() }),
       ]);
@@ -2888,7 +2955,71 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
     }
   };
 
-  useEffect(() => { load(currentPage); }, [currentPage]);
+  useEffect(() => { loadSessions(); }, []);
+  useEffect(() => {
+    setCurrentPage(0);
+    setForm((prev) => ({ ...prev, sessionYear: String(selectedSession).split("-")[0] || prev.sessionYear }));
+    setFilterMsg("");
+  }, [selectedSession]);
+  useEffect(() => { load(selectedSession, currentPage, activeFilter); }, [selectedSession, currentPage, activeFilter]);
+
+  const applyFilters = () => {
+    const mode = filterDraft.mode || "all";
+
+    if (mode === "package") {
+      if (filterDraft.minPackage === "" || filterDraft.maxPackage === "") {
+        setFilterMsg("Enter both minimum and maximum package values");
+        return;
+      }
+      const min = Number(filterDraft.minPackage);
+      const max = Number(filterDraft.maxPackage);
+      if (Number.isNaN(min) || Number.isNaN(max)) {
+        setFilterMsg("Package values must be numbers");
+        return;
+      }
+      if (min > max) {
+        setFilterMsg("Minimum package cannot be greater than maximum package");
+        return;
+      }
+    }
+
+    if (mode === "industry" && !String(filterDraft.industry || "").trim()) {
+      setFilterMsg("Select an industry to apply this filter");
+      return;
+    }
+
+    if (mode === "hired") {
+      if (filterDraft.minHired === "") {
+        setFilterMsg("Enter minimum students hired");
+        return;
+      }
+      const minHired = Number(filterDraft.minHired);
+      if (Number.isNaN(minHired)) {
+        setFilterMsg("Minimum hired must be a number");
+        return;
+      }
+    }
+
+    const nextFilter = {
+      mode,
+      industry: mode === "industry" ? String(filterDraft.industry).trim() : "",
+      minPackage: mode === "package" ? String(filterDraft.minPackage) : "",
+      maxPackage: mode === "package" ? String(filterDraft.maxPackage) : "",
+      minHired: mode === "hired" ? String(filterDraft.minHired) : "",
+    };
+
+    setFilterMsg("");
+    setCurrentPage(0);
+    setActiveFilter(nextFilter);
+  };
+
+  const clearFilters = () => {
+    const emptyFilter = { mode: "all", industry: "", minPackage: "", maxPackage: "", minHired: "" };
+    setFilterDraft(emptyFilter);
+    setActiveFilter(emptyFilter);
+    setFilterMsg("");
+    setCurrentPage(0);
+  };
 
   const resetForm = () => {
     setEditingId(null);
@@ -2955,17 +3086,17 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
     if (!ok) return;
     try {
       await axios.delete(`${BASE_URL}/api/company/all/${id}`, { headers: authHeaders() });
-      load(currentPage);
+      load(selectedSession, currentPage, activeFilter);
     } catch (err) {
       await notify({ title: "Delete Failed", message: err.response?.data?.message || "Failed to delete company record", variant: "danger" });
     }
   };
 
   const handleSync = async () => {
-    const session = getCurrentSession();
+    const session = selectedSession || getCurrentSession();
     try {
       await axios.get(`${BASE_URL}/api/company/all/countTotalStudents/${encodeURIComponent(session)}`, { headers: authHeaders() });
-      load(currentPage);
+      load(session, currentPage, activeFilter);
     } catch {
       await notify({ title: "Sync Failed", message: "Unable to sync hired student count right now.", variant: "danger" });
     }
@@ -3011,15 +3142,140 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
             {totalElements} records · {companyPageSize} per page
           </p>
         </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {canWrite && (
-            <OrangeBtn small outline onClick={handleSync}>Sync Hired</OrangeBtn>
-          )}
-          {canWrite && (
-            <OrangeBtn small onClick={() => setAdding(!adding)}>+ Add Company</OrangeBtn>
-          )}
+        <div style={{ display: "flex", alignItems: "end", gap: "10px", flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
+          <div style={{ width: isMobile ? "100%" : "220px" }}>
+            <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+              FILTER BY SESSION
+            </label>
+            <CustomSelect
+              name="companySession"
+              value={selectedSession}
+              disabled={loadingSessions}
+              onChange={(e) => setSelectedSession(e.target.value)}
+              options={sessions.map((session) => ({ value: session, label: session }))}
+              placeholder="Select session"
+              theme={TNP_SELECT_THEME}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {canWrite && (
+              <OrangeBtn small outline onClick={handleSync}>Sync Hired</OrangeBtn>
+            )}
+            {canWrite && (
+              <OrangeBtn small onClick={() => setAdding(!adding)}>+ Add Company</OrangeBtn>
+            )}
+          </div>
         </div>
       </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "end",
+          gap: "10px",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ width: isMobile ? "100%" : "180px" }}>
+          <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+            FILTER TYPE
+          </label>
+          <CustomSelect
+            name="companyFilterMode"
+            value={filterDraft.mode}
+            onChange={(e) => setFilterDraft((prev) => ({ ...prev, mode: e.target.value }))}
+            options={[
+              { value: "all", label: "All Companies" },
+              { value: "package", label: "Package Range" },
+              { value: "industry", label: "Industry" },
+              { value: "hired", label: "Min Hired" },
+            ]}
+            placeholder="Select filter"
+            theme={TNP_SELECT_THEME}
+          />
+        </div>
+
+        {filterDraft.mode === "package" && (
+          <>
+            <div style={{ width: isMobile ? "100%" : "140px" }}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+                MIN PACKAGE
+              </label>
+              <input
+                type="number"
+                value={filterDraft.minPackage}
+                onChange={(e) => setFilterDraft((prev) => ({ ...prev, minPackage: e.target.value }))}
+                placeholder="0"
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+              />
+            </div>
+            <div style={{ width: isMobile ? "100%" : "140px" }}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+                MAX PACKAGE
+              </label>
+              <input
+                type="number"
+                value={filterDraft.maxPackage}
+                onChange={(e) => setFilterDraft((prev) => ({ ...prev, maxPackage: e.target.value }))}
+                placeholder="100"
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+              />
+            </div>
+          </>
+        )}
+
+        {filterDraft.mode === "industry" && (
+          <div style={{ width: isMobile ? "100%" : "220px" }}>
+            <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+              INDUSTRY
+            </label>
+            <CustomSelect
+              name="companyFilterIndustry"
+              value={filterDraft.industry}
+              onChange={(e) => setFilterDraft((prev) => ({ ...prev, industry: e.target.value }))}
+              options={[{ value: "", label: "Select industry" }, ...industries.map((i) => ({ value: i.name, label: i.name }))]}
+              placeholder="Select industry"
+              theme={TNP_SELECT_THEME}
+            />
+          </div>
+        )}
+
+        {filterDraft.mode === "hired" && (
+          <div style={{ width: isMobile ? "100%" : "180px" }}>
+            <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+              MIN HIRED
+            </label>
+            <input
+              type="number"
+              value={filterDraft.minHired}
+              onChange={(e) => setFilterDraft((prev) => ({ ...prev, minHired: e.target.value }))}
+              placeholder="e.g. 10"
+              style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+            />
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <OrangeBtn small onClick={applyFilters}>Apply</OrangeBtn>
+          <OrangeBtn small outline onClick={clearFilters}>Clear</OrangeBtn>
+        </div>
+      </div>
+
+      {filterMsg && (
+        <div style={{ marginBottom: "16px", color: "#f87171", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
+          {filterMsg}
+        </div>
+      )}
+
+      {activeFilter.mode !== "all" && (
+        <div style={{ marginBottom: "16px", color: "var(--white-60)", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
+          {activeFilter.mode === "package" && `Package: ${activeFilter.minPackage} - ${activeFilter.maxPackage}`}
+          {activeFilter.mode === "industry" && `Industry: ${activeFilter.industry}`}
+          {activeFilter.mode === "hired" && `Min hired: ${activeFilter.minHired}`}
+        </div>
+      )}
 
       {/* Add Form */}
       {adding && canWrite && (
@@ -3105,7 +3361,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole, portalAction, clearPortalA
           <Spinner size={40} />
         </div>
       ) : error ? (
-        <ErrorBox message={error} onRetry={() => load(currentPage)} />
+        <ErrorBox message={error} onRetry={() => load(selectedSession, currentPage, activeFilter)} />
       ) : (
         <>
           {/* Mobile: card list. Desktop: table */}
@@ -3633,11 +3889,13 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
   const [companyOptionsError, setCompanyOptionsError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ studentPrn: "", companyId: "", role: "", packageOffered: "" });
   const [formMsg, setFormMsg] = useState("");
+  const [filterDraft, setFilterDraft] = useState({ mode: "all", role: "", min: "", max: "" });
+  const [activeFilter, setActiveFilter] = useState({ mode: "all", role: "", min: "", max: "" });
+  const [filterMsg, setFilterMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -3691,13 +3949,34 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
     }
   };
 
-  const load = async (session, page = 0) => {
+  const load = async (session, page = 0, filter = activeFilter) => {
     if (!session) { setPlacements([]); setStats(null); setTotalPages(0); setTotalElements(0); return; }
     setLoading(true);
     setError(null);
     try {
-      const statsPromise = axios.get(`${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`, { headers: authHeaders() }).catch(() => ({ data: null }));
-      const pRes = await axios.get(`${BASE_URL}/api/placements/all/session/${encodeURIComponent(session)}`, { headers: authHeaders(), params: { page, size: placementsPageSize } });
+      const filterMode = filter?.mode || "all";
+      const isRoleFilter = filterMode === "role" && filter?.role?.trim();
+      const isPackageFilter = filterMode === "package" && filter?.min !== "" && filter?.max !== "";
+      const requestConfig = { headers: authHeaders(), params: { page, size: placementsPageSize } };
+      let requestUrl = `${BASE_URL}/api/placements/all/session/${encodeURIComponent(session)}`;
+
+      if (isRoleFilter) {
+        requestUrl = `${BASE_URL}/api/placements/all/role/${encodeURIComponent(filter.role.trim())}`;
+      } else if (isPackageFilter) {
+        requestUrl = `${BASE_URL}/api/placements/all/package`;
+        requestConfig.params = {
+          min: Number(filter.min),
+          max: Number(filter.max),
+          page,
+          size: placementsPageSize,
+        };
+      }
+
+      const statsPromise = filterMode === "all"
+        ? axios.get(`${BASE_URL}/api/placements/all/stats/${encodeURIComponent(session)}`, { headers: authHeaders() }).catch(() => ({ data: null }))
+        : Promise.resolve({ data: null });
+
+      const pRes = await axios.get(requestUrl, requestConfig);
       const raw = pRes.data?.data ?? pRes.data;
       const content = Array.isArray(raw?.content) ? raw.content : Array.isArray(raw) ? raw : [];
       const nextTotalPages = Number(raw?.totalPages ?? (content.length ? 1 : 0));
@@ -3707,7 +3986,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
       setPlacements(content);
       setTotalPages(nextTotalPages);
       setTotalElements(nextTotalElements);
-      setStats(sRes.data?.data);
+      setStats(filterMode === "all" ? sRes.data?.data : null);
     } catch {
       setError("Failed to load placements");
     } finally {
@@ -3717,7 +3996,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
 
   useEffect(() => { loadSessionOptions(); }, []);
   useEffect(() => { loadCompaniesBySession(selectedCompanySession); setCurrentPage(0); setForm((prev) => ({ ...prev, companyId: "" })); }, [selectedCompanySession]);
-  useEffect(() => { load(selectedCompanySession, currentPage); }, [selectedCompanySession, currentPage]);
+  useEffect(() => { load(selectedCompanySession, currentPage, activeFilter); }, [selectedCompanySession, currentPage, activeFilter]);
 
   useEffect(() => {
     let isActive = true;
@@ -3741,13 +4020,6 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
     loadImages();
     return () => { isActive = false; createdUrls.forEach((u) => URL.revokeObjectURL(u)); };
   }, [placements]);
-
-  const filtered = placements.filter(
-    (s) =>
-      (s.studentName || "").toLowerCase().includes(search.toLowerCase()) ||
-      (s.companyName || "").toLowerCase().includes(search.toLowerCase()) ||
-      (s.studentPrn || "").includes(search),
-  );
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -3793,10 +4065,56 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
     if (!ok) return;
     try {
       await axios.delete(`${BASE_URL}/api/placements/all/${id}`, { headers: authHeaders() });
-      load(selectedCompanySession, currentPage);
+      load(selectedCompanySession, currentPage, activeFilter);
     } catch (err) {
       await notify({ title: "Delete Failed", message: err.response?.data?.message || "Failed to delete placement", variant: "danger" });
     }
+  };
+
+  const applyPlacementFilter = () => {
+    const nextMode = filterDraft.mode || "all";
+    const nextRole = filterDraft.role.trim();
+    const nextMin = filterDraft.min === "" ? "" : Number(filterDraft.min);
+    const nextMax = filterDraft.max === "" ? "" : Number(filterDraft.max);
+
+    if (nextMode === "role" && !nextRole) {
+      setFilterMsg("Enter a role to filter placements");
+      return;
+    }
+
+    if (nextMode === "package") {
+      if (nextMin === "" || nextMax === "") {
+        setFilterMsg("Enter both minimum and maximum package values");
+        return;
+      }
+      if (Number.isNaN(nextMin) || Number.isNaN(nextMax)) {
+        setFilterMsg("Package values must be numbers");
+        return;
+      }
+      if (nextMin > nextMax) {
+        setFilterMsg("Minimum package cannot be greater than maximum package");
+        return;
+      }
+    }
+
+    const nextFilter = {
+      mode: nextMode,
+      role: nextMode === "role" ? nextRole : "",
+      min: nextMode === "package" ? String(nextMin) : "",
+      max: nextMode === "package" ? String(nextMax) : "",
+    };
+
+    setFilterMsg("");
+    setCurrentPage(0);
+    setActiveFilter(nextFilter);
+  };
+
+  const resetPlacementFilter = () => {
+    const resetFilter = { mode: "all", role: "", min: "", max: "" };
+    setFilterDraft(resetFilter);
+    setActiveFilter(resetFilter);
+    setFilterMsg("");
+    setCurrentPage(0);
   };
 
   const getInitials = (name) => {
@@ -3841,6 +4159,99 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
           )}
         </div>
       </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          gap: "10px",
+          alignItems: isMobile ? "stretch" : "end",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ width: isMobile ? "100%" : "170px" }}>
+          <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+            FILTER BY
+          </label>
+          <CustomSelect
+            name="placementFilterMode"
+            value={filterDraft.mode}
+            onChange={(e) => setFilterDraft((prev) => ({ ...prev, mode: e.target.value }))}
+            options={[
+              { value: "all", label: "All placements" },
+              { value: "role", label: "By role" },
+              { value: "package", label: "By package" },
+            ]}
+            placeholder="Select filter"
+            theme={TNP_SELECT_THEME}
+          />
+        </div>
+
+        {filterDraft.mode === "role" && (
+          <div style={{ flex: 1, minWidth: isMobile ? "100%" : "220px" }}>
+            <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+              ROLE
+            </label>
+            <input
+              value={filterDraft.role}
+              onChange={(e) => setFilterDraft((prev) => ({ ...prev, role: e.target.value }))}
+              placeholder="e.g. SDE"
+              style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+            />
+          </div>
+        )}
+
+        {filterDraft.mode === "package" && (
+          <>
+            <div style={{ width: isMobile ? "100%" : "140px" }}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+                MIN PACKAGE
+              </label>
+              <input
+                type="number"
+                value={filterDraft.min}
+                onChange={(e) => setFilterDraft((prev) => ({ ...prev, min: e.target.value }))}
+                placeholder="0"
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+              />
+            </div>
+            <div style={{ width: isMobile ? "100%" : "140px" }}>
+              <label style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>
+                MAX PACKAGE
+              </label>
+              <input
+                type="number"
+                value={filterDraft.max}
+                onChange={(e) => setFilterDraft((prev) => ({ ...prev, max: e.target.value }))}
+                placeholder="100"
+                style={{ width: "100%", padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", color: "white", fontSize: "14px", outline: "none" }}
+              />
+            </div>
+          </>
+        )}
+
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <OrangeBtn small onClick={applyPlacementFilter}>
+            Apply Filter
+          </OrangeBtn>
+          <OrangeBtn small outline onClick={resetPlacementFilter}>
+            Clear
+          </OrangeBtn>
+        </div>
+      </div>
+
+      {filterMsg && (
+        <div style={{ marginBottom: "16px", color: "#f87171", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
+          {filterMsg}
+        </div>
+      )}
+
+      {activeFilter.mode !== "all" && (
+        <div style={{ marginBottom: "16px", color: "var(--white-60)", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
+          Showing {activeFilter.mode === "role" ? `role: ${activeFilter.role}` : `package: ${activeFilter.min} - ${activeFilter.max}`}
+        </div>
+      )}
 
       {/* Stats */}
       {stats && (
@@ -3953,17 +4364,10 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
         </form>
       )}
 
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by name, PRN, or company..."
-        style={{ width: "100%", padding: "12px 16px", marginBottom: "16px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "white", fontSize: "14px", outline: "none" }}
-      />
-
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}><Spinner size={40} /></div>
       ) : error ? (
-        <ErrorBox message={error} onRetry={() => load(selectedCompanySession, currentPage)} />
+        <ErrorBox message={error} onRetry={() => load(selectedCompanySession, currentPage, activeFilter)} />
       ) : (
         <>
           <div
@@ -3973,7 +4377,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
                 : { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px" }
             }
           >
-            {filtered.map((s) => {
+            {placements.map((s) => {
               const imageKey = s.placementId || s.studentPrn;
               const imageSrc = imageKey ? placementImageMap[imageKey] : null;
               const packageValue = Number(s.packageOffered);
@@ -4067,7 +4471,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole, portalAction, clearPortal
                 </div>
               );
             })}
-            {filtered.length === 0 && (
+            {placements.length === 0 && (
               <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", gridColumn: "1 / -1" }}>
                 No placements found
               </div>

@@ -307,7 +307,7 @@ public class CompanyController {
      */
     @GetMapping("/all/paged/search/year")
     public ResponseEntity<ApiResponse<PagedResponse<CompanyResponse>>> getByVisitYearPaged(
-            @RequestParam Integer year,
+            @RequestParam String year,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -364,15 +364,15 @@ public class CompanyController {
      */
     @GetMapping("/all/paged/search/year-package")
     public ResponseEntity<ApiResponse<PagedResponse<CompanyResponse>>> getByVisitYearAndPackagePaged(
-            @RequestParam Integer year,
+            @RequestParam String session,
             @RequestParam Double min,
             @RequestParam Double max,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        log.info("Paged request to fetch company records by year: {} and package: {} - {}", year, min, max);
+        log.info("Paged request to fetch company records by year: {} and package: {} - {}", session, min, max);
         return ResponseEntity.ok(ApiResponse.success("Records fetched successfully",
-                companyService.getByVisitYearAndPackageRangePaged(year, min, max, page, size)));
+                companyService.getByVisitYearAndPackageRangePaged(session, min, max, page, size)));
     }
 
     /**
@@ -380,14 +380,14 @@ public class CompanyController {
      */
     @GetMapping("/all/paged/search/year-industry")
     public ResponseEntity<ApiResponse<PagedResponse<CompanyResponse>>> getByVisitYearAndIndustryPaged(
-            @RequestParam Integer year,
+            @RequestParam String session,
             @RequestParam String industry,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        log.info("Paged request to fetch company records by year: {} and industry: {}", year, industry);
+        log.info("Paged request to fetch company records by year: {} and industry: {}", session, industry);
         return ResponseEntity.ok(ApiResponse.success("Records fetched successfully",
-                companyService.getByVisitYearAndIndustryPaged(year, industry, page, size)));
+                companyService.getByVisitYearAndIndustryPaged(session, industry, page, size)));
     }
 
     /**
@@ -395,14 +395,14 @@ public class CompanyController {
      */
     @GetMapping("/all/paged/search/year-hired")
     public ResponseEntity<ApiResponse<PagedResponse<CompanyResponse>>> getByVisitYearAndStudentsHiredPaged(
-            @RequestParam Integer year,
+            @RequestParam String session,
             @RequestParam Integer minHired,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        log.info("Paged request to fetch company records by year: {} and min hired: {}", year, minHired);
+        log.info("Paged request to fetch company records by year: {} and min hired: {}", session, minHired);
         return ResponseEntity.ok(ApiResponse.success("Records fetched successfully",
-                companyService.getByVisitYearAndStudentsHiredPaged(year, minHired, page, size)));
+                companyService.getByVisitYearAndStudentsHiredPaged(session, minHired, page, size)));
     }
 
     @GetMapping("/all/countTotalStudents/{session}")
