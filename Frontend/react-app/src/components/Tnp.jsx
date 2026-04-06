@@ -5,7 +5,6 @@ import TnpTopNav from "./tnp/TnpTopNav";
 import TnpPublicAccessView from "./tnp/TnpPublicAccessView";
 import TnpMemberAccessView from "./tnp/TnpMemberAccessView";
 import PortalIndustrySessionAdmin from "./tnp/PortalIndustrySessionAdmin";
-import ConfirmDialog from "./ConfirmDialog";
 import CustomSelect from "./CustomSelect";
 import DateTimePicker from "./Datetimepicker";
 
@@ -377,10 +376,11 @@ function toLocalDateTimeWithSeconds(value, endOfDay = false) {
   return value.length === 16 ? `${value}:00` : value;
 }
 
-function useAppConfirmDialog(isDarkMode = true) {
+function useAppConfirmDialog() {
   const resolverRef = useRef(null);
   const [dialog, setDialog] = useState({
     isOpen: false,
+    mode: "confirm",
     title: "Are you sure?",
     message: "",
     confirmText: "Confirm",
@@ -388,12 +388,16 @@ function useAppConfirmDialog(isDarkMode = true) {
     variant: "primary",
   });
 
-  const close = () => {
-    setDialog((prev) => ({ ...prev, isOpen: false }));
+  const resolveWith = (value) => {
     if (resolverRef.current) {
-      resolverRef.current(false);
+      resolverRef.current(value);
       resolverRef.current = null;
     }
+  };
+
+  const close = () => {
+    setDialog((prev) => ({ ...prev, isOpen: false }));
+    resolveWith(false);
   };
 
   const confirm = ({
@@ -407,6 +411,7 @@ function useAppConfirmDialog(isDarkMode = true) {
       resolverRef.current = resolve;
       setDialog({
         isOpen: true,
+        mode: "confirm",
         title,
         message,
         confirmText,
@@ -416,38 +421,102 @@ function useAppConfirmDialog(isDarkMode = true) {
     });
   };
 
+  const notify = ({
+    title = "Notice",
+    message = "",
+    confirmText = "OK",
+    variant = "primary",
+  } = {}) => {
+    return new Promise((resolve) => {
+      resolverRef.current = resolve;
+      setDialog({
+        isOpen: true,
+        mode: "alert",
+        title,
+        message,
+        confirmText,
+        cancelText: "",
+        variant,
+      });
+    });
+  };
+
   const onConfirm = () => {
     setDialog((prev) => ({ ...prev, isOpen: false }));
-    if (resolverRef.current) {
-      resolverRef.current(true);
-      resolverRef.current = null;
-    }
+    resolveWith(true);
   };
 
   useEffect(() => {
     return () => {
-      if (resolverRef.current) {
-        resolverRef.current(false);
-        resolverRef.current = null;
-      }
+      resolveWith(false);
     };
   }, []);
 
+  const isDanger = dialog.variant === "danger";
+
   const dialogNode = (
-    <ConfirmDialog
-      isOpen={dialog.isOpen}
-      isDarkMode={isDarkMode}
-      title={dialog.title}
-      message={dialog.message}
-      confirmText={dialog.confirmText}
-      cancelText={dialog.cancelText}
-      variant={dialog.variant}
-      onConfirm={onConfirm}
-      onCancel={close}
-    />
+    dialog.isOpen ? (
+      <div
+        role="presentation"
+        onClick={close}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 300,
+          background: "rgba(0,0,0,0.7)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={dialog.title}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "100%",
+            maxWidth: "420px",
+            borderRadius: "14px",
+            border: isDanger ? "1px solid rgba(239,68,68,0.45)" : "1px solid rgba(244,96,12,0.35)",
+            background: "linear-gradient(180deg, #1a1a1a 0%, #121212 100%)",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.55)",
+            overflow: "hidden",
+            animation: "tnpFadeUp 0.2s ease",
+          }}
+        >
+          <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em", fontSize: "26px", lineHeight: 1, color: isDanger ? "#f87171" : "var(--orange)", marginBottom: "10px" }}>
+              {dialog.mode === "alert" ? "NOTICE" : "CONFIRM ACTION"}
+            </div>
+            <div style={{ fontSize: "16px", fontWeight: 600, color: "var(--white)", marginBottom: dialog.message ? "8px" : 0 }}>
+              {dialog.title}
+            </div>
+            {dialog.message ? (
+              <div style={{ fontSize: "13px", lineHeight: 1.6, color: "var(--white-60)" }}>
+                {dialog.message}
+              </div>
+            ) : null}
+          </div>
+          <div style={{ padding: "14px 18px", display: "flex", justifyContent: dialog.mode === "alert" ? "flex-end" : "space-between", gap: "10px" }}>
+            {dialog.mode !== "alert" ? (
+              <OrangeBtn small outline onClick={close}>
+                {dialog.cancelText || "Cancel"}
+              </OrangeBtn>
+            ) : null}
+            <OrangeBtn small onClick={onConfirm}>
+              {dialog.confirmText || "OK"}
+            </OrangeBtn>
+          </div>
+        </div>
+      </div>
+    ) : null
   );
 
-  return { confirm, dialogNode };
+  return { confirm, notify, dialogNode };
 }
 
 const TNP_SELECT_THEME = {
@@ -1943,7 +2012,7 @@ const TeamSection = ({ globalRole, tnpRole, onEnterPortal }) => {
             <Badge variant={m.role === "TNP_HEAD" ? "orange" : "default"}>
               {ROLE_LABELS[m.role] || m.role}
             </Badge>
-            {m.year && !isMobile && <Badge>Year {m.year}</Badge>}
+            {m.year && !isMobile && m.role !== "TNP_HEAD" && <Badge>Year {m.year}</Badge>}
             {m.startDate && !isMobile && (
               <Badge>
                 {new Date(m.startDate).getFullYear()}
@@ -2208,7 +2277,7 @@ const Footer = () => {
 // ── TNP PORTAL ────────────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-const Portal = ({ user, tnpRole, onBack }) => {
+const Portal = ({ user, tnpRole, profileImageUrl, onBack }) => {
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem(TNP_PORTAL_TAB_STORAGE_KEY);
     return savedTab || "dashboard";
@@ -2220,6 +2289,15 @@ const Portal = ({ user, tnpRole, onBack }) => {
   const globalRole = user?.role || "USER";
   const isMobilePortal = viewportWidth < 1024;
   const mobileTopOffset = 64;
+  const displayName = user?.fullName || user?.name || user?.username || "Profile";
+  const displayDepartment = user?.department || user?.departmentName || "—";
+  const avatarInitials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "?";
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: "◉" },
@@ -2312,28 +2390,42 @@ const Portal = ({ user, tnpRole, onBack }) => {
           boxShadow: isMobilePortal && isSidebarOpen ? "8px 0 32px rgba(0,0,0,0.5)" : "none",
         }}
       >
-        <div style={{ padding: "0 16px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ padding: "0 16px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
           <div
             style={{
-              width: "40px",
-              height: "40px",
+              width: "72px",
+              height: "72px",
               borderRadius: "50%",
               background: "linear-gradient(135deg, var(--orange), #c44d0a)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 600,
-              fontSize: "15px",
-              marginBottom: "10px",
+              fontSize: "22px",
+              margin: "0 auto 12px",
+              overflow: "hidden",
+              position: "relative",
             }}
           >
-            {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
+            <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {avatarInitials}
+            </span>
+            {profileImageUrl && (
+              <img
+                src={profileImageUrl}
+                alt={displayName}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            )}
           </div>
-          <div style={{ fontWeight: 500, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {user?.username}
+          <div style={{ fontWeight: 600, fontSize: "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {displayName}
           </div>
           <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {user?.prn}
+            {displayDepartment}
           </div>
           <div style={{ marginTop: "8px" }}>
             <Badge variant={globalRole === "SUPER_ADMIN" ? "orange" : "default"}>
@@ -2621,7 +2713,7 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
           {[
             { label: "Add Company Record", desc: "Log a new company visit", action: "write_company", icon: "⊕" },
             { label: "Record Placement", desc: "Mark student as placed", action: "write_placement", icon: "◈" },
-            { label: "Bulk Import", desc: "Upload multiple records", action: "write_company", icon: "⊞" },
+            // { label: "Bulk Import", desc: "Upload multiple records", action: "write_company", icon: "⊞" },
             { label: "Manage Members", desc: "Add / update TNP team", action: "manage_members", icon: "◎" },
             { label: "Change Role & Tenure", desc: "Reassign member roles", action: "change_roles", icon: "⟳" },
             { label: "Sync Hired Count", desc: "Recalculate from placements", action: "write_company", icon: "⟲" },
@@ -2669,7 +2761,7 @@ const PortalDashboard = ({ user, globalRole, tnpRole }) => {
 // ── Portal Companies ──────────────────────────────────────────────────────────
 const PortalCompanies = ({ user, globalRole, tnpRole }) => {
   const isMobile = useIsMobile(640);
-  const { confirm, dialogNode } = useAppConfirmDialog(true);
+  const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [companies, setCompanies] = useState([]);
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2795,7 +2887,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
       await axios.delete(`${BASE_URL}/api/company/all/${id}`, { headers: authHeaders() });
       load(currentPage);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete");
+      await notify({ title: "Delete Failed", message: err.response?.data?.message || "Failed to delete company record", variant: "danger" });
     }
   };
 
@@ -2805,7 +2897,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
       await axios.get(`${BASE_URL}/api/company/all/countTotalStudents/${encodeURIComponent(session)}`, { headers: authHeaders() });
       load(currentPage);
     } catch {
-      alert("Sync failed");
+      await notify({ title: "Sync Failed", message: "Unable to sync hired student count right now.", variant: "danger" });
     }
   };
 
@@ -3138,7 +3230,7 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
 // ── Portal Company Master ────────────────────────────────────────────────────
 const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
   const isMobile = useIsMobile(640);
-  const { confirm, dialogNode } = useAppConfirmDialog(true);
+  const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [companyMasters, setCompanyMasters] = useState([]);
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -3238,7 +3330,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
       await axios.delete(`${BASE_URL}/api/companyMaster/all/${id}`, { headers: authHeaders() });
       load(currentPage);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete company master record");
+      await notify({ title: "Delete Failed", message: err.response?.data?.message || "Failed to delete company master record", variant: "danger" });
     }
   };
 
@@ -3440,7 +3532,7 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
 // ── Portal Placements ─────────────────────────────────────────────────────────
 const PortalPlacements = ({ user, globalRole, tnpRole }) => {
   const isMobile = useIsMobile(640);
-  const { confirm, dialogNode } = useAppConfirmDialog(true);
+  const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [placements, setPlacements] = useState([]);
   const [placementImageMap, setPlacementImageMap] = useState({});
   const [stats, setStats] = useState(null);
@@ -3597,7 +3689,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
       await axios.delete(`${BASE_URL}/api/placements/all/${id}`, { headers: authHeaders() });
       load(selectedCompanySession, currentPage);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete");
+      await notify({ title: "Delete Failed", message: err.response?.data?.message || "Failed to delete placement", variant: "danger" });
     }
   };
 
@@ -3898,7 +3990,7 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
 // ── Portal Members ────────────────────────────────────────────────────────────
 const PortalMembers = ({ user, globalRole, tnpRole }) => {
   const isMobile = useIsMobile(640);
-  const { confirm, dialogNode } = useAppConfirmDialog(true);
+  const { confirm, notify, dialogNode } = useAppConfirmDialog();
   const [members, setMembers] = useState([]);
   const [memberImageMap, setMemberImageMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -4005,7 +4097,7 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
       await axios.delete(`${BASE_URL}/api/tnp/tr/softDelete/${prn}`, { headers: authHeaders() });
       load();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to remove");
+      await notify({ title: "Remove Failed", message: err.response?.data?.message || "Failed to remove member", variant: "danger" });
     }
   };
 
@@ -4236,11 +4328,11 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
           {leadership.length > 0 && (
             <div style={{ display: "grid", gap: "10px" }}>
               <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Leadership</div>
-              <div style={{ display: "grid", gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`, gap: isMobile ? "10px" : "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(260px, 1fr))", gap: isMobile ? "10px" : "16px" }}>
                 {leadership.map((m, i) => (
-                  <div key={m.tnpId || m.prn} style={{ background: "var(--black-card)", border: m.role === "PRESIDENT" ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(20,184,166,0.3)", borderRadius: "8px", padding: isMobile ? "14px" : "24px", animation: `tnpFadeUp 0.3s ease ${i * 0.06}s both` }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
-                      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <div key={m.tnpId || m.prn} style={{ background: m.role === "PRESIDENT" ? "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(22,22,22,0.96))" : "linear-gradient(135deg, rgba(20,184,166,0.18), rgba(22,22,22,0.96))", border: m.role === "PRESIDENT" ? "1px solid rgba(99,102,241,0.5)" : "1px solid rgba(20,184,166,0.5)", borderRadius: "8px", padding: isMobile ? "14px" : "24px", animation: `tnpFadeUp 0.3s ease ${i * 0.06}s both`, minWidth: 0, boxShadow: m.role === "PRESIDENT" ? "0 0 0 1px rgba(99,102,241,0.12) inset" : "0 0 0 1px rgba(20,184,166,0.12) inset" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px", gap: "10px", minWidth: 0 }}>
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center", minWidth: 0, flex: 1 }}>
                         {memberImageMap[m.prn] ? (
                           <img src={memberImageMap[m.prn]} alt={m.name} style={{ width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
                         ) : (
@@ -4253,9 +4345,9 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
                           <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.prn}</div>
                         </div>
                       </div>
-                      {!isMobile && <Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge>}
+                      {!isMobile && <Badge variant="orange">{ROLE_LABELS[m.role] || m.role}</Badge>}
                     </div>
-                    {isMobile && <div style={{ marginBottom: "10px" }}><Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
+                    {isMobile && <div style={{ marginBottom: "10px" }}><Badge variant="orange">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
                     <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                       <div style={{ minWidth: 0, flex: "1 1 180px" }}>
                         <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{m.department || "—"}</div>
@@ -4355,11 +4447,15 @@ export default function TNPPage() {
   const [tnpRole, setTnpRole] = useState(null);
   const [tnpLoading, setTnpLoading] = useState(true);
   const [landingStats, setLandingStats] = useState({});
+  const [profileDetails, setProfileDetails] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
+  const profileImageBlobRef = useRef(null);
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const globalRole = user?.role || "USER";
   const currentSession = getCurrentSession();
+  const profileUser = { ...user, ...(profileDetails || {}) };
 
   useEffect(() => {
     const checkTnpRole = async () => {
@@ -4373,6 +4469,83 @@ export default function TNPPage() {
     };
     checkTnpRole();
   }, [user?.prn]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadProfileDetails = async () => {
+      if (!user?.prn) {
+        setProfileDetails(null);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${BASE_URL}/api/profiles/prn/${user.prn}`, {
+          headers: authHeaders(),
+        });
+
+        if (!active) return;
+
+        const profile = response.data?.data ?? response.data ?? null;
+        setProfileDetails(profile);
+      } catch {
+        if (active) {
+          setProfileDetails(null);
+        }
+      }
+    };
+
+    loadProfileDetails();
+
+    return () => {
+      active = false;
+    };
+  }, [user?.prn]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadProfileImage = async () => {
+      if (profileImageBlobRef.current) {
+        URL.revokeObjectURL(profileImageBlobRef.current);
+        profileImageBlobRef.current = null;
+      }
+
+      if (!profileDetails?.hasProfileImage || !profileDetails?.imageUrl) {
+        setProfileImageUrl(null);
+        return;
+      }
+
+      try {
+        const blobUrl = await fetchProtectedImageBlobUrl(profileDetails.imageUrl);
+
+        if (active) {
+          if (blobUrl) {
+            profileImageBlobRef.current = blobUrl;
+            setProfileImageUrl(blobUrl);
+            return;
+          }
+        } else if (blobUrl) {
+          profileImageBlobRef.current = blobUrl;
+          URL.revokeObjectURL(blobUrl);
+        }
+      } catch {
+        // fall through to clear the avatar when the profile image is unavailable
+      }
+
+      setProfileImageUrl(null);
+    };
+
+    loadProfileImage();
+
+    return () => {
+      active = false;
+      if (profileImageBlobRef.current) {
+        URL.revokeObjectURL(profileImageBlobRef.current);
+        profileImageBlobRef.current = null;
+      }
+    };
+  }, [profileDetails?.hasProfileImage, profileDetails?.imageUrl]);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -4426,7 +4599,8 @@ export default function TNPPage() {
         view={view}
         globalRole={globalRole}
         tnpRole={tnpRole}
-        user={user}
+        user={profileUser}
+        profileImageUrl={profileImageUrl}
         roleLabel={tnpRole ? ROLE_LABELS[tnpRole] || tnpRole : ""}
         canAccess={canAccess}
         Badge={Badge}
@@ -4450,8 +4624,9 @@ export default function TNPPage() {
       ) : (
         <TnpMemberAccessView
           Portal={Portal}
-          user={user}
+          user={profileUser}
           tnpRole={tnpRole}
+          profileImageUrl={profileImageUrl}
           setView={setView}
         />
       )}

@@ -7,6 +7,7 @@ export default function TnpTopNav({
   globalRole,
   tnpRole,
   user,
+  profileImageUrl,
   roleLabel,
   canAccess,
   Badge,
@@ -21,6 +22,8 @@ export default function TnpTopNav({
   const isTiny = viewportWidth < 520;
   const canEnterPortal = canAccess(globalRole, tnpRole, "enter_portal");
   const showLandingLinks = view === "landing";
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const displayRole = user?.role || storedUser?.role || "USER";
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -154,20 +157,37 @@ export default function TnpTopNav({
                   width: "28px",
                   height: "28px",
                   borderRadius: "50%",
-                  background: "var(--orange)",
+                  background: "linear-gradient(135deg, var(--orange), #c44d0a)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "11px",
                   fontWeight: 600,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                  position: "relative",
                 }}
               >
-                {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
+                <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
+                </span>
+                {profileImageUrl && (
+                  <img
+                    src={profileImageUrl}
+                    alt={user?.username || "Profile"}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                )}
               </div>
               <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
                 {user?.username}
               </span>
-              {tnpRole && <Badge variant="orange">{roleLabel || tnpRole}</Badge>}
+              <Badge variant={displayRole === "SUPER_ADMIN" ? "orange" : "default"}>
+                {displayRole}
+              </Badge>
             </div>
           </div>
         )}
@@ -241,16 +261,30 @@ export default function TnpTopNav({
                   width: "28px",
                   height: "28px",
                   borderRadius: "50%",
-                  background: "var(--orange)",
+                  background: "linear-gradient(135deg, var(--orange), #c44d0a)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "11px",
                   fontWeight: 600,
                   flexShrink: 0,
+                  overflow: "hidden",
+                  position: "relative",
                 }}
               >
-                {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
+                <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {user?.username?.slice(0, 2)?.toUpperCase() || "?"}
+                </span>
+                {profileImageUrl && (
+                  <img
+                    src={profileImageUrl}
+                    alt={user?.username || "Profile"}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                )}
               </div>
               <span
                 style={{
@@ -264,7 +298,9 @@ export default function TnpTopNav({
                 {user?.username}
               </span>
             </div>
-            {tnpRole && <Badge variant="orange">{roleLabel || tnpRole}</Badge>}
+            <Badge variant={displayRole === "SUPER_ADMIN" ? "orange" : "default"}>
+              {displayRole}
+            </Badge>
           </div>
         </div>
       )}

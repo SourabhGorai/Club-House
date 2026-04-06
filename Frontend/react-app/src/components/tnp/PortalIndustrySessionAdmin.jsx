@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import ConfirmDialog from "../ConfirmDialog";
 
 const ADMIN_TNP_ROLES = ["TNP_HEAD", "PRESIDENT", "VICE_PRESIDENT"];
 const ADD_ALLOWED_TNP_ROLES = [...ADMIN_TNP_ROLES, "CO_ORDINATOR"];
@@ -592,17 +591,103 @@ export default function PortalIndustrySessionAdmin({
         </section>
       </div>
 
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        isDarkMode={true}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        confirmText={confirmDialog.confirmText}
-        cancelText={confirmDialog.cancelText}
-        variant={confirmDialog.variant}
-        onConfirm={handleConfirm}
-        onCancel={closeConfirm}
-      />
+      {confirmDialog.isOpen && (
+        <div
+          role="presentation"
+          onClick={closeConfirm}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 320,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={confirmDialog.title}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "420px",
+              borderRadius: "14px",
+              border:
+                confirmDialog.variant === "danger"
+                  ? "1px solid rgba(239,68,68,0.45)"
+                  : "1px solid rgba(244,96,12,0.35)",
+              background: "linear-gradient(180deg, #1a1a1a 0%, #121212 100%)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.55)",
+              overflow: "hidden",
+              animation: "tnpFadeUp 0.2s ease",
+            }}
+          >
+            <div
+              style={{
+                padding: "18px 18px 14px",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  letterSpacing: "0.05em",
+                  fontSize: "26px",
+                  lineHeight: 1,
+                  color:
+                    confirmDialog.variant === "danger"
+                      ? "#f87171"
+                      : "var(--orange)",
+                  marginBottom: "10px",
+                }}
+              >
+                CONFIRM ACTION
+              </div>
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "var(--white)",
+                  marginBottom: confirmDialog.message ? "8px" : 0,
+                }}
+              >
+                {confirmDialog.title}
+              </div>
+              {confirmDialog.message ? (
+                <div
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: 1.6,
+                    color: "var(--white-60)",
+                  }}
+                >
+                  {confirmDialog.message}
+                </div>
+              ) : null}
+            </div>
+            <div
+              style={{
+                padding: "14px 18px",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "10px",
+              }}
+            >
+              <ActionBtn outline onClick={closeConfirm}>
+                {confirmDialog.cancelText || "Cancel"}
+              </ActionBtn>
+              <ActionBtn onClick={handleConfirm}>
+                {confirmDialog.confirmText || "Confirm"}
+              </ActionBtn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
