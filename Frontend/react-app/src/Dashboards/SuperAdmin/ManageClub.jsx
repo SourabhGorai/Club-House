@@ -717,14 +717,20 @@ export default function ManageClubs() {
     if (!clubToDelete) return;
     setDeleteLoading(true);
     try {
-      const response = await axios.patch(`${BASE_URL}/api/clubs/${clubToDelete.clubId}/deactivate`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      if (response?.data?.success) { alert("Club deactivated successfully!"); await fetchClubs(); setIsModalOpen(false); setClubToDelete(null); }
-    } catch (err) {
-      try {
-        const response = await axios.put(`${BASE_URL}/api/clubs/${clubToDelete.clubId}`, { ...clubToDelete, isActive: false }, { headers: { Authorization: `Bearer ${token}` } });
-        if (response?.data?.success) { alert("Club deactivated successfully!"); await fetchClubs(); setIsModalOpen(false); setClubToDelete(null); }
-      } catch (err2) { alert("Failed to deactivate club."); }
-    } finally { setDeleteLoading(false); }
+      const response = await axios.delete(`${BASE_URL}/api/clubs?name=${encodeURIComponent(clubToDelete.clubName)}`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      if (response?.data?.success) { 
+        alert("Club deleted successfully!"); 
+        await fetchClubs(); 
+        setIsModalOpen(false); 
+        setClubToDelete(null); 
+      }
+    } catch (err) { 
+      alert("Failed to delete club.", err.response?.data?.message || err.message);
+    } finally { 
+      setDeleteLoading(false); 
+    }
   };
 
   const formatDate = (dateString) => {
@@ -871,8 +877,8 @@ export default function ManageClubs() {
 
       <ConfirmationModal 
         isOpen={isModalOpen} 
-        title="Confirm Deactivation" 
-        message={`Deactivate "${clubToDelete?.clubName}"? The club will become inactive.`} 
+        title="Confirm Deletion" 
+        message={`Delete "${clubToDelete?.clubName}"? This action cannot be undone.`} 
         onConfirm={handleDeleteClub} 
         onCancel={() => { setIsModalOpen(false); setClubToDelete(null); }} 
         isLoading={deleteLoading} 
