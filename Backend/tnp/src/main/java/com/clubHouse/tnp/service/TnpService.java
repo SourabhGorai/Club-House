@@ -210,6 +210,40 @@ public class TnpService {
         return TnpMapper.toProfileEnrichedResponseList(filteredMembers, filteredProfileMap);
     }
 
+
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#prn"),
+            @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_ALL_INACTIVE_MEMBERS, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_ROLE, allEntries = true),
+            @CacheEvict(value = CacheConfig.TNP_MEMBERS_BY_YEAR, allEntries = true)
+    })
+    @Transactional
+    public void softDelete(String prn, String requesterPrn, String role) {
+
+        log.info("Attempting to perform soft delete on user: {}", prn);
+
+        if (!role.equals("SUPER_ADMIN") && !authorize(requesterPrn)) {
+            throw new UnauthorizedException("You are not authorized to delete members from TNP");
+        }
+
+        Tnp member = tnpRepository.findByPrn(prn);
+        if(member == null){
+            throw new UserNotFoundException(
+                    String.format("Member with prn %d, not found", prn));
+        }
+
+        try{
+            member.Deactivate();
+            tnpRepository.save(member);
+            log.info("Deletion successful");
+        } catch (Exception e) {
+            log.info("Deletion failed");
+            throw new RuntimeException("Failed to remove user from tnp");
+        }
+
+    }
+
     @Caching(evict = {
             @CacheEvict(value = CacheConfig.TNP_MEMBER_BY_PRN, key = "#prn"),
             @CacheEvict(value = CacheConfig.TNP_ALL_ACTIVE_MEMBERS, allEntries = true),
@@ -455,4 +489,5 @@ public class TnpService {
                 assoc.getPrn(), assoc.getRole(), assoc.getStartDate(), assoc.getEndDate());
         return TnpMapper.toResponse(saved);
     }
+
 }

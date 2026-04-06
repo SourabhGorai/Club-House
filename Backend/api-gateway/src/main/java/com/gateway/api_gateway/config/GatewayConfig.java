@@ -544,7 +544,7 @@ public class GatewayConfig {
 
                 .route("TNP-teacher", r -> r
                         .path(
-                                "/api/tnp/tr**"
+                                "/api/tnp/tr/**"
                         )
                         .and()
                         .method("DELETE", "PUT" )

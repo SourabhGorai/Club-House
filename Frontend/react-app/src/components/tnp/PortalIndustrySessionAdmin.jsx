@@ -45,6 +45,10 @@ export default function PortalIndustrySessionAdmin({
   const [sessionYearInput, setSessionYearInput] = useState(new Date().getFullYear());
   const [sessionSaving, setSessionSaving] = useState(false);
   const [sessionMsg, setSessionMsg] = useState("");
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 900;
+  });
   const confirmResolverRef = useRef(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -101,6 +105,13 @@ export default function PortalIndustrySessionAdmin({
     };
   }, []);
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 900);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const ActionBtn = ({ children, onClick, disabled, outline, type = "button" }) => {
     if (OrangeBtn) {
       return (
@@ -122,14 +133,18 @@ export default function PortalIndustrySessionAdmin({
         onClick={onClick}
         disabled={disabled}
         style={{
-          padding: "8px 12px",
-          borderRadius: "6px",
-          border: outline ? "1px solid #f4600c" : "none",
-          background: outline ? "transparent" : "#f4600c",
-          color: outline ? "#f4600c" : "#fff",
+          padding: "9px 14px",
+          borderRadius: "10px",
+          border: outline ? "1px solid rgba(244,96,12,0.6)" : "1px solid rgba(244,96,12,0.95)",
+          background: outline ? "rgba(244,96,12,0.06)" : "linear-gradient(135deg, #f4600c 0%, #ff7b2c 100%)",
+          color: outline ? "#ff934f" : "#fff",
           fontSize: "12px",
+          fontWeight: 600,
+          letterSpacing: "0.03em",
           cursor: disabled ? "not-allowed" : "pointer",
           opacity: disabled ? 0.7 : 1,
+          transition: "all 0.2s ease",
+          whiteSpace: "nowrap",
         }}
       >
         {children}
@@ -312,56 +327,88 @@ export default function PortalIndustrySessionAdmin({
   };
 
   return (
-    <div style={{ animation: "tnpFadeUp 0.3s ease" }}>
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "40px", letterSpacing: "0.04em" }}>
-          INDUSTRIES & SESSIONS
-        </h2>
-        <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)" }}>
-          Coordinator can add. Super Admin, TNP Head, President, Vice President can edit/delete.
-        </p>
+    <div style={{ animation: "tnpFadeUp 0.3s ease", display: "grid", gap: "18px" }}>
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          padding: isMobile ? "16px" : "20px 22px",
+          background: "radial-gradient(circle at top right, rgba(244,96,12,0.2), transparent 45%), var(--black-card)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row" }}>
+          <div>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "32px" : "42px", letterSpacing: "0.04em", lineHeight: 1.05, marginBottom: "8px" }}>
+              INDUSTRIES & SESSIONS
+            </h2>
+            <p style={{ color: "var(--white-60)", fontSize: "13px", fontFamily: "var(--font-mono)", maxWidth: "780px" }}>
+              Manage placement taxonomy in one place. Coordinators can add entries; Super Admin, TNP Head, President, and Vice President can edit or delete.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{ padding: "6px 10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", fontSize: "11px", color: "var(--white-70)", fontFamily: "var(--font-mono)" }}>
+              Industries: {industries.length}
+            </span>
+            <span style={{ padding: "6px 10px", borderRadius: "999px", border: "1px solid rgba(255,146,0,0.35)", background: "rgba(255,146,0,0.08)", fontSize: "11px", color: "var(--orange)", fontFamily: "var(--font-mono)" }}>
+              Sessions: {sessions.length}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-        <section style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "24px", letterSpacing: "0.04em" }}>INDUSTRIES</h3>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: "16px" }}>
+        <section
+          style={{
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "16px",
+            overflow: "hidden",
+            background: "var(--black-card)",
+            minWidth: 0,
+          }}
+        >
+          <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))" }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "24px", letterSpacing: "0.04em", marginBottom: "6px" }}>INDUSTRIES</h3>
+            <p style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+              Use clear industry names to categorize incoming companies.
+            </p>
           </div>
 
           <div style={{ padding: "16px" }}>
-            <form onSubmit={handleIndustryAdd} style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+            <form onSubmit={handleIndustryAdd} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: "10px", marginBottom: "12px" }}>
               <input
                 value={industryInput}
                 onChange={(e) => setIndustryInput(e.target.value)}
                 placeholder="Add industry name"
                 disabled={!canAdd || industrySaving}
                 style={{
-                  flex: 1,
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "6px",
+                  width: "100%",
+                  padding: "11px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: "10px",
                   color: "white",
                   fontSize: "14px",
                 }}
               />
-              <ActionBtn type="submit" disabled={!canAdd || industrySaving}>Add</ActionBtn>
+              <ActionBtn type="submit" disabled={!canAdd || industrySaving}>Add Industry</ActionBtn>
             </form>
 
             {industryMsg && (
-              <div style={{ marginBottom: "10px", fontSize: "12px", color: "var(--orange)", fontFamily: "var(--font-mono)" }}>
+              <div style={{ marginBottom: "10px", fontSize: "12px", color: "var(--orange)", fontFamily: "var(--font-mono)", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(255,146,0,0.25)", background: "rgba(255,146,0,0.08)" }}>
                 {industryMsg}
               </div>
             )}
 
             {industryError && (
-              <div style={{ marginBottom: "10px", fontSize: "12px", color: "#ef4444" }}>{industryError}</div>
+              <div style={{ marginBottom: "10px", fontSize: "12px", color: "#ef4444", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)" }}>
+                {industryError}
+              </div>
             )}
 
             {industryLoading ? (
-              <div style={{ color: "var(--white-60)", fontSize: "13px" }}>Loading industries...</div>
+              <div style={{ color: "var(--white-60)", fontSize: "13px", padding: "14px", border: "1px dashed rgba(255,255,255,0.14)", borderRadius: "10px", textAlign: "center" }}>Loading industries...</div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "420px", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: isMobile ? "360px" : "460px", overflowY: "auto", paddingRight: "2px" }}>
                 {industries.map((row) => {
                   const id = row?.industryId;
                   const isEditing = editingIndustryId === id;
@@ -369,13 +416,12 @@ export default function PortalIndustrySessionAdmin({
                     <div
                       key={id}
                       style={{
-                        padding: "10px",
+                        padding: "12px",
                         border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "6px",
-                        background: "var(--black-card)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        borderRadius: "10px",
+                        background: "rgba(255,255,255,0.02)",
+                        display: "grid",
+                        gap: "10px",
                       }}
                     >
                       {isEditing ? (
@@ -383,52 +429,56 @@ export default function PortalIndustrySessionAdmin({
                           value={editingIndustryName}
                           onChange={(e) => setEditingIndustryName(e.target.value)}
                           style={{
-                            flex: 1,
-                            padding: "8px 10px",
+                            width: "100%",
+                            padding: "10px 11px",
                             background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            borderRadius: "6px",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: "8px",
                             color: "white",
                             fontSize: "13px",
                           }}
                         />
                       ) : (
-                        <div style={{ flex: 1, fontSize: "14px" }}>{row?.name || "—"}</div>
+                        <div style={{ fontSize: "14px", color: "var(--white-95)", fontWeight: 500 }}>{row?.name || "—"}</div>
                       )}
 
-                      {canEditDelete && isEditing && (
-                        <>
-                          <ActionBtn onClick={saveIndustryEdit} disabled={industrySaving}>Save</ActionBtn>
-                          <ActionBtn outline onClick={cancelIndustryEdit}>Cancel</ActionBtn>
-                        </>
-                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                        {canEditDelete && isEditing && (
+                          <>
+                            <ActionBtn onClick={saveIndustryEdit} disabled={industrySaving}>Save</ActionBtn>
+                            <ActionBtn outline onClick={cancelIndustryEdit}>Cancel</ActionBtn>
+                          </>
+                        )}
 
-                      {canEditDelete && !isEditing && (
-                        <>
-                          <ActionBtn outline onClick={() => startIndustryEdit(row)}>Edit</ActionBtn>
-                          <button
-                            type="button"
-                            onClick={() => deleteIndustry(id)}
-                            style={{
-                              padding: "8px 12px",
-                              borderRadius: "6px",
-                              background: "rgba(239,68,68,0.1)",
-                              border: "1px solid rgba(239,68,68,0.2)",
-                              color: "#ef4444",
-                              fontSize: "12px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
+                        {canEditDelete && !isEditing && (
+                          <>
+                            <ActionBtn outline onClick={() => startIndustryEdit(row)}>Edit</ActionBtn>
+                            <button
+                              type="button"
+                              onClick={() => deleteIndustry(id)}
+                              style={{
+                                padding: "9px 14px",
+                                borderRadius: "10px",
+                                background: "rgba(239,68,68,0.1)",
+                                border: "1px solid rgba(239,68,68,0.25)",
+                                color: "#ef4444",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                letterSpacing: "0.03em",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
 
                 {industries.length === 0 && (
-                  <div style={{ color: "var(--white-30)", fontFamily: "var(--font-mono)", fontSize: "12px", textAlign: "center", padding: "14px" }}>
+                  <div style={{ color: "var(--white-30)", fontFamily: "var(--font-mono)", fontSize: "12px", textAlign: "center", padding: "16px", border: "1px dashed rgba(255,255,255,0.14)", borderRadius: "10px" }}>
                     No industries found
                   </div>
                 )}
@@ -437,73 +487,90 @@ export default function PortalIndustrySessionAdmin({
           </div>
         </section>
 
-        <section style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "24px", letterSpacing: "0.04em" }}>ACADEMIC SESSIONS</h3>
+        <section
+          style={{
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "16px",
+            overflow: "hidden",
+            background: "var(--black-card)",
+            minWidth: 0,
+          }}
+        >
+          <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))" }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontSize: "24px", letterSpacing: "0.04em", marginBottom: "6px" }}>ACADEMIC SESSIONS</h3>
+            <p style={{ fontSize: "12px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
+              Maintain session timeline for filtering and reporting.
+            </p>
           </div>
 
           <div style={{ padding: "16px" }}>
-            <form onSubmit={handleSessionAdd} style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+            <form onSubmit={handleSessionAdd} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr auto", gap: "10px", marginBottom: "12px" }}>
               <input
                 type="number"
                 value={sessionYearInput}
                 onChange={(e) => setSessionYearInput(e.target.value)}
-                placeholder="Session start year"
+                placeholder="Session start year (e.g. 2026)"
                 disabled={!canAdd || sessionSaving}
                 style={{
-                  flex: 1,
-                  padding: "10px 12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "6px",
+                  width: "100%",
+                  padding: "11px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: "10px",
                   color: "white",
                   fontSize: "14px",
                 }}
               />
-              <ActionBtn type="submit" disabled={!canAdd || sessionSaving}>Add</ActionBtn>
+              <ActionBtn type="submit" disabled={!canAdd || sessionSaving}>Add Session</ActionBtn>
             </form>
 
             {sessionMsg && (
-              <div style={{ marginBottom: "10px", fontSize: "12px", color: "var(--orange)", fontFamily: "var(--font-mono)" }}>
+              <div style={{ marginBottom: "10px", fontSize: "12px", color: "var(--orange)", fontFamily: "var(--font-mono)", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(255,146,0,0.25)", background: "rgba(255,146,0,0.08)" }}>
                 {sessionMsg}
               </div>
             )}
 
             {sessionError && (
-              <div style={{ marginBottom: "10px", fontSize: "12px", color: "#ef4444" }}>{sessionError}</div>
+              <div style={{ marginBottom: "10px", fontSize: "12px", color: "#ef4444", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)" }}>
+                {sessionError}
+              </div>
             )}
 
             {sessionLoading ? (
-              <div style={{ color: "var(--white-60)", fontSize: "13px" }}>Loading sessions...</div>
+              <div style={{ color: "var(--white-60)", fontSize: "13px", padding: "14px", border: "1px dashed rgba(255,255,255,0.14)", borderRadius: "10px", textAlign: "center" }}>Loading sessions...</div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "420px", overflowY: "auto" }}>
-                {sessions.map((row) => {
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: isMobile ? "360px" : "460px", overflowY: "auto", paddingRight: "2px" }}>
+                {sessions.map((row, idx) => {
                   const id = getSessionId(row);
                   return (
                     <div
-                      key={id || `${getSessionLabel(row)}-${Math.random()}`}
+                      key={id ?? `${getSessionLabel(row)}-${idx}`}
                       style={{
-                        padding: "10px",
+                        padding: "12px",
                         border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "6px",
-                        background: "var(--black-card)",
+                        borderRadius: "10px",
+                        background: "rgba(255,255,255,0.02)",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
+                        justifyContent: "space-between",
+                        gap: "10px",
+                        flexWrap: "wrap",
                       }}
                     >
-                      <div style={{ flex: 1, fontSize: "14px" }}>{getSessionLabel(row)}</div>
+                      <span style={{ fontSize: "14px", color: "var(--white-95)", fontWeight: 500 }}>{getSessionLabel(row)}</span>
                       {canEditDelete && id != null && (
                         <button
                           type="button"
                           onClick={() => deleteSession(id)}
                           style={{
-                            padding: "8px 12px",
-                            borderRadius: "6px",
+                            padding: "9px 14px",
+                            borderRadius: "10px",
                             background: "rgba(239,68,68,0.1)",
-                            border: "1px solid rgba(239,68,68,0.2)",
+                            border: "1px solid rgba(239,68,68,0.25)",
                             color: "#ef4444",
                             fontSize: "12px",
+                            fontWeight: 600,
+                            letterSpacing: "0.03em",
                             cursor: "pointer",
                           }}
                         >
@@ -515,7 +582,7 @@ export default function PortalIndustrySessionAdmin({
                 })}
 
                 {sessions.length === 0 && (
-                  <div style={{ color: "var(--white-30)", fontFamily: "var(--font-mono)", fontSize: "12px", textAlign: "center", padding: "14px" }}>
+                  <div style={{ color: "var(--white-30)", fontFamily: "var(--font-mono)", fontSize: "12px", textAlign: "center", padding: "16px", border: "1px dashed rgba(255,255,255,0.14)", borderRadius: "10px" }}>
                     No academic sessions found
                   </div>
                 )}

@@ -123,9 +123,24 @@ public class TnpController {
         );
     }
 
-    // SUPER_ADMIN
+    @DeleteMapping("/tr/softDelete/{prn}")
+    public ResponseEntity<ApiResponse<Void>> softDelete(
+            @PathVariable String prn,
+            HttpServletRequest req
+    ) {
+        log.info("REST received to soft delete user from club db with prn: {}", prn);
+        String requesterPrn = jwtService.extractPrnFromHeaders(req);
+        String role = jwtService.extractRoleFromHeaders(req);
+        tnpService.softDelete(prn, requesterPrn, role);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Deleted successfully",
+                null
+        ));
+    }
+
+
     @DeleteMapping("/tr/permanentlyDelete/{prn}")
-    public void permanentlyDelete(
+    public ResponseEntity<ApiResponse<Void>> permanentlyDelete(
             @PathVariable String prn,
             HttpServletRequest req
     ) {
@@ -133,6 +148,10 @@ public class TnpController {
         String requesterPrn = jwtService.extractPrnFromHeaders(req);
         String role = jwtService.extractRoleFromHeaders(req);
         tnpService.permanentlyDelete(prn, requesterPrn, role);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Deleted successfully",
+                null
+        ));
     }
 
     @GetMapping("/all/getAllByRole/{role}")

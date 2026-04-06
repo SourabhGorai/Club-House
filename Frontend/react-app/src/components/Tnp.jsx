@@ -1645,149 +1645,78 @@ const SessionCompanyInsightsSection = () => {
 
       {error && <ErrorBox message={error} onRetry={() => loadCombinedData(selectedSession)} />}
 
-      {isMobile ? (
-        <div
-          style={{
-            display: "grid",
-            gap: "10px",
-          }}
-        >
-          {loadingData ? (
-            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-60)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)" }}>
-              Loading data...
-            </div>
-          ) : rows.length === 0 ? (
-            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)" }}>
-              No company data found for this session.
-            </div>
-          ) : (
-            rows.map((row, idx) => {
-              const offers = Array.isArray(row?.packageOffered)
-                ? row.packageOffered.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0)
-                : [];
-              const avg = packageAverage(offers);
-
-              return (
-                <div
-                  key={`${row?.companyId || idx}-${row?.name || "company"}`}
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "12px",
-                    padding: "14px",
-                    background: "var(--black-card)",
-                    display: "grid",
-                    gap: "10px",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: "14px", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {row?.name || "—"}
-                      </div>
-                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
-                        {row?.industry || "—"}
-                      </div>
-                    </div>
-                    <Badge>{row?.academicSession || selectedSession}</Badge>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
-                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
-                        AVG PACKAGE
-                      </div>
-                      <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "13px" }}>
-                        {avg !== null ? `₹${avg.toFixed(2)} LPA` : "—"}
-                      </div>
-                    </div>
-                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
-                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
-                        STUDENTS HIRED
-                      </div>
-                      <div style={{ fontWeight: 600, fontSize: "13px" }}>{Number(row?.studentsHired) || 0}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      ) : (
-        <div
-          style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", overflow: "hidden", background: "var(--black-card)" }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
-              gap: "8px",
-              padding: "12px 14px",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-              fontSize: "12px",
-              letterSpacing: "0.06em",
-              color: "var(--white-60)",
-              textTransform: "uppercase",
-              fontFamily: "var(--font-mono)",
-            }}
-          >
-            <div>Company</div>
-            <div>Industry</div>
-            <div>Package Offered</div>
-            <div>Students Hired</div>
+      <div
+        style={
+          isMobile
+            ? { display: "grid", gap: "10px" }
+            : { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px" }
+        }
+      >
+        {loadingData ? (
+          <div style={{ padding: "26px", textAlign: "center", color: "var(--white-60)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)", gridColumn: "1 / -1" }}>
+            Loading data...
           </div>
+        ) : rows.length === 0 ? (
+          <div style={{ padding: "26px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", background: "var(--black-card)", gridColumn: "1 / -1" }}>
+            No company data found for this session.
+          </div>
+        ) : (
+          rows.map((row, idx) => {
+            const offers = Array.isArray(row?.packageOffered)
+              ? row.packageOffered.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0)
+              : [];
+            const avg = packageAverage(offers);
 
-          {loadingData ? (
-            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-60)" }}>
-              Loading data...
-            </div>
-          ) : rows.length === 0 ? (
-            <div style={{ padding: "26px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
-              No company data found for this session.
-            </div>
-          ) : (
-            rows.map((row, idx) => {
-              const offers = Array.isArray(row?.packageOffered)
-                ? row.packageOffered.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0)
-                : [];
-              const avg = packageAverage(offers);
-              return (
-                <div
-                  key={`${row?.companyId || idx}-${row?.name || "company"}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1.4fr 1fr 1.1fr 1fr",
-                    gap: "8px",
-                    padding: "14px",
-                    borderBottom: idx === rows.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600, marginBottom: "2px", fontSize: "13px" }}>{row?.name || "—"}</div>
-                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
-                      {row?.academicSession || selectedSession}
+            return (
+              <div
+                key={`${row?.companyId || idx}-${row?.name || "company"}`}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  padding: isMobile ? "14px" : "16px",
+                  background: "var(--black-card)",
+                  display: "grid",
+                  gap: "10px",
+                  minWidth: 0,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start", minWidth: 0 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: isMobile ? "14px" : "15px", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {row?.name || "—"}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {row?.industry || "—"}
                     </div>
                   </div>
-                  <div style={{ color: "var(--white-90)", fontSize: "13px" }}>{row?.industry || "—"}</div>
-                  <div>
-                    <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "13px" }}>
-                      {avg !== null ? `Avg ₹${avg.toFixed(2)} LPA` : "—"}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>
-                      {offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: "13px" }}>{Number(row?.studentsHired) || 0}</div>
+                  <Badge>{row?.academicSession || selectedSession}</Badge>
                 </div>
-              );
-            })
-          )}
-        </div>
-      )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                    <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                      AVG PACKAGE
+                    </div>
+                    <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: isMobile ? "13px" : "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {avg !== null ? `₹${avg.toFixed(2)} LPA` : "—"}
+                    </div>
+                  </div>
+                  <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                    <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                      STUDENTS HIRED
+                    </div>
+                    <div style={{ fontWeight: 600, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{Number(row?.studentsHired) || 0}</div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}>
+                  {offers.length ? `Offers: ${offers.join(", ")}` : "No package entries"}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
 
       {totalPages > 1 && (
         <div
@@ -2999,48 +2928,87 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
         <>
           {/* Mobile: card list. Desktop: table */}
           {isMobile ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {companies.map((c) => (
-                <div
-                  key={c.companyId}
-                  style={{
-                    background: "var(--black-card)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "8px",
-                    padding: "14px",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: "14px" }}>{c.name}</div>
-                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{c.industry}</div>
+            <div style={{ display: "grid", gap: "10px" }}>
+              {companies.map((c) => {
+                const packageValue = Number(c.packageOffered);
+                const packageText = Number.isFinite(packageValue) ? `₹${packageValue.toFixed(2)} LPA` : "—";
+                const hiredCount = c.studentsHired ?? "—";
+                return (
+                  <div
+                    key={c.companyId}
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: "12px",
+                      padding: "14px",
+                      background: "var(--black-card)",
+                      display: "grid",
+                      gap: "10px",
+                      minWidth: 0,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", minWidth: 0 }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: "14px", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.name || "—"}>
+                          {c.name || "—"}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                          {c.industry || "—"}
+                        </div>
+                      </div>
+                      <Badge>{c.academicSession || "—"}</Badge>
                     </div>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      {canWrite && (
-                        <button
-                          onClick={() => handleEdit(c)}
-                          style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}
-                        >Edit</button>
-                      )}
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDelete(c.companyId)}
-                          style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}
-                        >Del</button>
-                      )}
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                        <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                          INDUSTRY
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                          {c.industry || "—"}
+                        </div>
+                      </div>
+                      <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                        <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                          STUDENTS HIRED
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {hiredCount}
+                        </div>
+                      </div>
                     </div>
+
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,146,0,0.35)", borderRadius: "8px", background: "rgba(255,146,0,0.08)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        AVG PACKAGE
+                      </div>
+                      <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {packageText}
+                      </div>
+                    </div>
+
+                    {(canWrite || canDelete) && (
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap", minWidth: 0 }}>
+                        {canWrite && (
+                          <button
+                            onClick={() => handleEdit(c)}
+                            style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(c.companyId)}
+                            style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
-                    <div style={{ color: "var(--orange)", fontWeight: 600, fontFamily: "var(--font-display)", fontSize: "18px" }}>
-                      {c.packageOffered} LPA
-                    </div>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                      <span style={{ fontSize: "12px", color: "var(--white-60)" }}>Hired: {c.studentsHired ?? "—"}</span>
-                      <Badge>{c.academicSession}</Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {companies.length === 0 && (
                 <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
                   No companies found
@@ -3048,51 +3016,93 @@ const PortalCompanies = ({ user, globalRole, tnpRole }) => {
               )}
             </div>
           ) : (
-            <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-                <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    {["Company", "Industry", "Package", "Hired", "Session", ...(canWrite ? ["Edit"] : []), ...(canDelete ? ["Delete"] : [])].map((h) => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--white-60)", letterSpacing: "0.06em", fontWeight: 500 }}>
-                        {h.toUpperCase()}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {companies.map((c) => (
-                    <tr
-                      key={c.companyId}
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    >
-                      <td style={{ padding: "14px 16px", fontWeight: 500 }}>{c.name}</td>
-                      <td style={{ padding: "14px 16px", color: "var(--white-60)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>{c.industry}</td>
-                      <td style={{ padding: "14px 16px", color: "var(--orange)", fontWeight: 600, fontFamily: "var(--font-display)", fontSize: "16px" }}>{c.packageOffered} LPA</td>
-                      <td style={{ padding: "14px 16px", color: "var(--white-60)" }}>{c.studentsHired ?? "—"}</td>
-                      <td style={{ padding: "14px 16px" }}><Badge>{c.academicSession}</Badge></td>
-                      {canWrite && (
-                        <td style={{ padding: "14px 16px" }}>
-                          <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
-                        </td>
-                      )}
-                      {canDelete && (
-                        <td style={{ padding: "14px 16px" }}>
-                          <button onClick={() => handleDelete(c.companyId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Delete</button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                  {companies.length === 0 && (
-                    <tr>
-                      <td colSpan={5 + (canWrite ? 1 : 0) + (canDelete ? 1 : 0)} style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
-                        No companies found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+              {companies.map((c) => {
+                const packageValue = Number(c.packageOffered);
+                const packageText = Number.isFinite(packageValue) ? `₹${packageValue.toFixed(2)} LPA` : "—";
+                const hiredCount = c.studentsHired ?? "—";
+                return (
+                  <div
+                    key={c.companyId}
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      background: "var(--black-card)",
+                      display: "grid",
+                      gap: "10px",
+                      minWidth: 0,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", minWidth: 0 }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.name || "—"}>
+                          {c.name || "—"}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                          {c.industry || "—"}
+                        </div>
+                      </div>
+                      <Badge>{c.academicSession || "—"}</Badge>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                        <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                          INDUSTRY
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                          {c.industry || "—"}
+                        </div>
+                      </div>
+                      <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                        <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                          STUDENTS HIRED
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {hiredCount}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,146,0,0.35)", borderRadius: "8px", background: "rgba(255,146,0,0.08)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        AVG PACKAGE
+                      </div>
+                      <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {packageText}
+                      </div>
+                    </div>
+
+                    {(canWrite || canDelete) && (
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap", minWidth: 0 }}>
+                        {canWrite && (
+                          <button
+                            onClick={() => handleEdit(c)}
+                            style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(c.companyId)}
+                            style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {companies.length === 0 && (
+                <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", gridColumn: "1 / -1" }}>
+                  No companies found
+                </div>
+              )}
             </div>
           )}
 
@@ -3322,92 +3332,91 @@ const PortalCompanyMaster = ({ user, globalRole, tnpRole }) => {
         <ErrorBox message={error} onRetry={() => load(currentPage)} />
       ) : (
         <>
-          {isMobile ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {companyMasters.map((c) => (
-                <div
-                  key={c.companyMasterId}
-                  style={{ background: "var(--black-card)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px", display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ flexShrink: 0 }}>
-                    {c.logoUrl ? (
-                      <img
-                        src={resolveMediaUrl(c.logoUrl)}
-                        alt={`${c.name} logo`}
-                        loading="lazy"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
-                        style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }}
-                      />
-                    ) : (
-                      <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--white-30)", fontSize: "10px" }}>—</div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
-                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{c.industry || "—"}</div>
-                  </div>
-                  <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-                    {canWriteMaster && (
-                      <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
-                    )}
-                    {canDelete && (
-                      <button onClick={() => handleDelete(c.companyMasterId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Del</button>
-                    )}
+          <div
+            style={
+              isMobile
+                ? { display: "grid", gap: "10px" }
+                : { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }
+            }
+          >
+            {companyMasters.map((c) => (
+              <div
+                key={c.companyMasterId}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  padding: isMobile ? "14px" : "16px",
+                  background: "var(--black-card)",
+                  display: "grid",
+                  gap: "10px",
+                  minWidth: 0,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                    <div style={{ width: "42px", height: "42px", borderRadius: "9px", overflow: "hidden", flexShrink: 0, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}>
+                      {c.logoUrl ? (
+                        <img
+                          src={resolveMediaUrl(c.logoUrl)}
+                          alt={`${c.name} logo`}
+                          loading="lazy"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--white-30)", fontSize: "10px" }}>—</div>
+                      )}
+                    </div>
+
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: isMobile ? "14px" : "15px", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.name || "—"}>
+                        {c.name || "—"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                        {c.industry || "—"}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ))}
-              {companyMasters.length === 0 && (
-                <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>No company master records found</div>
-              )}
-            </div>
-          ) : (
-            <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-                <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    {["Company", "Industry", "Logo", ...(canWriteMaster ? ["Edit"] : []), ...(canDelete ? ["Delete"] : [])].map((h) => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--white-60)", letterSpacing: "0.06em", fontWeight: 500 }}>
-                        {h.toUpperCase()}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {companyMasters.map((c) => (
-                    <tr
-                      key={c.companyMasterId}
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    >
-                      <td style={{ padding: "14px 16px", fontWeight: 500 }}>{c.name}</td>
-                      <td style={{ padding: "14px 16px", color: "var(--white-60)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>{c.industry || "—"}</td>
-                      <td style={{ padding: "14px 16px" }}>
-                        {c.logoUrl ? (
-                          <img src={resolveMediaUrl(c.logoUrl)} alt={`${c.name} logo`} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }} />
-                        ) : <span style={{ color: "var(--white-30)", fontSize: "12px" }}>—</span>}
-                      </td>
-                      {canWriteMaster && (
-                        <td style={{ padding: "14px 16px" }}>
-                          <button onClick={() => handleEdit(c)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer" }}>Edit</button>
-                        </td>
-                      )}
-                      {canDelete && (
-                        <td style={{ padding: "14px 16px" }}>
-                          <button onClick={() => handleDelete(c.companyMasterId)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Delete</button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                  {companyMasters.length === 0 && (
-                    <tr>
-                      <td colSpan={canWriteMaster || canDelete ? 5 : 3} style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>No company master records found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+
+                <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                  <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                    INDUSTRY
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.industry || "—"}>
+                    {c.industry || "—"}
+                  </div>
+                </div>
+
+                {(canWriteMaster || canDelete) && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap", minWidth: 0 }}>
+                    {canWriteMaster && (
+                      <button
+                        onClick={() => handleEdit(c)}
+                        style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--white-60)", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDelete(c.companyMasterId)}
+                        style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {companyMasters.length === 0 && (
+              <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", gridColumn: "1 / -1" }}>
+                No company master records found
+              </div>
+            )}
+          </div>
 
           {totalPages > 1 && (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginTop: "14px" }}>
@@ -3759,72 +3768,109 @@ const PortalPlacements = ({ user, globalRole, tnpRole }) => {
         <ErrorBox message={error} onRetry={() => load(selectedCompanySession, currentPage)} />
       ) : (
         <>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" }}>
+          <div
+            style={
+              isMobile
+                ? { display: "grid", gap: "10px" }
+                : { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px" }
+            }
+          >
             {filtered.map((s) => {
               const imageKey = s.placementId || s.studentPrn;
               const imageSrc = imageKey ? placementImageMap[imageKey] : null;
+              const packageValue = Number(s.packageOffered);
+              const packageText = Number.isFinite(packageValue) ? `₹${packageValue.toFixed(2)} LPA` : "—";
               return (
                 <div
                   key={s.placementId}
                   style={{
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "12px",
+                    padding: isMobile ? "14px" : "16px",
                     background: "var(--black-card)",
-                    padding: isMobile ? "12px 14px" : "16px 20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: isMobile ? "10px" : "16px",
-                    transition: "background 0.15s",
+                    display: "grid",
+                    gap: "10px",
+                    minWidth: 0,
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--black-elevated)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "var(--black-card)")}
                 >
-                  {imageSrc ? (
-                    <img src={imageSrc} alt={s.studentName} style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--orange), #c44d0a)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "12px" }}>
-                      {getInitials(s.studentName)}
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start", minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                      {imageSrc ? (
+                        <img src={imageSrc} alt={s.studentName} style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />
+                      ) : (
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, var(--orange), #c44d0a)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: "12px" }}>
+                          {getInitials(s.studentName)}
+                        </div>
+                      )}
+
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: isMobile ? "14px" : "15px", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {s.studentName || s.studentPrn || "—"}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {s.studentPrn || "—"}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {s.studentName || s.studentPrn}
+
+                    <Badge>{s.academicSession || selectedCompanySession || "—"}</Badge>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        COMPANY
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.companyName || "—"}>
+                        {s.companyName || "—"}
+                      </div>
                     </div>
-                    <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {isMobile ? s.companyName : `${s.studentPrn}${s.department ? ` · ${s.department}` : ""}`}
+
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        ROLE
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.role || "—"}>
+                        {s.role || "—"}
+                      </div>
                     </div>
                   </div>
-                  {!isMobile && (
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontSize: "14px", fontWeight: 500 }}>{s.companyName}</div>
-                      <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{s.role}</div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,146,0,0.35)", borderRadius: "8px", background: "rgba(255,146,0,0.08)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        PACKAGE
+                      </div>
+                      <div style={{ color: "var(--orange)", fontWeight: 600, fontSize: isMobile ? "13px" : "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {packageText}
+                      </div>
                     </div>
-                  )}
-                  <div
-                    style={{
-                      padding: isMobile ? "4px 10px" : "6px 14px",
-                      borderRadius: "4px",
-                      background: "rgba(244,96,12,0.12)",
-                      border: "1px solid var(--orange-border)",
-                      fontFamily: "var(--font-display)",
-                      fontSize: isMobile ? "14px" : "16px",
-                      letterSpacing: "0.04em",
-                      color: "var(--orange)",
-                      flexShrink: 0,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {s.packageOffered} LPA
+
+                    <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", background: "rgba(255,255,255,0.02)", minWidth: 0 }}>
+                      <div style={{ fontSize: "10px", color: "var(--white-60)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        DEPARTMENT
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--white-90)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.department || "—"}>
+                        {s.department || "—"}
+                      </div>
+                    </div>
                   </div>
+
                   {canDeletePlacement && (
-                    <button
-                      onClick={() => handleDelete(s.placementId)}
-                      style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, touchAction: "manipulation" }}
-                    >Del</button>
+                    <div style={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
+                      <button
+                        onClick={() => handleDelete(s.placementId)}
+                        style={{ padding: "7px 12px", borderRadius: "6px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0, touchAction: "manipulation", whiteSpace: "nowrap" }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               );
             })}
             {filtered.length === 0 && (
-              <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
+              <div style={{ padding: "40px", textAlign: "center", color: "var(--white-30)", fontFamily: "var(--font-mono)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", gridColumn: "1 / -1" }}>
                 No placements found
               </div>
             )}
@@ -3953,10 +3999,10 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
   };
 
   const handleDelete = async (prn) => {
-    const ok = await confirm({ title: "Remove member?", message: "This will permanently remove the member from TNP.", confirmText: "Remove", cancelText: "Cancel", variant: "danger" });
+    const ok = await confirm({ title: "Remove member?", message: "This will soft delete the member from TNP.", confirmText: "Remove", cancelText: "Cancel", variant: "danger" });
     if (!ok) return;
     try {
-      await axios.delete(`${BASE_URL}/api/tnp/tr/permanentlyDelete/${prn}`, { headers: authHeaders() });
+      await axios.delete(`${BASE_URL}/api/tnp/tr/softDelete/${prn}`, { headers: authHeaders() });
       load();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to remove");
@@ -4210,15 +4256,15 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
                       {!isMobile && <Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge>}
                     </div>
                     {isMobile && <div style={{ marginBottom: "10px" }}><Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
-                    <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
+                    <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <div style={{ minWidth: 0, flex: "1 1 180px" }}>
                         <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)" }}>{m.department || "—"}</div>
                         <div style={{ fontSize: "11px", color: "var(--white-30)", fontFamily: "var(--font-mono)" }}>
                           {m.startDate ? new Date(m.startDate).getFullYear() : "—"}{m.endDate ? `–${new Date(m.endDate).getFullYear()}` : ""}
                         </div>
                       </div>
                       {canManage && m.role !== "TNP_HEAD" && (
-                        <button onClick={() => handleDelete(m.prn)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>Remove</button>
+                        <button onClick={() => handleDelete(m.prn)} style={{ padding: "4px 10px", borderRadius: "4px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", fontSize: "12px", cursor: "pointer", flexShrink: 0 }}>Remove</button>
                       )}
                     </div>
                   </div>
@@ -4255,8 +4301,8 @@ const PortalMembers = ({ user, globalRole, tnpRole }) => {
                       {!isMobile && <Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge>}
                     </div>
                     {isMobile && <div style={{ marginBottom: "8px" }}><Badge variant="default">{ROLE_LABELS[m.role] || m.role}</Badge></div>}
-                    <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
+                    <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <div style={{ minWidth: 0, flex: "1 1 180px" }}>
                         <div style={{ fontSize: "11px", color: "var(--white-60)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {m.department || "—"}{m.year ? ` · Y${m.year}` : ""}
                         </div>
