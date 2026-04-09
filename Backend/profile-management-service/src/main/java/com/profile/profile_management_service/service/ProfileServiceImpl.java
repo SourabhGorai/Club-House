@@ -53,6 +53,7 @@ public class ProfileServiceImpl implements ProfileService {
     // ========== Core CRUD Operations ==========
 
     @Override
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "profileByPrn", key = "#result.prn"),
             @CacheEvict(value = "publicProfile", key = "#result.prn"),
@@ -82,7 +83,10 @@ public class ProfileServiceImpl implements ProfileService {
                     .getDepartmentById(savedProfile.getDepartmentId());
 
             log.info("Profile created successfully for PRN: {}", savedProfile.getPrn());
-            userValidationService.markProfileCompleted(request.getPrn());
+            if(!userValidationService.markProfileCompleted(request.getPrn())){
+                throw new ExternalServiceException
+                        ("Not able to mark profileCompleted in User-service");
+            }
             return profileMapper.toProfileResponse(savedProfile, deptName.getName());
 
         } catch (DataIntegrityViolationException ex) {

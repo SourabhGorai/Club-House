@@ -10,6 +10,7 @@ import com.userservice.model.User;
 import com.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -34,8 +35,10 @@ public class UserService {
     /**
      * Register user - evicts all user list cache since new user is added
      */
+    @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public UserDto registerUser(UserCreateDto dto) {
+
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username already taken");
         }
@@ -44,17 +47,51 @@ public class UserService {
         }
 
         User user = mapper.toEntity(dto);
-        if (user.getRole() == null) {
+        if (user.getRole() == null || user.getRole() == Role.USERS) {
             user.setRole(Role.USERS);
+        }else if(user.getRole() == Role.FACULTY){
+            throw new RuntimeException
+                    ("Contact SUPER ADMIN to change role from USERS to FACULTY");
         }
+        else if(user.getRole() == Role.SUPER_ADMIN){
+            throw new RuntimeException
+                    ("Contact SUPER ADMIN to create new SUPER ADMIN user.");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerified(false);
         User saved = userRepository.save(user);
 
-        // generate OTP and send email (registration verification)
         otpService.generateAndSendOtpForUser(saved);
 
         return mapper.toDto(saved);
+    }
+
+    @Transactional
+    @CacheEvict(value = "users", allEntries = true)
+    public UserDto registerAdmin(UserCreateDto dto, String requesterRole) {
+        log.info("Attempting to register new SUPER_DMIN");
+
+        if (!requesterRole.equals("SUPER_ADMIN")) {
+            log.warn("Unauthorized attempt to create ADMIN by role: {}", requesterRole);
+            throw new ServiceException("You are not authorized to create an SUPER_ADMIN");
+        }
+
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("Username already taken");
+        }
+
+        User user = mapper.toEntity(dto);
+        if (user.getRole() == null) {
+            user.setRole(Role.USERS);
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setVerified(false);
+        User saved = userRepository.save(user);
+
+        otpService.generateAndSendOtpForUser(saved);
+        return mapper.toDto(user);
     }
 
     /**

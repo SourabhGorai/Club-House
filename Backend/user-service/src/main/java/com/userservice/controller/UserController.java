@@ -1,13 +1,16 @@
 package com.userservice.controller;
 
 
+import com.userservice.dto.ApiResponse;
 import com.userservice.dto.UserDto;
 import com.userservice.dto.UserUpdateDto;
 import com.userservice.model.Role;
-import com.userservice.model.User;
+import com.userservice.security.JwtUtil;
 import com.userservice.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,84 +24,97 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
-    // GET /api/users/    -> list all users
     @GetMapping("/")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
+        return ResponseEntity.ok(ApiResponse.success("Users fetched successfully", users));
     }
 
-    // GET /api/users/{id}
     @GetMapping("/{prn}")
-    public ResponseEntity<UserDto> getUser(@PathVariable String prn) {
+    public ResponseEntity<ApiResponse<UserDto>> getUser(@PathVariable String prn) {
         UserDto dto = userService.getUserByPrn(prn);
-        if (dto == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(dto);
+
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found with PRN: " + prn, "USER_NOT_FOUND"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success("User fetched successfully", dto));
     }
 
-
-    // PUT /api/users/{id} -> update (password/email/role optional)
     @PutMapping("/{prn}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable String prn, @RequestBody UserUpdateDto dto) {
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(
+            @PathVariable String prn,
+            @RequestBody UserUpdateDto dto) {
         try {
             UserDto updated = userService.updateUser(prn, dto);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(ApiResponse.success("User updated successfully", updated));
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found with PRN: " + prn, "USER_NOT_FOUND"));
         }
     }
 
-    // DELETE /api/users/{id}
     @Transactional
     @DeleteMapping("/{prn}")
-    public ResponseEntity<?> deleteUser(@PathVariable String prn) {
+    public ResponseEntity<ApiResponse<Void>> permanentlyDeleteUser(@PathVariable String prn) {
         try {
             userService.deleteUser(prn);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(ApiResponse.success("User deleted successfully"));
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("User not found with PRN: " + prn, "USER_NOT_FOUND"));
         }
     }
 
     @GetMapping("/validate/{prn}")
-    public Boolean validateUser(@PathVariable String prn){
-        try{
-            return userService.validate(prn);
-        }catch(NotFoundException e){
+    public ResponseEntity<ApiResponse<Boolean>> validateUser(@PathVariable String prn) {
+        try {
+            boolean valid = userService.validate(prn);
+            return ResponseEntity.ok(ApiResponse.success(
+                    "User validation result", valid));
+        } catch (NotFoundException e) {
             log.info("User with PRN {} does not exist", prn);
-            return false;
+            return ResponseEntity.ok(ApiResponse.success(
+                    "User not found", false));
         }
     }
 
     @PutMapping("/changeRole/{prn}/{role}")
-    public ResponseEntity<UserDto> changeRole(
+    public ResponseEntity<ApiResponse<UserDto>> changeRole(
             @PathVariable String prn,
             @PathVariable Role role
     ) {
         log.debug("Request received to change role of prn {}", prn);
-        UserDto resp = userService.changeRole(prn, role);
-        return ResponseEntity.ok(resp);
+        UserDto updated = userService.changeRole(prn, role);
+        return ResponseEntity.ok(ApiResponse.success(
+                "Role updated successfully", updated));
     }
 
     @PutMapping("/changeEmail/{prn}/{email}")
-    public ResponseEntity<UserDto> changeEmail(
+    public ResponseEntity<ApiResponse<UserDto>> changeEmail(
             @PathVariable String prn,
             @PathVariable String email
     ) {
         log.info("Request received to change email for prn: {}", prn);
-        UserDto resp = userService.changeEmail(prn, email);
-        return ResponseEntity.ok(resp);
+        UserDto updated = userService.changeEmail(prn, email);
+        return ResponseEntity.ok(ApiResponse.success("Email updated successfully", updated));
     }
 
     @PatchMapping("/markProfileCompletedTrue/{prn}")
-    public ResponseEntity<Boolean> markCompleteProfile(@PathVariable String prn){
+    public ResponseEntity<ApiResponse<Boolean>> markCompleteProfile(
+            @PathVariable String prn
+    ) {
         log.debug("Request received to mark profileCompleted status true for prn: {}", prn);
-        Boolean resp = userService.markProfileComplete(prn);
-        return ResponseEntity.ok(resp);
+        Boolean result = userService.markProfileComplete(prn);
+        return ResponseEntity.ok(ApiResponse.success("Profile marked as complete", result));
     }
 }

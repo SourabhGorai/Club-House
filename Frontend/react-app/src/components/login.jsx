@@ -550,18 +550,20 @@ export default function Login() {
     setIsLoading(true);
     try {
       const response = await axios.post(`${API_BASE}/api/auth/login`, form);
+      const responseBody = response.data;
+      const authData = responseBody?.data ?? responseBody;
 
-      console.log("Response:", response.data);
+      console.log("Response:", responseBody);
 
-      if (response.data && response.data.token && response.data.user) {
+      if (authData?.token && authData?.user) {
         console.log("Login successful ✔");
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(authData.user));
+        localStorage.setItem("token", authData.token);
         window.location.href = "/dashboard";
       } else {
         showDialog({
           title: "Login Failed",
-          message: "Invalid username or password!",
+          message: responseBody?.message || "Invalid username or password!",
           variant: "danger",
         });
       }
