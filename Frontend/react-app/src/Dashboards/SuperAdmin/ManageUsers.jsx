@@ -1018,12 +1018,18 @@ const UserManagement = () => {
                                   <Phone className="w-4 h-4 text-[#FB923C]" />
                                   <span>{profile?.phoneNumber || "No contact info"}</span>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <BookOpen className="w-4 h-4 text-white/90" />
-                                  <span>{profile?.department || "—"}</span>
-                                  <Calendar className="w-4 h-4 ml-4 text-white/90" />
-                                  <span>Year: {profile?.year || "—"}</span>
-                                </div>
+                                {userItem.role !== "SUPER_ADMIN" && (
+                                  <div className="flex items-center gap-3">
+                                    <BookOpen className="w-4 h-4 text-white/90" />
+                                    <span>{profile?.department || "—"}</span>
+                                    {userItem.role !== "FACULTY" && (
+                                      <>
+                                        <Calendar className="w-4 h-4 ml-4 text-white/90" />
+                                        <span>Year: {profile?.year || "—"}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                                 <div className="flex items-center gap-3 pt-2">
                                   <Briefcase className="w-4 h-4 text-white/90" />
                                   <span className="px-3 py-1 text-xs rounded-full bg-white font-semibold" style={{ color: "#4CA1AF" }}>
